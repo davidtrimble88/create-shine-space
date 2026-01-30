@@ -4,27 +4,27 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system - Light theme with orange/gold accents matching logo */
+/* Definition of the design system - Dark theme with orange/gold accents matching logo */
 
 @layer base {
   :root {
-    --background: 40 30% 97%;
-    --foreground: 30 10% 15%;
+    --background: 30 15% 10%;
+    --foreground: 40 20% 95%;
 
-    --card: 40 20% 99%;
-    --card-foreground: 30 10% 15%;
+    --card: 30 15% 14%;
+    --card-foreground: 40 20% 95%;
 
-    --popover: 40 20% 99%;
-    --popover-foreground: 30 10% 15%;
+    --popover: 30 15% 12%;
+    --popover-foreground: 40 20% 95%;
 
-    --primary: 30 10% 15%;
-    --primary-foreground: 40 30% 97%;
+    --primary: 40 20% 95%;
+    --primary-foreground: 30 15% 10%;
 
-    --secondary: 40 20% 92%;
-    --secondary-foreground: 30 10% 25%;
+    --secondary: 30 12% 20%;
+    --secondary-foreground: 40 20% 90%;
 
-    --muted: 40 15% 90%;
-    --muted-foreground: 30 8% 45%;
+    --muted: 30 12% 20%;
+    --muted-foreground: 40 10% 60%;
 
     --accent: 36 95% 50%;
     --accent-foreground: 0 0% 0%;
@@ -32,19 +32,19 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 20% 85%;
-    --input: 40 20% 85%;
+    --border: 30 12% 22%;
+    --input: 30 12% 22%;
     --ring: 36 95% 50%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 40 25% 95%;
-    --sidebar-foreground: 30 10% 15%;
+    --sidebar-background: 30 15% 8%;
+    --sidebar-foreground: 40 20% 95%;
     --sidebar-primary: 36 95% 50%;
     --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 40 20% 88%;
-    --sidebar-accent-foreground: 30 10% 15%;
-    --sidebar-border: 40 20% 85%;
+    --sidebar-accent: 30 12% 18%;
+    --sidebar-accent-foreground: 40 20% 95%;
+    --sidebar-border: 30 12% 22%;
     --sidebar-ring: 36 95% 50%;
   }
 
