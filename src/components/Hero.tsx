@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Award, Users } from "lucide-react";
+import { ArrowRight, Shield, Users } from "lucide-react";
 import heroImage from "@/assets/hero-motorcycle.jpg";
+import cmspLogo from "@/assets/cmsp-logo.png";
 
 const Hero = () => {
   return (
@@ -69,18 +70,19 @@ const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex flex-wrap gap-6"
+            className="flex flex-wrap items-center gap-6"
           >
-            {[
-              { icon: Shield, text: "DMV Waiver" },
-              { icon: Award, text: "CMSP Certified" },
-              { icon: Users, text: "10,000+ Trained" },
-            ].map((badge, index) => (
-              <div key={index} className="flex items-center gap-2 text-muted-foreground">
-                <badge.icon className="w-5 h-5 text-accent" />
-                <span className="text-sm font-medium">{badge.text}</span>
-              </div>
-            ))}
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Shield className="w-5 h-5 text-accent" />
+              <span className="text-sm font-medium">DMV Waiver</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <img src={cmspLogo} alt="CMSP Certified" className="h-12 w-auto" />
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Users className="w-5 h-5 text-accent" />
+              <span className="text-sm font-medium">10,000+ Trained</span>
+            </div>
           </motion.div>
         </div>
       </div>
