@@ -16,8 +16,8 @@ const Footer = () => {
             viewport={{ once: true }}
             className="md:col-span-1"
           >
-            <h3 className="text-2xl font-bold mb-4">
-              <span className="text-gradient">Learn to Ride</span>
+          <h3 className="text-2xl font-bold mb-4">
+              <span className="text-accent">Learn to Ride</span>
               <span className="text-foreground"> VC</span>
             </h3>
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
