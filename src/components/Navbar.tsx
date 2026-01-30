@@ -15,15 +15,16 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <a href="#" className="flex items-center gap-2">
-            <span className="text-2xl font-bold">
-              <span className="text-accent">Learn to Ride</span>
-              <span className="text-foreground"> VC</span>
-            </span>
+          <a href="#" className="flex items-center">
+            <img 
+              src="https://www.learntoridevc.com/wp-content/uploads/2019/08/Learn-to-Ride-VC-logo-retina.png" 
+              alt="Learn to Ride VC" 
+              className="h-14 w-auto"
+            />
           </a>
 
           {/* Desktop Navigation */}
