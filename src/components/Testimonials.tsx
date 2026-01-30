@@ -99,7 +99,7 @@ const Testimonials = () => {
         >
           {[
             { number: "10,000+", label: "Riders Trained" },
-            { number: "15+", label: "Years Experience" },
+            { number: "25+", label: "Years Experience" },
             { number: "98%", label: "Pass Rate" },
             { number: "4.9/5", label: "Average Rating" }
           ].map((stat, index) => (
