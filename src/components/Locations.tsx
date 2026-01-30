@@ -13,10 +13,10 @@ const locations = [
   },
   {
     name: "Ventura County",
-    address: "Ventura, CA",
+    address: "Somis, CA",
     phone: "(760) 403-8091",
     hours: "Sat-Sun: 7:00 AM - 5:00 PM",
-    mapLink: "https://maps.google.com/?q=Ventura,CA",
+    mapLink: "https://maps.google.com/?q=Somis,CA",
     description: "Coastal location with perfect riding conditions and scenic surroundings.",
   },
 ];
