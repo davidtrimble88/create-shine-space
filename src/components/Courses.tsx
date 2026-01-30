@@ -6,7 +6,7 @@ const courses = [
   {
     name: "Basic Rider Course",
     subtitle: "Perfect for beginners",
-    price: "$350",
+    price: "$425",
     duration: "2 Days (Weekend)",
     features: [
       "No experience required",
