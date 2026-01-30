@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 const locations = [
   {
     name: "High Desert",
-    address: "Victorville, CA",
+    address: "Hesperia & Wrightwood, CA",
     phone: "(760) 403-8091",
     hours: "Sat-Sun: 7:00 AM - 5:00 PM",
-    mapLink: "https://maps.google.com/?q=Victorville,CA",
-    description: "Spacious training facility with excellent weather conditions year-round.",
+    mapLink: "https://maps.google.com/?q=Hesperia,CA",
+    description: "Training site rotates between locations based on optimal weather conditions.",
   },
   {
     name: "Ventura County",
