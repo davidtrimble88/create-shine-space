@@ -11,7 +11,7 @@ const Hero = () => {
         <img
           src={heroImage}
           alt="Motorcycle riding"
-          className="w-full h-full object-cover opacity-40"
+          className="w-full h-full object-cover opacity-60"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/60" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50" />
