@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Facebook, Instagram, Youtube, MapPin, Phone, Mail } from "lucide-react";
 import cmspLogo from "@/assets/cmsp-logo.png";
+import logo from "@/assets/logo.png";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -17,10 +18,7 @@ const Footer = () => {
             viewport={{ once: true }}
             className="md:col-span-1"
           >
-          <h3 className="text-2xl font-bold mb-4">
-              <span className="text-accent">Learn to Ride</span>
-              <span className="text-foreground"> VC</span>
-            </h3>
+            <img src={logo} alt="Learn to Ride VC" className="h-16 mb-4" />
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
               California's premier motorcycle training school. CMSP certified instruction 
               for riders of all skill levels.
