@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Facebook, Instagram, Youtube, MapPin, Phone, Mail } from "lucide-react";
+import cmspLogo from "@/assets/cmsp-logo.png";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -133,11 +134,12 @@ const Footer = () => {
                 Terms of Service
               </a>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-sm text-muted-foreground">CMSP Certified</span>
               <img 
-                src="https://www.chp.ca.gov/images/Programs/CMSP/CMSP_Logo.gif" 
-                alt="CMSP Certified" 
-                className="h-10 opacity-70"
+                src={cmspLogo}
+                alt="California Motorcyclist Safety Program" 
+                className="h-16"
               />
             </div>
           </div>
