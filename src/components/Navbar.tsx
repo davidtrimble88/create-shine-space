@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 const navLinks = [
   { name: "Home", href: "#" },
@@ -21,7 +22,7 @@ const Navbar = () => {
           {/* Logo */}
           <a href="#" className="flex items-center">
             <img 
-              src="https://www.learntoridevc.com/wp-content/uploads/2019/08/Learn-to-Ride-VC-logo-retina.png" 
+              src={logo} 
               alt="Learn to Ride VC" 
               className="h-14 w-auto"
             />
