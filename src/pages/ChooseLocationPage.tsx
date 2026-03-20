@@ -26,6 +26,10 @@ const locations = [
 ];
 
 const ChooseLocationPage = () => {
+  const [searchParams] = useSearchParams();
+  const course = searchParams.get("course") || "basic";
+  const filteredLocations = course === "basic" ? locations : locations.filter(l => l.id === "ventura-county");
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
