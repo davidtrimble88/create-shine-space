@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Award, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-motorcycle.jpg";
 
 const Hero = () => {
@@ -59,9 +60,11 @@ const Hero = () => {
               Start Your Journey
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button size="lg" variant="heroOutline" className="text-lg px-8">
-              View Courses
-            </Button>
+            <Link to="/courses">
+              <Button size="lg" variant="heroOutline" className="text-lg px-8">
+                View Courses
+              </Button>
+            </Link>
           </motion.div>
 
           {/* Trust badges */}
