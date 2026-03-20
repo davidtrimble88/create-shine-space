@@ -258,6 +258,11 @@ const RegisterPage = () => {
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
+                          {dateOfBirth && (
+                            <p className="text-xs text-accent font-medium mt-1">
+                              {isUnder21 ? "Under 21" : "21 and over"} · Fee: {fee}
+                            </p>
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
