@@ -262,7 +262,6 @@ const RegisterPage = () => {
                               type="date"
                               value={field.value}
                               onChange={(e) => {
-                                console.log("DOB onChange fired:", e.target.value);
                                 field.onChange(e.target.value);
                               }}
                               onBlur={field.onBlur}
