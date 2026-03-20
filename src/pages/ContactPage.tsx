@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Phone, Mail, MapPin, Clock, Instagram, Facebook, Youtube } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, Instagram, Facebook } from "lucide-react";
 
 const contactMethods = [
   {
@@ -46,12 +46,6 @@ const socialLinks = [
     icon: Facebook,
     name: "Facebook",
     href: "https://www.facebook.com/people/Learn-to-Ride-VC/100063684781788/",
-    handle: "Learn to Ride VC",
-  },
-  {
-    icon: Youtube,
-    name: "YouTube",
-    href: "https://www.youtube.com/@learntoridevc",
     handle: "Learn to Ride VC",
   },
 ];
