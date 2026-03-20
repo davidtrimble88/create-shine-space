@@ -82,7 +82,7 @@ const ChooseCoursePage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                 >
-                  <Link to="/choose-location" className="block h-full">
+                  <Link to={`/choose-location?course=${course.id}`} className="block h-full">
                     <div
                       className={`relative h-full bg-gradient-to-b ${course.color} border ${course.borderColor} rounded-2xl p-8 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group cursor-pointer`}
                     >

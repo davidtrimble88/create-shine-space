@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { MapPin, ArrowRight, Mountain, Waves } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 const locations = [
   {
@@ -27,6 +26,10 @@ const locations = [
 ];
 
 const ChooseLocationPage = () => {
+  const [searchParams] = useSearchParams();
+  const course = searchParams.get("course") || "basic";
+  const filteredLocations = course === "basic" ? locations : locations.filter(l => l.id === "ventura-county");
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -51,8 +54,8 @@ const ChooseLocationPage = () => {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {locations.map((loc, i) => {
+          <div className={`grid ${filteredLocations.length > 1 ? 'md:grid-cols-2' : 'md:grid-cols-1 max-w-lg'} gap-8 max-w-4xl mx-auto`}>
+            {filteredLocations.map((loc, i) => {
               const Icon = loc.icon;
               return (
                 <motion.div
