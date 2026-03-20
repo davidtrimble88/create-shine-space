@@ -502,7 +502,7 @@ const RegisterPage = () => {
 
                 <div className="text-center">
                   <Button type="submit" variant="hero" size="lg" className="px-12">
-                    Submit Registration
+                    Continue to Payment Method
                   </Button>
                 </div>
               </form>
