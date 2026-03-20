@@ -51,7 +51,7 @@ const Footer = () => {
                 { name: "Courses", href: "/#courses" },
                 { name: "Locations", href: "/#locations" },
                 { name: "About Us", href: "/about" },
-                { name: "Contact", href: "/#contact" },
+                { name: "Contact", href: "/contact" },
               ].map((link) => (
                 <li key={link.name}>
                   <a href={link.href} className="text-muted-foreground hover:text-accent transition-colors text-sm">

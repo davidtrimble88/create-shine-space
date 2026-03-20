@@ -10,7 +10,7 @@ const navLinks = [
   { name: "Courses", href: "/#courses", isRoute: false },
   { name: "Locations", href: "/#locations", isRoute: false },
   { name: "About", href: "/about", isRoute: true },
-  { name: "Contact", href: "/#contact", isRoute: false },
+  { name: "Contact", href: "/contact", isRoute: true },
 ];
 
 const Navbar = () => {
