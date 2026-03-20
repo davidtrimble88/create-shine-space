@@ -66,15 +66,13 @@ const Footer = () => {
             <h4 className="font-semibold text-foreground mb-4">Our Courses</h4>
             <ul className="space-y-3">
               {[
-                "Basic Rider Course",
-                "Intermediate Course",
-                "3-Wheel Basic Course",
-                "Private Lessons",
-                "Group Bookings"
+                { name: "Basic Rider Course", link: "/courses?tab=basic" },
+                { name: "Intermediate Course", link: "/courses?tab=intermediate" },
+                { name: "Advanced Riding Clinic", link: "/courses?tab=advanced" },
               ].map((course) => (
-                <li key={course}>
-                  <a href="#" className="text-muted-foreground hover:text-accent transition-colors text-sm">
-                    {course}
+                <li key={course.name}>
+                  <a href={course.link} className="text-muted-foreground hover:text-accent transition-colors text-sm">
+                    {course.name}
                   </a>
                 </li>
               ))}
