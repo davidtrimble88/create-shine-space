@@ -242,7 +242,7 @@ const About = () => {
                 <img
                   src={larryImg}
                   alt="Larry Missman - Owner of Learn to Ride VC"
-                  className="w-full h-[500px] object-cover object-top"
+                  className="w-full h-[500px] object-contain object-top"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
               </div>
