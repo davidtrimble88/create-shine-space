@@ -258,7 +258,17 @@ const RegisterPage = () => {
                         <FormItem>
                           <FormLabel>Date of Birth *</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} />
+                            <Input
+                              type="date"
+                              value={field.value}
+                              onChange={(e) => {
+                                console.log("DOB onChange fired:", e.target.value);
+                                field.onChange(e.target.value);
+                              }}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
                           </FormControl>
                           {dateOfBirth && (
                             <p className="text-xs text-accent font-medium mt-1">
