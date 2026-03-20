@@ -39,13 +39,13 @@ const socialLinks = [
   {
     icon: Instagram,
     name: "Instagram",
-    href: "https://www.instagram.com/learntoridevc",
+    href: "https://www.instagram.com/learntoridevc/",
     handle: "@learntoridevc",
   },
   {
     icon: Facebook,
     name: "Facebook",
-    href: "https://www.facebook.com/learntoridevc",
+    href: "https://www.facebook.com/people/Learn-to-Ride-VC/100063684781788/",
     handle: "Learn to Ride VC",
   },
   {
