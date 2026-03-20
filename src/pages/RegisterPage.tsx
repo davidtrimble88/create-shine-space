@@ -121,7 +121,7 @@ const RegisterPage = () => {
   };
 
   const dateOfBirth = useWatch({ control: form.control, name: "dateOfBirth" });
-  console.log("DOB value:", dateOfBirth);
+  
 
   const age = dateOfBirth
     ? (() => {
