@@ -62,7 +62,7 @@ const ChooseCoursePage = () => {
             className="text-center mb-16"
           >
             <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
-              Step 2 of 3
+              Step 1 of 3
             </span>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Choose Your <span className="text-accent">Course</span>
@@ -82,7 +82,7 @@ const ChooseCoursePage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                 >
-                  <Link to={`/courses?tab=${course.id}`} className="block h-full">
+                  <Link to="/choose-location" className="block h-full">
                     <div
                       className={`relative h-full bg-gradient-to-b ${course.color} border ${course.borderColor} rounded-2xl p-8 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group cursor-pointer`}
                     >
