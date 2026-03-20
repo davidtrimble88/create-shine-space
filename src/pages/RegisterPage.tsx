@@ -93,6 +93,7 @@ const RegisterPage = () => {
 
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
+    mode: "onChange",
     defaultValues: {
       firstName: "",
       lastName: "",
