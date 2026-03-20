@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useSearchParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -120,7 +120,8 @@ const RegisterPage = () => {
     });
   };
 
-  const dateOfBirth = form.watch("dateOfBirth");
+  const dateOfBirth = useWatch({ control: form.control, name: "dateOfBirth" });
+  console.log("DOB value:", dateOfBirth);
 
   const age = dateOfBirth
     ? (() => {
