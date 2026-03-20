@@ -43,7 +43,6 @@ const registrationSchema = z.object({
   issuingCountry: z.string().trim().min(1, "Issuing country is required").max(50),
   issuingState: z.string().trim().min(1, "Issuing state is required").max(50),
   licenseExpiration: z.string().min(1, "License expiration date is required"),
-  ageGroup: z.enum(["21-and-over", "under-21"], { required_error: "Please select your age group" }),
   referralSource: z.string().min(1, "Please select how you found us"),
   agreement: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
@@ -120,8 +119,21 @@ const RegisterPage = () => {
     });
   };
 
-  const selectedAgeGroup = form.watch("ageGroup");
-  const fee = selectedAgeGroup === "under-21" ? "$395" : "$425";
+  const dateOfBirth = form.watch("dateOfBirth");
+
+  const age = dateOfBirth
+    ? (() => {
+        const today = new Date();
+        const birth = new Date(dateOfBirth);
+        let a = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) a--;
+        return a;
+      })()
+    : null;
+
+  const isUnder21 = age !== null && age < 21;
+  const fee = isUnder21 ? "$395" : "$425";
 
   return (
     <div className="min-h-screen bg-background">
@@ -406,39 +418,20 @@ const RegisterPage = () => {
                 <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
                   <h2 className="text-xl font-bold text-foreground mb-6">Fee & Additional Info</h2>
 
-                  <FormField
-                    control={form.control}
-                    name="ageGroup"
-                    render={({ field }) => (
-                      <FormItem className="mb-6">
-                        <FormLabel>Age Group *</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex gap-6 mt-2"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="21-and-over" id="21-and-over" />
-                              <Label htmlFor="21-and-over">21 and over — $425</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="under-21" id="under-21" />
-                              <Label htmlFor="under-21">Under 21 — $395</Label>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                  <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mb-6 text-center">
+                    {dateOfBirth ? (
+                      <>
+                        <span className="text-sm text-muted-foreground">
+                          {isUnder21 ? "Under 21" : "21 and over"} · Course Fee:{" "}
+                        </span>
+                        <span className="text-lg font-bold text-accent">{fee}</span>
+                      </>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        Enter your date of birth to calculate the fee
+                      </span>
                     )}
-                  />
-
-                  {selectedAgeGroup && (
-                    <div className="bg-accent/10 border border-accent/20 rounded-lg p-3 mb-6 text-center">
-                      <span className="text-sm text-muted-foreground">Course Fee: </span>
-                      <span className="text-lg font-bold text-accent">{fee}</span>
-                    </div>
-                  )}
+                  </div>
 
                   <FormField
                     control={form.control}
