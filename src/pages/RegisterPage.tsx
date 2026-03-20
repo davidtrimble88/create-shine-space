@@ -120,8 +120,21 @@ const RegisterPage = () => {
     });
   };
 
-  const selectedAgeGroup = form.watch("ageGroup");
-  const fee = selectedAgeGroup === "under-21" ? "$395" : "$425";
+  const dateOfBirth = form.watch("dateOfBirth");
+
+  const age = dateOfBirth
+    ? (() => {
+        const today = new Date();
+        const birth = new Date(dateOfBirth);
+        let a = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) a--;
+        return a;
+      })()
+    : null;
+
+  const isUnder21 = age !== null && age < 21;
+  const fee = isUnder21 ? "$395" : "$425";
 
   return (
     <div className="min-h-screen bg-background">
