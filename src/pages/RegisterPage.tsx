@@ -43,7 +43,7 @@ const registrationSchema = z.object({
   issuingCountry: z.string().trim().min(1, "Issuing country is required").max(50),
   issuingState: z.string().trim().min(1, "Issuing state is required").max(50),
   licenseExpiration: z.string().min(1, "License expiration date is required"),
-  ageGroup: z.enum(["21-and-over", "under-21"], { required_error: "Please select your age group" }),
+  referralSource: z.string().min(1, "Please select how you found us"),
   referralSource: z.string().min(1, "Please select how you found us"),
   agreement: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
