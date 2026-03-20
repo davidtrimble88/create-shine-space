@@ -181,7 +181,7 @@ const About = () => {
                 <img
                   src={award2015}
                   alt="2015 Best Outreach Award for Service Excellence"
-                  className="w-full h-72 object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-72 object-contain group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
                 <div className="absolute bottom-4 left-4">
