@@ -44,7 +44,6 @@ const registrationSchema = z.object({
   issuingState: z.string().trim().min(1, "Issuing state is required").max(50),
   licenseExpiration: z.string().min(1, "License expiration date is required"),
   referralSource: z.string().min(1, "Please select how you found us"),
-  referralSource: z.string().min(1, "Please select how you found us"),
   agreement: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
