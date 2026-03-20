@@ -7,8 +7,8 @@ import {
   Gauge, Eye, Route, AlertTriangle, Bike, ChevronDown, Star,
   Target, Zap, Brain, FileCheck, BadgeCheck, GraduationCap, Phone
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 import cmspLogo from "@/assets/cmsp-logo.jpg";
 import basicRiders from "@/assets/basic-riders.jpg";
@@ -462,7 +462,9 @@ const AdvancedCourse = () => (
 );
 
 const CoursesPage = () => {
-  const [activeTab, setActiveTab] = useState<TabId>("basic");
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as TabId) || "basic";
+  const [activeTab, setActiveTab] = useState<TabId>(tabs.some(t => t.id === initialTab) ? initialTab : "basic");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
