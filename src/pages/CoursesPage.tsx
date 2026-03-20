@@ -462,7 +462,9 @@ const AdvancedCourse = () => (
 );
 
 const CoursesPage = () => {
-  const [activeTab, setActiveTab] = useState<TabId>("basic");
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as TabId) || "basic";
+  const [activeTab, setActiveTab] = useState<TabId>(tabs.some(t => t.id === initialTab) ? initialTab : "basic");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
