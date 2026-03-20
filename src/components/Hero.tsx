@@ -44,10 +44,10 @@ const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl text-muted-foreground mb-8 max-w-2xl"
+            className="text-xl text-foreground/80 mb-8 max-w-2xl leading-relaxed"
           >
-            CMSP certified courses designed to transform beginners into confident riders. 
-            Skip the DMV test and ride with skill, safety, and freedom.
+            <span className="font-semibold text-accent">CMSP certified courses</span> designed to transform beginners into confident riders.
+            {" "}Skip the DMV test and ride with <span className="font-semibold">skill</span>, <span className="font-semibold">safety</span>, and <span className="font-semibold">freedom</span>.
           </motion.p>
 
           <motion.div
