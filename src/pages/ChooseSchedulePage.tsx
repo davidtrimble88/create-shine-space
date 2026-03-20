@@ -2,10 +2,12 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { CalendarDays } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const ChooseSchedulePage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const course = searchParams.get("course") || "basic";
   const location = searchParams.get("location") || "ventura-county";
 
@@ -18,6 +20,10 @@ const ChooseSchedulePage = () => {
   const locationLabels: Record<string, string> = {
     "high-desert": "High Desert — Hesperia & Wrightwood",
     "ventura-county": "Ventura County — Somis",
+  };
+
+  const handleTempScheduleSelect = () => {
+    navigate(`/register?course=${course}&location=${location}&schedule=2026-04-04`);
   };
 
   return (
@@ -34,7 +40,7 @@ const ChooseSchedulePage = () => {
             className="text-center mb-16"
           >
             <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
-              Step 3 of 3
+              Step 3 of 4
             </span>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Pick Your <span className="text-accent">Schedule</span>
@@ -67,6 +73,12 @@ const ChooseSchedulePage = () => {
               >
                 Call (760) 403-8091
               </a>
+              <div className="mt-8 pt-6 border-t border-border">
+                <p className="text-xs text-muted-foreground mb-3 italic">Temporary — for testing only</p>
+                <Button variant="hero" size="lg" onClick={handleTempScheduleSelect}>
+                  Simulate Schedule Selection →
+                </Button>
+              </div>
             </div>
           </motion.div>
         </div>
