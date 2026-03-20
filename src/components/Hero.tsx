@@ -60,9 +60,11 @@ const Hero = () => {
               Start Your Journey
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button size="lg" variant="heroOutline" className="text-lg px-8">
-              View Courses
-            </Button>
+            <Link to="/courses">
+              <Button size="lg" variant="heroOutline" className="text-lg px-8">
+                View Courses
+              </Button>
+            </Link>
           </motion.div>
 
           {/* Trust badges */}
