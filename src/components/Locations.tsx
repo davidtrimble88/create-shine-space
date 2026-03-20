@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MapPin, Phone, Clock, Navigation } from "lucide-react";
+import { MapPin, Phone, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const locations = [
@@ -81,9 +81,9 @@ const Locations = () => {
               </div>
 
               <Button variant="heroOutline" className="w-full group" asChild>
-                <a href={location.mapLink} target="_blank" rel="noopener noreferrer">
-                  <Navigation className="w-4 h-4 mr-2" />
-                  Get Directions
+                <a href="/choose-course">
+                  <ArrowRight className="w-4 h-4 mr-2" />
+                  Book Now
                 </a>
               </Button>
             </motion.div>
