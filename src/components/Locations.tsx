@@ -51,7 +51,7 @@ const Locations = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="bg-background border border-border rounded-2xl p-8 hover:border-accent/50 transition-all duration-300"
+              className="bg-background border border-border rounded-2xl p-8 hover:border-accent/50 transition-all duration-300 flex flex-col"
             >
               <div className="flex items-start justify-between mb-6">
                 <div>
