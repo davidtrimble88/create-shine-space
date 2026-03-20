@@ -142,7 +142,7 @@ const ContactPage = () => {
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
               Follow <span className="text-accent">Us</span>
             </h2>
-            <div className="grid sm:grid-cols-3 gap-6">
+            <div className="flex flex-wrap justify-center gap-6">
               {socialLinks.map((social, i) => {
                 const Icon = social.icon;
                 return (
