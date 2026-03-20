@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 
 const locations = [
   {
-    name: "High Desert",
+    name: "High Desert — Hesperia & Wrightwood",
     address: "Hesperia & Wrightwood, CA",
     phone: "(760) 403-8091",
     hours: "Sat-Sun: 7:00 AM - 5:00 PM",
     mapLink: "https://maps.google.com/?q=Hesperia,CA",
-    description: "Training site rotates between locations based on optimal weather conditions.",
+    description: "Training site rotates between Hesperia and Wrightwood based on seasonal weather conditions.",
   },
   {
     name: "Ventura County",
