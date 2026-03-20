@@ -30,15 +30,19 @@ const ContactCTA = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" className="hero group text-lg px-8">
-              <Calendar className="w-5 h-5 mr-2" />
-              Book Your Course
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button size="lg" variant="heroOutline" className="text-lg px-8">
-              <Phone className="w-5 h-5 mr-2" />
-              Call Us Now
-            </Button>
+            <Link to="/choose-course">
+              <Button size="lg" className="hero group text-lg px-8">
+                <Calendar className="w-5 h-5 mr-2" />
+                Book Your Course
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link to="/contact">
+              <Button size="lg" variant="heroOutline" className="text-lg px-8">
+                <Phone className="w-5 h-5 mr-2" />
+                Contact Us
+              </Button>
+            </Link>
           </div>
 
           {/* Contact cards */}
