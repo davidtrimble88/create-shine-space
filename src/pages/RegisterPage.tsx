@@ -121,7 +121,7 @@ const RegisterPage = () => {
   };
 
   const dateOfBirth = useWatch({ control: form.control, name: "dateOfBirth" });
-  console.log("DOB value:", dateOfBirth);
+  
 
   const age = dateOfBirth
     ? (() => {
@@ -262,7 +262,6 @@ const RegisterPage = () => {
                               type="date"
                               value={field.value}
                               onChange={(e) => {
-                                console.log("DOB onChange fired:", e.target.value);
                                 field.onChange(e.target.value);
                               }}
                               onBlur={field.onBlur}
@@ -502,7 +501,7 @@ const RegisterPage = () => {
 
                 <div className="text-center">
                   <Button type="submit" variant="hero" size="lg" className="px-12">
-                    Submit Registration
+                    Continue to Payment Method
                   </Button>
                 </div>
               </form>
