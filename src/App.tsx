@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import About from "./pages/About";
 import CoursesPage from "./pages/CoursesPage";
 import ChooseCoursePage from "./pages/ChooseCoursePage";
+import ChooseLocationPage from "./pages/ChooseLocationPage";
 
 const queryClient = new QueryClient();
 
