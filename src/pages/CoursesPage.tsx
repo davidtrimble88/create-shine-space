@@ -7,8 +7,8 @@ import {
   Gauge, Eye, Route, AlertTriangle, Bike, ChevronDown, Star,
   Target, Zap, Brain, FileCheck, BadgeCheck, GraduationCap, Phone
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 import cmspLogo from "@/assets/cmsp-logo.jpg";
 import basicRiders from "@/assets/basic-riders.jpg";
