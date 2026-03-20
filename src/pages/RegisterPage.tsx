@@ -419,39 +419,20 @@ const RegisterPage = () => {
                 <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
                   <h2 className="text-xl font-bold text-foreground mb-6">Fee & Additional Info</h2>
 
-                  <FormField
-                    control={form.control}
-                    name="ageGroup"
-                    render={({ field }) => (
-                      <FormItem className="mb-6">
-                        <FormLabel>Age Group *</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex gap-6 mt-2"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="21-and-over" id="21-and-over" />
-                              <Label htmlFor="21-and-over">21 and over — $425</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="under-21" id="under-21" />
-                              <Label htmlFor="under-21">Under 21 — $395</Label>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                  <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mb-6 text-center">
+                    {dateOfBirth ? (
+                      <>
+                        <span className="text-sm text-muted-foreground">
+                          {isUnder21 ? "Under 21" : "21 and over"} · Course Fee:{" "}
+                        </span>
+                        <span className="text-lg font-bold text-accent">{fee}</span>
+                      </>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        Enter your date of birth to calculate the fee
+                      </span>
                     )}
-                  />
-
-                  {selectedAgeGroup && (
-                    <div className="bg-accent/10 border border-accent/20 rounded-lg p-3 mb-6 text-center">
-                      <span className="text-sm text-muted-foreground">Course Fee: </span>
-                      <span className="text-lg font-bold text-accent">{fee}</span>
-                    </div>
-                  )}
+                  </div>
 
                   <FormField
                     control={form.control}
