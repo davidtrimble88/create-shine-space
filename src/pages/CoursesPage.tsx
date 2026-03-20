@@ -480,9 +480,11 @@ const CoursesPage = () => {
             transition={{ duration: 0.7 }}
             className="text-center max-w-4xl mx-auto"
           >
-            <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
-              CMSP Certified Training
-            </span>
+            {activeTab === "basic" && (
+              <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
+                CMSP Certified Training
+              </span>
+            )}
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Find Your Perfect <span className="text-accent">Riding Course</span>
             </h1>
