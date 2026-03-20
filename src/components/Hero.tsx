@@ -56,7 +56,7 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4 mb-12"
           >
-            <Link to="/choose-course">
+            <Link to="/choose-location">
               <Button size="lg" variant="hero" className="group text-lg px-8">
                 Start Your Journey
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

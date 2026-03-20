@@ -62,7 +62,7 @@ const ChooseCoursePage = () => {
             className="text-center mb-16"
           >
             <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
-              Step 1 of 2
+              Step 2 of 3
             </span>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Choose Your <span className="text-accent">Course</span>
