@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MapPin, Phone, Clock, Navigation } from "lucide-react";
+import { MapPin, Phone, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const locations = [
