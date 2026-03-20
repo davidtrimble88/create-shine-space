@@ -122,7 +122,7 @@ const ChooseCoursePage = () => {
                       <div className="mt-auto flex items-center justify-between">
                         <span className="text-lg font-bold text-accent">{course.price}</span>
                         <span className="flex items-center gap-1 text-sm text-accent font-medium group-hover:translate-x-1 transition-transform">
-                          Learn More <ArrowRight className="w-4 h-4" />
+                          Book Now <ArrowRight className="w-4 h-4" />
                         </span>
                       </div>
                     </div>
