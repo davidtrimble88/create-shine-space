@@ -12,6 +12,7 @@ import CoursesPage from "./pages/CoursesPage";
 import ChooseCoursePage from "./pages/ChooseCoursePage";
 import ChooseLocationPage from "./pages/ChooseLocationPage";
 import ChooseSchedulePage from "./pages/ChooseSchedulePage";
+import RegisterPage from "./pages/RegisterPage";
 import ContactPage from "./pages/ContactPage";
 
 const queryClient = new QueryClient();
