@@ -26,6 +26,8 @@ const courses = [
     price: "$350",
     duration: "1 Day",
     tab: "intermediate",
+    features: [
+      "For licensed riders",
       "Advanced techniques",
       "Emergency maneuvers",
       "Cornering mastery",
@@ -40,6 +42,8 @@ const courses = [
     price: "Contact for Pricing",
     duration: "1 Day",
     tab: "advanced",
+    features: [
+      "Bring your own motorcycle",
       "Advanced cornering techniques",
       "Traction management",
       "Body position mastery",
