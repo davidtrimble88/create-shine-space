@@ -103,7 +103,9 @@ const Courses = () => {
 
               <div className="mb-6">
                 <span className="text-4xl font-bold text-foreground">{course.price}</span>
-                <span className="text-muted-foreground ml-2">per person</span>
+                {course.price !== "Contact for Pricing" && (
+                  <span className="text-muted-foreground ml-2">per person</span>
+                )}
               </div>
 
               <div className="flex items-center gap-4 mb-6 text-sm text-muted-foreground">
