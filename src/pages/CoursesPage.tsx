@@ -599,7 +599,7 @@ const CoursesPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/choose-course">
                 <Button variant="hero" size="lg" className="group w-full sm:w-auto">
-                  Start Your Journey
+                  Enroll Now
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
