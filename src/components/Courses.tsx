@@ -128,7 +128,7 @@ const Courses = () => {
                 ))}
               </ul>
 
-              <Link to="/courses">
+              <Link to={`/courses?tab=${course.tab}`}>
                 <Button
                   variant={course.popular ? "hero" : "heroOutline"}
                   className="w-full group"
