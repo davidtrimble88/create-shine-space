@@ -9,6 +9,7 @@ const courses = [
     subtitle: "Perfect for beginners",
     price: "$425",
     duration: "2 Days (Weekend)",
+    tab: "basic",
     features: [
       "No experience required",
       "Motorcycle provided",
