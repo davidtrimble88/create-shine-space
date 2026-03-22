@@ -145,13 +145,37 @@ const Courses = () => {
           ))}
         </div>
 
+        {/* Group rates banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          viewport={{ once: true }}
+          className="mt-10 max-w-6xl mx-auto"
+        >
+          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-accent/10 border border-accent/20 rounded-2xl px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 text-center sm:text-left">
+              <Users className="w-6 h-6 text-accent flex-shrink-0" />
+              <p className="text-foreground font-medium">
+                Looking for group rates? Contact us for special pricing on group bookings.
+              </p>
+            </div>
+            <Link to="/contact">
+              <Button variant="hero" className="group whitespace-nowrap">
+                Contact Us
+                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+
         {/* Additional info */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           viewport={{ once: true }}
-          className="mt-12 text-center"
+          className="mt-6 text-center"
         >
           <div className="inline-flex items-center gap-2 bg-card border border-border rounded-full px-6 py-3">
             <Award className="w-5 h-5 text-accent" />
