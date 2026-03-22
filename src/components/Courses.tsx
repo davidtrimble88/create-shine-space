@@ -34,6 +34,21 @@ const courses = [
     ],
     popular: false,
   },
+  {
+    name: "Advanced Riding Clinic",
+    subtitle: "Total Control ARC®",
+    price: "Contact for Pricing",
+    duration: "1 Day",
+    features: [
+      "Bring your own motorcycle",
+      "Advanced cornering techniques",
+      "Traction management",
+      "Body position mastery",
+      "Suspension setup guidance",
+      "Professional coaching",
+    ],
+    popular: false,
+  },
 ];
 
 const Courses = () => {
@@ -59,7 +74,7 @@ const Courses = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {courses.map((course, index) => (
             <motion.div
               key={index}
