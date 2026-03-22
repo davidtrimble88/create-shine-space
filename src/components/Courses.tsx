@@ -39,8 +39,7 @@ const courses = [
     subtitle: "Total Control ARC®",
     price: "Contact for Pricing",
     duration: "1 Day",
-    features: [
-      "Bring your own motorcycle",
+    tab: "advanced",
       "Advanced cornering techniques",
       "Traction management",
       "Body position mastery",
