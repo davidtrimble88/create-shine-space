@@ -279,9 +279,9 @@ const About = () => {
                 call, we will be here to help you!
               </p>
               <Button variant="hero" size="lg" asChild>
-                <a href="/#contact">
+                <Link to="/contact">
                   Get in Touch <ChevronRight className="w-4 h-4" />
-                </a>
+                </Link>
               </Button>
             </motion.div>
           </div>
