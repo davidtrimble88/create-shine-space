@@ -54,7 +54,7 @@ const Navbar = () => {
               <Phone className="w-4 h-4" />
               <span>(760) 403-8091</span>
             </a>
-            <Button variant="hero">Book Now</Button>
+            <Link to="/choose-course"><Button variant="hero">Book Now</Button></Link>
           </div>
 
           <button className="md:hidden p-2" onClick={() => setIsOpen(!isOpen)}>
