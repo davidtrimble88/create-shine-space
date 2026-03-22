@@ -25,8 +25,7 @@ const courses = [
     subtitle: "Level up your skills",
     price: "$350",
     duration: "1 Day",
-    features: [
-      "For licensed riders",
+    tab: "intermediate",
       "Advanced techniques",
       "Emergency maneuvers",
       "Cornering mastery",
