@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Phone } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 
@@ -15,8 +15,26 @@ const navLinks = [
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleHomeClick = (e: React.MouseEvent) => {
+    if (location.pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/");
+    }
+  };
 
   const NavItem = ({ link, className, onClick }: { link: typeof navLinks[0]; className?: string; onClick?: () => void }) => {
+    if (link.href === "/") {
+      return (
+        <a href="/" className={className} onClick={(e) => { handleHomeClick(e); onClick?.(); }}>
+          {link.name}
+        </a>
+      );
+    }
     if (link.isRoute) {
       return (
         <Link to={link.href} className={className} onClick={onClick}>
@@ -35,9 +53,9 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
-          <Link to="/" className="flex items-center">
+          <a href="/" onClick={handleHomeClick} className="flex items-center">
             <img src={logo} alt="Learn to Ride VC" className="h-14 w-auto" />
-          </Link>
+          </a>
 
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
