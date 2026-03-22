@@ -82,7 +82,7 @@ const Courses = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className={`relative rounded-2xl border ${
+              className={`relative rounded-2xl border flex flex-col ${
                 course.popular
                   ? "border-accent bg-gradient-to-b from-accent/10 to-background"
                   : "border-border bg-card"
