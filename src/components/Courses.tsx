@@ -9,6 +9,7 @@ const courses = [
     subtitle: "Perfect for beginners",
     price: "$425",
     duration: "2 Days (Weekend)",
+    tab: "basic",
     features: [
       "No experience required",
       "Motorcycle provided",
@@ -24,6 +25,7 @@ const courses = [
     subtitle: "Level up your skills",
     price: "$350",
     duration: "1 Day",
+    tab: "intermediate",
     features: [
       "For licensed riders",
       "Advanced techniques",
@@ -39,6 +41,7 @@ const courses = [
     subtitle: "Total Control ARC®",
     price: "Contact for Pricing",
     duration: "1 Day",
+    tab: "advanced",
     features: [
       "Bring your own motorcycle",
       "Advanced cornering techniques",
@@ -128,7 +131,7 @@ const Courses = () => {
                 ))}
               </ul>
 
-              <Link to="/courses">
+              <Link to={`/courses?tab=${course.tab}`}>
                 <Button
                   variant={course.popular ? "hero" : "heroOutline"}
                   className="w-full group"
