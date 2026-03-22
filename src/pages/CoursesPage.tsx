@@ -173,7 +173,7 @@ const BasicCourse = () => (
 
         <Link to="/choose-course">
           <Button variant="hero" size="lg" className="group">
-            Start Your Journey
+            Enroll Now
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
         </Link>
