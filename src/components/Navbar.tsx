@@ -15,8 +15,26 @@ const navLinks = [
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleHomeClick = (e: React.MouseEvent) => {
+    if (location.pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/");
+    }
+  };
 
   const NavItem = ({ link, className, onClick }: { link: typeof navLinks[0]; className?: string; onClick?: () => void }) => {
+    if (link.href === "/") {
+      return (
+        <a href="/" className={className} onClick={(e) => { handleHomeClick(e); onClick?.(); }}>
+          {link.name}
+        </a>
+      );
+    }
     if (link.isRoute) {
       return (
         <Link to={link.href} className={className} onClick={onClick}>
