@@ -265,12 +265,12 @@ const IntermediateCourse = () => (
           ))}
         </div>
 
-        <a href="tel:+17604038091">
+        <Link to="/choose-course">
           <Button variant="hero" size="lg" className="group">
-            Enroll Now — Call to Book
-            <Phone className="ml-2 w-5 h-5 group-hover:scale-110 transition-transform" />
+            Start Your Journey
+            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
-        </a>
+        </Link>
       </div>
 
       <div className="lg:col-span-2 space-y-4">
