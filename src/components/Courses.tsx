@@ -82,7 +82,7 @@ const Courses = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className={`relative rounded-2xl border ${
+              className={`relative rounded-2xl border flex flex-col ${
                 course.popular
                   ? "border-accent bg-gradient-to-b from-accent/10 to-background"
                   : "border-border bg-card"
@@ -119,7 +119,7 @@ const Courses = () => {
                 </div>
               </div>
 
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 flex-grow">
                 {course.features.map((feature, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-accent flex-shrink-0" />
