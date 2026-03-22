@@ -594,17 +594,16 @@ const CoursesPage = () => {
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Ride?</h2>
             <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-              Choose your course and take the first step toward confident, skilled riding. 
-              Call us to book your spot today.
+              Choose your course and take the first step toward confident, skilled riding.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="tel:+17604038091">
+              <Link to="/choose-course">
                 <Button variant="hero" size="lg" className="group w-full sm:w-auto">
-                  Call (760) 403-8091
+                  Start Your Journey
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
-              </a>
-              <Link to="/#contact">
+              </Link>
+              <Link to="/contact">
                 <Button variant="heroOutline" size="lg" className="w-full sm:w-auto">
                   Contact Us
                 </Button>
