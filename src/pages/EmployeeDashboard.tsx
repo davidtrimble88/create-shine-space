@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound } from "lucide-react";
 import { useState } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -10,6 +10,7 @@ import ViewerSchedule from "@/components/admin/ViewerSchedule";
 import ComprehensiveSchedule from "@/components/admin/ComprehensiveSchedule";
 import WebsiteAnalytics from "@/components/admin/WebsiteAnalytics";
 import AdminBookings from "@/components/admin/AdminBookings";
+import RolePermissions from "@/components/admin/RolePermissions";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
@@ -19,6 +20,7 @@ const tabs = [
   { id: "employees", label: "Employees", icon: Users, roles: ["owner", "admin"] },
   { id: "bookings", label: "Bookings", icon: ClipboardList, roles: ["owner", "admin"] },
   { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
+  { id: "roles", label: "Role Permissions", icon: KeyRound, roles: ["owner"] },
 ] as const;
 
 type TabId = typeof tabs[number]["id"];
@@ -116,6 +118,7 @@ const EmployeeDashboard = () => {
         {activeTab === "employees" && <AdminEmployees />}
         {activeTab === "bookings" && <AdminBookings />}
         {activeTab === "analytics" && <WebsiteAnalytics />}
+        {activeTab === "roles" && <RolePermissions />}
       </main>
     </div>
   );
