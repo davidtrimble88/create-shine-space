@@ -7,8 +7,8 @@ const contactMethods = [
   {
     icon: Phone,
     label: "Phone / Text",
-    value: "(760) 403-8091",
-    href: "tel:+17604038091",
+    value: "(805) 827-0075",
+    href: "tel:+18058270075",
     description: "Call or text us anytime for questions about courses and scheduling.",
   },
   {

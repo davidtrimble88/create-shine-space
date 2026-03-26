@@ -168,8 +168,8 @@ const ChooseSchedulePage = () => {
                 <p className="text-muted-foreground mb-6">
                   There are currently no upcoming classes for this course and location. Contact us to learn about future availability.
                 </p>
-                <a href="tel:+17604038091" className="text-accent hover:underline font-medium">
-                  Call (760) 403-8091
+                <a href="tel:+18058270075" className="text-accent hover:underline font-medium">
+                  Call (805) 827-0075
                 </a>
               </div>
             </motion.div>
@@ -182,8 +182,8 @@ const ChooseSchedulePage = () => {
             className="text-center text-sm text-muted-foreground mt-10"
           >
             Need help choosing?{" "}
-            <a href="tel:+17604038091" className="text-accent hover:underline font-medium">
-              Call us at (760) 403-8091
+            <a href="tel:+18058270075" className="text-accent hover:underline font-medium">
+              Call us at (805) 827-0075
             </a>
           </motion.p>
         </div>

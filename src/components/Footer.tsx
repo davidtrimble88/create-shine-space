@@ -95,8 +95,8 @@ const Footer = () => {
                 <Phone className="w-5 h-5 text-accent mt-0.5" />
                 <div>
                   <p className="text-sm text-muted-foreground">Phone / Text</p>
-                  <a href="tel:+17604038091" className="text-foreground hover:text-accent transition-colors">
-                    (760) 403-8091
+                  <a href="tel:+18058270075" className="text-foreground hover:text-accent transition-colors">
+                    (805) 827-0075
                   </a>
                 </div>
               </li>

@@ -7,7 +7,7 @@ const locations = [
   {
     name: "High Desert — Hesperia & Wrightwood",
     address: "Hesperia & Wrightwood, CA",
-    phone: "(760) 403-8091",
+    phone: "(805) 827-0075",
     hours: "Sat-Sun: 7:00 AM - 5:00 PM",
     mapLink: "https://maps.google.com/?q=Hesperia,CA",
     description: "Training site rotates between Hesperia and Wrightwood based on seasonal weather conditions.",
@@ -15,7 +15,7 @@ const locations = [
   {
     name: "Ventura County",
     address: "Somis, CA",
-    phone: "(760) 403-8091",
+    phone: "(805) 827-0075",
     hours: "Sat-Sun: 7:00 AM - 5:00 PM",
     mapLink: "https://maps.google.com/?q=Somis,CA",
     description: "Coastal location with perfect riding conditions and scenic surroundings.",

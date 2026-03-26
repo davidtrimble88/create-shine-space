@@ -68,9 +68,9 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <a href="tel:+17604038091" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <a href="tel:+18058270075" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
               <Phone className="w-4 h-4" />
-              <span>(760) 403-8091</span>
+              <span>(805) 827-0075</span>
             </a>
             <Link to="/choose-course"><Button variant="hero">Book Now</Button></Link>
           </div>

@@ -364,7 +364,7 @@ const AdvancedCourse = () => (
           </p>
         </div>
 
-        <a href="tel:+17604038091">
+        <a href="tel:+18058270075">
           <Button variant="hero" size="lg" className="group">
             Register for ARC — Call Now
             <Phone className="ml-2 w-5 h-5 group-hover:scale-110 transition-transform" />
