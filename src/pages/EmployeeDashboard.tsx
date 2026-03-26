@@ -1,10 +1,27 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { Navigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Shield, User } from "lucide-react";
-import { Navigate, Link } from "react-router-dom";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard } from "lucide-react";
+import { useState } from "react";
+import AdminSchedule from "@/components/admin/AdminSchedule";
+import AdminEmployees from "@/components/admin/AdminEmployees";
+import AdminOverview from "@/components/admin/AdminOverview";
+
+const tabs = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["admin", "manager", "employee"] },
+  { id: "schedule", label: "Schedule", icon: CalendarDays, roles: ["admin", "manager"] },
+  { id: "employees", label: "Employees", icon: Users, roles: ["admin"] },
+] as const;
+
+type TabId = typeof tabs[number]["id"];
 
 const EmployeeDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [userRole, setUserRole] = useState<string>("employee");
+
+  // Check role from auth context
+  const effectiveRole = isAdmin ? "admin" : userRole;
 
   if (loading) {
     return (
@@ -18,66 +35,58 @@ const EmployeeDashboard = () => {
     return <Navigate to="/employee-login" replace />;
   }
 
+  const visibleTabs = tabs.filter(t => t.roles.includes(effectiveRole as any));
+
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-accent font-bold text-xl">
-              Learn to Ride VC
-            </Link>
-            <span className="text-muted-foreground">|</span>
-            <span className="text-foreground font-medium">Employee Portal</span>
-          </div>
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <aside className="w-64 bg-card border-r border-border flex flex-col min-h-screen">
+        <div className="p-6 border-b border-border">
+          <Link to="/" className="text-accent font-bold text-lg">
+            Learn to Ride VC
+          </Link>
+          <p className="text-xs text-muted-foreground mt-1">Employee Portal</p>
+        </div>
+
+        <nav className="flex-1 p-4 space-y-1">
+          {visibleTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === tab.id
+                  ? "bg-accent/10 text-accent"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+              }`}
+            >
+              <tab.icon className="w-5 h-5" />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t border-border">
+          <div className="flex items-center gap-2 mb-3">
             {isAdmin && (
-              <span className="flex items-center gap-1 text-sm text-accent font-medium bg-accent/10 px-3 py-1 rounded-full">
-                <Shield className="w-4 h-4" />
+              <span className="flex items-center gap-1 text-xs text-accent font-medium bg-accent/10 px-2 py-1 rounded-full">
+                <Shield className="w-3 h-3" />
                 Admin
               </span>
             )}
-            <Button variant="outline" size="sm" onClick={signOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
           </div>
+          <p className="text-xs text-muted-foreground truncate mb-3">{user.email}</p>
+          <Button variant="outline" size="sm" onClick={signOut} className="w-full">
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
-      </header>
+      </aside>
 
-      <main className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
-              <User className="w-6 h-6 text-accent" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                Welcome back{isAdmin ? ", Admin" : ""}!
-              </h1>
-              <p className="text-muted-foreground">{user.email}</p>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-card border border-border rounded-2xl p-6">
-              <h3 className="font-semibold text-foreground mb-2">Dashboard</h3>
-              <p className="text-muted-foreground text-sm">
-                Your employee dashboard is ready. We'll add more features as we continue building.
-              </p>
-            </div>
-            {isAdmin && (
-              <div className="bg-card border border-border rounded-2xl p-6">
-                <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-accent" />
-                  Admin Panel
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  You have full admin access. Management tools will appear here as we build them.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Main content */}
+      <main className="flex-1 p-8 overflow-auto">
+        {activeTab === "overview" && <AdminOverview />}
+        {activeTab === "schedule" && <AdminSchedule />}
+        {activeTab === "employees" && <AdminEmployees />}
       </main>
     </div>
   );
