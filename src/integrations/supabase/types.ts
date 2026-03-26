@@ -85,6 +85,27 @@ export type Database = {
           },
         ]
       }
+      dismissed_weekends: {
+        Row: {
+          created_at: string
+          date: string
+          dismissed_by: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          dismissed_by: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          dismissed_by?: string
+          id?: string
+        }
+        Relationships: []
+      }
       employee_logins: {
         Row: {
           created_at: string
