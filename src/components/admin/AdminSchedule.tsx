@@ -5,11 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, CalendarDays } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, Hand } from "lucide-react";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
+
+interface AvailabilityInfo {
+  schedule_id: string;
+  employee_name: string;
+  employee_email: string;
+}
 
 const courseLabels: Record<string, string> = {
   basic: "Basic Rider Course",
