@@ -75,8 +75,12 @@ const ComprehensiveSchedule = () => {
     load();
   }, [filterCourse, filterLocation]);
 
+  const filteredRows = filterInstructor === "all"
+    ? rows
+    : rows.filter(r => r.instructors.some(i => i.employeeId === filterInstructor));
+
   // Group by location
-  const groupedByLocation = rows.reduce<Record<string, ScheduleRow[]>>((acc, r) => {
+  const groupedByLocation = filteredRows.reduce<Record<string, ScheduleRow[]>>((acc, r) => {
     const key = r.location_label;
     if (!acc[key]) acc[key] = [];
     acc[key].push(r);
