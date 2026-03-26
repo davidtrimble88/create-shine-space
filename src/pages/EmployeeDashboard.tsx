@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -54,6 +54,20 @@ const EmployeeDashboard = () => {
             Learn to Ride VC
           </Link>
           <p className="text-xs text-muted-foreground mt-1">Employee Portal</p>
+          <div className="flex gap-2 mt-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto"
+              onClick={() => setActiveTab("overview")}
+            >
+              <LayoutDashboard className="w-3 h-3 mr-1" /> Dashboard
+            </Button>
+            <span className="text-muted-foreground/30">|</span>
+            <Link to="/" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+              <ArrowLeft className="w-3 h-3" /> Website
+            </Link>
+          </div>
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
