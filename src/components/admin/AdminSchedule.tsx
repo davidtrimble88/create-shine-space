@@ -269,6 +269,7 @@ const AdminSchedule = () => {
                 <th className="text-left p-4 font-medium text-muted-foreground">Schedule</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">Spots</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">Price</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">Available</th>
                 <th className="text-right p-4 font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
