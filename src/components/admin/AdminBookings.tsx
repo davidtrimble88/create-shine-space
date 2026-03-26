@@ -38,6 +38,7 @@ const AdminBookings = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
   const [form, setForm] = useState({
     schedule_id: "",
     first_name: "",
@@ -118,11 +119,25 @@ const AdminBookings = () => {
             </DialogHeader>
             <div className="space-y-4 mt-2">
               <div>
+                <Label>Location</Label>
+                <Select value={locationFilter} onValueChange={v => { setLocationFilter(v); setForm(f => ({ ...f, schedule_id: "" })); }}>
+                  <SelectTrigger><SelectValue placeholder="All locations" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Locations</SelectItem>
+                    {Object.entries(locationLabels).map(([k, v]) => (
+                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Class *</Label>
                 <Select value={form.schedule_id} onValueChange={v => setForm(f => ({ ...f, schedule_id: v }))}>
                   <SelectTrigger><SelectValue placeholder="Select a class" /></SelectTrigger>
                   <SelectContent>
-                    {schedules.map(s => (
+                    {schedules
+                      .filter(s => !locationFilter || locationFilter === "all" || s.location === locationFilter)
+                      .map(s => (
                       <SelectItem key={s.id} value={s.id}>
                         {courseLabels[s.course] || s.course} — {s.location_label} — {s.date} ({s.spots_available} spots)
                       </SelectItem>
