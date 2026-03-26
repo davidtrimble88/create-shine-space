@@ -162,34 +162,41 @@ const ViewerSchedule = () => {
     setToggling(null);
   };
 
-  // Generate weekend placeholders through end of year (or 6 months out if in Dec)
+  // Generate grouped weekend placeholders (Sat+Sun combined)
   const generateWeekendPlaceholders = (): PlaceholderEntry[] => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const currentMonth = today.getMonth(); // 0-indexed
+    const currentMonth = today.getMonth();
     let endDate: Date;
     if (currentMonth === 11) {
-      // December: go 6 months into next year
       endDate = new Date(today.getFullYear() + 1, 5, 30);
     } else {
-      // Otherwise: go through end of current year
       endDate = new Date(today.getFullYear(), 11, 31);
     }
     const weekendDates = eachWeekendOfInterval({ start: today, end: endDate });
-
-    // Filter out weekends that already have schedules
     const scheduledDates = new Set(schedules.map(s => s.date));
 
-    return weekendDates
-      .filter(d => {
-        const dateStr = format(d, "yyyy-MM-dd");
-        return !scheduledDates.has(dateStr) && d >= today;
-      })
-      .map(d => ({
-        type: "placeholder" as const,
-        date: d,
-        dateStr: format(d, "yyyy-MM-dd"),
-      }));
+    const unscheduledDays = weekendDates.filter(d => {
+      const dateStr = format(d, "yyyy-MM-dd");
+      return !scheduledDates.has(dateStr) && d >= today;
+    });
+
+    // Group by week (using Saturday's date as the key)
+    const weekGroups = new Map<string, Date[]>();
+    unscheduledDays.forEach(d => {
+      const day = d.getDay(); // 0=Sun, 6=Sat
+      const sat = day === 0 ? new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1) : d;
+      const key = format(sat, "yyyy-MM-dd");
+      if (!weekGroups.has(key)) weekGroups.set(key, []);
+      weekGroups.get(key)!.push(d);
+    });
+
+    return Array.from(weekGroups.entries()).map(([satKey, dates]) => ({
+      type: "placeholder" as const,
+      date: dates[0],
+      dates: dates.sort((a, b) => a.getTime() - b.getTime()),
+      dateStr: satKey,
+    }));
   };
 
   // Merge schedules and placeholders, sorted by date
