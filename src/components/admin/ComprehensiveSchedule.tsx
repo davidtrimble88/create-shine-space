@@ -164,6 +164,15 @@ const ComprehensiveSchedule = () => {
             <SelectItem value="ventura-county">Ventura County</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={filterInstructor} onValueChange={setFilterInstructor}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="All Instructors" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Instructors</SelectItem>
+            {instructorList.map(i => (
+              <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {loading ? (
