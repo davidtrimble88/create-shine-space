@@ -65,7 +65,7 @@ const ChooseLocationPage = () => {
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                 >
                   <Link to={`/choose-schedule?course=${course}&location=${loc.id}`} className="block h-full">
-                    <div className="relative h-full bg-gradient-to-b from-accent/20 to-accent/5 border border-accent/30 rounded-2xl p-8 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group cursor-pointer">
+                    <div className="relative h-full bg-gradient-to-b from-accent/20 to-accent/5 border border-accent/30 rounded-2xl p-8 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group cursor-pointer flex flex-col">
                       <div className="w-14 h-14 rounded-2xl bg-accent/15 flex items-center justify-center mb-5 group-hover:bg-accent/25 transition-colors">
                         <Icon className="w-7 h-7 text-accent" />
                       </div>
@@ -89,7 +89,7 @@ const ChooseLocationPage = () => {
                         ))}
                       </ul>
 
-                      <span className="flex items-center gap-1 text-sm text-accent font-medium group-hover:translate-x-1 transition-transform">
+                      <span className="flex items-center gap-1 text-sm text-accent font-medium group-hover:translate-x-1 transition-transform mt-auto">
                         Select Location <ArrowRight className="w-4 h-4" />
                       </span>
                     </div>
