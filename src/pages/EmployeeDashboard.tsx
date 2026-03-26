@@ -1,16 +1,18 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText } from "lucide-react";
 import { useState } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
 import AdminOverview from "@/components/admin/AdminOverview";
 import ViewerSchedule from "@/components/admin/ViewerSchedule";
+import ComprehensiveSchedule from "@/components/admin/ComprehensiveSchedule";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["admin", "manager", "employee"] },
   { id: "schedule", label: "Schedule", icon: CalendarDays, roles: ["admin", "manager"] },
+  { id: "full-schedule", label: "Full Schedule", icon: FileText, roles: ["admin", "manager"] },
   { id: "my-schedule", label: "Upcoming Classes", icon: Hand, roles: ["admin", "manager", "employee"] },
   { id: "employees", label: "Employees", icon: Users, roles: ["admin"] },
 ] as const;
@@ -90,6 +92,7 @@ const EmployeeDashboard = () => {
       <main className="flex-1 p-8 overflow-auto">
         {activeTab === "overview" && <AdminOverview />}
         {activeTab === "schedule" && <AdminSchedule />}
+        {activeTab === "full-schedule" && <ComprehensiveSchedule />}
         {activeTab === "my-schedule" && <ViewerSchedule />}
         {activeTab === "employees" && <AdminEmployees />}
       </main>

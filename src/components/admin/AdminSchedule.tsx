@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, CalendarDays, Hand } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus } from "lucide-react";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
+import InstructorAssignment from "./InstructorAssignment";
 
 type Schedule = Tables<"schedules">;
 
@@ -49,6 +50,7 @@ const AdminSchedule = () => {
   const [filterCourse, setFilterCourse] = useState<string>("all");
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [availability, setAvailability] = useState<AvailabilityInfo[]>([]);
+  const [assigningSchedule, setAssigningSchedule] = useState<{ id: string; name: string } | null>(null);
   const { toast } = useToast();
 
   const fetchSchedules = async () => {
@@ -329,6 +331,12 @@ const AdminSchedule = () => {
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => setAssigningSchedule({
+                        id: s.id,
+                        name: `${courseLabels[s.course] || s.course} — ${new Date(s.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}${s.group_name ? ` (${s.group_name})` : ""}`
+                      })} title="Assign instructors">
+                        <UserPlus className="w-4 h-4" />
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(s)}>
                         <Pencil className="w-4 h-4" />
                       </Button>
@@ -342,6 +350,14 @@ const AdminSchedule = () => {
             </tbody>
           </table>
         </div>
+      )}
+
+      {assigningSchedule && (
+        <InstructorAssignment
+          scheduleId={assigningSchedule.id}
+          scheduleName={assigningSchedule.name}
+          onClose={() => { setAssigningSchedule(null); fetchSchedules(); }}
+        />
       )}
     </div>
   );
