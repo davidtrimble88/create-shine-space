@@ -14,8 +14,8 @@ const contactMethods = [
   {
     icon: Mail,
     label: "Email",
-    value: "info@learntoridevc.com",
-    href: "mailto:info@learntoridevc.com",
+    value: "office@learntoridevc.com",
+    href: "mailto:office@learntoridevc.com",
     description: "Send us an email and we'll get back to you within 24 hours.",
   },
 ];

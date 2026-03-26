@@ -69,7 +69,7 @@ const ContactCTA = () => {
             </motion.a>
 
             <motion.a
-              href="mailto:info@learntoridevc.com"
+              href="mailto:office@learntoridevc.com"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
@@ -82,7 +82,7 @@ const ContactCTA = () => {
               <div className="text-left">
                 <p className="text-sm text-muted-foreground">Email Us</p>
                 <p className="text-lg font-semibold text-foreground">
-                  <EditableText contentKey="cta.email" fallback="info@learntoridevc.com" />
+                  <EditableText contentKey="cta.email" fallback="office@learntoridevc.com" />
                 </p>
               </div>
             </motion.a>
