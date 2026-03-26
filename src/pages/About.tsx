@@ -18,6 +18,20 @@ const stats = [
 ];
 
 const About = () => {
+  const [instructors, setInstructors] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      const { data } = await supabase
+        .from("employees")
+        .select("id, full_name, position, photo_url, bio")
+        .eq("show_on_website", true)
+        .eq("is_active", true)
+        .order("created_at");
+      setInstructors(data ?? []);
+    };
+    fetchInstructors();
+  }, []);
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
