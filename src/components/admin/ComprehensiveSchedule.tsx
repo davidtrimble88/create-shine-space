@@ -57,11 +57,11 @@ const ComprehensiveSchedule = () => {
         setInstructorList((emps ?? []).map(e => ({ id: e.id, name: e.full_name })).sort((a, b) => a.name.localeCompare(b.name)));
       }
 
-      const assignMap = new Map<string, { name: string; role: string }[]>();
+      const assignMap = new Map<string, { name: string; role: string; employeeId: string }[]>();
       for (const a of assignRes.data ?? []) {
         const name = empMap.get(a.employee_id) ?? "Unknown";
         if (!assignMap.has(a.schedule_id)) assignMap.set(a.schedule_id, []);
-        assignMap.get(a.schedule_id)!.push({ name, role: a.assignment_role ?? "instructor_1" });
+        assignMap.get(a.schedule_id)!.push({ name, role: a.assignment_role ?? "instructor_1", employeeId: a.employee_id });
       }
 
       setRows(
