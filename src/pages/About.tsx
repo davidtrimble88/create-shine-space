@@ -318,10 +318,10 @@ const About = () => {
               Our Team
             </span>
             <h2 className="text-3xl md:text-4xl font-bold mt-4">
-              Meet the <span className="text-accent">Instructors</span>
+              Meet the <span className="text-accent">Team</span>
             </h2>
             <p className="text-muted-foreground text-lg mt-4 max-w-2xl mx-auto">
-              Our CMSP-certified instructors bring years of riding experience and a
+              Our CMSP-certified team brings years of riding experience and a
               passion for safety to every class.
             </p>
           </motion.div>
