@@ -38,6 +38,7 @@ const AdminBookings = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
   const [form, setForm] = useState({
     schedule_id: "",
     first_name: "",
