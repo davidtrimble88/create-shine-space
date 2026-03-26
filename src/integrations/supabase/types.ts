@@ -108,35 +108,44 @@ export type Database = {
       }
       employees: {
         Row: {
+          bio: string | null
           created_at: string
           email: string
           full_name: string
           id: string
           is_active: boolean
           phone: string | null
+          photo_url: string | null
           position: string | null
+          show_on_website: boolean
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          bio?: string | null
           created_at?: string
           email: string
           full_name: string
           id?: string
           is_active?: boolean
           phone?: string | null
+          photo_url?: string | null
           position?: string | null
+          show_on_website?: boolean
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          bio?: string | null
           created_at?: string
           email?: string
           full_name?: string
           id?: string
           is_active?: boolean
           phone?: string | null
+          photo_url?: string | null
           position?: string | null
+          show_on_website?: boolean
           updated_at?: string
           user_id?: string | null
         }
