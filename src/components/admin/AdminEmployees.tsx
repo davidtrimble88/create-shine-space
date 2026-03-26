@@ -281,7 +281,18 @@ const AdminEmployees = () => {
                 <div className="mt-2 flex items-center gap-4">
                   {photoPreview ? (
                     <div className="relative">
-                      <img src={photoPreview} alt="Preview" className="w-20 h-20 rounded-full object-cover border border-border" />
+                      <div className="w-20 h-20 rounded-full overflow-hidden border border-border">
+                        <img
+                          src={photoPreview}
+                          alt="Preview"
+                          className="w-full h-full"
+                          style={{
+                            objectFit: "cover",
+                            objectPosition: `${form.photo_position_x}% ${form.photo_position_y}%`,
+                            transform: `scale(${form.photo_zoom / 100})`,
+                          }}
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
@@ -303,6 +314,45 @@ const AdminEmployees = () => {
                     {photoPreview ? "Change Photo" : "Upload Photo"}
                   </Button>
                 </div>
+
+                {/* Position & Zoom Controls */}
+                {photoPreview && (
+                  <div className="mt-3 space-y-3 p-3 rounded-lg border border-border bg-secondary/30">
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <Label className="text-xs">Horizontal Position</Label>
+                        <span className="text-xs text-muted-foreground">{form.photo_position_x}%</span>
+                      </div>
+                      <Slider
+                        value={[form.photo_position_x]}
+                        onValueChange={([v]) => setForm(f => ({ ...f, photo_position_x: v }))}
+                        min={0} max={100} step={1}
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <Label className="text-xs">Vertical Position</Label>
+                        <span className="text-xs text-muted-foreground">{form.photo_position_y}%</span>
+                      </div>
+                      <Slider
+                        value={[form.photo_position_y]}
+                        onValueChange={([v]) => setForm(f => ({ ...f, photo_position_y: v }))}
+                        min={0} max={100} step={1}
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <Label className="text-xs">Zoom</Label>
+                        <span className="text-xs text-muted-foreground">{form.photo_zoom}%</span>
+                      </div>
+                      <Slider
+                        value={[form.photo_zoom]}
+                        onValueChange={([v]) => setForm(f => ({ ...f, photo_zoom: v }))}
+                        min={100} max={300} step={5}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
