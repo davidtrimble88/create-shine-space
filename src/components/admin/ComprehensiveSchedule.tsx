@@ -16,7 +16,7 @@ interface ScheduleRow {
   schedule: string;
   spots_available: number;
   price: string;
-  instructors: { name: string; role: string }[];
+  instructors: { name: string; role: string; employeeId: string }[];
 }
 
 const courseLabels: Record<string, string> = {
@@ -30,6 +30,8 @@ const ComprehensiveSchedule = () => {
   const [loading, setLoading] = useState(true);
   const [filterLocation, setFilterLocation] = useState("all");
   const [filterCourse, setFilterCourse] = useState("all");
+  const [filterInstructor, setFilterInstructor] = useState("all");
+  const [instructorList, setInstructorList] = useState<{ id: string; name: string }[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -52,13 +54,14 @@ const ComprehensiveSchedule = () => {
       if (empIds.length > 0) {
         const { data: emps } = await supabase.from("employees").select("id, full_name").in("id", empIds);
         empMap = new Map((emps ?? []).map(e => [e.id, e.full_name]));
+        setInstructorList((emps ?? []).map(e => ({ id: e.id, name: e.full_name })).sort((a, b) => a.name.localeCompare(b.name)));
       }
 
-      const assignMap = new Map<string, { name: string; role: string }[]>();
+      const assignMap = new Map<string, { name: string; role: string; employeeId: string }[]>();
       for (const a of assignRes.data ?? []) {
         const name = empMap.get(a.employee_id) ?? "Unknown";
         if (!assignMap.has(a.schedule_id)) assignMap.set(a.schedule_id, []);
-        assignMap.get(a.schedule_id)!.push({ name, role: a.assignment_role ?? "instructor_1" });
+        assignMap.get(a.schedule_id)!.push({ name, role: a.assignment_role ?? "instructor_1", employeeId: a.employee_id });
       }
 
       setRows(
@@ -72,8 +75,12 @@ const ComprehensiveSchedule = () => {
     load();
   }, [filterCourse, filterLocation]);
 
+  const filteredRows = filterInstructor === "all"
+    ? rows
+    : rows.filter(r => r.instructors.some(i => i.employeeId === filterInstructor));
+
   // Group by location
-  const groupedByLocation = rows.reduce<Record<string, ScheduleRow[]>>((acc, r) => {
+  const groupedByLocation = filteredRows.reduce<Record<string, ScheduleRow[]>>((acc, r) => {
     const key = r.location_label;
     if (!acc[key]) acc[key] = [];
     acc[key].push(r);
@@ -157,11 +164,20 @@ const ComprehensiveSchedule = () => {
             <SelectItem value="ventura-county">Ventura County</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={filterInstructor} onValueChange={setFilterInstructor}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="All Instructors" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Instructors</SelectItem>
+            {instructorList.map(i => (
+              <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {loading ? (
         <p className="text-muted-foreground">Loading...</p>
-      ) : rows.length === 0 ? (
+      ) : filteredRows.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-8 text-center">
           <CalendarDays className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">No classes found.</p>
