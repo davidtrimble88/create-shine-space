@@ -2,10 +2,13 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+type AppRole = "admin" | "manager" | "employee" | "moderator";
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   isAdmin: boolean;
+  userRole: AppRole;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -14,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   isAdmin: false,
+  userRole: "employee",
   loading: true,
   signOut: async () => {},
 });
@@ -24,14 +28,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<AppRole>("employee");
   const [loading, setLoading] = useState(true);
 
-  const checkAdminRole = async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "admin",
-    });
-    setIsAdmin(!!data);
+  const checkRole = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    
+    if (data && data.length > 0) {
+      // Pick highest privilege role
+      const roles = data.map(r => r.role);
+      if (roles.includes("admin")) {
+        setIsAdmin(true);
+        setUserRole("admin");
+      } else if (roles.includes("manager")) {
+        setIsAdmin(false);
+        setUserRole("manager");
+      } else {
+        setIsAdmin(false);
+        setUserRole(roles[0] as AppRole);
+      }
+    } else {
+      setIsAdmin(false);
+      setUserRole("employee");
+    }
   };
 
   useEffect(() => {
@@ -40,9 +62,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          setTimeout(() => checkAdminRole(session.user.id), 0);
+          setTimeout(() => checkRole(session.user.id), 0);
         } else {
           setIsAdmin(false);
+          setUserRole("employee");
         }
         setLoading(false);
       }
@@ -52,7 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        checkRole(session.user.id);
       }
       setLoading(false);
     });
@@ -65,7 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, isAdmin, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, isAdmin, userRole, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );
