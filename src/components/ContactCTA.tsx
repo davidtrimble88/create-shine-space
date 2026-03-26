@@ -50,7 +50,7 @@ const ContactCTA = () => {
 
           <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             <motion.a
-              href="tel:+17604038091"
+              href="tel:+18058270075"
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -63,7 +63,7 @@ const ContactCTA = () => {
               <div className="text-left">
                 <p className="text-sm text-muted-foreground">Call or Text</p>
                 <p className="text-lg font-semibold text-foreground">
-                  <EditableText contentKey="cta.phone" fallback="(760) 403-8091" />
+                  <EditableText contentKey="cta.phone" fallback="(805) 827-0075" />
                 </p>
               </div>
             </motion.a>

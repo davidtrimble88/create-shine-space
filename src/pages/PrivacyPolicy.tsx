@@ -86,7 +86,7 @@ const PrivacyPolicy = () => {
             <h2 className="text-2xl font-semibold text-foreground mb-3">9. Contact Us</h2>
             <p>If you have questions about this Privacy Policy or wish to exercise your privacy rights, contact us at:</p>
             <ul className="list-none space-y-1 mt-2">
-              <li>Phone: (760) 403-8091</li>
+              <li>Phone: (805) 827-0075</li>
               <li>Email: office@learntoridevc.com</li>
             </ul>
           </section>
