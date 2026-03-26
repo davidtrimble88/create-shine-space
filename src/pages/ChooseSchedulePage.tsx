@@ -1,17 +1,22 @@
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { CalendarDays, Clock, MapPin, Users, ArrowRight } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Users, ArrowRight, Loader2 } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { scheduleData } from "@/data/scheduleData";
 import { format, parseISO } from "date-fns";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Schedule = Tables<"schedules">;
 
 const ChooseSchedulePage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const course = searchParams.get("course") || "basic";
   const location = searchParams.get("location") || "ventura-county";
+  const [classes, setClasses] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const courseLabels: Record<string, string> = {
     basic: "Basic Riding Course",
@@ -24,9 +29,21 @@ const ChooseSchedulePage = () => {
     "ventura-county": "Ventura County — Somis",
   };
 
-  const availableClasses = scheduleData.filter(
-    (entry) => entry.course === course && entry.location === location
-  );
+  useEffect(() => {
+    const fetchClasses = async () => {
+      const today = new Date().toISOString().split("T")[0];
+      const { data } = await supabase
+        .from("schedules")
+        .select("*")
+        .eq("course", course)
+        .eq("location", location)
+        .gte("date", today)
+        .order("date", { ascending: true });
+      setClasses(data ?? []);
+      setLoading(false);
+    };
+    fetchClasses();
+  }, [course, location]);
 
   const handleSelectClass = (classId: string) => {
     navigate(`/register?course=${course}&location=${location}&schedule=${classId}`);
@@ -59,11 +76,15 @@ const ChooseSchedulePage = () => {
             </p>
           </motion.div>
 
-          {availableClasses.length > 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-accent" />
+            </div>
+          ) : classes.length > 0 ? (
             <div className="max-w-3xl mx-auto space-y-4">
-              {availableClasses.map((entry, i) => {
+              {classes.map((entry, i) => {
                 const dateObj = parseISO(entry.date);
-                const isFull = entry.spotsAvailable === 0;
+                const isFull = entry.spots_available === 0;
 
                 return (
                   <motion.div
@@ -88,9 +109,9 @@ const ChooseSchedulePage = () => {
                             <h3 className="text-lg font-bold text-foreground">
                               {format(dateObj, "EEEE, MMMM d, yyyy")}
                             </h3>
-                            {entry.group && (
+                            {entry.group_name && (
                               <span className="text-xs font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded-full">
-                                {entry.group}
+                                {entry.group_name}
                               </span>
                             )}
                           </div>
@@ -103,7 +124,7 @@ const ChooseSchedulePage = () => {
                           </span>
                           <span className="flex items-center gap-1.5">
                             <MapPin className="w-4 h-4 text-accent" />
-                            {entry.locationLabel}
+                            {entry.location_label}
                           </span>
                         </div>
                       </div>
@@ -118,9 +139,9 @@ const ChooseSchedulePage = () => {
                           <>
                             <span className="flex items-center gap-1 text-sm text-muted-foreground">
                               <Users className="w-4 h-4 text-accent" />
-                              {entry.spotsAvailable} spots left
+                              {entry.spots_available} spots left
                             </span>
-                            <span className="flex items-center gap-1 text-sm text-accent font-medium group-hover:translate-x-1 transition-transform">
+                            <span className="flex items-center gap-1 text-sm text-accent font-medium">
                               Select <ArrowRight className="w-4 h-4" />
                             </span>
                           </>
@@ -146,10 +167,7 @@ const ChooseSchedulePage = () => {
                 <p className="text-muted-foreground mb-6">
                   There are currently no upcoming classes for this course and location. Contact us to learn about future availability.
                 </p>
-                <a
-                  href="tel:+17604038091"
-                  className="text-accent hover:underline font-medium"
-                >
+                <a href="tel:+17604038091" className="text-accent hover:underline font-medium">
                   Call (760) 403-8091
                 </a>
               </div>
