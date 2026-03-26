@@ -9,6 +9,7 @@ import AdminOverview from "@/components/admin/AdminOverview";
 import ViewerSchedule from "@/components/admin/ViewerSchedule";
 import ComprehensiveSchedule from "@/components/admin/ComprehensiveSchedule";
 import WebsiteAnalytics from "@/components/admin/WebsiteAnalytics";
+import AdminBookings from "@/components/admin/AdminBookings";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
@@ -16,6 +17,7 @@ const tabs = [
   { id: "full-schedule", label: "Full Schedule", icon: FileText, roles: ["owner", "admin", "manager"] },
   { id: "my-schedule", label: "Upcoming Classes", icon: Hand, roles: ["owner", "admin", "manager", "employee"] },
   { id: "employees", label: "Employees", icon: Users, roles: ["owner", "admin"] },
+  { id: "bookings", label: "Bookings", icon: ClipboardList, roles: ["owner", "admin"] },
   { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
 ] as const;
 
