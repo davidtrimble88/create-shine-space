@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format, parseISO, addWeeks, eachWeekendOfInterval, isSameDay } from "date-fns";
+import { format, parseISO, eachWeekendOfInterval } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
@@ -24,6 +24,7 @@ const locationOptions = [
 interface PlaceholderEntry {
   type: "placeholder";
   date: Date;
+  dates: Date[];
   dateStr: string;
 }
 
@@ -39,14 +40,13 @@ const ViewerSchedule = () => {
   const { toast } = useToast();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [myAvailability, setMyAvailability] = useState<Set<string>>(new Set());
-  const [myDateAvailability, setMyDateAvailability] = useState<Map<string, Set<string>>>(new Map()); // date -> Set<location>
+  const [myDateAvailability, setMyDateAvailability] = useState<Map<string, Set<string>>>(new Map());
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
   const [filterLocation, setFilterLocation] = useState<string>("all");
 
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
-
     const schedRes = await supabase.from("schedules").select("*").gte("date", today).order("date", { ascending: true });
 
     let availData: any[] = [];
@@ -162,37 +162,43 @@ const ViewerSchedule = () => {
     setToggling(null);
   };
 
-  // Generate weekend placeholders through end of year (or 6 months out if in Dec)
+  // Generate grouped weekend placeholders (Sat+Sun combined per weekend)
   const generateWeekendPlaceholders = (): PlaceholderEntry[] => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const currentMonth = today.getMonth(); // 0-indexed
+    const currentMonth = today.getMonth();
     let endDate: Date;
     if (currentMonth === 11) {
-      // December: go 6 months into next year
       endDate = new Date(today.getFullYear() + 1, 5, 30);
     } else {
-      // Otherwise: go through end of current year
       endDate = new Date(today.getFullYear(), 11, 31);
     }
     const weekendDates = eachWeekendOfInterval({ start: today, end: endDate });
-
-    // Filter out weekends that already have schedules
     const scheduledDates = new Set(schedules.map(s => s.date));
 
-    return weekendDates
-      .filter(d => {
-        const dateStr = format(d, "yyyy-MM-dd");
-        return !scheduledDates.has(dateStr) && d >= today;
-      })
-      .map(d => ({
-        type: "placeholder" as const,
-        date: d,
-        dateStr: format(d, "yyyy-MM-dd"),
-      }));
+    const unscheduledDays = weekendDates.filter(d => {
+      const dateStr = format(d, "yyyy-MM-dd");
+      return !scheduledDates.has(dateStr) && d >= today;
+    });
+
+    // Group by weekend (using Saturday's date as the key)
+    const weekGroups = new Map<string, Date[]>();
+    unscheduledDays.forEach(d => {
+      const day = d.getDay(); // 0=Sun, 6=Sat
+      const sat = day === 0 ? new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1) : d;
+      const key = format(sat, "yyyy-MM-dd");
+      if (!weekGroups.has(key)) weekGroups.set(key, []);
+      weekGroups.get(key)!.push(d);
+    });
+
+    return Array.from(weekGroups.entries()).map(([satKey, dates]) => ({
+      type: "placeholder" as const,
+      date: dates[0],
+      dates: dates.sort((a, b) => a.getTime() - b.getTime()),
+      dateStr: satKey,
+    }));
   };
 
-  // Merge schedules and placeholders, sorted by date
   const buildDisplayList = (): DisplayEntry[] => {
     const placeholders = generateWeekendPlaceholders();
     const scheduleEntries: ScheduleEntry[] = schedules.map(s => ({ type: "schedule", data: s }));
@@ -220,7 +226,7 @@ const ViewerSchedule = () => {
     ? displayList
     : displayList.filter(entry => {
         if (entry.type === "schedule") return entry.data.location === filterLocation;
-        return true; // placeholders show for all locations, filtered per-button
+        return true;
       });
 
   return (
@@ -266,8 +272,7 @@ const ViewerSchedule = () => {
 
               return <PlaceholderCard
                 key={entry.dateStr}
-                dateStr={entry.dateStr}
-                date={entry.date}
+                dates={entry.dates}
                 locations={locationsToShow}
                 myDateAvailability={myDateAvailability}
                 toggling={toggling}
@@ -368,23 +373,28 @@ const ScheduleCard = ({
   );
 };
 
-// Sub-component for placeholder weekend cards
+// Sub-component for placeholder weekend cards (grouped Sat+Sun)
 const PlaceholderCard = ({
-  dateStr,
-  date,
+  dates,
   locations,
   myDateAvailability,
   toggling,
   onToggle,
 }: {
-  dateStr: string;
-  date: Date;
+  dates: Date[];
   locations: { value: string; label: string }[];
   myDateAvailability: Map<string, Set<string>>;
   toggling: string | null;
   onToggle: (dateStr: string, location: string) => void;
 }) => {
-  const hasAnyAvailability = locations.some(l => myDateAvailability.get(dateStr)?.has(l.value));
+  const hasAnyAvailability = dates.some(d => {
+    const ds = format(d, "yyyy-MM-dd");
+    return locations.some(l => myDateAvailability.get(ds)?.has(l.value));
+  });
+
+  const dateLabel = dates.length === 1
+    ? format(dates[0], "EEEE, MMMM d, yyyy")
+    : `${format(dates[0], "EEE, MMM d")} – ${format(dates[dates.length - 1], "EEE, MMM d, yyyy")}`;
 
   return (
     <div
@@ -402,45 +412,54 @@ const PlaceholderCard = ({
             <CalendarPlus className={`w-5 h-5 ${hasAnyAvailability ? "text-green-400" : "text-muted-foreground"}`} />
           </div>
           <div>
-            <h3 className="font-bold text-foreground">
-              {format(date, "EEEE, MMMM d, yyyy")}
-            </h3>
+            <h3 className="font-bold text-foreground">{dateLabel}</h3>
             <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
               No class scheduled — mark your availability
             </span>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 ml-13">
-          {locations.map(loc => {
-            const isAvail = myDateAvailability.get(dateStr)?.has(loc.value) ?? false;
-            const key = `${dateStr}-${loc.value}`;
-            const isToggling = toggling === key;
+        {dates.map(d => {
+          const dateStr = format(d, "yyyy-MM-dd");
+          const dayLabel = format(d, "EEEE");
+          return (
+            <div key={dateStr} className="ml-13">
+              {dates.length > 1 && (
+                <p className="text-xs text-muted-foreground mb-1 font-medium">{dayLabel}</p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {locations.map(loc => {
+                  const isAvail = myDateAvailability.get(dateStr)?.has(loc.value) ?? false;
+                  const key = `${dateStr}-${loc.value}`;
+                  const isToggling = toggling === key;
 
-            return (
-              <Button
-                key={loc.value}
-                variant={isAvail ? "default" : "outline"}
-                size="sm"
-                onClick={() => onToggle(dateStr, loc.value)}
-                disabled={isToggling}
-                className={isAvail
-                  ? "bg-green-600 hover:bg-green-700 text-white"
-                  : ""
-                }
-              >
-                {isToggling ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : isAvail ? (
-                  <Check className="w-4 h-4 mr-2" />
-                ) : (
-                  <MapPin className="w-4 h-4 mr-2" />
-                )}
-                {loc.label}
-              </Button>
-            );
-          })}
-        </div>
+                  return (
+                    <Button
+                      key={loc.value}
+                      variant={isAvail ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => onToggle(dateStr, loc.value)}
+                      disabled={isToggling}
+                      className={isAvail
+                        ? "bg-green-600 hover:bg-green-700 text-white"
+                        : ""
+                      }
+                    >
+                      {isToggling ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : isAvail ? (
+                        <Check className="w-4 h-4 mr-2" />
+                      ) : (
+                        <MapPin className="w-4 h-4 mr-2" />
+                      )}
+                      {loc.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
