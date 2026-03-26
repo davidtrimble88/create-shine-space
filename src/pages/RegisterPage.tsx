@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -27,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const registrationSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(100),
@@ -112,12 +114,56 @@ const RegisterPage = () => {
     },
   });
 
-  const onSubmit = (data: RegistrationFormData) => {
-    console.log("Registration submitted:", data);
-    toast({
-      title: "Registration Submitted!",
-      description: "We'll contact you shortly to confirm your reservation and arrange payment.",
-    });
+  const [submitting, setSubmitting] = useState(false);
+
+  const onSubmit = async (data: RegistrationFormData) => {
+    setSubmitting(true);
+    try {
+      // Find the schedule_id from the schedule query param
+      let scheduleId: string | null = null;
+      let scheduleDate: string | null = null;
+      if (schedule) {
+        const { data: schedData } = await supabase
+          .from("schedules")
+          .select("id, date")
+          .eq("course", course)
+          .eq("location", location)
+          .limit(1);
+        if (schedData && schedData.length > 0) {
+          scheduleId = schedData[0].id;
+          scheduleDate = schedData[0].date;
+        }
+      }
+
+      const { error } = await supabase.from("bookings").insert({
+        schedule_id: scheduleId,
+        course,
+        location,
+        location_label: locationLabels[location] || location,
+        schedule_date: scheduleDate,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        gender: data.gender,
+        date_of_birth: data.dateOfBirth,
+        referral_source: data.referralSource,
+        fee: isUnder21 ? "$395" : "$425",
+      });
+
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({
+          title: "Registration Submitted!",
+          description: "We'll contact you shortly to confirm your reservation and arrange payment.",
+        });
+        form.reset();
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
+    }
+    setSubmitting(false);
   };
 
   const dateOfBirth = useWatch({ control: form.control, name: "dateOfBirth" });
@@ -500,8 +546,8 @@ const RegisterPage = () => {
                 </div>
 
                 <div className="text-center">
-                  <Button type="submit" variant="hero" size="lg" className="px-12">
-                    Continue to Payment Method
+                  <Button type="submit" variant="hero" size="lg" className="px-12" disabled={submitting}>
+                    {submitting ? "Submitting..." : "Continue to Payment Method"}
                   </Button>
                 </div>
               </form>

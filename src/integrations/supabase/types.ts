@@ -14,6 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          booking_status: string
+          course: string
+          created_at: string
+          date_of_birth: string | null
+          email: string
+          fee: string | null
+          first_name: string
+          gender: string | null
+          id: string
+          last_name: string
+          location: string
+          location_label: string
+          payment_status: string
+          phone: string
+          referral_source: string | null
+          schedule_date: string | null
+          schedule_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          booking_status?: string
+          course: string
+          created_at?: string
+          date_of_birth?: string | null
+          email: string
+          fee?: string | null
+          first_name: string
+          gender?: string | null
+          id?: string
+          last_name: string
+          location: string
+          location_label: string
+          payment_status?: string
+          phone: string
+          referral_source?: string | null
+          schedule_date?: string | null
+          schedule_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          booking_status?: string
+          course?: string
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string
+          fee?: string | null
+          first_name?: string
+          gender?: string | null
+          id?: string
+          last_name?: string
+          location?: string
+          location_label?: string
+          payment_status?: string
+          phone?: string
+          referral_source?: string | null
+          schedule_date?: string | null
+          schedule_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_logins: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           created_at: string
@@ -120,6 +212,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      page_views: {
+        Row: {
+          created_at: string
+          id: string
+          page_name: string | null
+          page_path: string
+          visitor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_name?: string | null
+          page_path: string
+          visitor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_name?: string | null
+          page_path?: string
+          visitor_id?: string | null
+        }
+        Relationships: []
       }
       schedules: {
         Row: {
