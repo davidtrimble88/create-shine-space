@@ -100,7 +100,7 @@ const Courses = () => {
               )}
 
               <div className="mb-6">
-                <h3 className="text-2xl font-bold text-foreground mb-2">{course.name}</h3>
+                <h3 className={`text-2xl font-bold mb-2 ${course.popular ? "text-accent" : "text-foreground"}`}>{course.name}</h3>
                 <p className="text-muted-foreground">{course.subtitle}</p>
               </div>
 
