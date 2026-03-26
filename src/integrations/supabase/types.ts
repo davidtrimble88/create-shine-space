@@ -345,6 +345,30 @@ export type Database = {
         }
         Relationships: []
       }
+      site_content: {
+        Row: {
+          content_key: string
+          content_value: string
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content_key: string
+          content_value?: string
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content_key?: string
+          content_value?: string
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
