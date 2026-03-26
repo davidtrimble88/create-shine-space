@@ -117,7 +117,8 @@ const ComprehensiveSchedule = () => {
         const d = new Date(r.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
         body += `${d} | ${courseLabels[r.course] || r.course}${r.group_name ? ` (${r.group_name})` : ""}\n`;
         body += `  Schedule: ${r.schedule}\n`;
-      body += `  Instructors: ${r.instructors.length > 0 ? r.instructors.map(i => `${roleLabelMap[i.role] || i.role}: ${i.name}`).join(", ") : "Not assigned"}\n`;
+        body += `  Instructors: ${r.instructors.length > 0 ? r.instructors.map(i => `${roleLabelMap[i.role] || i.role}: ${i.name}`).join(", ") : "Not assigned"}\n`;
+        body += `  Spots: ${r.spots_available} | Price: ${r.price}\n\n`;
       }
     }
     window.open(`mailto:?subject=${subject}&body=${encodeURIComponent(body)}`);
