@@ -5,8 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Printer, Mail, CalendarDays } from "lucide-react";
 import { roleLabelMap } from "./InstructorAssignment";
-import { useToast } from "@/hooks/use-toast";
-import { Printer, Mail, CalendarDays } from "lucide-react";
 
 interface ScheduleRow {
   id: string;
@@ -204,11 +202,14 @@ const ComprehensiveSchedule = () => {
                         <td className="p-3 text-muted-foreground text-xs">{r.schedule}</td>
                         <td className="p-3">
                           {r.instructors.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {r.instructors.map((name, i) => (
-                                <span key={i} className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full">
-                                  {name}
-                                </span>
+                            <div className="space-y-1">
+                              {r.instructors.map((inst, i) => (
+                                <div key={i} className="flex items-center gap-1.5">
+                                  <span className="text-[10px] font-medium text-accent bg-accent/10 px-1.5 py-0.5 rounded">
+                                    {roleLabelMap[inst.role] || inst.role}
+                                  </span>
+                                  <span className="text-xs text-foreground">{inst.name}</span>
+                                </div>
                               ))}
                             </div>
                           ) : (
