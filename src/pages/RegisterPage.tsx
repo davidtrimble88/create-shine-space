@@ -217,17 +217,6 @@ const RegisterPage = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="max-w-2xl mx-auto"
           >
-            {/* Notice */}
-            <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 mb-8 text-sm text-muted-foreground">
-              <p className="font-semibold text-foreground mb-1">Important</p>
-              <p>
-                After submitting, please contact our office at{" "}
-                <a href="tel:+18058270075" className="text-accent font-medium hover:underline">
-                  (805) 827-0075
-                </a>{" "}
-                to secure your reservation with payment. Reservations not secured within 24 hours will be canceled.
-              </p>
-            </div>
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
