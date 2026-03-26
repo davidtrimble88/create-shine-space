@@ -121,6 +121,9 @@ const AdminSchedule = () => {
   const getAvailabilityForSchedule = (scheduleId: string) =>
     availability.filter(a => a.schedule_id === scheduleId);
 
+  const getAssignmentsForSchedule = (scheduleId: string) =>
+    assignmentData.filter(a => a.schedule_id === scheduleId);
+
   const handleLocationChange = (loc: string) => {
     setForm(f => ({ ...f, location: loc, location_label: locationLabels[loc] || loc }));
   };
@@ -295,6 +298,7 @@ const AdminSchedule = () => {
                 <th className="text-left p-4 font-medium text-muted-foreground">Schedule</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">Spots</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">Price</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">Assigned</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">Available</th>
                 <th className="text-right p-4 font-medium text-muted-foreground">Actions</th>
               </tr>
@@ -321,6 +325,24 @@ const AdminSchedule = () => {
                     </span>
                   </td>
                   <td className="p-4 text-foreground">{s.price}</td>
+                  <td className="p-4">
+                    {(() => {
+                      const assigned = getAssignmentsForSchedule(s.id);
+                      if (assigned.length === 0) return <span className="text-muted-foreground text-xs italic">Not assigned</span>;
+                      return (
+                        <div className="space-y-1">
+                          {assigned.map((a, i) => (
+                            <div key={i} className="flex items-center gap-1.5">
+                              <span className="text-xs font-medium text-accent bg-accent/10 px-1.5 py-0.5 rounded">
+                                {roleLabelMap[a.role] || a.role}
+                              </span>
+                              <span className="text-xs text-foreground">{a.employee_name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </td>
                   <td className="p-4">
                     {(() => {
                       const avail = getAvailabilityForSchedule(s.id);
