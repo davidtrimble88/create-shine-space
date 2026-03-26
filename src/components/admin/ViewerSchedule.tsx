@@ -162,11 +162,19 @@ const ViewerSchedule = () => {
     setToggling(null);
   };
 
-  // Generate weekend dates for the next 8 weeks
+  // Generate weekend placeholders through end of year (or 6 months out if in Dec)
   const generateWeekendPlaceholders = (): PlaceholderEntry[] => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const endDate = addWeeks(today, 8);
+    const currentMonth = today.getMonth(); // 0-indexed
+    let endDate: Date;
+    if (currentMonth === 11) {
+      // December: go 6 months into next year
+      endDate = new Date(today.getFullYear() + 1, 5, 30);
+    } else {
+      // Otherwise: go through end of current year
+      endDate = new Date(today.getFullYear(), 11, 31);
+    }
     const weekendDates = eachWeekendOfInterval({ start: today, end: endDate });
 
     // Filter out weekends that already have schedules
