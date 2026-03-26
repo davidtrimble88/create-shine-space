@@ -43,7 +43,7 @@ const Testimonials = () => {
             <EditableText contentKey="testimonials.label" fallback="Success Stories" />
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-            What Our <span className="text-gradient"><EditableText contentKey="testimonials.highlight" fallback="Riders Say" /></span>
+            <EditableText contentKey="testimonials.heading" fallback="What Our Riders Say" />
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             <EditableText contentKey="testimonials.subtitle" fallback="Join thousands of satisfied riders who started their journey with us" />
