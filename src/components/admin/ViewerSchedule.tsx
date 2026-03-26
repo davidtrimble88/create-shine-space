@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Clock, MapPin, Hand, Check, Loader2 } from "lucide-react";
@@ -22,6 +23,7 @@ const ViewerSchedule = () => {
   const [myAvailability, setMyAvailability] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [filterLocation, setFilterLocation] = useState<string>("all");
 
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
@@ -94,14 +96,27 @@ const ViewerSchedule = () => {
         </p>
       </div>
 
-      {schedules.length === 0 ? (
+      <div className="flex gap-4 mb-6">
+        <Select value={filterLocation} onValueChange={setFilterLocation}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="All Locations" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Locations</SelectItem>
+            <SelectItem value="high-desert">High Desert — Hesperia</SelectItem>
+            <SelectItem value="ventura-county">Ventura County — Somis</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {(() => {
+        const filtered = filterLocation === "all" ? schedules : schedules.filter(s => s.location === filterLocation);
+        return filtered.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-8 text-center">
           <CalendarDays className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">No upcoming classes scheduled.</p>
+          <p className="text-muted-foreground">No upcoming classes found.</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {schedules.map((s) => {
+          {filtered.map((s) => {
             const dateObj = parseISO(s.date);
             const isAvailable = myAvailability.has(s.id);
             const isToggling = toggling === s.id;
@@ -180,7 +195,8 @@ const ViewerSchedule = () => {
             );
           })}
         </div>
-      )}
+      );
+      })()}
     </div>
   );
 };
