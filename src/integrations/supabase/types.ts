@@ -50,6 +50,35 @@ export type Database = {
         }
         Relationships: []
       }
+      instructor_availability: {
+        Row: {
+          created_at: string
+          id: string
+          schedule_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          schedule_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          schedule_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instructor_availability_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedules: {
         Row: {
           course: string

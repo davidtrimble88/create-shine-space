@@ -5,11 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, CalendarDays } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, Hand } from "lucide-react";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
+
+interface AvailabilityInfo {
+  schedule_id: string;
+  employee_name: string;
+  employee_email: string;
+}
 
 const courseLabels: Record<string, string> = {
   basic: "Basic Rider Course",
@@ -41,6 +48,7 @@ const AdminSchedule = () => {
   const [form, setForm] = useState(emptyForm);
   const [filterCourse, setFilterCourse] = useState<string>("all");
   const [filterLocation, setFilterLocation] = useState<string>("all");
+  const [availability, setAvailability] = useState<AvailabilityInfo[]>([]);
   const { toast } = useToast();
 
   const fetchSchedules = async () => {
@@ -48,16 +56,44 @@ const AdminSchedule = () => {
     let query = supabase.from("schedules").select("*").order("date", { ascending: true });
     if (filterCourse !== "all") query = query.eq("course", filterCourse);
     if (filterLocation !== "all") query = query.eq("location", filterLocation);
-    const { data, error } = await query;
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+    const [schedRes, availRes] = await Promise.all([
+      query,
+      supabase.from("instructor_availability").select("schedule_id, user_id"),
+    ]);
+
+    if (schedRes.error) {
+      toast({ title: "Error", description: schedRes.error.message, variant: "destructive" });
     } else {
-      setSchedules(data ?? []);
+      setSchedules(schedRes.data ?? []);
     }
+
+    // Fetch employee names for availability
+    if (availRes.data && availRes.data.length > 0) {
+      const userIds = [...new Set(availRes.data.map(a => a.user_id))];
+      const { data: employees } = await supabase
+        .from("employees")
+        .select("user_id, full_name, email")
+        .in("user_id", userIds);
+
+      const empMap = new Map((employees ?? []).map(e => [e.user_id, e]));
+      setAvailability(
+        availRes.data.map(a => ({
+          schedule_id: a.schedule_id,
+          employee_name: empMap.get(a.user_id)?.full_name ?? "Unknown",
+          employee_email: empMap.get(a.user_id)?.email ?? "",
+        }))
+      );
+    } else {
+      setAvailability([]);
+    }
+
     setLoading(false);
   };
 
   useEffect(() => { fetchSchedules(); }, [filterCourse, filterLocation]);
+
+  const getAvailabilityForSchedule = (scheduleId: string) =>
+    availability.filter(a => a.schedule_id === scheduleId);
 
   const handleLocationChange = (loc: string) => {
     setForm(f => ({ ...f, location: loc, location_label: locationLabels[loc] || loc }));
@@ -233,6 +269,7 @@ const AdminSchedule = () => {
                 <th className="text-left p-4 font-medium text-muted-foreground">Schedule</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">Spots</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">Price</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">Available</th>
                 <th className="text-right p-4 font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
@@ -258,6 +295,38 @@ const AdminSchedule = () => {
                     </span>
                   </td>
                   <td className="p-4 text-foreground">{s.price}</td>
+                  <td className="p-4">
+                    {(() => {
+                      const avail = getAvailabilityForSchedule(s.id);
+                      if (avail.length === 0) return <span className="text-muted-foreground text-xs">—</span>;
+                      return (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="flex items-center gap-1.5 text-green-400 hover:text-green-300 transition-colors">
+                              <Hand className="w-4 h-4" />
+                              <span className="text-sm font-medium">{avail.length}</span>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-3" align="start">
+                            <p className="text-xs font-semibold text-foreground mb-2">Available to Teach</p>
+                            <div className="space-y-2">
+                              {avail.map((a, i) => (
+                                <div key={i} className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-green-500/15 flex items-center justify-center text-green-400 text-xs font-bold">
+                                    {a.employee_name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-foreground">{a.employee_name}</p>
+                                    <p className="text-xs text-muted-foreground">{a.employee_email}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      );
+                    })()}
+                  </td>
                   <td className="p-4 text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(s)}>
