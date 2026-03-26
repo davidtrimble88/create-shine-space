@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   BarChart3, Eye, Users, TrendingUp, DollarSign, CalendarDays,
-  MapPin, Megaphone, LogIn, BookOpen
+  MapPin, Megaphone, LogIn, BookOpen, X, ArrowLeft
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend
 } from "recharts";
+import { Button } from "@/components/ui/button";
 
 const COLORS = ["hsl(var(--accent))", "#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444", "#06b6d4", "#ec4899"];
 
@@ -19,6 +21,7 @@ const WebsiteAnalytics = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [logins, setLogins] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [drilldown, setDrilldown] = useState<{ type: string; label: string; data: any[] } | null>(null);
 
   const getDateFilter = () => {
     const d = new Date();
@@ -105,16 +108,18 @@ const WebsiteAnalytics = () => {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, count]) => ({
       month: new Date(month + "-01").toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
+      rawMonth: month,
       bookings: count,
     }));
 
-  // Fill rate: how quickly classes fill
-  const fillRateData = bookings.reduce<Record<string, { date: string; course: string; location: string; count: number }>>((acc, b) => {
+  // Fill rate
+  const fillRateData = bookings.reduce<Record<string, { date: string; rawDate: string; course: string; location: string; count: number }>>((acc, b) => {
     if (b.schedule_date) {
       const key = `${b.schedule_date}-${b.course}-${b.location}`;
       if (!acc[key]) {
         acc[key] = {
           date: new Date(b.schedule_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          rawDate: b.schedule_date,
           course: courseLabels[b.course] || b.course,
           location: b.location_label,
           count: 0,
@@ -146,6 +151,77 @@ const WebsiteAnalytics = () => {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([quarter, count]) => ({ quarter, bookings: count }));
 
+  // ---- Drilldown Handlers ----
+  const handlePageViewClick = (data: any) => {
+    if (!data?.activePayload?.[0]) return;
+    const pageName = data.activePayload[0].payload.name;
+    const details = pageViews
+      .filter(p => (p.page_name || p.page_path) === pageName)
+      .map(p => ({
+        visitor_id: p.visitor_id?.substring(0, 8) + "…",
+        full_visitor_id: p.visitor_id,
+        page: p.page_name || p.page_path,
+        time: new Date(p.created_at).toLocaleString(),
+      }));
+    // Group by visitor
+    const visitorMap = new Map<string, { visitor_id: string; visits: number; lastVisit: string }>();
+    details.forEach(d => {
+      const existing = visitorMap.get(d.full_visitor_id);
+      if (existing) {
+        existing.visits++;
+        existing.lastVisit = d.time;
+      } else {
+        visitorMap.set(d.full_visitor_id, { visitor_id: d.full_visitor_id, visits: 1, lastVisit: d.time });
+      }
+    });
+    setDrilldown({
+      type: "page_views",
+      label: pageName,
+      data: Array.from(visitorMap.values()).sort((a, b) => b.visits - a.visits),
+    });
+  };
+
+  const handleMonthlyClick = (data: any) => {
+    if (!data?.activePayload?.[0]) return;
+    const rawMonth = data.activePayload[0].payload.rawMonth;
+    const monthLabel = data.activePayload[0].payload.month;
+    const details = bookings.filter(b => {
+      const d = new Date(b.created_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      return key === rawMonth;
+    });
+    setDrilldown({
+      type: "bookings_month",
+      label: monthLabel,
+      data: details,
+    });
+  };
+
+  const handleFillRateClick = (data: any) => {
+    if (!data?.activePayload?.[0]) return;
+    const payload = data.activePayload[0].payload;
+    const details = bookings.filter(b =>
+      b.schedule_date === payload.rawDate &&
+      (courseLabels[b.course] || b.course) === payload.course
+    );
+    setDrilldown({
+      type: "fill_rate",
+      label: `${payload.course} — ${payload.date}`,
+      data: details,
+    });
+  };
+
+  const handleReferralClick = (data: any) => {
+    if (!data?.name) return;
+    const source = data.name;
+    const details = bookings.filter(b => (b.referral_source || "Unknown") === source);
+    setDrilldown({
+      type: "referral",
+      label: source,
+      data: details,
+    });
+  };
+
   if (loading) return <p className="text-muted-foreground p-8">Loading analytics...</p>;
 
   return (
@@ -153,7 +229,7 @@ const WebsiteAnalytics = () => {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Website Analytics</h1>
-          <p className="text-muted-foreground text-sm mt-1">Comprehensive business intelligence dashboard</p>
+          <p className="text-muted-foreground text-sm mt-1">Click any chart bar or slice to see detailed records</p>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
@@ -200,12 +276,13 @@ const WebsiteAnalytics = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Page Views Chart */}
             <div className="bg-card border border-border rounded-xl p-5">
-              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
                 <Eye className="w-4 h-4 text-accent" /> Page Views by Page
               </h3>
+              <p className="text-xs text-muted-foreground mb-4">Click a bar to see visitors</p>
               {pageViewsChart.length > 0 ? (
                 <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={pageViewsChart}>
+                  <BarChart data={pageViewsChart} onClick={handlePageViewClick} className="cursor-pointer">
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                     <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
@@ -218,12 +295,13 @@ const WebsiteAnalytics = () => {
 
             {/* Bookings by Month */}
             <div className="bg-card border border-border rounded-xl p-5">
-              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-accent" /> Bookings Over Time
               </h3>
+              <p className="text-xs text-muted-foreground mb-4">Click a point to see bookings</p>
               {monthlyChart.length > 0 ? (
                 <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={monthlyChart}>
+                  <LineChart data={monthlyChart} onClick={handleMonthlyClick} className="cursor-pointer">
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                     <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
@@ -303,12 +381,13 @@ const WebsiteAnalytics = () => {
         <TabsContent value="bookings" className="space-y-6">
           {/* Fill Rate */}
           <div className="bg-card border border-border rounded-xl p-5">
-            <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+            <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-accent" /> Class Fill Rate — Top 10 Classes
             </h3>
+            <p className="text-xs text-muted-foreground mb-4">Click a bar to see who booked</p>
             {fillChart.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={fillChart} layout="vertical">
+                <BarChart data={fillChart} layout="vertical" onClick={handleFillRateClick} className="cursor-pointer">
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                   <YAxis dataKey="date" type="category" width={80} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
@@ -376,13 +455,25 @@ const WebsiteAnalytics = () => {
         <TabsContent value="referrals" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-card border border-border rounded-xl p-5">
-              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
                 <Megaphone className="w-4 h-4 text-accent" /> How Did You Hear About Us?
               </h3>
+              <p className="text-xs text-muted-foreground mb-4">Click a slice to see bookings</p>
               {referralChart.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
-                    <Pie data={referralChart} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} labelLine={false}>
+                    <Pie
+                      data={referralChart}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      labelLine={false}
+                      onClick={handleReferralClick}
+                      className="cursor-pointer"
+                    >
                       {referralChart.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
                     <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
@@ -396,13 +487,17 @@ const WebsiteAnalytics = () => {
               {referralChart.length > 0 ? (
                 <div className="space-y-2 max-h-[300px] overflow-y-auto">
                   {referralChart.map((r, i) => (
-                    <div key={i} className="flex items-center justify-between py-1">
+                    <button
+                      key={i}
+                      className="w-full flex items-center justify-between py-2 px-2 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer"
+                      onClick={() => handleReferralClick(r)}
+                    >
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
                         <span className="text-sm text-foreground">{r.name}</span>
                       </div>
                       <span className="text-sm font-medium text-foreground">{r.value}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               ) : <p className="text-sm text-muted-foreground text-center py-12">No referral data yet</p>}
@@ -476,6 +571,78 @@ const WebsiteAnalytics = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Drilldown Dialog */}
+      <Dialog open={!!drilldown} onOpenChange={(open) => !open && setDrilldown(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {drilldown?.type === "page_views" && <Eye className="w-5 h-5 text-accent" />}
+              {(drilldown?.type === "bookings_month" || drilldown?.type === "fill_rate" || drilldown?.type === "referral") && <BookOpen className="w-5 h-5 text-accent" />}
+              {drilldown?.type === "page_views" ? `Visitors — ${drilldown.label}` :
+               drilldown?.type === "bookings_month" ? `Bookings — ${drilldown?.label}` :
+               drilldown?.type === "fill_rate" ? `Bookings — ${drilldown?.label}` :
+               `Referral — ${drilldown?.label}`}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="overflow-y-auto flex-1">
+            {drilldown?.type === "page_views" && (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-secondary/30">
+                    <th className="text-left p-3 font-medium text-muted-foreground">Visitor ID</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground">Visits</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground">Last Visit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {drilldown.data.map((d, i) => (
+                    <tr key={i} className="border-b border-border/50">
+                      <td className="p-3 text-foreground font-mono text-xs">{d.visitor_id?.substring(0, 8)}…</td>
+                      <td className="p-3 text-foreground">{d.visits}</td>
+                      <td className="p-3 text-muted-foreground text-xs">{d.lastVisit}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {(drilldown?.type === "bookings_month" || drilldown?.type === "fill_rate" || drilldown?.type === "referral") && (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-secondary/30">
+                    <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground">Email</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground">Course</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground">Location</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {drilldown.data.map((b, i) => (
+                    <tr key={i} className="border-b border-border/50">
+                      <td className="p-3 text-foreground">{b.first_name} {b.last_name}</td>
+                      <td className="p-3 text-muted-foreground text-xs">{b.email}</td>
+                      <td className="p-3"><span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent">{courseLabels[b.course] || b.course}</span></td>
+                      <td className="p-3 text-muted-foreground text-xs">{b.location_label}</td>
+                      <td className="p-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          b.booking_status === "confirmed" ? "bg-green-500/10 text-green-400" :
+                          b.booking_status === "cancelled" ? "bg-destructive/10 text-destructive" :
+                          "bg-amber-500/10 text-amber-400"
+                        }`}>{b.booking_status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                  {drilldown.data.length === 0 && (
+                    <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No records found</td></tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">{drilldown?.data.length} record{drilldown?.data.length !== 1 ? "s" : ""}</p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
