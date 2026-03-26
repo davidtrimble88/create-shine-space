@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Award, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-motorcycle.jpg";
+import EditableText from "@/components/EditableText";
 
 const Hero = () => {
   return (
@@ -26,7 +27,7 @@ const Hero = () => {
             transition={{ duration: 0.8 }}
           >
             <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
-              California's Premier Motorcycle Training
+              <EditableText contentKey="hero.badge" fallback="California's Premier Motorcycle Training" />
             </span>
           </motion.div>
 
@@ -36,19 +37,24 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.1 }}
             className="text-5xl md:text-7xl font-bold leading-tight mb-6"
           >
-            Master the Art of{" "}
-            <span className="text-accent">Riding</span>
+            <EditableText contentKey="hero.title" fallback="Master the Art of">
+              {(text) => <>{text}{" "}<span className="text-accent">Riding</span></>}
+            </EditableText>
           </motion.h1>
 
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl text-foreground mb-8 max-w-2xl leading-relaxed"
           >
-            <span className="font-semibold text-accent">CMSP certified courses</span> designed to transform beginners into confident riders.
-            {" "}Skip the DMV test and ride with <span className="font-semibold">skill</span>, <span className="font-semibold">safety</span>, and <span className="font-semibold">freedom</span>.
-          </motion.p>
+            <EditableText
+              contentKey="hero.description"
+              fallback="CMSP certified courses designed to transform beginners into confident riders. Skip the DMV test and ride with skill, safety, and freedom."
+              as="p"
+              multiline
+            />
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -77,13 +83,15 @@ const Hero = () => {
             className="flex flex-wrap gap-6"
           >
             {[
-              { icon: Shield, text: "DMV Waiver" },
-              { icon: Award, text: "CMSP Certified" },
-              { icon: Users, text: "10,000+ Trained" },
+              { icon: Shield, key: "hero.badge1", fallback: "DMV Waiver" },
+              { icon: Award, key: "hero.badge2", fallback: "CMSP Certified" },
+              { icon: Users, key: "hero.badge3", fallback: "10,000+ Trained" },
             ].map((badge, index) => (
               <div key={index} className="flex items-center gap-2 text-muted-foreground">
                 <badge.icon className="w-5 h-5 text-accent" />
-                <span className="text-sm font-medium">{badge.text}</span>
+                <span className="text-sm font-medium">
+                  <EditableText contentKey={badge.key} fallback={badge.fallback} />
+                </span>
               </div>
             ))}
           </motion.div>

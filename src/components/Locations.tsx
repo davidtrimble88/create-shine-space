@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { MapPin, Phone, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import EditableText from "@/components/EditableText";
 
 const locations = [
   {
@@ -33,13 +34,15 @@ const Locations = () => {
           className="text-center mb-16"
         >
           <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-            Our Locations
+            <EditableText contentKey="locations.label" fallback="Our Locations" />
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-            Train <span className="text-accent">Near You</span>
+            <EditableText contentKey="locations.title" fallback="Train">
+              {(text) => <>{text} <span className="text-accent">Near You</span></>}
+            </EditableText>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Two convenient locations serving Southern California riders
+            <EditableText contentKey="locations.subtitle" fallback="Two convenient locations serving Southern California riders" />
           </p>
         </motion.div>
 
@@ -56,7 +59,9 @@ const Locations = () => {
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <h3 className="text-2xl font-bold text-foreground mb-2">{location.name}</h3>
-                  <p className="text-muted-foreground">{location.description}</p>
+                  <p className="text-muted-foreground">
+                    <EditableText contentKey={`locations.${index}.desc`} fallback={location.description} />
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-6 h-6 text-accent" />
@@ -76,7 +81,9 @@ const Locations = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   <Clock className="w-5 h-5 text-accent" />
-                  <span className="text-foreground">{location.hours}</span>
+                  <span className="text-foreground">
+                    <EditableText contentKey={`locations.${index}.hours`} fallback={location.hours} />
+                  </span>
                 </div>
               </div>
 
