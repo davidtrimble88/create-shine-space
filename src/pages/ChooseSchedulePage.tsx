@@ -1,9 +1,11 @@
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Users, ArrowRight } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { scheduleData } from "@/data/scheduleData";
+import { format, parseISO } from "date-fns";
 
 const ChooseSchedulePage = () => {
   const [searchParams] = useSearchParams();
@@ -22,8 +24,12 @@ const ChooseSchedulePage = () => {
     "ventura-county": "Ventura County — Somis",
   };
 
-  const handleTempScheduleSelect = () => {
-    navigate(`/register?course=${course}&location=${location}&schedule=2026-04-04`);
+  const availableClasses = scheduleData.filter(
+    (entry) => entry.course === course && entry.location === location
+  );
+
+  const handleSelectClass = (classId: string) => {
+    navigate(`/register?course=${course}&location=${location}&schedule=${classId}`);
   };
 
   return (
@@ -53,34 +59,114 @@ const ChooseSchedulePage = () => {
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="max-w-2xl mx-auto"
-          >
-            <div className="bg-card border border-border rounded-2xl p-12 text-center">
-              <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <CalendarDays className="w-8 h-8 text-accent" />
-              </div>
-              <h2 className="text-xl font-bold text-foreground mb-2">Schedule Coming Soon</h2>
-              <p className="text-muted-foreground mb-6">
-                Available class dates will be listed here. In the meantime, contact us to reserve your spot.
-              </p>
-              <a
-                href="tel:+17604038091"
-                className="text-accent hover:underline font-medium"
-              >
-                Call (760) 403-8091
-              </a>
-              <div className="mt-8 pt-6 border-t border-border">
-                <p className="text-xs text-muted-foreground mb-3 italic">Temporary — for testing only</p>
-                <Button variant="hero" size="lg" onClick={handleTempScheduleSelect}>
-                  Simulate Schedule Selection →
-                </Button>
-              </div>
+          {availableClasses.length > 0 ? (
+            <div className="max-w-3xl mx-auto space-y-4">
+              {availableClasses.map((entry, i) => {
+                const dateObj = parseISO(entry.date);
+                const isFull = entry.spotsAvailable === 0;
+
+                return (
+                  <motion.div
+                    key={entry.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.08 }}
+                    className={`relative border rounded-2xl p-6 transition-all duration-300 ${
+                      isFull
+                        ? "border-border bg-card/50 opacity-60"
+                        : "border-accent/30 bg-gradient-to-r from-accent/10 to-accent/5 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 cursor-pointer"
+                    }`}
+                    onClick={() => !isFull && handleSelectClass(entry.id)}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center flex-shrink-0">
+                            <CalendarDays className="w-6 h-6 text-accent" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-foreground">
+                              {format(dateObj, "EEEE, MMMM d, yyyy")}
+                            </h3>
+                            {entry.group && (
+                              <span className="text-xs font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded-full">
+                                {entry.group}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-4 h-4 text-accent" />
+                            {entry.schedule}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="w-4 h-4 text-accent" />
+                            {entry.locationLabel}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                        <span className="text-lg font-bold text-foreground">{entry.price}</span>
+                        {isFull ? (
+                          <span className="text-sm font-semibold text-destructive bg-destructive/10 px-3 py-1 rounded-full">
+                            Class Full
+                          </span>
+                        ) : (
+                          <>
+                            <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Users className="w-4 h-4 text-accent" />
+                              {entry.spotsAvailable} spots left
+                            </span>
+                            <span className="flex items-center gap-1 text-sm text-accent font-medium group-hover:translate-x-1 transition-transform">
+                              Select <ArrowRight className="w-4 h-4" />
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
-          </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="max-w-2xl mx-auto"
+            >
+              <div className="bg-card border border-border rounded-2xl p-12 text-center">
+                <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <CalendarDays className="w-8 h-8 text-accent" />
+                </div>
+                <h2 className="text-xl font-bold text-foreground mb-2">No Classes Scheduled</h2>
+                <p className="text-muted-foreground mb-6">
+                  There are currently no upcoming classes for this course and location. Contact us to learn about future availability.
+                </p>
+                <a
+                  href="tel:+17604038091"
+                  className="text-accent hover:underline font-medium"
+                >
+                  Call (760) 403-8091
+                </a>
+              </div>
+            </motion.div>
+          )}
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="text-center text-sm text-muted-foreground mt-10"
+          >
+            Need help choosing?{" "}
+            <a href="tel:+17604038091" className="text-accent hover:underline font-medium">
+              Call us at (760) 403-8091
+            </a>
+          </motion.p>
         </div>
       </section>
 
