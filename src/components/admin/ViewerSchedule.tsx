@@ -47,20 +47,19 @@ const ViewerSchedule = () => {
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
 
-    const queries: Promise<any>[] = [
-      supabase.from("schedules").select("*").gte("date", today).order("date", { ascending: true }),
-    ];
+    const schedRes = await supabase.from("schedules").select("*").gte("date", today).order("date", { ascending: true });
+
+    let availData: any[] = [];
+    let dateAvailData: any[] = [];
 
     if (user) {
-      queries.push(
+      const [availRes, dateAvailRes] = await Promise.all([
         supabase.from("instructor_availability").select("schedule_id").eq("user_id", user.id),
-        supabase.from("instructor_date_availability").select("date, location").eq("user_id", user.id).gte("date", today),
-      );
-    } else {
-      queries.push(Promise.resolve({ data: [] }), Promise.resolve({ data: [] }));
+        supabase.rpc("get_user_date_availability", { _user_id: user.id, _from_date: today }) as any,
+      ]);
+      availData = availRes.data ?? [];
+      dateAvailData = dateAvailRes.data ?? [];
     }
-
-    const [schedRes, availRes, dateAvailRes] = await Promise.all(queries);
 
     setSchedules(schedRes.data ?? []);
     setMyAvailability(new Set((availRes.data ?? []).map((a: any) => a.schedule_id)));
