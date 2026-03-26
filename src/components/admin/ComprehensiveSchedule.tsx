@@ -30,6 +30,8 @@ const ComprehensiveSchedule = () => {
   const [loading, setLoading] = useState(true);
   const [filterLocation, setFilterLocation] = useState("all");
   const [filterCourse, setFilterCourse] = useState("all");
+  const [filterInstructor, setFilterInstructor] = useState("all");
+  const [instructorList, setInstructorList] = useState<{ id: string; name: string }[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
