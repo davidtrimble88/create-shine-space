@@ -1,25 +1,28 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown } from "lucide-react";
 import { useState } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
 import AdminOverview from "@/components/admin/AdminOverview";
 import ViewerSchedule from "@/components/admin/ViewerSchedule";
 import ComprehensiveSchedule from "@/components/admin/ComprehensiveSchedule";
+import WebsiteAnalytics from "@/components/admin/WebsiteAnalytics";
 
 const tabs = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["admin", "manager", "employee"] },
-  { id: "schedule", label: "Schedule", icon: CalendarDays, roles: ["admin", "manager"] },
-  { id: "full-schedule", label: "Full Schedule", icon: FileText, roles: ["admin", "manager"] },
-  { id: "my-schedule", label: "Upcoming Classes", icon: Hand, roles: ["admin", "manager", "employee"] },
-  { id: "employees", label: "Employees", icon: Users, roles: ["admin"] },
+  { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
+  { id: "schedule", label: "Schedule", icon: CalendarDays, roles: ["owner", "admin", "manager"] },
+  { id: "full-schedule", label: "Full Schedule", icon: FileText, roles: ["owner", "admin", "manager"] },
+  { id: "my-schedule", label: "Upcoming Classes", icon: Hand, roles: ["owner", "admin", "manager", "employee"] },
+  { id: "employees", label: "Employees", icon: Users, roles: ["owner", "admin"] },
+  { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
 ] as const;
 
 type TabId = typeof tabs[number]["id"];
 
 const roleLabels: Record<string, { label: string; icon: typeof Shield }> = {
+  owner: { label: "Owner", icon: Crown },
   admin: { label: "Admin", icon: Shield },
   manager: { label: "Manager", icon: UserCog },
   employee: { label: "Viewer", icon: Eye },
@@ -109,6 +112,7 @@ const EmployeeDashboard = () => {
         {activeTab === "full-schedule" && <ComprehensiveSchedule />}
         {activeTab === "my-schedule" && <ViewerSchedule />}
         {activeTab === "employees" && <AdminEmployees />}
+        {activeTab === "analytics" && <WebsiteAnalytics />}
       </main>
     </div>
   );
