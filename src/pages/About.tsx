@@ -24,7 +24,7 @@ const About = () => {
     const fetchInstructors = async () => {
       const { data } = await supabase
         .from("employees")
-        .select("id, full_name, position, photo_url, bio")
+        .select("id, full_name, position, photo_url, bio, photo_position_x, photo_position_y, photo_zoom")
         .eq("show_on_website", true)
         .eq("is_active", true)
         .order("created_at");
@@ -342,7 +342,12 @@ const About = () => {
                       <img
                         src={instructor.photo_url}
                         alt={instructor.full_name}
-                        className="w-full h-72 object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-72 group-hover:scale-105 transition-transform duration-500"
+                        style={{
+                          objectFit: "cover",
+                          objectPosition: `${instructor.photo_position_x ?? 50}% ${instructor.photo_position_y ?? 50}%`,
+                          transform: `scale(${(instructor.photo_zoom ?? 100) / 100})`,
+                        }}
                       />
                     ) : (
                       <div className="w-full h-72 bg-muted flex items-center justify-center">

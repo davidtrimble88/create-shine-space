@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -45,7 +46,7 @@ const AdminEmployees = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false });
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -142,6 +143,9 @@ const AdminEmployees = () => {
         position: form.position || null,
         bio: form.bio || null,
         show_on_website: form.show_on_website,
+        photo_position_x: form.photo_position_x,
+        photo_position_y: form.photo_position_y,
+        photo_zoom: form.photo_zoom,
       };
       if (photoUrl) updateData.photo_url = photoUrl;
 
@@ -186,6 +190,9 @@ const AdminEmployees = () => {
         position: form.position || null,
         bio: form.bio || null,
         show_on_website: form.show_on_website,
+        photo_position_x: form.photo_position_x,
+        photo_position_y: form.photo_position_y,
+        photo_zoom: form.photo_zoom,
         user_id: userId,
       }).select().single();
 
@@ -211,7 +218,7 @@ const AdminEmployees = () => {
 
     setDialogOpen(false);
     setEditingId(null);
-    setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false });
+    setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
     setPhotoFile(null);
     setPhotoPreview(null);
     setUploading(false);
@@ -228,6 +235,9 @@ const AdminEmployees = () => {
       role: e.role ?? "employee",
       bio: (e as any).bio ?? "",
       show_on_website: (e as any).show_on_website ?? false,
+      photo_position_x: (e as any).photo_position_x ?? 50,
+      photo_position_y: (e as any).photo_position_y ?? 50,
+      photo_zoom: (e as any).photo_zoom ?? 100,
     });
     setPhotoPreview((e as any).photo_url ?? null);
     setPhotoFile(null);
@@ -247,7 +257,7 @@ const AdminEmployees = () => {
 
   const openNew = () => {
     setEditingId(null);
-    setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false });
+    setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
     setPhotoFile(null);
     setPhotoPreview(null);
     setDialogOpen(true);
@@ -274,7 +284,18 @@ const AdminEmployees = () => {
                 <div className="mt-2 flex items-center gap-4">
                   {photoPreview ? (
                     <div className="relative">
-                      <img src={photoPreview} alt="Preview" className="w-20 h-20 rounded-full object-cover border border-border" />
+                      <div className="w-20 h-20 rounded-full overflow-hidden border border-border">
+                        <img
+                          src={photoPreview}
+                          alt="Preview"
+                          className="w-full h-full"
+                          style={{
+                            objectFit: "cover",
+                            objectPosition: `${form.photo_position_x}% ${form.photo_position_y}%`,
+                            transform: `scale(${form.photo_zoom / 100})`,
+                          }}
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
@@ -296,6 +317,45 @@ const AdminEmployees = () => {
                     {photoPreview ? "Change Photo" : "Upload Photo"}
                   </Button>
                 </div>
+
+                {/* Position & Zoom Controls */}
+                {photoPreview && (
+                  <div className="mt-3 space-y-3 p-3 rounded-lg border border-border bg-secondary/30">
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <Label className="text-xs">Horizontal Position</Label>
+                        <span className="text-xs text-muted-foreground">{form.photo_position_x}%</span>
+                      </div>
+                      <Slider
+                        value={[form.photo_position_x]}
+                        onValueChange={([v]) => setForm(f => ({ ...f, photo_position_x: v }))}
+                        min={0} max={100} step={1}
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <Label className="text-xs">Vertical Position</Label>
+                        <span className="text-xs text-muted-foreground">{form.photo_position_y}%</span>
+                      </div>
+                      <Slider
+                        value={[form.photo_position_y]}
+                        onValueChange={([v]) => setForm(f => ({ ...f, photo_position_y: v }))}
+                        min={0} max={100} step={1}
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <Label className="text-xs">Zoom</Label>
+                        <span className="text-xs text-muted-foreground">{form.photo_zoom}%</span>
+                      </div>
+                      <Slider
+                        value={[form.photo_zoom]}
+                        onValueChange={([v]) => setForm(f => ({ ...f, photo_zoom: v }))}
+                        min={100} max={300} step={5}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>

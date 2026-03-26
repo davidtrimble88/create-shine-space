@@ -115,7 +115,10 @@ export type Database = {
           id: string
           is_active: boolean
           phone: string | null
+          photo_position_x: number
+          photo_position_y: number
           photo_url: string | null
+          photo_zoom: number
           position: string | null
           show_on_website: boolean
           updated_at: string
@@ -129,7 +132,10 @@ export type Database = {
           id?: string
           is_active?: boolean
           phone?: string | null
+          photo_position_x?: number
+          photo_position_y?: number
           photo_url?: string | null
+          photo_zoom?: number
           position?: string | null
           show_on_website?: boolean
           updated_at?: string
@@ -143,7 +149,10 @@ export type Database = {
           id?: string
           is_active?: boolean
           phone?: string | null
+          photo_position_x?: number
+          photo_position_y?: number
           photo_url?: string | null
+          photo_zoom?: number
           position?: string | null
           show_on_website?: boolean
           updated_at?: string
