@@ -8,7 +8,6 @@ interface EditableTextProps {
   as?: "span" | "p" | "h1" | "h2" | "h3" | "h4";
   className?: string;
   multiline?: boolean;
-  children?: (text: string) => React.ReactNode;
 }
 
 const EditableText = ({
@@ -17,7 +16,6 @@ const EditableText = ({
   as: Tag = "span",
   className = "",
   multiline = false,
-  children,
 }: EditableTextProps) => {
   const { getContent, updateContent, isOwner } = useSiteContent();
   const text = getContent(contentKey, fallback);
@@ -59,28 +57,6 @@ const EditableText = ({
     }
     if (e.key === "Escape") cancel();
   };
-
-  // If children render function is provided, use it for complex content
-  if (children && !editing) {
-    return (
-      <span
-        className={`relative inline ${isOwner ? "group/edit cursor-pointer" : ""}`}
-        onMouseEnter={() => isOwner && setHovering(true)}
-        onMouseLeave={() => setHovering(false)}
-        onClick={() => isOwner && setEditing(true)}
-      >
-        {children(text)}
-        {isOwner && hovering && (
-          <button
-            onClick={(e) => { e.stopPropagation(); setEditing(true); }}
-            className="absolute -top-2 -right-6 z-50 w-5 h-5 bg-accent text-accent-foreground rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
-          >
-            <Pencil className="w-3 h-3" />
-          </button>
-        )}
-      </span>
-    );
-  }
 
   if (editing) {
     return (
