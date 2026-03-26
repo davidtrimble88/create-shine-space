@@ -214,9 +214,18 @@ const ViewerSchedule = () => {
       return !scheduledDates.has(dateStr) && !dismissedDates.has(dateStr) && d >= today;
     });
 
+    // Build a set of unscheduled date strings for quick lookup
+    const unscheduledSet = new Set(unscheduledDays.map(d => format(d, "yyyy-MM-dd")));
+
     const weekGroups = new Map<string, Date[]>();
     unscheduledDays.forEach(d => {
       const day = d.getDay();
+      if (day === 0) {
+        // Sunday: only include if corresponding Saturday is also unscheduled
+        const sat = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1);
+        const satStr = format(sat, "yyyy-MM-dd");
+        if (!unscheduledSet.has(satStr)) return; // skip orphan Sunday
+      }
       const sat = day === 0 ? new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1) : d;
       const key = format(sat, "yyyy-MM-dd");
       if (!weekGroups.has(key)) weekGroups.set(key, []);
