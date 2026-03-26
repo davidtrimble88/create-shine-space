@@ -13,7 +13,7 @@ type Booking = Tables<"bookings">;
 type Schedule = Tables<"schedules">;
 
 const courseLabels: Record<string, string> = {
-  basic: "Basic Rider Course",
+  basic: "Motorcycle Training Course",
   intermediate: "Intermediate Course",
   advanced: "Advanced Riding Clinic",
 };

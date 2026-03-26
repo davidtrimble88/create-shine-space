@@ -11,7 +11,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type Schedule = Tables<"schedules">;
 
 const courseLabels: Record<string, string> = {
-  basic: "Basic Rider Course",
+  basic: "Motorcycle Training Course",
   intermediate: "Intermediate Course",
   advanced: "Advanced Riding Clinic",
 };
