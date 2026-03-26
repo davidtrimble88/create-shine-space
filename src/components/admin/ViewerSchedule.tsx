@@ -55,17 +55,17 @@ const ViewerSchedule = () => {
     if (user) {
       const [availRes, dateAvailRes] = await Promise.all([
         supabase.from("instructor_availability").select("schedule_id").eq("user_id", user.id),
-        supabase.rpc("get_user_date_availability", { _user_id: user.id, _from_date: today }) as any,
+        (supabase as any).from("instructor_date_availability").select("date, location").eq("user_id", user.id).gte("date", today),
       ]);
       availData = availRes.data ?? [];
       dateAvailData = dateAvailRes.data ?? [];
     }
 
     setSchedules(schedRes.data ?? []);
-    setMyAvailability(new Set((availRes.data ?? []).map((a: any) => a.schedule_id)));
+    setMyAvailability(new Set(availData.map((a: any) => a.schedule_id)));
 
     const dateMap = new Map<string, Set<string>>();
-    (dateAvailRes.data ?? []).forEach((a: any) => {
+    dateAvailData.forEach((a: any) => {
       if (!dateMap.has(a.date)) dateMap.set(a.date, new Set());
       dateMap.get(a.date)!.add(a.location);
     });
