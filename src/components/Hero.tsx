@@ -37,9 +37,7 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.1 }}
             className="text-5xl md:text-7xl font-bold leading-tight mb-6"
           >
-            <EditableText contentKey="hero.title" fallback="Master the Art of">
-              {(text) => <>{text}{" "}<span className="text-accent">Riding</span></>}
-            </EditableText>
+            <EditableText contentKey="hero.title" fallback="Master the Art of Riding" />
           </motion.h1>
 
           <motion.div

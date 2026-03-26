@@ -37,9 +37,7 @@ const Locations = () => {
             <EditableText contentKey="locations.label" fallback="Our Locations" />
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-            <EditableText contentKey="locations.title" fallback="Train">
-              {(text) => <>{text} <span className="text-accent">Near You</span></>}
-            </EditableText>
+            <EditableText contentKey="locations.title" fallback="Train Near You" />
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             <EditableText contentKey="locations.subtitle" fallback="Two convenient locations serving Southern California riders" />

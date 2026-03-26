@@ -51,9 +51,7 @@ const About = () => {
               About Us
             </span>
             <h1 className="text-5xl md:text-6xl font-bold mt-4 mb-6">
-              <EditableText contentKey="about.hero.title" fallback="Your Safety Is Our">
-                {(text) => <>{text}{" "}<span className="text-accent">Business</span></>}
-              </EditableText>
+              <EditableText contentKey="about.hero.title" fallback="Your Safety Is Our Business" />
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl leading-relaxed">
               <EditableText contentKey="about.hero.description" fallback="Learn To Ride VC was created to get you trained and on the road with the skills to survive the ride. We take your safety seriously." multiline />

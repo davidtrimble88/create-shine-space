@@ -22,9 +22,7 @@ const ContactCTA = () => {
             <EditableText contentKey="cta.label" fallback="Get Started Today" />
           </span>
           <h2 className="text-4xl md:text-6xl font-bold mt-4 mb-6">
-            <EditableText contentKey="cta.title" fallback="Ready to">
-              {(text) => <>{text} <span className="text-gradient">Hit the Road?</span></>}
-            </EditableText>
+            <EditableText contentKey="cta.title" fallback="Ready to Hit the Road?" />
           </h2>
           <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
             <EditableText
