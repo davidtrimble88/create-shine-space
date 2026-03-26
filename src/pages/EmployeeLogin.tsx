@@ -18,8 +18,7 @@ const EmployeeLogin = () => {
 
   // If already logged in, redirect to dashboard
   if (user) {
-    navigate("/employee-dashboard");
-    return null;
+    return <Navigate to="/employee-dashboard" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
