@@ -68,10 +68,10 @@ const BasicCourse = () => (
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8 flex items-center gap-4">
         <img src={cmspLogo} alt="CMSP California Motorcyclist Safety Program" className="h-16 md:h-20 rounded-xl shadow-lg" />
-        <div>
-          <p className="text-foreground font-bold text-lg md:text-xl">CMSP Certified</p>
-          <p className="text-foreground/70 text-sm">Motorcyclist Training Course</p>
-        </div>
+          <div>
+            <p className="text-accent font-bold text-lg md:text-2xl">Motorcycle Training Course</p>
+            <p className="text-foreground/70 text-sm">CMSP Certified</p>
+          </div>
       </div>
     </div>
 
