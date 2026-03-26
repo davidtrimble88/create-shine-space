@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, parseISO, eachWeekendOfInterval } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
@@ -36,18 +36,26 @@ interface ScheduleEntry {
 type DisplayEntry = PlaceholderEntry | ScheduleEntry;
 
 const ViewerSchedule = () => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const { toast } = useToast();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [myAvailability, setMyAvailability] = useState<Set<string>>(new Set());
   const [myDateAvailability, setMyDateAvailability] = useState<Map<string, Set<string>>>(new Map());
+  const [dismissedDates, setDismissedDates] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [dismissing, setDismissing] = useState<string | null>(null);
   const [filterLocation, setFilterLocation] = useState<string>("all");
+
+  const canDismiss = userRole === "owner" || userRole === "admin";
 
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
-    const schedRes = await supabase.from("schedules").select("*").gte("date", today).order("date", { ascending: true });
+
+    const [schedRes, dismissedRes] = await Promise.all([
+      supabase.from("schedules").select("*").gte("date", today).order("date", { ascending: true }),
+      (supabase as any).from("dismissed_weekends").select("date").gte("date", today),
+    ]);
 
     let availData: any[] = [];
     let dateAvailData: any[] = [];
@@ -62,6 +70,7 @@ const ViewerSchedule = () => {
     }
 
     setSchedules(schedRes.data ?? []);
+    setDismissedDates(new Set((dismissedRes.data ?? []).map((d: any) => d.date)));
     setMyAvailability(new Set(availData.map((a: any) => a.schedule_id)));
 
     const dateMap = new Map<string, Set<string>>();
@@ -162,7 +171,31 @@ const ViewerSchedule = () => {
     setToggling(null);
   };
 
-  // Generate grouped weekend placeholders (Sat+Sun combined per weekend)
+  const dismissWeekend = async (dates: Date[]) => {
+    if (!user || !canDismiss) return;
+    const dateStrs = dates.map(d => format(d, "yyyy-MM-dd"));
+    const key = dateStrs.join(",");
+    setDismissing(key);
+
+    const rows = dateStrs.map(date => ({ date, dismissed_by: user.id }));
+    const { error } = await (supabase as any)
+      .from("dismissed_weekends")
+      .upsert(rows, { onConflict: "date" });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setDismissedDates(prev => {
+        const next = new Set(prev);
+        dateStrs.forEach(d => next.add(d));
+        return next;
+      });
+      toast({ title: "Dismissed", description: "Weekend removed from the list." });
+    }
+
+    setDismissing(null);
+  };
+
   const generateWeekendPlaceholders = (): PlaceholderEntry[] => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -178,13 +211,12 @@ const ViewerSchedule = () => {
 
     const unscheduledDays = weekendDates.filter(d => {
       const dateStr = format(d, "yyyy-MM-dd");
-      return !scheduledDates.has(dateStr) && d >= today;
+      return !scheduledDates.has(dateStr) && !dismissedDates.has(dateStr) && d >= today;
     });
 
-    // Group by weekend (using Saturday's date as the key)
     const weekGroups = new Map<string, Date[]>();
     unscheduledDays.forEach(d => {
-      const day = d.getDay(); // 0=Sun, 6=Sat
+      const day = d.getDay();
       const sat = day === 0 ? new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1) : d;
       const key = format(sat, "yyyy-MM-dd");
       if (!weekGroups.has(key)) weekGroups.set(key, []);
@@ -277,6 +309,9 @@ const ViewerSchedule = () => {
                 myDateAvailability={myDateAvailability}
                 toggling={toggling}
                 onToggle={toggleDateAvailability}
+                canDismiss={canDismiss}
+                isDismissing={dismissing === entry.dates.map(d => format(d, "yyyy-MM-dd")).join(",")}
+                onDismiss={() => dismissWeekend(entry.dates)}
               />;
             }
           })}
@@ -286,7 +321,6 @@ const ViewerSchedule = () => {
   );
 };
 
-// Sub-component for real schedule cards
 const ScheduleCard = ({
   schedule: s,
   isAvailable,
@@ -373,19 +407,24 @@ const ScheduleCard = ({
   );
 };
 
-// Sub-component for placeholder weekend cards (grouped Sat+Sun)
 const PlaceholderCard = ({
   dates,
   locations,
   myDateAvailability,
   toggling,
   onToggle,
+  canDismiss,
+  isDismissing,
+  onDismiss,
 }: {
   dates: Date[];
   locations: { value: string; label: string }[];
   myDateAvailability: Map<string, Set<string>>;
   toggling: string | null;
   onToggle: (dateStr: string, location: string) => void;
+  canDismiss: boolean;
+  isDismissing: boolean;
+  onDismiss: () => void;
 }) => {
   const hasAnyAvailability = dates.some(d => {
     const ds = format(d, "yyyy-MM-dd");
@@ -411,12 +450,28 @@ const PlaceholderCard = ({
           }`}>
             <CalendarPlus className={`w-5 h-5 ${hasAnyAvailability ? "text-green-400" : "text-muted-foreground"}`} />
           </div>
-          <div>
+          <div className="flex-1">
             <h3 className="font-bold text-foreground">{dateLabel}</h3>
             <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
               No class scheduled — mark your availability
             </span>
           </div>
+          {canDismiss && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDismiss}
+              disabled={isDismissing}
+              className="text-muted-foreground hover:text-destructive flex-shrink-0"
+              title="Dismiss this weekend"
+            >
+              {isDismissing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <X className="w-4 h-4" />
+              )}
+            </Button>
+          )}
         </div>
 
         {dates.map(d => {
