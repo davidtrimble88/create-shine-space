@@ -114,6 +114,7 @@ const EmployeeDashboard = () => {
         {activeTab === "full-schedule" && <ComprehensiveSchedule />}
         {activeTab === "my-schedule" && <ViewerSchedule />}
         {activeTab === "employees" && <AdminEmployees />}
+        {activeTab === "bookings" && <AdminBookings />}
         {activeTab === "analytics" && <WebsiteAnalytics />}
       </main>
     </div>
