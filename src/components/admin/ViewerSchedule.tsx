@@ -120,7 +120,7 @@ const ViewerSchedule = () => {
     const isAvailable = myDateAvailability.get(dateStr)?.has(location);
 
     if (isAvailable) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("instructor_date_availability")
         .delete()
         .eq("user_id", user.id)
