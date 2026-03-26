@@ -15,6 +15,7 @@ import ChooseLocationPage from "./pages/ChooseLocationPage";
 import ChooseSchedulePage from "./pages/ChooseSchedulePage";
 import RegisterPage from "./pages/RegisterPage";
 import ContactPage from "./pages/ContactPage";
+import EmployeeLogin from "./pages/EmployeeLogin";
 
 const queryClient = new QueryClient();
 

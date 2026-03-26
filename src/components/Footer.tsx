@@ -133,6 +133,9 @@ const Footer = () => {
               <Link to="/terms-of-service" className="text-sm text-muted-foreground hover:text-accent transition-colors">
                 Terms of Service
               </Link>
+              <Link to="/employee-login" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+                Employee Login
+              </Link>
             </div>
             <div className="flex flex-col items-end gap-1">
               <span className="text-sm text-muted-foreground">CMSP Certified</span>
