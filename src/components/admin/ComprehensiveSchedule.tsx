@@ -54,6 +54,7 @@ const ComprehensiveSchedule = () => {
       if (empIds.length > 0) {
         const { data: emps } = await supabase.from("employees").select("id, full_name").in("id", empIds);
         empMap = new Map((emps ?? []).map(e => [e.id, e.full_name]));
+        setInstructorList((emps ?? []).map(e => ({ id: e.id, name: e.full_name })).sort((a, b) => a.name.localeCompare(b.name)));
       }
 
       const assignMap = new Map<string, { name: string; role: string }[]>();
