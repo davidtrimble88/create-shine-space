@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,11 +38,29 @@ const roleColors: Record<string, string> = {
 };
 
 const AdminEmployees = () => {
+  const { userRole } = useAuth();
   const [employees, setEmployees] = useState<EmployeeWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", position: "", role: "employee" });
+
+  // Determine which roles the current user can assign
+  const assignableRoles = userRole === "owner"
+    ? [
+        { value: "owner", label: "Owner — Full access + analytics" },
+        { value: "admin", label: "Admin — Full access to everything" },
+        { value: "manager", label: "Manager — Can manage schedules" },
+        { value: "employee", label: "Viewer — View-only access" },
+      ]
+    : userRole === "admin"
+    ? [
+        { value: "manager", label: "Manager — Can manage schedules" },
+        { value: "employee", label: "Viewer — View-only access" },
+      ]
+    : [];
+
+  const canManageRoles = userRole === "owner" || userRole === "admin";
   const { toast } = useToast();
 
   const fetchEmployees = async () => {
@@ -205,18 +224,19 @@ const AdminEmployees = () => {
                   <Input value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} placeholder="Instructor" />
                 </div>
               </div>
+              {canManageRoles && assignableRoles.length > 0 && (
               <div>
                 <Label>Access Role</Label>
                 <Select value={form.role} onValueChange={v => setForm(f => ({ ...f, role: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="owner">Owner — Full access + analytics</SelectItem>
-                    <SelectItem value="admin">Admin — Full access to everything</SelectItem>
-                    <SelectItem value="manager">Manager — Can manage schedules</SelectItem>
-                    <SelectItem value="employee">Viewer — View-only access</SelectItem>
+                    {assignableRoles.map(r => (
+                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+              )}
               <Button onClick={handleSave} className="w-full">{editingId ? "Save Changes" : "Add Employee"}</Button>
             </div>
           </DialogContent>
