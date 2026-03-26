@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      employees: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          phone: string | null
+          position: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          position?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          position?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      schedules: {
+        Row: {
+          course: string
+          created_at: string
+          created_by: string | null
+          date: string
+          group_name: string | null
+          id: string
+          location: string
+          location_label: string
+          price: string
+          schedule: string
+          spots_available: number
+          updated_at: string
+        }
+        Insert: {
+          course: string
+          created_at?: string
+          created_by?: string | null
+          date: string
+          group_name?: string | null
+          id?: string
+          location: string
+          location_label: string
+          price: string
+          schedule: string
+          spots_available?: number
+          updated_at?: string
+        }
+        Update: {
+          course?: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          group_name?: string | null
+          id?: string
+          location?: string
+          location_label?: string
+          price?: string
+          schedule?: string
+          spots_available?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -49,7 +130,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "employee"
+      app_role: "admin" | "moderator" | "employee" | "manager"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -177,7 +258,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "employee"],
+      app_role: ["admin", "moderator", "employee", "manager"],
     },
   },
 } as const
