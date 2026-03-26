@@ -65,9 +65,10 @@ const AdminSchedule = () => {
     let query = supabase.from("schedules").select("*").order("date", { ascending: true });
     if (filterCourse !== "all") query = query.eq("course", filterCourse);
     if (filterLocation !== "all") query = query.eq("location", filterLocation);
-    const [schedRes, availRes] = await Promise.all([
+    const [schedRes, availRes, assignRes] = await Promise.all([
       query,
       supabase.from("instructor_availability").select("schedule_id, user_id"),
+      supabase.from("instructor_assignments").select("schedule_id, employee_id, assignment_role"),
     ]);
 
     if (schedRes.error) {
@@ -94,6 +95,22 @@ const AdminSchedule = () => {
       );
     } else {
       setAvailability([]);
+    }
+
+    // Fetch employee names for assignments
+    if (assignRes.data && assignRes.data.length > 0) {
+      const empIds = [...new Set(assignRes.data.map(a => a.employee_id))];
+      const { data: emps } = await supabase.from("employees").select("id, full_name").in("id", empIds);
+      const empNameMap = new Map((emps ?? []).map(e => [e.id, e.full_name]));
+      setAssignmentData(
+        assignRes.data.map(a => ({
+          schedule_id: a.schedule_id,
+          employee_name: empNameMap.get(a.employee_id) ?? "Unknown",
+          role: a.assignment_role ?? "instructor_1",
+        }))
+      );
+    } else {
+      setAssignmentData([]);
     }
 
     setLoading(false);
