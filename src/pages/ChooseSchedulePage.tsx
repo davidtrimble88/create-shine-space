@@ -46,7 +46,8 @@ const ChooseSchedulePage = () => {
   }, [course, location]);
 
   const handleSelectClass = (classId: string) => {
-    navigate(`/register?course=${course}&location=${location}&schedule=${classId}`);
+    sessionStorage.setItem("selectedScheduleId", classId);
+    navigate(`/register?course=${course}&location=${location}`);
   };
 
   return (
