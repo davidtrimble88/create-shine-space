@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import EditableText from "@/components/EditableText";
 import award2015 from "@/assets/about-award-2015.jpg";
 import award2016 from "@/assets/about-award-2016.jpg";
 import larryImg from "@/assets/about-larry.jpg";
@@ -50,12 +51,12 @@ const About = () => {
               About Us
             </span>
             <h1 className="text-5xl md:text-6xl font-bold mt-4 mb-6">
-              Your Safety Is Our{" "}
-              <span className="text-accent">Business</span>
+              <EditableText contentKey="about.hero.title" fallback="Your Safety Is Our">
+                {(text) => <>{text}{" "}<span className="text-accent">Business</span></>}
+              </EditableText>
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl leading-relaxed">
-              Learn To Ride VC was created to get you trained and on the road
-              with the skills to survive the ride. We take your safety seriously.
+              <EditableText contentKey="about.hero.description" fallback="Learn To Ride VC was created to get you trained and on the road with the skills to survive the ride. We take your safety seriously." multiline />
             </p>
           </motion.div>
         </div>
@@ -100,14 +101,10 @@ const About = () => {
                 <span className="text-accent">Your Lifelong Riding Partner</span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                Whether you're a new motorcyclist looking to get your license, or an
-                experienced rider brushing up on skills or getting comfortable on a new
-                bike — we have a course for you.
+                <EditableText contentKey="about.mission.p1" fallback="Whether you're a new motorcyclist looking to get your license, or an experienced rider brushing up on skills or getting comfortable on a new bike — we have a course for you." multiline />
               </p>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                Your successful completion of the basic Motorcyclist Training Course
-                (MTC) may waive the California DMV skills test for anyone 18 years of
-                age and over. This course is a requirement for anyone under 21.
+                <EditableText contentKey="about.mission.p2" fallback="Your successful completion of the basic Motorcyclist Training Course (MTC) may waive the California DMV skills test for anyone 18 years of age and over. This course is a requirement for anyone under 21." multiline />
               </p>
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium">
@@ -280,19 +277,13 @@ const About = () => {
                 Larry <span className="text-accent">Missman</span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                Larry Missman has been a motorcycle enthusiast since the age of ten.
-                From a 50cc Honda to sport bikes to Harleys, he has ridden them all
-                throughout his life.
+                <EditableText contentKey="about.larry.p1" fallback="Larry Missman has been a motorcycle enthusiast since the age of ten. From a 50cc Honda to sport bikes to Harleys, he has ridden them all throughout his life." multiline />
               </p>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                As a public speaker for riders in his community and an advocate for
-                safety, Larry decided to pursue a career in motorcycle training. Having
-                taught thousands of students, his dedication and passion for teaching
-                led him to attain ownership of Learn To Ride VC.
+                <EditableText contentKey="about.larry.p2" fallback="As a public speaker for riders in his community and an advocate for safety, Larry decided to pursue a career in motorcycle training. Having taught thousands of students, his dedication and passion for teaching led him to attain ownership of Learn To Ride VC." multiline />
               </p>
               <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-                You are in excellent hands when you sign up with us. From the moment you
-                call, we will be here to help you!
+                <EditableText contentKey="about.larry.p3" fallback="You are in excellent hands when you sign up with us. From the moment you call, we will be here to help you!" multiline />
               </p>
               <Button variant="hero" size="lg" asChild>
                 <Link to="/contact">
