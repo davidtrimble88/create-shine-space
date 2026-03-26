@@ -60,11 +60,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
           setTimeout(() => checkRole(session.user.id), 0);
+          // Log employee login
+          if (event === "SIGNED_IN") {
+            supabase.from("employee_logins").insert({
+              user_id: session.user.id,
+              email: session.user.email ?? "",
+            }).then(() => {});
+          }
         } else {
           setIsAdmin(false);
           setUserRole("employee");
