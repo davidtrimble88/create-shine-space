@@ -16,7 +16,7 @@ interface ScheduleRow {
   schedule: string;
   spots_available: number;
   price: string;
-  instructors: { name: string; role: string }[];
+  instructors: { name: string; role: string; employeeId: string }[];
 }
 
 const courseLabels: Record<string, string> = {
