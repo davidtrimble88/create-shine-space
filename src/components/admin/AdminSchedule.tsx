@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus } from "lucide-react";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
-import InstructorAssignment from "./InstructorAssignment";
+import InstructorAssignment, { roleLabelMap } from "./InstructorAssignment";
 
 type Schedule = Tables<"schedules">;
 
@@ -17,6 +17,12 @@ interface AvailabilityInfo {
   schedule_id: string;
   employee_name: string;
   employee_email: string;
+}
+
+interface AssignmentInfo {
+  schedule_id: string;
+  employee_name: string;
+  role: string;
 }
 
 const courseLabels: Record<string, string> = {
@@ -50,6 +56,7 @@ const AdminSchedule = () => {
   const [filterCourse, setFilterCourse] = useState<string>("all");
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [availability, setAvailability] = useState<AvailabilityInfo[]>([]);
+  const [assignmentData, setAssignmentData] = useState<AssignmentInfo[]>([]);
   const [assigningSchedule, setAssigningSchedule] = useState<{ id: string; name: string } | null>(null);
   const { toast } = useToast();
 
@@ -58,9 +65,10 @@ const AdminSchedule = () => {
     let query = supabase.from("schedules").select("*").order("date", { ascending: true });
     if (filterCourse !== "all") query = query.eq("course", filterCourse);
     if (filterLocation !== "all") query = query.eq("location", filterLocation);
-    const [schedRes, availRes] = await Promise.all([
+    const [schedRes, availRes, assignRes] = await Promise.all([
       query,
       supabase.from("instructor_availability").select("schedule_id, user_id"),
+      supabase.from("instructor_assignments").select("schedule_id, employee_id, assignment_role"),
     ]);
 
     if (schedRes.error) {
@@ -89,6 +97,22 @@ const AdminSchedule = () => {
       setAvailability([]);
     }
 
+    // Fetch employee names for assignments
+    if (assignRes.data && assignRes.data.length > 0) {
+      const empIds = [...new Set(assignRes.data.map(a => a.employee_id))];
+      const { data: emps } = await supabase.from("employees").select("id, full_name").in("id", empIds);
+      const empNameMap = new Map((emps ?? []).map(e => [e.id, e.full_name]));
+      setAssignmentData(
+        assignRes.data.map(a => ({
+          schedule_id: a.schedule_id,
+          employee_name: empNameMap.get(a.employee_id) ?? "Unknown",
+          role: a.assignment_role ?? "instructor_1",
+        }))
+      );
+    } else {
+      setAssignmentData([]);
+    }
+
     setLoading(false);
   };
 
@@ -96,6 +120,9 @@ const AdminSchedule = () => {
 
   const getAvailabilityForSchedule = (scheduleId: string) =>
     availability.filter(a => a.schedule_id === scheduleId);
+
+  const getAssignmentsForSchedule = (scheduleId: string) =>
+    assignmentData.filter(a => a.schedule_id === scheduleId);
 
   const handleLocationChange = (loc: string) => {
     setForm(f => ({ ...f, location: loc, location_label: locationLabels[loc] || loc }));
@@ -271,6 +298,7 @@ const AdminSchedule = () => {
                 <th className="text-left p-4 font-medium text-muted-foreground">Schedule</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">Spots</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">Price</th>
+                <th className="text-left p-4 font-medium text-muted-foreground">Assigned</th>
                 <th className="text-left p-4 font-medium text-muted-foreground">Available</th>
                 <th className="text-right p-4 font-medium text-muted-foreground">Actions</th>
               </tr>
@@ -297,6 +325,24 @@ const AdminSchedule = () => {
                     </span>
                   </td>
                   <td className="p-4 text-foreground">{s.price}</td>
+                  <td className="p-4">
+                    {(() => {
+                      const assigned = getAssignmentsForSchedule(s.id);
+                      if (assigned.length === 0) return <span className="text-muted-foreground text-xs italic">Not assigned</span>;
+                      return (
+                        <div className="space-y-1">
+                          {assigned.map((a, i) => (
+                            <div key={i} className="flex items-center gap-1.5">
+                              <span className="text-xs font-medium text-accent bg-accent/10 px-1.5 py-0.5 rounded">
+                                {roleLabelMap[a.role] || a.role}
+                              </span>
+                              <span className="text-xs text-foreground">{a.employee_name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </td>
                   <td className="p-4">
                     {(() => {
                       const avail = getAvailabilityForSchedule(s.id);

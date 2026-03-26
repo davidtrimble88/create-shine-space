@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Printer, Mail, CalendarDays } from "lucide-react";
+import { roleLabelMap } from "./InstructorAssignment";
 
 interface ScheduleRow {
   id: string;
@@ -15,7 +16,7 @@ interface ScheduleRow {
   schedule: string;
   spots_available: number;
   price: string;
-  instructors: string[];
+  instructors: { name: string; role: string }[];
 }
 
 const courseLabels: Record<string, string> = {
@@ -41,12 +42,11 @@ const ComprehensiveSchedule = () => {
 
       const [schedRes, assignRes] = await Promise.all([
         query,
-        supabase.from("instructor_assignments").select("schedule_id, employee_id"),
+        supabase.from("instructor_assignments").select("schedule_id, employee_id, assignment_role"),
       ]);
 
       if (schedRes.error) { setLoading(false); return; }
 
-      // Get unique employee ids
       const empIds = [...new Set((assignRes.data ?? []).map(a => a.employee_id))];
       let empMap = new Map<string, string>();
       if (empIds.length > 0) {
@@ -54,11 +54,11 @@ const ComprehensiveSchedule = () => {
         empMap = new Map((emps ?? []).map(e => [e.id, e.full_name]));
       }
 
-      const assignMap = new Map<string, string[]>();
+      const assignMap = new Map<string, { name: string; role: string }[]>();
       for (const a of assignRes.data ?? []) {
         const name = empMap.get(a.employee_id) ?? "Unknown";
         if (!assignMap.has(a.schedule_id)) assignMap.set(a.schedule_id, []);
-        assignMap.get(a.schedule_id)!.push(name);
+        assignMap.get(a.schedule_id)!.push({ name, role: a.assignment_role ?? "instructor_1" });
       }
 
       setRows(
@@ -117,7 +117,7 @@ const ComprehensiveSchedule = () => {
         const d = new Date(r.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
         body += `${d} | ${courseLabels[r.course] || r.course}${r.group_name ? ` (${r.group_name})` : ""}\n`;
         body += `  Schedule: ${r.schedule}\n`;
-        body += `  Instructors: ${r.instructors.length > 0 ? r.instructors.join(", ") : "Not assigned"}\n`;
+        body += `  Instructors: ${r.instructors.length > 0 ? r.instructors.map(i => `${roleLabelMap[i.role] || i.role}: ${i.name}`).join(", ") : "Not assigned"}\n`;
         body += `  Spots: ${r.spots_available} | Price: ${r.price}\n\n`;
       }
     }
@@ -203,11 +203,14 @@ const ComprehensiveSchedule = () => {
                         <td className="p-3 text-muted-foreground text-xs">{r.schedule}</td>
                         <td className="p-3">
                           {r.instructors.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {r.instructors.map((name, i) => (
-                                <span key={i} className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full">
-                                  {name}
-                                </span>
+                            <div className="space-y-1">
+                              {r.instructors.map((inst, i) => (
+                                <div key={i} className="flex items-center gap-1.5">
+                                  <span className="text-[10px] font-medium text-accent bg-accent/10 px-1.5 py-0.5 rounded">
+                                    {roleLabelMap[inst.role] || inst.role}
+                                  </span>
+                                  <span className="text-xs text-foreground">{inst.name}</span>
+                                </div>
                               ))}
                             </div>
                           ) : (
