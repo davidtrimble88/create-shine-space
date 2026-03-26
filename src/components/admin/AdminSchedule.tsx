@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus } from "lucide-react";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
-import InstructorAssignment from "./InstructorAssignment";
+import InstructorAssignment, { roleLabelMap } from "./InstructorAssignment";
 
 type Schedule = Tables<"schedules">;
 
@@ -17,6 +17,12 @@ interface AvailabilityInfo {
   schedule_id: string;
   employee_name: string;
   employee_email: string;
+}
+
+interface AssignmentInfo {
+  schedule_id: string;
+  employee_name: string;
+  role: string;
 }
 
 const courseLabels: Record<string, string> = {
@@ -50,6 +56,7 @@ const AdminSchedule = () => {
   const [filterCourse, setFilterCourse] = useState<string>("all");
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [availability, setAvailability] = useState<AvailabilityInfo[]>([]);
+  const [assignmentData, setAssignmentData] = useState<AssignmentInfo[]>([]);
   const [assigningSchedule, setAssigningSchedule] = useState<{ id: string; name: string } | null>(null);
   const { toast } = useToast();
 
