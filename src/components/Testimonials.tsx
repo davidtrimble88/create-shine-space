@@ -8,14 +8,14 @@ const testimonials = [
     location: "Ventura County",
     rating: 5,
     text: "Absolutely fantastic experience! The instructors were patient and knowledgeable. I went from never riding to confidently handling a motorcycle in just one weekend.",
-    course: "Basic Rider Course"
+    course: "Motorcycle Training Course"
   },
   {
     name: "Sarah T.",
     location: "High Desert",
     rating: 5,
     text: "Best decision I ever made. The CMSP certification process was smooth, and I walked away with my license endorsement. Highly recommend!",
-    course: "Basic Rider Course"
+    course: "Motorcycle Training Course"
   },
   {
     name: "David R.",

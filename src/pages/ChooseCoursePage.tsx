@@ -9,7 +9,7 @@ const courses = [
   {
     id: "basic",
     icon: GraduationCap,
-    title: "Basic Riding Course",
+    title: "Motorcycle Training Course",
     subtitle: "CMSP Motorcyclist Training Course",
     price: "From $395",
     duration: "2 Days (Weekend)",

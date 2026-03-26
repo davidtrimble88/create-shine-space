@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 const courses = [
   {
-    name: "Basic Rider Course",
+    name: "Motorcycle Training Course",
     subtitle: "Perfect for beginners",
     price: "$425",
     duration: "2 Days (Weekend)",

@@ -20,7 +20,7 @@ import totalControlLogo from "@/assets/total-control-logo.jpg";
 import totalControlBook from "@/assets/total-control-book.jpg";
 
 const tabs = [
-  { id: "basic", label: "Basic", icon: GraduationCap, subtitle: "Learn to Ride" },
+  { id: "basic", label: "MTC", icon: GraduationCap, subtitle: "Learn to Ride" },
   { id: "intermediate", label: "Intermediate", icon: Gauge, subtitle: "Level Up" },
   { id: "advanced", label: "Advanced", icon: Zap, subtitle: "Total Control ARC®" },
 ] as const;
@@ -46,12 +46,12 @@ const advancedSkills = [
 ];
 
 const faqs = [
-  { q: "Do I need any prior experience for the Basic Course?", a: "No! The Basic Motorcyclist Training Course is designed for complete beginners with no riding experience. You should however be able to balance and comfortably ride a two-wheeled bicycle." },
-  { q: "Is the motorcycle provided?", a: "Yes — for the Basic Course, we provide the motorcycle, helmet, and gear. For the Intermediate Course, you can use our loaner bikes or bring your own. The Advanced Course requires your own motorcycle." },
+  { q: "Do I need any prior experience for the MTC?", a: "No! The Motorcycle Training Course is designed for complete beginners with no riding experience. You should however be able to balance and comfortably ride a two-wheeled bicycle." },
+  { q: "Is the motorcycle provided?", a: "Yes — for the MTC, we provide the motorcycle, helmet, and gear. For the Intermediate Course, you can use our loaner bikes or bring your own. The Advanced Course requires your own motorcycle." },
   { q: "What happens if I don't pass?", a: "There are written and riding evaluations after the course. You must pass both to graduate and receive your DMV waiver. If you don't pass, contact us about rescheduling options." },
   { q: "What's the cancellation policy?", a: "You must notify us at least 5 business days before the start of class. If a class is cancelled by us, you'll be rescheduled at no extra cost. Classes are held rain or shine." },
   { q: "Can I get a discount?", a: "Returning students get $50 off the Intermediate Course ($300 vs $350). For new students, groups of 4+ friends receive a group discount — call our office for details." },
-  { q: "Is the course required for licensing?", a: "If you're under 21, the Basic Course is mandatory before taking your motorcycle permit written test at the DMV. For 21 and over, it's recommended but not required — though you still get the DMV skills test waiver." },
+  { q: "Is the course required for licensing?", a: "If you're under 21, the MTC is mandatory before taking your motorcycle permit written test at the DMV. For 21 and over, it's recommended but not required — though you still get the DMV skills test waiver." },
 ];
 
 /* ─── Basic Course Tab ─── */

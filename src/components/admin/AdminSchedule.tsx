@@ -26,7 +26,7 @@ interface AssignmentInfo {
 }
 
 const courseLabels: Record<string, string> = {
-  basic: "Basic Rider Course",
+  basic: "Motorcycle Training Course",
   intermediate: "Intermediate Course",
   advanced: "Advanced Riding Clinic",
 };
@@ -214,7 +214,7 @@ const AdminSchedule = () => {
                   <Select value={form.course} onValueChange={v => setForm(f => ({ ...f, course: v }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="basic">Basic Rider Course</SelectItem>
+                      <SelectItem value="basic">Motorcycle Training Course</SelectItem>
                       <SelectItem value="intermediate">Intermediate Course</SelectItem>
                       <SelectItem value="advanced">Advanced Riding Clinic</SelectItem>
                     </SelectContent>

@@ -83,7 +83,7 @@ const RegisterPage = () => {
   const schedule = searchParams.get("schedule") || sessionStorage.getItem("selectedScheduleId") || "";
 
   const courseLabels: Record<string, string> = {
-    basic: "Basic Riding Course",
+    basic: "Motorcycle Training Course",
     intermediate: "Intermediate Course",
     advanced: "Advanced Riding Clinic",
   };
