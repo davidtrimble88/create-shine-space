@@ -190,6 +190,9 @@ const AdminEmployees = () => {
         position: form.position || null,
         bio: form.bio || null,
         show_on_website: form.show_on_website,
+        photo_position_x: form.photo_position_x,
+        photo_position_y: form.photo_position_y,
+        photo_zoom: form.photo_zoom,
         user_id: userId,
       }).select().single();
 
