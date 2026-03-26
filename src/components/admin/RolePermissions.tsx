@@ -11,7 +11,7 @@ const permissions = [
   { label: "View Dashboard Overview", owner: true, admin: true, manager: true, employee: true },
   { label: "View Upcoming Classes", owner: true, admin: true, manager: true, employee: true },
   { label: "Mark Personal Availability", owner: true, admin: true, manager: true, employee: true },
-  { label: "View Full Schedule", owner: true, admin: true, manager: true, employee: false },
+  { label: "View Full Schedule", owner: true, admin: true, manager: true, employee: true },
   { label: "Create / Edit Schedules", owner: true, admin: true, manager: true, employee: false },
   { label: "Delete Schedules", owner: true, admin: true, manager: true, employee: false },
   { label: "Assign Instructors to Classes", owner: true, admin: true, manager: true, employee: false },
