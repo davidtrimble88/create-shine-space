@@ -231,6 +231,30 @@ export type Database = {
           },
         ]
       }
+      instructor_date_availability: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          location: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          location: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          location?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       page_views: {
         Row: {
           created_at: string
