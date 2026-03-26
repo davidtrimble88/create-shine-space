@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -45,7 +46,7 @@ const AdminEmployees = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false });
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -142,6 +143,9 @@ const AdminEmployees = () => {
         position: form.position || null,
         bio: form.bio || null,
         show_on_website: form.show_on_website,
+        photo_position_x: form.photo_position_x,
+        photo_position_y: form.photo_position_y,
+        photo_zoom: form.photo_zoom,
       };
       if (photoUrl) updateData.photo_url = photoUrl;
 
@@ -228,6 +232,9 @@ const AdminEmployees = () => {
       role: e.role ?? "employee",
       bio: (e as any).bio ?? "",
       show_on_website: (e as any).show_on_website ?? false,
+      photo_position_x: (e as any).photo_position_x ?? 50,
+      photo_position_y: (e as any).photo_position_y ?? 50,
+      photo_zoom: (e as any).photo_zoom ?? 100,
     });
     setPhotoPreview((e as any).photo_url ?? null);
     setPhotoFile(null);
