@@ -53,6 +53,7 @@ export type Database = {
       instructor_assignments: {
         Row: {
           assigned_by: string | null
+          assignment_role: string
           created_at: string
           employee_id: string
           id: string
@@ -60,6 +61,7 @@ export type Database = {
         }
         Insert: {
           assigned_by?: string | null
+          assignment_role?: string
           created_at?: string
           employee_id: string
           id?: string
@@ -67,6 +69,7 @@ export type Database = {
         }
         Update: {
           assigned_by?: string | null
+          assignment_role?: string
           created_at?: string
           employee_id?: string
           id?: string
