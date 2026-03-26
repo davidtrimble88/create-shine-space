@@ -104,8 +104,8 @@ const Footer = () => {
                 <Mail className="w-5 h-5 text-accent mt-0.5" />
                 <div>
                   <p className="text-sm text-muted-foreground">Email</p>
-                  <a href="mailto:info@learntoridevc.com" className="text-foreground hover:text-accent transition-colors">
-                    info@learntoridevc.com
+                  <a href="mailto:office@learntoridevc.com" className="text-foreground hover:text-accent transition-colors">
+                    office@learntoridevc.com
                   </a>
                 </div>
               </li>
