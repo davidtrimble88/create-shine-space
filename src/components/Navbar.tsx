@@ -8,7 +8,7 @@ import logo from "@/assets/logo.png";
 const navLinks = [
   { name: "Home", href: "/", isRoute: true },
   { name: "Courses", href: "/courses", isRoute: true },
-  { name: "Locations", href: "/#locations", isRoute: false },
+  { name: "Locations", href: "/choose-location", isRoute: true },
   { name: "About", href: "/about", isRoute: true },
   { name: "Contact", href: "/contact", isRoute: true },
 ];
