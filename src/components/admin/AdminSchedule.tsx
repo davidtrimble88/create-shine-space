@@ -295,6 +295,38 @@ const AdminSchedule = () => {
                     </span>
                   </td>
                   <td className="p-4 text-foreground">{s.price}</td>
+                  <td className="p-4">
+                    {(() => {
+                      const avail = getAvailabilityForSchedule(s.id);
+                      if (avail.length === 0) return <span className="text-muted-foreground text-xs">—</span>;
+                      return (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="flex items-center gap-1.5 text-green-400 hover:text-green-300 transition-colors">
+                              <Hand className="w-4 h-4" />
+                              <span className="text-sm font-medium">{avail.length}</span>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-3" align="start">
+                            <p className="text-xs font-semibold text-foreground mb-2">Available to Teach</p>
+                            <div className="space-y-2">
+                              {avail.map((a, i) => (
+                                <div key={i} className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-green-500/15 flex items-center justify-center text-green-400 text-xs font-bold">
+                                    {a.employee_name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-foreground">{a.employee_name}</p>
+                                    <p className="text-xs text-muted-foreground">{a.employee_email}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      );
+                    })()}
+                  </td>
                   <td className="p-4 text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(s)}>
