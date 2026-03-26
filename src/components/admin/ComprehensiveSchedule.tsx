@@ -177,7 +177,7 @@ const ComprehensiveSchedule = () => {
 
       {loading ? (
         <p className="text-muted-foreground">Loading...</p>
-      ) : rows.length === 0 ? (
+      ) : filteredRows.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-8 text-center">
           <CalendarDays className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">No classes found.</p>
