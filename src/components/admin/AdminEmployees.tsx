@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Employee = Tables<"employees">;
@@ -16,18 +16,21 @@ interface EmployeeWithRole extends Employee {
 }
 
 const roleIcons: Record<string, typeof Shield> = {
+  owner: Crown,
   admin: Shield,
   manager: UserCog,
   employee: Eye,
 };
 
 const roleLabels: Record<string, string> = {
+  owner: "Owner",
   admin: "Admin",
   manager: "Manager",
   employee: "Viewer",
 };
 
 const roleColors: Record<string, string> = {
+  owner: "bg-amber-500/10 text-amber-400",
   admin: "bg-accent/10 text-accent",
   manager: "bg-blue-500/10 text-blue-400",
   employee: "bg-secondary text-muted-foreground",
@@ -207,6 +210,7 @@ const AdminEmployees = () => {
                 <Select value={form.role} onValueChange={v => setForm(f => ({ ...f, role: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="owner">Owner — Full access + analytics</SelectItem>
                     <SelectItem value="admin">Admin — Full access to everything</SelectItem>
                     <SelectItem value="manager">Manager — Can manage schedules</SelectItem>
                     <SelectItem value="employee">Viewer — View-only access</SelectItem>
