@@ -50,6 +50,45 @@ export type Database = {
         }
         Relationships: []
       }
+      instructor_assignments: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          employee_id: string
+          id: string
+          schedule_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          employee_id: string
+          id?: string
+          schedule_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          employee_id?: string
+          id?: string
+          schedule_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instructor_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "instructor_assignments_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instructor_availability: {
         Row: {
           created_at: string
