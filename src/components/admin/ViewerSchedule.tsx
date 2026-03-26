@@ -141,7 +141,7 @@ const ViewerSchedule = () => {
         toast({ title: "Removed", description: "Availability removed for this date." });
       }
     } else {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("instructor_date_availability")
         .insert({ user_id: user.id, date: dateStr, location });
 
