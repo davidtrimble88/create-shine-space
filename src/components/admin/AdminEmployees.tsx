@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Employee = Tables<"employees">;
@@ -43,9 +45,12 @@ const AdminEmployees = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", position: "", role: "employee" });
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Determine which roles the current user can assign
   const assignableRoles = userRole === "owner"
     ? [
         { value: "owner", label: "Owner — Full access + analytics" },
@@ -72,7 +77,6 @@ const AdminEmployees = () => {
       return;
     }
 
-    // Fetch roles for employees that have user_ids
     const empsWithRoles: EmployeeWithRole[] = (empData ?? []).map(e => ({ ...e, role: "employee" }));
     
     const userIds = empsWithRoles.filter(e => e.user_id).map(e => e.user_id!);
@@ -92,34 +96,74 @@ const AdminEmployees = () => {
 
   useEffect(() => { fetchEmployees(); }, []);
 
+  const uploadPhoto = async (employeeId: string): Promise<string | null> => {
+    if (!photoFile) return null;
+    
+    const fileExt = photoFile.name.split(".").pop();
+    const filePath = `${employeeId}.${fileExt}`;
+    
+    // Delete existing photo if any
+    await supabase.storage.from("employee-photos").remove([filePath]);
+    
+    const { error } = await supabase.storage
+      .from("employee-photos")
+      .upload(filePath, photoFile, { upsert: true });
+    
+    if (error) {
+      toast({ title: "Photo upload failed", description: error.message, variant: "destructive" });
+      return null;
+    }
+    
+    const { data: urlData } = supabase.storage.from("employee-photos").getPublicUrl(filePath);
+    return urlData.publicUrl;
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
   const handleSave = async () => {
+    setUploading(true);
+    
     if (editingId) {
-      const { error } = await supabase.from("employees").update({
+      let photoUrl: string | undefined = undefined;
+      if (photoFile) {
+        const url = await uploadPhoto(editingId);
+        if (url) photoUrl = url;
+      }
+
+      const updateData: any = {
         full_name: form.full_name,
         email: form.email,
         phone: form.phone || null,
         position: form.position || null,
-      }).eq("id", editingId);
+        bio: form.bio || null,
+        show_on_website: form.show_on_website,
+      };
+      if (photoUrl) updateData.photo_url = photoUrl;
+
+      const { error } = await supabase.from("employees").update(updateData).eq("id", editingId);
 
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
+        setUploading(false);
         return;
       }
 
-      // Update role if the employee has a user_id
       const emp = employees.find(e => e.id === editingId);
       if (emp?.user_id) {
-        // Remove old roles and set new one
         await supabase.from("user_roles").delete().eq("user_id", emp.user_id);
         await supabase.from("user_roles").insert({ user_id: emp.user_id, role: form.role as any });
       }
 
       toast({ title: "Updated", description: "Employee updated." });
     } else {
-      // Create auth user first, then employee record
       const tempPassword = Math.random().toString(36).slice(-10) + "A1!";
       
-      const response = await fetch(`https://tdoyunayplyrmdixhvmn.supabase.co/auth/v1/admin/users`, {
+      await fetch(`https://tdoyunayplyrmdixhvmn.supabase.co/auth/v1/admin/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -133,8 +177,6 @@ const AdminEmployees = () => {
         }),
       });
 
-      // If we can't create auth user via admin API (which requires service role),
-      // just create the employee record without auth
       let userId: string | null = null;
 
       const { data: empData, error } = await supabase.from("employees").insert({
@@ -142,23 +184,37 @@ const AdminEmployees = () => {
         email: form.email,
         phone: form.phone || null,
         position: form.position || null,
+        bio: form.bio || null,
+        show_on_website: form.show_on_website,
         user_id: userId,
       }).select().single();
 
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
+        setUploading(false);
         return;
+      }
+
+      // Upload photo if selected
+      if (photoFile && empData) {
+        const url = await uploadPhoto(empData.id);
+        if (url) {
+          await supabase.from("employees").update({ photo_url: url }).eq("id", empData.id);
+        }
       }
 
       toast({
         title: "Employee Added",
-        description: `${form.full_name} has been added. They'll need to be set up with portal access separately.`,
+        description: `${form.full_name} has been added.`,
       });
     }
 
     setDialogOpen(false);
     setEditingId(null);
-    setForm({ full_name: "", email: "", phone: "", position: "", role: "employee" });
+    setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false });
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setUploading(false);
     fetchEmployees();
   };
 
@@ -170,7 +226,11 @@ const AdminEmployees = () => {
       phone: e.phone ?? "",
       position: e.position ?? "",
       role: e.role ?? "employee",
+      bio: (e as any).bio ?? "",
+      show_on_website: (e as any).show_on_website ?? false,
     });
+    setPhotoPreview((e as any).photo_url ?? null);
+    setPhotoFile(null);
     setDialogOpen(true);
   };
 
@@ -187,7 +247,9 @@ const AdminEmployees = () => {
 
   const openNew = () => {
     setEditingId(null);
-    setForm({ full_name: "", email: "", phone: "", position: "", role: "employee" });
+    setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false });
+    setPhotoFile(null);
+    setPhotoPreview(null);
     setDialogOpen(true);
   };
 
@@ -201,11 +263,41 @@ const AdminEmployees = () => {
               <Plus className="w-4 h-4 mr-2" /> Add Employee
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingId ? "Edit Employee" : "Add New Employee"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
+              {/* Photo Upload */}
+              <div>
+                <Label>Photo</Label>
+                <div className="mt-2 flex items-center gap-4">
+                  {photoPreview ? (
+                    <div className="relative">
+                      <img src={photoPreview} alt="Preview" className="w-20 h-20 rounded-full object-cover border border-border" />
+                      <button
+                        type="button"
+                        onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                        className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-20 h-20 rounded-full bg-secondary border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-accent transition-colors"
+                    >
+                      <Upload className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
+                  <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                    {photoPreview ? "Change Photo" : "Upload Photo"}
+                  </Button>
+                </div>
+              </div>
+
               <div>
                 <Label>Full Name</Label>
                 <Input value={form.full_name} onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} placeholder="John Doe" />
@@ -224,6 +316,30 @@ const AdminEmployees = () => {
                   <Input value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} placeholder="Instructor" />
                 </div>
               </div>
+
+              {/* Bio */}
+              <div>
+                <Label>Bio</Label>
+                <Textarea
+                  value={form.bio}
+                  onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+                  placeholder="Brief description of background, riding experience, and teaching philosophy..."
+                  rows={3}
+                />
+              </div>
+
+              {/* Show on Website Toggle */}
+              <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                <div>
+                  <Label className="text-sm font-medium">Show on About Page</Label>
+                  <p className="text-xs text-muted-foreground">Display this employee on the public website</p>
+                </div>
+                <Switch
+                  checked={form.show_on_website}
+                  onCheckedChange={v => setForm(f => ({ ...f, show_on_website: v }))}
+                />
+              </div>
+
               {canManageRoles && assignableRoles.length > 0 && (
               <div>
                 <Label>Access Role</Label>
@@ -237,7 +353,9 @@ const AdminEmployees = () => {
                 </Select>
               </div>
               )}
-              <Button onClick={handleSave} className="w-full">{editingId ? "Save Changes" : "Add Employee"}</Button>
+              <Button onClick={handleSave} className="w-full" disabled={uploading}>
+                {uploading ? "Saving..." : editingId ? "Save Changes" : "Add Employee"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -257,11 +375,20 @@ const AdminEmployees = () => {
             return (
               <div key={emp.id} className="bg-card border border-border rounded-xl p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold text-sm">
-                    {emp.full_name.split(" ").map(n => n[0]).join("").toUpperCase()}
-                  </div>
+                  {(emp as any).photo_url ? (
+                    <img src={(emp as any).photo_url} alt={emp.full_name} className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold text-sm">
+                      {emp.full_name.split(" ").map(n => n[0]).join("").toUpperCase()}
+                    </div>
+                  )}
                   <div>
-                    <p className="font-medium text-foreground">{emp.full_name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-foreground">{emp.full_name}</p>
+                      {(emp as any).show_on_website && (
+                        <span className="text-[10px] bg-green-500/10 text-green-500 px-1.5 py-0.5 rounded-full">On Website</span>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">{emp.email}</p>
                   </div>
                 </div>
