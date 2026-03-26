@@ -80,7 +80,7 @@ const RegisterPage = () => {
   const [searchParams] = useSearchParams();
   const course = searchParams.get("course") || "basic";
   const location = searchParams.get("location") || "ventura-county";
-  const schedule = searchParams.get("schedule") || "";
+  const schedule = searchParams.get("schedule") || sessionStorage.getItem("selectedScheduleId") || "";
 
   const courseLabels: Record<string, string> = {
     basic: "Basic Riding Course",
