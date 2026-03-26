@@ -48,6 +48,7 @@ const AdminSchedule = () => {
   const [form, setForm] = useState(emptyForm);
   const [filterCourse, setFilterCourse] = useState<string>("all");
   const [filterLocation, setFilterLocation] = useState<string>("all");
+  const [availability, setAvailability] = useState<AvailabilityInfo[]>([]);
   const { toast } = useToast();
 
   const fetchSchedules = async () => {
@@ -55,16 +56,44 @@ const AdminSchedule = () => {
     let query = supabase.from("schedules").select("*").order("date", { ascending: true });
     if (filterCourse !== "all") query = query.eq("course", filterCourse);
     if (filterLocation !== "all") query = query.eq("location", filterLocation);
-    const { data, error } = await query;
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+    const [schedRes, availRes] = await Promise.all([
+      query,
+      supabase.from("instructor_availability").select("schedule_id, user_id"),
+    ]);
+
+    if (schedRes.error) {
+      toast({ title: "Error", description: schedRes.error.message, variant: "destructive" });
     } else {
-      setSchedules(data ?? []);
+      setSchedules(schedRes.data ?? []);
     }
+
+    // Fetch employee names for availability
+    if (availRes.data && availRes.data.length > 0) {
+      const userIds = [...new Set(availRes.data.map(a => a.user_id))];
+      const { data: employees } = await supabase
+        .from("employees")
+        .select("user_id, full_name, email")
+        .in("user_id", userIds);
+
+      const empMap = new Map((employees ?? []).map(e => [e.user_id, e]));
+      setAvailability(
+        availRes.data.map(a => ({
+          schedule_id: a.schedule_id,
+          employee_name: empMap.get(a.user_id)?.full_name ?? "Unknown",
+          employee_email: empMap.get(a.user_id)?.email ?? "",
+        }))
+      );
+    } else {
+      setAvailability([]);
+    }
+
     setLoading(false);
   };
 
   useEffect(() => { fetchSchedules(); }, [filterCourse, filterLocation]);
+
+  const getAvailabilityForSchedule = (scheduleId: string) =>
+    availability.filter(a => a.schedule_id === scheduleId);
 
   const handleLocationChange = (loc: string) => {
     setForm(f => ({ ...f, location: loc, location_label: locationLabels[loc] || loc }));
