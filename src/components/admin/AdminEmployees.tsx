@@ -50,6 +50,7 @@ const AdminEmployees = () => {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [tempPasswordInfo, setTempPasswordInfo] = useState<{ name: string; email: string; password: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const assignableRoles = userRole === "owner"
