@@ -41,6 +41,7 @@ const EmployeeLogin = () => {
         title: "Welcome back!",
         description: "You've been signed in successfully.",
       });
+      // Redirect handled by ChangePassword or Dashboard based on mustChangePassword
       navigate("/employee-dashboard");
     }
 

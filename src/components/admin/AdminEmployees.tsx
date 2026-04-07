@@ -50,6 +50,7 @@ const AdminEmployees = () => {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [tempPasswordInfo, setTempPasswordInfo] = useState<{ name: string; email: string; password: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const assignableRoles = userRole === "owner"
@@ -194,6 +195,7 @@ const AdminEmployees = () => {
         photo_position_y: form.photo_position_y,
         photo_zoom: form.photo_zoom,
         user_id: userId,
+        must_change_password: true,
       }).select().single();
 
       if (error) {
@@ -210,9 +212,11 @@ const AdminEmployees = () => {
         }
       }
 
+      setTempPasswordInfo({ name: form.full_name, email: form.email, password: tempPassword });
+
       toast({
         title: "Employee Added",
-        description: `${form.full_name} has been added.`,
+        description: `${form.full_name} has been added. Share the temporary password with them.`,
       });
     }
 
@@ -474,6 +478,45 @@ const AdminEmployees = () => {
           })}
         </div>
       )}
+
+      {/* Temp Password Dialog */}
+      <Dialog open={!!tempPasswordInfo} onOpenChange={(open) => { if (!open) setTempPasswordInfo(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Temporary Password Created</DialogTitle>
+          </DialogHeader>
+          {tempPasswordInfo && (
+            <div className="space-y-4 mt-2">
+              <p className="text-sm text-muted-foreground">
+                Share these credentials with <strong className="text-foreground">{tempPasswordInfo.name}</strong>. They will be asked to set a new password on first login.
+              </p>
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Email</Label>
+                  <p className="font-medium text-foreground">{tempPasswordInfo.email}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Temporary Password</Label>
+                  <div className="flex items-center gap-2">
+                    <code className="bg-secondary px-3 py-2 rounded-lg text-sm font-mono flex-1 select-all">{tempPasswordInfo.password}</code>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(tempPasswordInfo.password);
+                        toast({ title: "Copied!", description: "Password copied to clipboard." });
+                      }}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <Button className="w-full" onClick={() => setTempPasswordInfo(null)}>Done</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

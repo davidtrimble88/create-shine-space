@@ -33,8 +33,12 @@ const roleLabels: Record<string, { label: string; icon: typeof Shield }> = {
 };
 
 const EmployeeDashboard = () => {
-  const { user, isAdmin, userRole, loading, signOut } = useAuth();
+  const { user, isAdmin, userRole, loading, mustChangePassword, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
+
+  if (!loading && user && mustChangePassword) {
+    return <Navigate to="/change-password" replace />;
+  }
 
   if (loading) {
     return (
