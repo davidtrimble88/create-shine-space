@@ -65,6 +65,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const checkMustChangePassword = async (userId: string) => {
+    const { data } = await supabase
+      .from("employees")
+      .select("must_change_password")
+      .eq("user_id", userId)
+      .maybeSingle();
+    setMustChangePassword(data?.must_change_password ?? false);
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -72,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         if (session?.user) {
           setTimeout(() => checkRole(session.user.id), 0);
-          // Log employee login
+          setTimeout(() => checkMustChangePassword(session.user.id), 0);
           if (event === "SIGNED_IN") {
             supabase.from("employee_logins").insert({
               user_id: session.user.id,
@@ -82,6 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setIsAdmin(false);
           setUserRole("employee");
+          setMustChangePassword(false);
         }
         setLoading(false);
       }
@@ -92,6 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         checkRole(session.user.id);
+        checkMustChangePassword(session.user.id);
       }
       setLoading(false);
     });
@@ -104,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, isAdmin, userRole, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, isAdmin, userRole, loading, mustChangePassword, clearMustChangePassword, signOut }}>
       {children}
     </AuthContext.Provider>
   );
