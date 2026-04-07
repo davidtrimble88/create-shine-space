@@ -34,6 +34,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState<AppRole>("employee");
   const [loading, setLoading] = useState(true);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
+
+  const clearMustChangePassword = () => setMustChangePassword(false);
 
   const checkRole = async (userId: string) => {
     const { data } = await supabase
