@@ -195,6 +195,7 @@ const AdminEmployees = () => {
         photo_position_y: form.photo_position_y,
         photo_zoom: form.photo_zoom,
         user_id: userId,
+        must_change_password: true,
       }).select().single();
 
       if (error) {
@@ -211,9 +212,11 @@ const AdminEmployees = () => {
         }
       }
 
+      setTempPasswordInfo({ name: form.full_name, email: form.email, password: tempPassword });
+
       toast({
         title: "Employee Added",
-        description: `${form.full_name} has been added.`,
+        description: `${form.full_name} has been added. Share the temporary password with them.`,
       });
     }
 
