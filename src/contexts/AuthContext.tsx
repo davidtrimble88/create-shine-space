@@ -10,6 +10,8 @@ interface AuthContextType {
   isAdmin: boolean;
   userRole: AppRole;
   loading: boolean;
+  mustChangePassword: boolean;
+  clearMustChangePassword: () => void;
   signOut: () => Promise<void>;
 }
 
@@ -19,6 +21,8 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   userRole: "employee",
   loading: true,
+  mustChangePassword: false,
+  clearMustChangePassword: () => {},
   signOut: async () => {},
 });
 
