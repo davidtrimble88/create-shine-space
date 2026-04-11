@@ -23,13 +23,13 @@ const courses = [
   },
   {
     name: "1-Day Premier Course",
-    subtitle: "Get licensed in one day",
+    subtitle: "For experienced riders · Licensing for 21+",
     price: "$350",
     duration: "1 Day (8 Hours)",
     tab: "premier",
     features: [
-      "For unlicensed riders 21+",
-      "Licensing option included",
+      "For experienced but unlicensed riders",
+      "Licensing option for 21+",
       "Loaner bikes available",
       "Entry skills test required",
       "Military recognized",
