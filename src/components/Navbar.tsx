@@ -67,11 +67,24 @@ const Navbar = () => {
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
-            <a href="tel:+18058270075" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-              <Phone className="w-4 h-4" />
-              <span>(805) 827-0075</span>
-            </a>
+          <div className="hidden md:flex items-center gap-5">
+            <div className="flex items-center gap-4 text-sm">
+              <a href="tel:+17609876652" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
+                <Phone className="w-3.5 h-3.5" />
+                <span className="flex flex-col leading-tight">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">High Desert</span>
+                  <span>(760) 987-6652</span>
+                </span>
+              </a>
+              <span className="w-px h-8 bg-border" />
+              <a href="tel:+18058270075" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
+                <Phone className="w-3.5 h-3.5" />
+                <span className="flex flex-col leading-tight">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">Ventura</span>
+                  <span>(805) 827-0075</span>
+                </span>
+              </a>
+            </div>
             <Link to="/choose-course"><Button variant="hero">Book Now</Button></Link>
           </div>
 
