@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, GraduationCap, Gauge, Zap, Clock, Users, Award, Shield } from "lucide-react";
+import { ArrowRight, GraduationCap, Gauge, Zap, BookOpen, Clock, Users, Award, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const courses = [
@@ -20,15 +20,28 @@ const courses = [
     borderColor: "border-accent/30",
   },
   {
-    id: "intermediate",
-    icon: Gauge,
-    title: "Intermediate Course",
-    subtitle: "IRC / CMSP 1-Day Premier",
+    id: "premier",
+    icon: BookOpen,
+    title: "1-Day Premier Course",
+    subtitle: "CMSP 1-Day Premier (With Licensing)",
     price: "From $300",
     duration: "1 Day (8 Hours)",
     description:
-      "Level up your skills with advanced throttle control, emergency braking, cornering, and evasive maneuvers. Includes licensing option for unlicensed riders 21+.",
-    highlights: ["Licensing option available", "Returning student discount", "Military recognized"],
+      "Get licensed in one day! For experienced but unlicensed riders 21+. Includes entry skills test, classroom and on-cycle instruction. Loaner bikes available.",
+    highlights: ["Licensing option for 21+", "Loaner bikes available", "Military recognized"],
+    color: "from-secondary to-secondary/50",
+    borderColor: "border-border",
+  },
+  {
+    id: "intermediate",
+    icon: Gauge,
+    title: "Intermediate Course",
+    subtitle: "IRC / CMSP Intermediate",
+    price: "From $300",
+    duration: "1 Day (8 Hours)",
+    description:
+      "Level up your skills with advanced throttle control, emergency braking, cornering, and evasive maneuvers. For licensed riders looking to improve.",
+    highlights: ["For licensed riders", "Returning student discount", "Military recognized"],
     color: "from-secondary to-secondary/50",
     borderColor: "border-border",
   },
@@ -72,7 +85,7 @@ const ChooseCoursePage = () => {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {courses.map((course, i) => {
               const Icon = course.icon;
               return (

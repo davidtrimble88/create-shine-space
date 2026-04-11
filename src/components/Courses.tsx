@@ -21,6 +21,22 @@ const courses = [
     popular: true,
   },
   {
+    name: "1-Day Premier Course",
+    subtitle: "Get licensed in one day",
+    price: "$350",
+    duration: "1 Day (8 Hours)",
+    tab: "premier",
+    features: [
+      "For unlicensed riders 21+",
+      "Licensing option included",
+      "Loaner bikes available",
+      "Entry skills test required",
+      "Military recognized",
+      "6:1 student-instructor ratio",
+    ],
+    popular: false,
+  },
+  {
     name: "Intermediate Course",
     subtitle: "Level up your skills",
     price: "$350",
@@ -77,7 +93,7 @@ const Courses = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {courses.map((course, index) => (
             <motion.div
               key={index}
