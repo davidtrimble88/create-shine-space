@@ -88,7 +88,7 @@ const Locations = () => {
               <Button variant="heroOutline" className="w-full group" asChild>
                 <a href="/choose-course">
                   <ArrowRight className="w-4 h-4 mr-2" />
-                  Book Now
+                  Start Your Journey
                 </a>
               </Button>
             </motion.div>
