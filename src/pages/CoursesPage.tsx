@@ -505,7 +505,7 @@ const AdvancedCourse = () => (
         <p className="text-muted-foreground leading-relaxed mb-4">
           Whether you want to become a more proficient and safer rider on the street — or a faster rider on the track — 
           mastering advanced riding techniques is crucial. Unlike typical advanced courses held at high-speed racetracks, 
-          every drill in our ARC is performed <strong className="text-foreground">one at a time, at street-legal speeds</strong>, 
+          every drill in our ARC is performed <strong className="text-foreground">one at a time</strong>, 
           in a controlled environment.
         </p>
         <p className="text-muted-foreground leading-relaxed mb-6">
