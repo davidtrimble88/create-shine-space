@@ -40,19 +40,14 @@ const Hero = () => {
             <EditableText contentKey="hero.title" fallback="Master the Art of Riding" />
           </motion.h1>
 
-          <motion.div
+          <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl text-foreground mb-8 max-w-2xl leading-relaxed"
           >
-            <EditableText
-              contentKey="hero.description"
-              fallback="CMSP certified courses designed to transform beginners into confident riders. Skip the DMV test and ride with skill, safety, and freedom."
-              as="p"
-              multiline
-            />
-          </motion.div>
+            <span className="text-accent font-semibold">CMSP certified</span> courses designed to transform beginners into confident riders. Skip the DMV test and ride with skill, safety, and freedom.
+          </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}
