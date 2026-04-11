@@ -168,7 +168,7 @@ const ChooseSchedulePage = () => {
                 <p className="text-muted-foreground mb-6">
                   There are currently no upcoming classes for this course and location. Contact us to learn about future availability.
                 </p>
-                <span className="flex flex-col sm:flex-row gap-2">
+                <span className="flex flex-col sm:flex-row gap-2 justify-center">
                   <a href="tel:+18058270075" className="text-accent hover:underline font-medium">Ventura: (805) 827-0075</a>
                   <span className="hidden sm:inline text-muted-foreground">|</span>
                   <a href="tel:+17609876652" className="text-accent hover:underline font-medium">High Desert: (760) 987-6652</a>
