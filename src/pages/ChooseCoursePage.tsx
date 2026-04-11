@@ -152,9 +152,9 @@ const ChooseCoursePage = () => {
             className="text-center text-sm text-muted-foreground mt-10"
           >
             Not sure which course is right for you?{" "}
-            <a href="tel:+18058270075" className="text-accent hover:underline font-medium">
-              Call us at (805) 827-0075
-            </a>
+            <a href="tel:+18058270075" className="text-accent hover:underline font-medium">Ventura: (805) 827-0075</a>
+            {" | "}
+            <a href="tel:+17609876652" className="text-accent hover:underline font-medium">High Desert: (760) 987-6652</a>
           </motion.p>
         </div>
       </section>
