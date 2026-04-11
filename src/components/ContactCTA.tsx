@@ -48,7 +48,7 @@ const ContactCTA = () => {
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <motion.a
               href="tel:+18058270075"
               initial={{ opacity: 0, x: -20 }}
@@ -61,10 +61,25 @@ const ContactCTA = () => {
                 <Phone className="w-6 h-6 text-accent" />
               </div>
               <div className="text-left">
-                <p className="text-sm text-muted-foreground">Call or Text</p>
-                <p className="text-lg font-semibold text-foreground">
-                  <EditableText contentKey="cta.phone" fallback="(805) 827-0075" />
-                </p>
+                <p className="text-sm text-muted-foreground">Ventura County</p>
+                <p className="text-lg font-semibold text-foreground">(805) 827-0075</p>
+              </div>
+            </motion.a>
+
+            <motion.a
+              href="tel:+17609876652"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              viewport={{ once: true }}
+              className="flex items-center gap-4 bg-card/80 backdrop-blur border border-border rounded-xl p-6 hover:border-accent/50 transition-all group"
+            >
+              <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                <Phone className="w-6 h-6 text-accent" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm text-muted-foreground">High Desert</p>
+                <p className="text-lg font-semibold text-foreground">(760) 987-6652</p>
               </div>
             </motion.a>
 
@@ -72,7 +87,7 @@ const ContactCTA = () => {
               href="mailto:office@learntoridevc.com"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
               viewport={{ once: true }}
               className="flex items-center gap-4 bg-card/80 backdrop-blur border border-border rounded-xl p-6 hover:border-accent/50 transition-all group"
             >
