@@ -13,7 +13,7 @@ const courses = [
     features: [
       "No experience required",
       "Motorcycle provided",
-      "Helmet & gear included",
+      "Helmet included",
       "DMV test waiver upon completion",
       "CMSP certificate",
       "Insurance discount eligibility",
