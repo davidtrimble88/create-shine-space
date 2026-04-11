@@ -137,12 +137,12 @@ const Footer = () => {
                 Employee Login
               </Link>
             </div>
-            <div className="flex flex-col items-end gap-1">
-              <span className="text-sm text-muted-foreground">CMSP Certified</span>
+            <div className="flex flex-col items-end gap-2">
+              <span className="text-accent font-bold text-base tracking-wide uppercase">CMSP Certified</span>
               <img 
                 src={cmspLogo}
                 alt="California Motorcyclist Safety Program" 
-                className="h-16"
+                className="h-20"
               />
             </div>
           </div>
