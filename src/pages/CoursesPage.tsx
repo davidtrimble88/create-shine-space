@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 
 import cmspLogo from "@/assets/cmsp-logo.jpg";
 import basicRiders from "@/assets/basic-riders.jpg";
+import premierCourse from "@/assets/premier-course.jpg";
 import basicTraining from "@/assets/basic-training.jpg";
 import intermediateRider from "@/assets/intermediate-rider.jpg";
 import intermediateCornering from "@/assets/intermediate-cornering.jpg";
@@ -21,6 +22,7 @@ import totalControlBook from "@/assets/total-control-book.jpg";
 
 const tabs = [
   { id: "basic", label: "MTC", icon: GraduationCap, subtitle: "Learn to Ride" },
+  { id: "premier", label: "1-Day Premier", icon: BookOpen, subtitle: "Get Licensed" },
   { id: "intermediate", label: "Intermediate", icon: Gauge, subtitle: "Level Up" },
   { id: "advanced", label: "Advanced", icon: Zap, subtitle: "Total Control ARC®" },
 ] as const;
@@ -532,6 +534,7 @@ const CoursesPage = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <AnimatePresence mode="wait">
             {activeTab === "basic" && <BasicCourse key="basic" />}
+            {activeTab === "premier" && <PremierCourse key="premier" />}
             {activeTab === "intermediate" && <IntermediateCourse key="intermediate" />}
             {activeTab === "advanced" && <AdvancedCourse key="advanced" />}
           </AnimatePresence>
