@@ -28,7 +28,7 @@ const courses = [
     duration: "1 Day (8 Hours)",
     tab: "premier",
     features: [
-      "For experienced but unlicensed riders",
+      "For experienced riders",
       "Licensing option for 21+",
       "Loaner bikes available",
       "Entry skills test required",
