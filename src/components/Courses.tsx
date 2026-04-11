@@ -185,21 +185,6 @@ const Courses = () => {
           </div>
         </motion.div>
 
-        {/* Additional info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          viewport={{ once: true }}
-          className="mt-6 text-center"
-        >
-          <div className="inline-flex items-center gap-2 bg-card border border-border rounded-full px-6 py-3">
-            <Award className="w-5 h-5 text-accent" />
-            <span className="text-muted-foreground">
-              All courses include official CMSP certification
-            </span>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
