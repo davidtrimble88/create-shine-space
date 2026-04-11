@@ -21,7 +21,7 @@ const locations = [
     area: "Somis, CA",
     description:
       "Coastal location with perfect riding conditions and scenic surroundings year-round.",
-    highlights: ["All courses offered", "Coastal climate", "Year-round training"],
+    highlights: ["All courses available", "Coastal climate", "Private training facility"],
   },
 ];
 
