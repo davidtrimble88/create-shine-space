@@ -53,8 +53,8 @@ const courses = [
     price: "Contact for Pricing",
     duration: "1 Day",
     description:
-      "Master advanced cornering, traction management, body position, and suspension setup at street-legal speeds. Based on Lee Parks' best-selling book. Bring your own bike.",
-    highlights: ["Street-legal speeds", "Professional coaching", "All bike types welcome"],
+      "Master advanced cornering, traction management, body position, and suspension setup. Based on Lee Parks' best-selling book. Bring your own bike.",
+    highlights: ["Professional coaching", "All bike types welcome", "Controlled environment"],
     color: "from-secondary to-secondary/50",
     borderColor: "border-border",
   },
