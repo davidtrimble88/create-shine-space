@@ -253,7 +253,7 @@ const PremierCourse = () => (
         <h3 className="text-2xl font-bold text-foreground mb-4">Get Licensed in One Day</h3>
         <p className="text-muted-foreground leading-relaxed mb-4">
           The CMSP 1-Day Premier Course is an intensive <strong className="text-foreground">8-hour</strong> program 
-          designed for experienced but unlicensed riders aged <strong className="text-foreground">21 and over</strong> who 
+          designed for experienced riders with a licensing option for unlicensed riders aged <strong className="text-foreground">21 and over</strong> who 
           want to achieve intermediate-level skills along with their motorcycle license — all in a single day.
         </p>
         <p className="text-muted-foreground leading-relaxed mb-4">
