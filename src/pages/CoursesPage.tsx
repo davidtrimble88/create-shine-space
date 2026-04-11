@@ -220,6 +220,161 @@ const BasicCourse = () => (
   </motion.div>
 );
 
+/* ─── 1-Day Premier Course Tab ─── */
+const premierSkills = [
+  { icon: Gauge, title: "Throttle Control", desc: "Master the single most important control — affecting traction, suspension, weight transfer, and stability." },
+  { icon: Shield, title: "Brake Control", desc: "Learn emergency braking techniques to achieve short, safe stops when hazards appear." },
+  { icon: Eye, title: "Vision", desc: "The most fundamental riding skill — learn why you go where you look and how to use your eyes for safety." },
+  { icon: Route, title: "Line Selection", desc: "Plan and follow proper cornering lines for safe, smooth progression through every bend." },
+  { icon: Bike, title: "Low Speed Turns", desc: "Reduce your minimum turning diameter by 30-40% in as little as five minutes of practice." },
+  { icon: AlertTriangle, title: "Evasive Maneuvers", desc: "Practice life-saving swerving techniques without exceeding your tire's traction limits." },
+  { icon: Target, title: "Road Speed Cornering", desc: "Combine throttle, vision, line selection and body position for safe turns at road speeds." },
+];
+
+const PremierCourse = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    transition={{ duration: 0.4 }}
+  >
+    {/* Hero banner */}
+    <div className="relative rounded-3xl overflow-hidden mb-12">
+      <img src={premierCourse} alt="1-Day Premier Course rider training" className="w-full h-64 md:h-80 object-cover" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+      <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8">
+        <p className="text-accent font-bold text-xl md:text-2xl">CMSP 1-Day Premier Course</p>
+        <p className="text-foreground/70">With Licensing Option for 21+</p>
+      </div>
+    </div>
+
+    <div className="grid lg:grid-cols-5 gap-12 mb-12">
+      <div className="lg:col-span-3">
+        <h3 className="text-2xl font-bold text-foreground mb-4">Get Licensed in One Day</h3>
+        <p className="text-muted-foreground leading-relaxed mb-4">
+          The CMSP 1-Day Premier Course is an intensive <strong className="text-foreground">8-hour</strong> program 
+          designed for experienced but unlicensed riders aged <strong className="text-foreground">21 and over</strong> who 
+          want to achieve intermediate-level skills along with their motorcycle license — all in a single day.
+        </p>
+        <p className="text-muted-foreground leading-relaxed mb-4">
+          Developed by Total Control Training and based on the most current research in rider safety, this course 
+          includes both classroom and on-cycle instruction. It's challenging, fun, and proven to enhance student outcomes.
+        </p>
+        <p className="text-muted-foreground leading-relaxed mb-8">
+          You must pass a basic riding evaluation at the start of class, similar to the DMV Motorcycle Skills Test. 
+          Use our loaner bikes or bring your own street-legal motorcycle.
+        </p>
+
+        {/* Skills grid */}
+        <h4 className="text-lg font-bold text-foreground mb-4">What You'll Master</h4>
+        <div className="grid sm:grid-cols-2 gap-4 mb-8">
+          {premierSkills.map((skill, i) => (
+            <div key={i} className="bg-card border border-border rounded-xl p-4 hover:border-accent/40 transition-colors group">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center group-hover:bg-accent/25 transition-colors">
+                  <skill.icon className="w-4 h-4 text-accent" />
+                </div>
+                <h5 className="font-bold text-foreground text-sm">{skill.title}</h5>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">{skill.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <Link to="/choose-course">
+          <Button variant="hero" size="lg" className="group">
+            Enroll Now
+            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </Link>
+      </div>
+
+      <div className="lg:col-span-2 space-y-4">
+        {/* Pricing */}
+        <div className="bg-card border border-border rounded-2xl p-6">
+          <h4 className="font-bold text-foreground mb-4">Course Fees</h4>
+          <div className="space-y-4">
+            <div className="bg-secondary/50 rounded-xl p-4">
+              <p className="text-sm text-muted-foreground mb-1">New Student</p>
+              <p className="text-3xl font-bold text-foreground">$350</p>
+              <p className="text-xs text-muted-foreground mt-1">Group discount for 4+ friends</p>
+            </div>
+            <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 relative">
+              <span className="absolute -top-2.5 right-3 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                SAVE $50
+              </span>
+              <p className="text-sm text-muted-foreground mb-1">Returning Student</p>
+              <p className="text-3xl font-bold text-accent">$300</p>
+              <p className="text-xs text-muted-foreground mt-1">Previous Learn to Ride VC student</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Licensing details */}
+        <div className="bg-gradient-to-br from-accent/15 to-transparent border-2 border-accent/30 rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Award className="w-5 h-5 text-accent" />
+            <h4 className="font-bold text-foreground">Licensing Option</h4>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+            Riders <strong className="text-foreground">21 and over</strong> who are not yet licensed can earn their 
+            motorcycle license through this course. You must demonstrate fundamental riding skills by passing a basic 
+            riding evaluation at the beginning of class.
+          </p>
+          <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 mt-3">
+            <p className="text-xs text-foreground/80">
+              <strong className="text-destructive">Important:</strong> Students with a license restricted due to 
+              impairment convictions may not participate until all restrictions are lifted.
+            </p>
+          </div>
+        </div>
+
+        {/* Entry test video note */}
+        <div className="bg-card border border-border rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <FileCheck className="w-5 h-5 text-accent" />
+            <h4 className="font-bold text-foreground">Entry Skills Test</h4>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+            Unlicensed students must pass a basic riding evaluation similar to the CA DMV Motorcycle Skills Test 
+            at the start of class to continue.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Licensed riders are <strong className="text-foreground">not</strong> required to pass this test.
+          </p>
+        </div>
+
+        {/* Military note */}
+        <div className="flex items-center gap-3 bg-card border border-border rounded-xl p-4">
+          <Shield className="w-5 h-5 text-accent flex-shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            Recognized by Army, Navy, Air Force, Marines & Coast Guard for Level 2 & Refresher training
+          </p>
+        </div>
+
+        {/* Promises */}
+        <div className="bg-card border border-border rounded-2xl p-6">
+          <h4 className="font-bold text-foreground mb-4">Our Promises</h4>
+          <ul className="space-y-3">
+            {[
+              "Specific, measurable improvement in your riding",
+              "Better understanding of how your bike works",
+              "Ability to self-diagnose riding problems",
+              "High teacher-to-student ratio (6:1 max)",
+              "Friendly, professional instruction",
+            ].map((promise, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
+                <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
+                {promise}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </motion.div>
+);
+
 /* ─── Intermediate Course Tab ─── */
 const IntermediateCourse = () => (
   <motion.div
