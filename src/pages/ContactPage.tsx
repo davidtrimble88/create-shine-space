@@ -6,10 +6,17 @@ import { Phone, Mail, MapPin, Clock, Instagram, Facebook } from "lucide-react";
 const contactMethods = [
   {
     icon: Phone,
-    label: "Phone / Text",
+    label: "Ventura County",
     value: "(805) 827-0075",
     href: "tel:+18058270075",
-    description: "Call or text us anytime for questions about courses and scheduling.",
+    description: "Call or text for Ventura County courses and scheduling.",
+  },
+  {
+    icon: Phone,
+    label: "High Desert",
+    value: "(760) 987-6652",
+    href: "tel:+17609876652",
+    description: "Call or text for High Desert courses and scheduling.",
   },
   {
     icon: Mail,

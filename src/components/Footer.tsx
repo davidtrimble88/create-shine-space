@@ -95,9 +95,18 @@ const Footer = () => {
               <li className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-accent mt-0.5" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Phone / Text</p>
+                  <p className="text-sm text-muted-foreground">Ventura County</p>
                   <a href="tel:+18058270075" className="text-foreground hover:text-accent transition-colors">
                     (805) 827-0075
+                  </a>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <Phone className="w-5 h-5 text-accent mt-0.5" />
+                <div>
+                  <p className="text-sm text-muted-foreground">High Desert</p>
+                  <a href="tel:+17609876652" className="text-foreground hover:text-accent transition-colors">
+                    (760) 987-6652
                   </a>
                 </div>
               </li>
