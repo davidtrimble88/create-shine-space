@@ -14,8 +14,8 @@ const courses = [
     price: "From $395",
     duration: "2 Days (Weekend)",
     description:
-      "Perfect for beginners with no riding experience. Learn to ride, get your CMSP DL389 Certificate, and waive the DMV riding skills test. Motorcycle, helmet & gear provided.",
-    highlights: ["No experience needed", "Bike & gear provided", "DMV test waiver"],
+      "Perfect for beginners with no riding experience. Learn to ride, get your CMSP DL389 Certificate, and waive the DMV riding skills test. Motorcycle and helmet provided.",
+    highlights: ["No experience needed", "Bike & helmet provided", "DMV test waiver"],
     color: "from-accent/20 to-accent/5",
     borderColor: "border-accent/30",
   },

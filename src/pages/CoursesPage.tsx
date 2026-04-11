@@ -47,7 +47,7 @@ const advancedSkills = [
 
 const faqs = [
   { q: "Do I need any prior experience for the MTC?", a: "No! The Motorcycle Training Course is designed for complete beginners with no riding experience. You should however be able to balance and comfortably ride a two-wheeled bicycle." },
-  { q: "Is the motorcycle provided?", a: "Yes — for the MTC, we provide the motorcycle, helmet, and gear. For the Intermediate Course, you can use our loaner bikes or bring your own. The Advanced Course requires your own motorcycle." },
+  { q: "Is the motorcycle provided?", a: "Yes — for the MTC, we provide the motorcycle and helmet. For the Intermediate Course, you can use our loaner bikes or bring your own. The Advanced Course requires your own motorcycle." },
   { q: "What happens if I don't pass?", a: "There are written and riding evaluations after the course. You must pass both to graduate and receive your DMV waiver. If you don't pass, contact us about rescheduling options." },
   { q: "What's the cancellation policy?", a: "You must notify us at least 5 business days before the start of class. If a class is cancelled by us, you'll be rescheduled at no extra cost. Classes are held rain or shine." },
   { q: "Can I get a discount?", a: "Returning students get $50 off the Intermediate Course ($300 vs $350). For new students, groups of 4+ friends receive a group discount — call our office for details." },
@@ -191,7 +191,7 @@ const BasicCourse = () => (
             {[
               "No experience required",
               "Motorcycle provided",
-              "Helmet & gear included",
+              "Helmet included",
               "DMV test waiver",
               "CMSP DL389 Certificate",
               "Insurance discount card",
