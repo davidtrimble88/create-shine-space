@@ -125,6 +125,7 @@ const EmployeeDashboard = () => {
         {activeTab === "bookings" && <AdminBookings />}
         {activeTab === "analytics" && <WebsiteAnalytics />}
         {activeTab === "roles" && <RolePermissions />}
+        {activeTab === "how-to" && <HowToGuide />}
       </main>
     </div>
   );
