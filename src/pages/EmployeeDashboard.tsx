@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle } from "lucide-react";
 import { useState } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -11,6 +11,7 @@ import ComprehensiveSchedule from "@/components/admin/ComprehensiveSchedule";
 import WebsiteAnalytics from "@/components/admin/WebsiteAnalytics";
 import AdminBookings from "@/components/admin/AdminBookings";
 import RolePermissions from "@/components/admin/RolePermissions";
+import HowToGuide from "@/components/admin/HowToGuide";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
@@ -21,6 +22,7 @@ const tabs = [
   { id: "bookings", label: "Bookings", icon: ClipboardList, roles: ["owner", "admin"] },
   { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
   { id: "roles", label: "Role Permissions", icon: KeyRound, roles: ["owner"] },
+  { id: "how-to", label: "How To", icon: HelpCircle, roles: ["owner", "admin", "manager", "employee"] },
 ] as const;
 
 type TabId = typeof tabs[number]["id"];
