@@ -6,13 +6,22 @@ import { Link, useSearchParams } from "react-router-dom";
 
 const locations = [
   {
-    id: "high-desert",
+    id: "high-desert-hesperia",
     icon: Mountain,
-    name: "High Desert",
-    area: "Hesperia & Wrightwood, CA",
+    name: "High Desert — Hesperia",
+    area: "Hesperia, CA",
     description:
-      "Training site rotates between Hesperia and Wrightwood based on seasonal weather conditions. Wide open terrain perfect for learning.",
-    highlights: ["Weekend classes", "Spacious training grounds", "Mountain scenery"],
+      "Wide open terrain in the High Desert, perfect for learning in spacious training grounds.",
+    highlights: ["Weekend classes", "Spacious training grounds", "Desert scenery"],
+  },
+  {
+    id: "high-desert-wrightwood",
+    icon: Mountain,
+    name: "High Desert — Wrightwood",
+    area: "Wrightwood, CA",
+    description:
+      "Mountain training site with scenic surroundings and crisp air. Great seasonal conditions.",
+    highlights: ["Weekend classes", "Mountain terrain", "Scenic mountain roads"],
   },
   {
     id: "ventura-county",
