@@ -534,37 +534,28 @@ const AdminEmployees = () => {
                 <div>
                   <Label className="text-xs text-muted-foreground">Temporary Password</Label>
                   <div className="flex items-center gap-2">
-                    <code className="bg-secondary px-3 py-2 rounded-lg text-sm font-mono flex-1 select-all">{tempPasswordInfo.password}</code>
+                    <Input
+                      readOnly
+                      value={tempPasswordInfo.password}
+                      onFocus={(e) => e.currentTarget.select()}
+                      onClick={(e) => e.currentTarget.select()}
+                      className="font-mono"
+                    />
                     <Button
+                      type="button"
                       variant="outline"
                       size="sm"
                       onClick={async () => {
                         try {
-                          await navigator.clipboard.writeText(tempPasswordInfo.password);
-                          toast({ title: "Copied!", description: "Password copied to clipboard." });
-                        } catch {
-                          const textArea = document.createElement("textarea");
-                          textArea.value = tempPasswordInfo.password;
-                          textArea.setAttribute("readonly", "");
-                          textArea.style.position = "fixed";
-                          textArea.style.opacity = "0";
-                          document.body.appendChild(textArea);
-                          textArea.focus();
-                          textArea.select();
-
-                          const copied = document.execCommand("copy");
-                          document.body.removeChild(textArea);
-
-                          if (copied) {
+                          if (navigator.clipboard?.writeText) {
+                            await navigator.clipboard.writeText(tempPasswordInfo.password);
                             toast({ title: "Copied!", description: "Password copied to clipboard." });
-                          } else {
-                            toast({
-                              title: "Copy failed",
-                              description: "Please highlight the password and copy it manually.",
-                              variant: "destructive",
-                            });
+                            return;
                           }
+                        } catch {
                         }
+
+                        window.prompt("Copy this temporary password:", tempPasswordInfo.password);
                       }}
                     >
                       Copy
