@@ -7,23 +7,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const SECURITY_QUESTIONS = [
-  "What was the name of your first pet?",
-  "What city were you born in?",
-  "What is your mother's maiden name?",
-  "What was the name of your first school?",
-  "What is your favorite movie?",
-  "What street did you grow up on?",
-  "What was your childhood nickname?",
-  "What is the name of your favorite childhood friend?",
-  "What was the make of your first car?",
-  "What is your favorite sports team?",
-];
-
-type Step = "email" | "questions" | "newpassword";
-
 const ForgotPassword = () => {
-  const [step, setStep] = useState<Step>("email");
+  const [step, setStep] = useState<"email" | "questions" | "newpassword">("email");
   const [email, setEmail] = useState("");
   const [questions, setQuestions] = useState<string[]>([]);
   const [answers, setAnswers] = useState(["", "", ""]);
@@ -38,47 +23,23 @@ const ForgotPassword = () => {
     if (!email.trim()) return;
     setIsLoading(true);
 
-    // Fetch security questions for this email (via the user's own data or public lookup)
-    // We'll use a simple approach: try to find matching questions
-    // Since we can't query by email directly, we use the edge function
-    // For now, show all 3 question slots and let the user answer
-    // The edge function validates everything server-side
+    const { data, error } = await supabase.functions.invoke("self-reset-password", {
+      body: { mode: "get-questions", email: email.trim() },
+    });
 
-    // We need to know which questions were set. Let's look up via admin client in edge fn.
-    // For UX, we'll fetch the questions client-side by looking up the employee record first.
-    const { data: emp } = await supabase
-      .from("employees")
-      .select("user_id")
-      .eq("email", email.trim().toLowerCase())
-      .maybeSingle();
-
-    if (!emp?.user_id) {
-      // Don't reveal if email exists
-      toast({ title: "If this account exists, security questions will appear.", description: "Check your email spelling." });
+    if (error || !data?.questions || data.questions.length < 3) {
+      toast({ title: "Unable to proceed", description: "Security questions not found for this email. Contact an administrator.", variant: "destructive" });
       setIsLoading(false);
       return;
     }
 
-    // Try to fetch questions (admins can see them, but anonymous can't)
-    // We'll use a different approach - call the edge function to get question texts only
-    const { data: qData } = await supabase
-      .from("security_questions")
-      .select("question, question_number")
-      .eq("user_id", emp.user_id)
-      .order("question_number");
-
-    if (!qData || qData.length < 3) {
-      toast({ title: "Security questions not set up", description: "Contact an administrator to reset your password.", variant: "destructive" });
-      setIsLoading(false);
-      return;
-    }
-
-    setQuestions(qData.map((q: any) => q.question));
+    setQuestions(data.questions);
+    setAnswers(["", "", ""]);
     setStep("questions");
     setIsLoading(false);
   };
 
-  const handleQuestionsSubmit = async (e: React.FormEvent) => {
+  const handleQuestionsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (answers.some(a => !a.trim())) {
       toast({ title: "Please answer all questions", variant: "destructive" });
