@@ -2,7 +2,7 @@ export interface ScheduleEntry {
   id: string;
   date: string; // ISO date string for the start day
   course: "basic" | "intermediate" | "advanced";
-  location: "high-desert" | "ventura-county";
+  location: "high-desert-hesperia" | "high-desert-wrightwood" | "ventura-county";
   locationLabel: string;
   group?: string; // e.g. "Group A", "Group B"
   schedule: string; // human-readable schedule description
