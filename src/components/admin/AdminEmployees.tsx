@@ -325,6 +325,7 @@ const AdminEmployees = () => {
                             objectFit: "cover",
                             objectPosition: `${form.photo_position_x}% ${form.photo_position_y}%`,
                             transform: `scale(${form.photo_zoom / 100})`,
+                            transformOrigin: `${form.photo_position_x}% ${form.photo_position_y}%`,
                           }}
                         />
                       </div>
