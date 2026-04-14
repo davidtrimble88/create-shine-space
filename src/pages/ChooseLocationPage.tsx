@@ -63,7 +63,7 @@ const ChooseLocationPage = () => {
             </p>
           </motion.div>
 
-          <div className={`grid ${filteredLocations.length > 1 ? 'md:grid-cols-2' : 'md:grid-cols-1 max-w-lg'} gap-8 max-w-4xl mx-auto`}>
+          <div className={`grid ${filteredLocations.length > 2 ? 'md:grid-cols-3' : filteredLocations.length > 1 ? 'md:grid-cols-2' : 'md:grid-cols-1 max-w-lg'} gap-8 max-w-5xl mx-auto`}>
             {filteredLocations.map((loc, i) => {
               const Icon = loc.icon;
               return (
