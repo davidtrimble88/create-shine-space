@@ -303,6 +303,18 @@ const AdminSchedule = () => {
                 </div>
               </div>
               <div>
+                <Label>Schedule Template</Label>
+                <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
+                  <SelectTrigger><SelectValue placeholder="Select a preset..." /></SelectTrigger>
+                  <SelectContent>
+                    {(scheduleTemplates[form.location] || []).map(t => (
+                      <SelectItem key={t.label} value={t.label}>{t.label}</SelectItem>
+                    ))}
+                    <SelectItem value="custom">✏️ Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Schedule Description</Label>
                 <Input value={form.schedule} onChange={e => setForm(f => ({ ...f, schedule: e.target.value }))} placeholder="e.g. Sat 6:45am–5:00pm, Sun 6:45am–5:00pm" />
               </div>
