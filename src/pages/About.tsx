@@ -332,11 +332,12 @@ const About = () => {
                         src={instructor.photo_url}
                         alt={instructor.full_name}
                         className="w-full h-72 group-hover:scale-105 transition-transform duration-500"
-                        style={{
-                          objectFit: "cover",
-                          objectPosition: `${instructor.photo_position_x ?? 50}% ${instructor.photo_position_y ?? 50}%`,
-                          transform: `scale(${(instructor.photo_zoom ?? 100) / 100})`,
-                        }}
+                         style={{
+                           objectFit: "cover",
+                           objectPosition: `${instructor.photo_position_x ?? 50}% ${instructor.photo_position_y ?? 50}%`,
+                           transform: `scale(${(instructor.photo_zoom ?? 100) / 100})`,
+                           transformOrigin: `${instructor.photo_position_x ?? 50}% ${instructor.photo_position_y ?? 50}%`,
+                         }}
                       />
                     ) : (
                       <div className="w-full h-72 bg-muted flex items-center justify-center">
