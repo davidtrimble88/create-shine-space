@@ -51,7 +51,7 @@ const AdminEmployees = () => {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [tempPasswordInfo, setTempPasswordInfo] = useState<{ name: string; email: string; password: string } | null>(null);
-  const [resettingPasswordFor, setResettingPasswordFor] = useState<string | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const assignableRoles = userRole === "owner"
@@ -493,6 +493,11 @@ const AdminEmployees = () => {
                     {roleLabels[emp.role ?? "employee"]}
                   </span>
                   <div className="flex gap-1">
+                    {emp.user_id && !(userRole === "admin" && emp.role === "owner") && (
+                      <Button variant="ghost" size="sm" onClick={() => handleResetPassword(emp)} title="Reset Password">
+                        <KeyRound className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(emp)}>
                       <Pencil className="w-4 h-4" />
                     </Button>
