@@ -1,5 +1,3 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -16,19 +14,29 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Helper to call Supabase REST API
+    const restHeaders = {
+      "apikey": supabaseServiceKey,
+      "Authorization": `Bearer ${supabaseServiceKey}`,
+      "Content-Type": "application/json",
+    };
+
+    // Helper to list users via admin API
+    const listUsersRes = await fetch(`${supabaseUrl}/auth/v1/admin/users?per_page=1000`, {
+      headers: restHeaders,
+    });
+    const usersData = await listUsersRes.json();
+    const users = usersData.users || [];
 
     if (mode === "get-questions") {
-      // Return just question texts for an email
       if (!email) {
         return new Response(JSON.stringify({ error: "email required" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Find user by email
-      const { data: { users } } = await adminClient.auth.admin.listUsers();
-      const targetUser = users?.find((u: any) => u.email?.toLowerCase() === email.trim().toLowerCase());
+      const targetUser = users.find((u: any) => u.email?.toLowerCase() === email.trim().toLowerCase());
       
       if (!targetUser) {
         return new Response(JSON.stringify({ questions: [] }), {
@@ -36,11 +44,12 @@ Deno.serve(async (req) => {
         });
       }
 
-      const { data: qData } = await adminClient
-        .from("security_questions")
-        .select("question, question_number")
-        .eq("user_id", targetUser.id)
-        .order("question_number");
+      // Query security_questions via REST
+      const qRes = await fetch(
+        `${supabaseUrl}/rest/v1/security_questions?user_id=eq.${targetUser.id}&order=question_number`,
+        { headers: { ...restHeaders, "Accept": "application/json" } }
+      );
+      const qData = await qRes.json();
 
       return new Response(JSON.stringify({ questions: (qData ?? []).map((q: any) => q.question) }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -60,8 +69,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: { users } } = await adminClient.auth.admin.listUsers();
-    const targetUser = users?.find((u: any) => u.email?.toLowerCase() === email.trim().toLowerCase());
+    const targetUser = users.find((u: any) => u.email?.toLowerCase() === email.trim().toLowerCase());
     
     if (!targetUser) {
       return new Response(JSON.stringify({ error: "Verification failed" }), {
@@ -69,11 +77,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: questions } = await adminClient
-      .from("security_questions")
-      .select("*")
-      .eq("user_id", targetUser.id)
-      .order("question_number");
+    const qRes = await fetch(
+      `${supabaseUrl}/rest/v1/security_questions?user_id=eq.${targetUser.id}&order=question_number`,
+      { headers: { ...restHeaders, "Accept": "application/json" } }
+    );
+    const questions = await qRes.json();
 
     if (!questions || questions.length < 3) {
       return new Response(JSON.stringify({ error: "Security questions not set up for this account" }), {
@@ -97,12 +105,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { error: resetError } = await adminClient.auth.admin.updateUser(targetUser.id, {
-      password: new_password,
+    // Update password via Admin REST API
+    const updateRes = await fetch(`${supabaseUrl}/auth/v1/admin/users/${targetUser.id}`, {
+      method: "PUT",
+      headers: restHeaders,
+      body: JSON.stringify({ password: new_password }),
     });
 
-    if (resetError) {
-      return new Response(JSON.stringify({ error: resetError.message }), {
+    if (!updateRes.ok) {
+      const errBody = await updateRes.json();
+      return new Response(JSON.stringify({ error: errBody.message || "Failed to reset password" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
