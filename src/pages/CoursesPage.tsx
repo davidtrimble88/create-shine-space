@@ -49,7 +49,7 @@ const advancedSkills = [
 
 const faqs = [
   { q: "Do I need any prior experience for the MTC?", a: "No! The Motorcycle Training Course is designed for complete beginners with no riding experience. You should however be able to balance and comfortably ride a two-wheeled bicycle." },
-  { q: "Is the motorcycle provided?", a: "Yes — for the MTC, we provide the motorcycle and helmet. For the Intermediate Course, you can use our loaner bikes or bring your own. The Advanced Course requires your own motorcycle." },
+  { q: "Is the motorcycle provided?", a: "Yes — for the MTC, we provide the motorcycle and helmet. For the Advanced Course, you must bring your own motorcycle." },
   { q: "What happens if I don't pass?", a: "There are written and riding evaluations after the course. You must pass both to graduate and receive your DMV waiver. If you don't pass, contact us about rescheduling options." },
   { q: "What's the cancellation policy?", a: "You must notify us at least 5 business days before the start of class. If a class is cancelled by us, you'll be rescheduled at no extra cost. Classes are held rain or shine." },
   { q: "Can I get a discount?", a: "Returning students get $50 off the Intermediate Course ($300 vs $350). For new students, groups of 4+ friends receive a group discount — call our office for details." },
@@ -258,11 +258,10 @@ const PremierCourse = () => (
         </p>
         <p className="text-muted-foreground leading-relaxed mb-4">
           Developed by Total Control Training and based on the most current research in rider safety, this course 
-          includes both classroom and on-cycle instruction. It's challenging, fun, and proven to enhance student outcomes.
+          includes both classroom and riding instruction. It's challenging, fun, and proven to enhance student outcomes.
         </p>
         <p className="text-muted-foreground leading-relaxed mb-8">
-          You must pass a basic riding evaluation at the start of class, similar to the DMV Motorcycle Skills Test. 
-          Use our loaner bikes or bring your own street-legal motorcycle.
+          You must pass a basic riding evaluation at the start of class, similar to the DMV Motorcycle Skills Test.
         </p>
 
         {/* Skills grid */}
@@ -398,7 +397,7 @@ const IntermediateCourse = () => (
         <h3 className="text-2xl font-bold text-foreground mb-4">The Perfect Next Step</h3>
         <p className="text-muted-foreground leading-relaxed mb-4">
           Developed by Total Control Training, the IRC/1DPC is the perfect next step for newer riders looking to improve 
-          and returning riders getting back in the saddle. This course includes both classroom and on-cycle instruction, 
+          and returning riders getting back in the saddle. This course includes both classroom and riding instruction, 
           completed in one intensive <strong className="text-foreground">8-hour day</strong>.
         </p>
         <p className="text-muted-foreground leading-relaxed mb-8">
@@ -461,7 +460,6 @@ const IntermediateCourse = () => (
             Not yet licensed? Riders <strong className="text-foreground">21+</strong> can achieve intermediate-level 
             skills along with their motorcycle license. You must pass a basic riding evaluation at the start, similar to the DMV skills test.
           </p>
-          <p className="text-xs text-muted-foreground">Use our loaner bikes or bring your own.</p>
         </div>
 
         <img src={intermediateRider} alt="Rider training on course" className="rounded-2xl w-full h-48 object-cover" />
