@@ -2,7 +2,7 @@ export interface ScheduleEntry {
   id: string;
   date: string; // ISO date string for the start day
   course: "basic" | "intermediate" | "advanced";
-  location: "high-desert" | "ventura-county";
+  location: "high-desert-hesperia" | "high-desert-wrightwood" | "ventura-county";
   locationLabel: string;
   group?: string; // e.g. "Group A", "Group B"
   schedule: string; // human-readable schedule description
@@ -15,7 +15,7 @@ export const scheduleData: ScheduleEntry[] = [
     id: "apr1-hd-basic",
     date: "2026-04-01",
     course: "basic",
-    location: "high-desert",
+    location: "high-desert-hesperia",
     locationLabel: "High Desert — Hesperia",
     schedule: "Wed 5:45pm–9:30pm, Sat 6:45am–6:00pm, Sun 6:45am–12:00pm",
     spotsAvailable: 0,
@@ -69,7 +69,7 @@ export const scheduleData: ScheduleEntry[] = [
     id: "apr15-hd-basic",
     date: "2026-04-15",
     course: "basic",
-    location: "high-desert",
+    location: "high-desert-hesperia",
     locationLabel: "High Desert — Hesperia",
     schedule: "Wed 5:45pm–9:30pm, Sat 6:45am–6:00pm, Sun 6:45am–12:00pm",
     spotsAvailable: 8,
@@ -111,7 +111,7 @@ export const scheduleData: ScheduleEntry[] = [
     id: "apr22-hd-basic",
     date: "2026-04-22",
     course: "basic",
-    location: "high-desert",
+    location: "high-desert-hesperia",
     locationLabel: "High Desert — Hesperia",
     schedule: "Wed 5:45pm–9:30pm, Sat 6:45am–6:00pm, Sun 6:45am–12:00pm",
     spotsAvailable: 10,

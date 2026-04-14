@@ -17,7 +17,8 @@ const courseLabels: Record<string, string> = {
 };
 
 const locationOptions = [
-  { value: "high-desert", label: "High Desert — Hesperia" },
+  { value: "high-desert-hesperia", label: "High Desert — Hesperia" },
+  { value: "high-desert-wrightwood", label: "High Desert — Wrightwood" },
   { value: "ventura-county", label: "Ventura County — Somis" },
 ];
 
@@ -284,7 +285,8 @@ const ViewerSchedule = () => {
           <SelectTrigger className="w-52"><SelectValue placeholder="All Locations" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Locations</SelectItem>
-            <SelectItem value="high-desert">High Desert — Hesperia</SelectItem>
+            <SelectItem value="high-desert-hesperia">High Desert — Hesperia</SelectItem>
+            <SelectItem value="high-desert-wrightwood">High Desert — Wrightwood</SelectItem>
             <SelectItem value="ventura-county">Ventura County — Somis</SelectItem>
           </SelectContent>
         </Select>

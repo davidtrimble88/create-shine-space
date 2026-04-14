@@ -25,7 +25,8 @@ const ChooseSchedulePage = () => {
   };
 
   const locationLabels: Record<string, string> = {
-    "high-desert": "High Desert — Hesperia & Wrightwood",
+    "high-desert-hesperia": "High Desert — Hesperia",
+    "high-desert-wrightwood": "High Desert — Wrightwood",
     "ventura-county": "Ventura County — Somis",
   };
 

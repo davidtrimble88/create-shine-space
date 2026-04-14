@@ -32,7 +32,8 @@ const courseLabels: Record<string, string> = {
 };
 
 const locationLabels: Record<string, string> = {
-  "high-desert": "High Desert — Hesperia",
+  "high-desert-hesperia": "High Desert — Hesperia",
+  "high-desert-wrightwood": "High Desert — Wrightwood",
   "ventura-county": "Ventura County — Somis",
 };
 
@@ -79,7 +80,16 @@ const scheduleTemplates: Record<string, ScheduleTemplate[]> = {
       spots_available: 12,
     },
   ],
-  "high-desert": [
+  "high-desert-hesperia": [
+    {
+      label: "Standard — Wed, Sat & Sun",
+      schedule: "Wed 5:45pm–9:30pm, Sat 6:45am–6:00pm, Sun 6:45am–12:00pm",
+      group_name: "",
+      price: "$425",
+      spots_available: 12,
+    },
+  ],
+  "high-desert-wrightwood": [
     {
       label: "Standard — Wed, Sat & Sun",
       schedule: "Wed 5:45pm–9:30pm, Sat 6:45am–6:00pm, Sun 6:45am–12:00pm",
@@ -303,7 +313,8 @@ const AdminSchedule = () => {
                   <Select value={form.location} onValueChange={handleLocationChange}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="high-desert">High Desert — Hesperia</SelectItem>
+                      <SelectItem value="high-desert-hesperia">High Desert — Hesperia</SelectItem>
+                      <SelectItem value="high-desert-wrightwood">High Desert — Wrightwood</SelectItem>
                       <SelectItem value="ventura-county">Ventura County — Somis</SelectItem>
                     </SelectContent>
                   </Select>
@@ -360,7 +371,8 @@ const AdminSchedule = () => {
           <SelectTrigger className="w-48"><SelectValue placeholder="All Locations" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Locations</SelectItem>
-            <SelectItem value="high-desert">High Desert</SelectItem>
+            <SelectItem value="high-desert-hesperia">High Desert — Hesperia</SelectItem>
+            <SelectItem value="high-desert-wrightwood">High Desert — Wrightwood</SelectItem>
             <SelectItem value="ventura-county">Ventura County</SelectItem>
           </SelectContent>
         </Select>
