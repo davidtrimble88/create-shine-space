@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format, addDays } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
@@ -54,7 +55,24 @@ interface ScheduleTemplate {
   group_name: string;
   price: string;
   spots_available: number;
+  /** Day-of-week for the first session (0=Sun, 3=Wed, 5=Fri, 6=Sat) */
+  startDay: number;
+  /** Offsets in days from the start date for additional session days */
+  additionalDayOffsets: number[];
 }
+
+/** Compute the full class dates from a start date and template */
+const getClassDates = (startDate: string, template: ScheduleTemplate | undefined): string[] => {
+  if (!startDate || !template) return [];
+  const start = new Date(startDate + "T12:00:00");
+  if (isNaN(start.getTime())) return [];
+  const dates = [format(start, "EEE, MMM d")];
+  for (const offset of template.additionalDayOffsets) {
+    const d = addDays(start, offset);
+    dates.push(format(d, "EEE, MMM d"));
+  }
+  return dates;
+};
 
 const scheduleTemplates: Record<string, ScheduleTemplate[]> = {
   "ventura-county": [
@@ -64,6 +82,8 @@ const scheduleTemplates: Record<string, ScheduleTemplate[]> = {
       group_name: "Group A",
       price: "$425",
       spots_available: 12,
+      startDay: 6, // Saturday
+      additionalDayOffsets: [1], // +1 = Sunday
     },
     {
       label: "Group B — Fri, Sat & Sun",
@@ -71,6 +91,8 @@ const scheduleTemplates: Record<string, ScheduleTemplate[]> = {
       group_name: "Group B",
       price: "$425",
       spots_available: 12,
+      startDay: 5, // Friday
+      additionalDayOffsets: [1, 2], // +1 = Sat, +2 = Sun
     },
     {
       label: "Intermediate — Sat Only",
@@ -78,6 +100,8 @@ const scheduleTemplates: Record<string, ScheduleTemplate[]> = {
       group_name: "",
       price: "$350",
       spots_available: 12,
+      startDay: 6,
+      additionalDayOffsets: [],
     },
   ],
   "high-desert-hesperia": [
@@ -87,6 +111,8 @@ const scheduleTemplates: Record<string, ScheduleTemplate[]> = {
       group_name: "",
       price: "$425",
       spots_available: 12,
+      startDay: 3, // Wednesday
+      additionalDayOffsets: [3, 4], // +3 = Sat, +4 = Sun
     },
   ],
   "high-desert-wrightwood": [
@@ -96,6 +122,8 @@ const scheduleTemplates: Record<string, ScheduleTemplate[]> = {
       group_name: "",
       price: "$425",
       spots_available: 12,
+      startDay: 3,
+      additionalDayOffsets: [3, 4],
     },
   ],
 };
@@ -292,7 +320,7 @@ const AdminSchedule = () => {
             <div className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Date</Label>
+                  <Label>First Day</Label>
                   <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
                 </div>
                 <div>
@@ -340,6 +368,20 @@ const AdminSchedule = () => {
                 <Label>Schedule Description</Label>
                 <Input value={form.schedule} onChange={e => setForm(f => ({ ...f, schedule: e.target.value }))} placeholder="e.g. Sat 6:45am–5:00pm, Sun 6:45am–5:00pm" />
               </div>
+              {(() => {
+                const templates = scheduleTemplates[form.location] || [];
+                const currentTpl = templates.find(t => t.label === selectedTemplate);
+                const classDates = getClassDates(form.date, currentTpl);
+                if (classDates.length > 1) {
+                  return (
+                    <div className="bg-accent/10 border border-accent/20 rounded-lg p-3">
+                      <p className="text-sm font-medium text-foreground mb-1">📅 Full class dates:</p>
+                      <p className="text-sm text-muted-foreground">{classDates.join(" → ")}</p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Spots Available</Label>
