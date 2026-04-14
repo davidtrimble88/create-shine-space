@@ -173,7 +173,6 @@ const AdminSchedule = () => {
     setSelectedTemplate(""); // reset template when location changes
   };
 
-  const [selectedTemplate, setSelectedTemplate] = useState("");
 
   const handleTemplateChange = (value: string) => {
     setSelectedTemplate(value);
