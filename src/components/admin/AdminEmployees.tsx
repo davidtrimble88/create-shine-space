@@ -169,7 +169,7 @@ const AdminEmployees = () => {
     } else {
       const tempPassword = Math.random().toString(36).slice(-10) + "A1!";
       
-      const session = (await supabase.auth.getSession()).data.session;
+      
       const createRes = await supabase.functions.invoke("create-employee-user", {
         body: { email: form.email, password: tempPassword },
       });
