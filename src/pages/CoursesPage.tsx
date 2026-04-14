@@ -281,7 +281,7 @@ const PremierCourse = () => (
           ))}
         </div>
 
-        <Link to="/choose-course">
+        <Link to="/choose-location?course=premier">
           <Button variant="hero" size="lg" className="group">
             Enroll Now
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -422,7 +422,7 @@ const IntermediateCourse = () => (
           ))}
         </div>
 
-        <Link to="/choose-course">
+        <Link to="/choose-location?course=intermediate">
           <Button variant="hero" size="lg" className="group">
             Enroll Now
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -755,7 +755,7 @@ const CoursesPage = () => {
               Choose your course and take the first step toward confident, skilled riding.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/choose-course">
+              <Link to={`/choose-location?course=${activeTab}`}>
                 <Button variant="hero" size="lg" className="group w-full sm:w-auto">
                   Enroll Now
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
