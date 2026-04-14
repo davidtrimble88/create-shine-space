@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Employee = Tables<"employees">;
@@ -51,6 +51,7 @@ const AdminEmployees = () => {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [tempPasswordInfo, setTempPasswordInfo] = useState<{ name: string; email: string; password: string } | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const assignableRoles = userRole === "owner"
@@ -257,6 +258,33 @@ const AdminEmployees = () => {
       toast({ title: "Removed", description: `${emp.full_name} has been removed.` });
       fetchEmployees();
     }
+  };
+  const handleResetPassword = async (emp: EmployeeWithRole) => {
+    if (!emp.user_id) {
+      toast({ title: "No account", description: "This employee doesn't have a login account.", variant: "destructive" });
+      return;
+    }
+    // Admins cannot reset owner passwords
+    if (userRole === "admin" && emp.role === "owner") {
+      toast({ title: "Not allowed", description: "Admins cannot reset owner passwords.", variant: "destructive" });
+      return;
+    }
+    if (!confirm(`Reset password for ${emp.full_name}? They will receive a temporary password.`)) return;
+
+    const session = (await supabase.auth.getSession()).data.session;
+    if (!session) return;
+
+    const { data, error } = await supabase.functions.invoke("reset-user-password", {
+      body: { target_user_id: emp.user_id },
+    });
+
+    if (error || data?.error) {
+      toast({ title: "Error", description: data?.error || error?.message, variant: "destructive" });
+      return;
+    }
+
+    setTempPasswordInfo({ name: emp.full_name, email: emp.email, password: data.temp_password });
+    toast({ title: "Password Reset", description: `Temporary password created for ${emp.full_name}.` });
   };
 
   const openNew = () => {
@@ -465,6 +493,11 @@ const AdminEmployees = () => {
                     {roleLabels[emp.role ?? "employee"]}
                   </span>
                   <div className="flex gap-1">
+                    {emp.user_id && !(userRole === "admin" && emp.role === "owner") && (
+                      <Button variant="ghost" size="sm" onClick={() => handleResetPassword(emp)} title="Reset Password">
+                        <KeyRound className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(emp)}>
                       <Pencil className="w-4 h-4" />
                     </Button>

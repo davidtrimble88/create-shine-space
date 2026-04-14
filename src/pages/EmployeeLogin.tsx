@@ -104,6 +104,12 @@ const EmployeeLogin = () => {
               )}
             </Button>
           </form>
+
+          <div className="mt-4 text-center">
+            <Link to="/forgot-password" className="text-sm text-accent hover:underline">
+              Forgot your password?
+            </Link>
+          </div>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
