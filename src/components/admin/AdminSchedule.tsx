@@ -368,6 +368,20 @@ const AdminSchedule = () => {
                 <Label>Schedule Description</Label>
                 <Input value={form.schedule} onChange={e => setForm(f => ({ ...f, schedule: e.target.value }))} placeholder="e.g. Sat 6:45am–5:00pm, Sun 6:45am–5:00pm" />
               </div>
+              {(() => {
+                const templates = scheduleTemplates[form.location] || [];
+                const currentTpl = templates.find(t => t.label === selectedTemplate);
+                const classDates = getClassDates(form.date, currentTpl);
+                if (classDates.length > 1) {
+                  return (
+                    <div className="bg-accent/10 border border-accent/20 rounded-lg p-3">
+                      <p className="text-sm font-medium text-foreground mb-1">📅 Full class dates:</p>
+                      <p className="text-sm text-muted-foreground">{classDates.join(" → ")}</p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Spots Available</Label>
