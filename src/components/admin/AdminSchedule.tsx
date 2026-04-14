@@ -248,6 +248,32 @@ const AdminSchedule = () => {
       spots_available: Number(form.spots_available),
     };
 
+    // Check for duplicate: same location + group + date
+    let dupQuery = supabase
+      .from("schedules")
+      .select("id")
+      .eq("location", form.location)
+      .eq("date", form.date)
+      .eq("course", form.course);
+
+    if (form.group_name) {
+      dupQuery = dupQuery.eq("group_name", form.group_name);
+    }
+
+    if (editingId) {
+      dupQuery = dupQuery.neq("id", editingId);
+    }
+
+    const { data: duplicates } = await dupQuery;
+    if (duplicates && duplicates.length > 0) {
+      toast({
+        title: "Scheduling Conflict",
+        description: `A ${form.group_name || "class"} is already scheduled at this location on this date.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (editingId) {
       const { error } = await supabase.from("schedules").update(payload).eq("id", editingId);
       if (error) {
