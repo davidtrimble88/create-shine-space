@@ -287,7 +287,7 @@ const AdminEmployees = () => {
     toast({ title: "Password Reset", description: `Temporary password created for ${emp.full_name}.` });
   };
 
-
+  const openNew = () => {
     setEditingId(null);
     setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
     setPhotoFile(null);
