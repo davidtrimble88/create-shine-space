@@ -169,8 +169,18 @@ const AdminSchedule = () => {
     assignmentData.filter(a => a.schedule_id === scheduleId);
 
   const handleLocationChange = (loc: string) => {
-    setForm(f => ({ ...f, location: loc, location_label: locationLabels[loc] || loc, schedule: "", group_name: "" }));
-    setSelectedTemplate(""); // reset template when location changes
+    const templates = scheduleTemplates[loc] || [];
+    const defaultTpl = templates[0];
+    setForm(f => ({
+      ...f,
+      location: loc,
+      location_label: locationLabels[loc] || loc,
+      schedule: defaultTpl?.schedule ?? "",
+      group_name: defaultTpl?.group_name ?? "",
+      price: defaultTpl?.price ?? "$425",
+      spots_available: defaultTpl?.spots_available ?? 12,
+    }));
+    setSelectedTemplate(defaultTpl?.label ?? "");
   };
 
 
