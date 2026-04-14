@@ -119,6 +119,16 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Clear must_change_password flag so user isn't forced through onboarding again
+    await fetch(
+      `${supabaseUrl}/rest/v1/employees?user_id=eq.${targetUser.id}`,
+      {
+        method: "PATCH",
+        headers: { ...restHeaders, "Accept": "application/json", "Prefer": "return=minimal" },
+        body: JSON.stringify({ must_change_password: false }),
+      }
+    );
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
