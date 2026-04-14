@@ -534,10 +534,21 @@ const RegisterPage = () => {
                   />
                 </div>
 
-                <div className="text-center">
+                <div className="text-center space-y-3">
                   <Button type="submit" variant="hero" size="lg" className="px-12" disabled={submitting}>
                     {submitting ? "Submitting..." : "Continue to Payment Method"}
                   </Button>
+                  <div>
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      size="sm"
+                      disabled={submitting}
+                      className="text-xs text-muted-foreground"
+                    >
+                      ⚠ Skip Payment (Testing Only)
+                    </Button>
+                  </div>
                 </div>
               </form>
             </Form>
