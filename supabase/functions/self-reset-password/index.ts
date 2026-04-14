@@ -11,8 +11,43 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, answers, new_password } = await req.json();
+    const body = await req.json();
+    const { mode, email, answers, new_password } = body;
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+
+    if (mode === "get-questions") {
+      // Return just question texts for an email
+      if (!email) {
+        return new Response(JSON.stringify({ error: "email required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Find user by email
+      const { data: { users } } = await adminClient.auth.admin.listUsers();
+      const targetUser = users?.find((u: any) => u.email?.toLowerCase() === email.trim().toLowerCase());
+      
+      if (!targetUser) {
+        return new Response(JSON.stringify({ questions: [] }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: qData } = await adminClient
+        .from("security_questions")
+        .select("question, question_number")
+        .eq("user_id", targetUser.id)
+        .order("question_number");
+
+      return new Response(JSON.stringify({ questions: (qData ?? []).map((q: any) => q.question) }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Mode: verify and reset
     if (!email || !answers || !new_password || !Array.isArray(answers) || answers.length !== 3) {
       return new Response(JSON.stringify({ error: "email, 3 answers, and new_password required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -25,27 +60,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Find user by email
-    const { data: { users }, error: userError } = await adminClient.auth.admin.listUsers();
-    if (userError) {
-      return new Response(JSON.stringify({ error: "Failed to look up user" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const targetUser = users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
+    const { data: { users } } = await adminClient.auth.admin.listUsers();
+    const targetUser = users?.find((u: any) => u.email?.toLowerCase() === email.trim().toLowerCase());
+    
     if (!targetUser) {
-      // Don't reveal whether email exists
       return new Response(JSON.stringify({ error: "Verification failed" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fetch stored security questions
     const { data: questions } = await adminClient
       .from("security_questions")
       .select("*")
@@ -58,7 +81,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify all 3 answers (case-insensitive, trimmed)
     for (let i = 0; i < 3; i++) {
       const stored = questions.find((q: any) => q.question_number === i + 1);
       if (!stored) {
@@ -75,7 +97,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // All answers correct — reset password
     const { error: resetError } = await adminClient.auth.admin.updateUser(targetUser.id, {
       password: new_password,
     });
