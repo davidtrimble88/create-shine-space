@@ -320,7 +320,7 @@ const AdminSchedule = () => {
             <div className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Date</Label>
+                  <Label>First Day</Label>
                   <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
                 </div>
                 <div>
