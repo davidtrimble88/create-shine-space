@@ -5,12 +5,20 @@ import EditableText from "@/components/EditableText";
 
 const locations = [
   {
-    name: "High Desert — Hesperia & Wrightwood",
-    address: "Hesperia & Wrightwood, CA",
+    name: "High Desert — Hesperia",
+    address: "Hesperia, CA",
     phone: "(760) 987-6652",
     hours: "Wed: 5:45 PM - 9:30 PM | Sat: 6:45 AM - 6:00 PM | Sun: 6:45 AM - 12:00 PM",
     mapLink: "https://maps.google.com/?q=Hesperia,CA",
-    description: "Training site rotates between Hesperia and Wrightwood based on seasonal weather conditions.",
+    description: "Wide open desert terrain perfect for learning to ride.",
+  },
+  {
+    name: "High Desert — Wrightwood",
+    address: "Wrightwood, CA",
+    phone: "(760) 987-6652",
+    hours: "Wed: 5:45 PM - 9:30 PM | Sat: 6:45 AM - 6:00 PM | Sun: 6:45 AM - 12:00 PM",
+    mapLink: "https://maps.google.com/?q=Wrightwood,CA",
+    description: "Mountain training site with scenic surroundings and crisp air.",
   },
   {
     name: "Ventura County",
