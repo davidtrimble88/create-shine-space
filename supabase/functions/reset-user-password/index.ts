@@ -75,12 +75,19 @@ Deno.serve(async (req) => {
     // Generate temp password and reset
     const tempPassword = crypto.randomUUID().slice(0, 12) + "A1!";
 
-    const { error } = await adminClient.auth.admin.updateUser(target_user_id, {
-      password: tempPassword,
+    const updateRes = await fetch(`${supabaseUrl}/auth/v1/admin/users/${target_user_id}`, {
+      method: "PUT",
+      headers: {
+        apikey: supabaseServiceKey,
+        Authorization: `Bearer ${supabaseServiceKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password: tempPassword }),
     });
 
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
+    if (!updateRes.ok) {
+      const errorBody = await updateRes.json().catch(() => ({}));
+      return new Response(JSON.stringify({ error: errorBody.msg || errorBody.message || "Failed to reset password" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
