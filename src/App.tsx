@@ -21,6 +21,7 @@ import ContactPage from "./pages/ContactPage";
 import EmployeeLogin from "./pages/EmployeeLogin";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ChangePassword from "./pages/ChangePassword";
+import RegistrationConfirmation from "./pages/RegistrationConfirmation";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/employee-login" element={<EmployeeLogin />} />
             <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
             <Route path="/change-password" element={<ChangePassword />} />
+            <Route path="/registration-confirmation" element={<RegistrationConfirmation />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

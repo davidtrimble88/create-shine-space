@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -114,6 +114,7 @@ const RegisterPage = () => {
     },
   });
 
+  const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
 
   const onSubmit = async (data: RegistrationFormData) => {
@@ -154,11 +155,8 @@ const RegisterPage = () => {
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
-        toast({
-          title: "Registration Submitted!",
-          description: "We'll contact you shortly to confirm your reservation and arrange payment.",
-        });
         form.reset();
+        navigate("/registration-confirmation");
       }
     } catch (err) {
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
