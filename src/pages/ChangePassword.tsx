@@ -96,9 +96,10 @@ const ChangePassword = () => {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "All set!", description: "Your account is ready." });
+      toast({ title: "All set!", description: "Your account is ready. Please log in with your new password." });
       clearMustChangePassword();
-      navigate("/employee-dashboard");
+      await supabase.auth.signOut();
+      navigate("/employee-login");
     }
     setIsLoading(false);
   };
