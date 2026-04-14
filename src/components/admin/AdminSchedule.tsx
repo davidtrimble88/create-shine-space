@@ -47,6 +47,49 @@ const emptyForm: Omit<TablesInsert<"schedules">, "id" | "created_at" | "updated_
   price: "$425",
 };
 
+interface ScheduleTemplate {
+  label: string;
+  schedule: string;
+  group_name: string;
+  price: string;
+  spots_available: number;
+}
+
+const scheduleTemplates: Record<string, ScheduleTemplate[]> = {
+  "ventura-county": [
+    {
+      label: "Group A — Sat & Sun",
+      schedule: "Sat 6:45am–5:00pm, Sun 6:45am–5:00pm",
+      group_name: "Group A",
+      price: "$425",
+      spots_available: 12,
+    },
+    {
+      label: "Group B — Fri, Sat & Sun",
+      schedule: "Fri 5:45pm–9:30pm, Sat 5:45am–4:30pm, Sun 6:00am–11:30am",
+      group_name: "Group B",
+      price: "$425",
+      spots_available: 12,
+    },
+    {
+      label: "Intermediate — Sat Only",
+      schedule: "Sat 7:30am–5:00pm",
+      group_name: "",
+      price: "$350",
+      spots_available: 12,
+    },
+  ],
+  "high-desert": [
+    {
+      label: "Standard — Wed, Sat & Sun",
+      schedule: "Wed 5:45pm–9:30pm, Sat 6:45am–6:00pm, Sun 6:45am–12:00pm",
+      group_name: "",
+      price: "$425",
+      spots_available: 12,
+    },
+  ],
+};
+
 const AdminSchedule = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
