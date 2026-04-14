@@ -52,7 +52,7 @@ const faqs = [
   { q: "Is the motorcycle provided?", a: "Yes — for the MTC, we provide the motorcycle and helmet. For the Advanced Course, you must bring your own motorcycle." },
   { q: "What happens if I don't pass?", a: "There are written and riding evaluations after the course. You must pass both to graduate and receive your DMV waiver. If you don't pass, contact us about rescheduling options." },
   { q: "What's the cancellation policy?", a: "You must notify us at least 5 business days before the start of class. If a class is cancelled by us, you'll be rescheduled at no extra cost. Classes are held rain or shine." },
-  { q: "Can I get a discount?", a: "Returning students get $50 off the Intermediate Course ($300 vs $350). For new students, groups of 4+ friends receive a group discount — call our office for details." },
+  { q: "Can I get a discount?", a: "Returning students get $50 off the Intermediate Course ($300 vs $350) — call our office to receive the discounted rate. For new students, groups of 4+ friends receive a group discount — call our office for details." },
   { q: "Is the course required for licensing?", a: "If you're under 21, the MTC is mandatory before taking your motorcycle permit written test at the DMV. For 21 and over, it's recommended but not required — though you still get the DMV skills test waiver." },
 ];
 
@@ -305,6 +305,7 @@ const PremierCourse = () => (
               <p className="text-sm text-muted-foreground mb-1">Returning Student</p>
               <p className="text-3xl font-bold text-accent">$300</p>
               <p className="text-xs text-muted-foreground mt-1">Previous Learn to Ride VC student</p>
+              <p className="text-[10px] text-accent font-medium mt-1">Call to receive discounted rate</p>
             </div>
           </div>
         </div>
@@ -446,6 +447,7 @@ const IntermediateCourse = () => (
               <p className="text-sm text-muted-foreground mb-1">Returning Student</p>
               <p className="text-3xl font-bold text-accent">$300</p>
               <p className="text-xs text-muted-foreground mt-1">Previous Learn to Ride VC student</p>
+              <p className="text-[10px] text-accent font-medium mt-1">Call to receive discounted rate</p>
             </div>
           </div>
         </div>
