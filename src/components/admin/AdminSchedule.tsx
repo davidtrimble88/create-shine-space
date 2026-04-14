@@ -101,6 +101,7 @@ const AdminSchedule = () => {
   const [availability, setAvailability] = useState<AvailabilityInfo[]>([]);
   const [assignmentData, setAssignmentData] = useState<AssignmentInfo[]>([]);
   const [assigningSchedule, setAssigningSchedule] = useState<{ id: string; name: string } | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState("");
   const { toast } = useToast();
 
   const fetchSchedules = async () => {
