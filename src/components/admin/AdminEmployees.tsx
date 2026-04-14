@@ -169,21 +169,19 @@ const AdminEmployees = () => {
     } else {
       const tempPassword = Math.random().toString(36).slice(-10) + "A1!";
       
-      await fetch(`https://tdoyunayplyrmdixhvmn.supabase.co/auth/v1/admin/users`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({
-          email: form.email,
-          password: tempPassword,
-          email_confirm: true,
-        }),
+      const session = (await supabase.auth.getSession()).data.session;
+      const createRes = await supabase.functions.invoke("create-employee-user", {
+        body: { email: form.email, password: tempPassword },
       });
 
       let userId: string | null = null;
+      if (createRes.data?.user_id) {
+        userId = createRes.data.user_id;
+      } else if (createRes.error) {
+        toast({ title: "Error creating login", description: createRes.error.message || "Could not create auth account", variant: "destructive" });
+        setUploading(false);
+        return;
+      }
 
       const { data: empData, error } = await supabase.from("employees").insert({
         full_name: form.full_name,
