@@ -160,7 +160,8 @@ const ComprehensiveSchedule = () => {
           <SelectTrigger className="w-48"><SelectValue placeholder="All Locations" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Locations</SelectItem>
-            <SelectItem value="high-desert">High Desert</SelectItem>
+            <SelectItem value="high-desert-hesperia">High Desert — Hesperia</SelectItem>
+            <SelectItem value="high-desert-wrightwood">High Desert — Wrightwood</SelectItem>
             <SelectItem value="ventura-county">Ventura County</SelectItem>
           </SelectContent>
         </Select>

@@ -89,7 +89,8 @@ const RegisterPage = () => {
   };
 
   const locationLabels: Record<string, string> = {
-    "high-desert": "High Desert — Hesperia",
+    "high-desert-hesperia": "High Desert — Hesperia",
+    "high-desert-wrightwood": "High Desert — Wrightwood",
     "ventura-county": "Ventura County — Somis",
   };
 
