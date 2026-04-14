@@ -259,8 +259,35 @@ const AdminEmployees = () => {
       fetchEmployees();
     }
   };
+  const handleResetPassword = async (emp: EmployeeWithRole) => {
+    if (!emp.user_id) {
+      toast({ title: "No account", description: "This employee doesn't have a login account.", variant: "destructive" });
+      return;
+    }
+    // Admins cannot reset owner passwords
+    if (userRole === "admin" && emp.role === "owner") {
+      toast({ title: "Not allowed", description: "Admins cannot reset owner passwords.", variant: "destructive" });
+      return;
+    }
+    if (!confirm(`Reset password for ${emp.full_name}? They will receive a temporary password.`)) return;
 
-  const openNew = () => {
+    const session = (await supabase.auth.getSession()).data.session;
+    if (!session) return;
+
+    const { data, error } = await supabase.functions.invoke("reset-user-password", {
+      body: { target_user_id: emp.user_id },
+    });
+
+    if (error || data?.error) {
+      toast({ title: "Error", description: data?.error || error?.message, variant: "destructive" });
+      return;
+    }
+
+    setTempPasswordInfo({ name: emp.full_name, email: emp.email, password: data.temp_password });
+    toast({ title: "Password Reset", description: `Temporary password created for ${emp.full_name}.` });
+  };
+
+
     setEditingId(null);
     setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
     setPhotoFile(null);
