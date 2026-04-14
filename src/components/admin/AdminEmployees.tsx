@@ -53,6 +53,7 @@ const AdminEmployees = () => {
   const [tempPasswordInfo, setTempPasswordInfo] = useState<{ name: string; email: string; password: string } | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const tempPasswordInputRef = useRef<HTMLInputElement>(null);
 
   const assignableRoles = userRole === "owner"
     ? [
@@ -535,6 +536,7 @@ const AdminEmployees = () => {
                   <Label className="text-xs text-muted-foreground">Temporary Password</Label>
                   <div className="flex items-center gap-2">
                     <Input
+                      ref={tempPasswordInputRef}
                       readOnly
                       value={tempPasswordInfo.password}
                       onFocus={(e) => e.currentTarget.select()}
@@ -545,17 +547,24 @@ const AdminEmployees = () => {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={async () => {
-                        try {
-                          if (navigator.clipboard?.writeText) {
-                            await navigator.clipboard.writeText(tempPasswordInfo.password);
-                            toast({ title: "Copied!", description: "Password copied to clipboard." });
-                            return;
-                          }
-                        } catch {
-                        }
+                      onClick={() => {
+                        const input = tempPasswordInputRef.current;
+                        if (!input) return;
 
-                        window.prompt("Copy this temporary password:", tempPasswordInfo.password);
+                        input.focus();
+                        input.select();
+                        input.setSelectionRange(0, input.value.length);
+
+                        const copied = document.execCommand("copy");
+
+                        if (copied) {
+                          toast({ title: "Copied!", description: "Password copied to clipboard." });
+                        } else {
+                          toast({
+                            title: "Select and copy",
+                            description: "The password is highlighted — press Ctrl+C or Cmd+C.",
+                          });
+                        }
                       }}
                     >
                       Copy
