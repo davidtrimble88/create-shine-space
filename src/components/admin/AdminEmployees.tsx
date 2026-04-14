@@ -53,6 +53,7 @@ const AdminEmployees = () => {
   const [tempPasswordInfo, setTempPasswordInfo] = useState<{ name: string; email: string; password: string } | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const tempPasswordInputRef = useRef<HTMLInputElement>(null);
 
   const assignableRoles = userRole === "owner"
     ? [
