@@ -47,6 +47,49 @@ const emptyForm: Omit<TablesInsert<"schedules">, "id" | "created_at" | "updated_
   price: "$425",
 };
 
+interface ScheduleTemplate {
+  label: string;
+  schedule: string;
+  group_name: string;
+  price: string;
+  spots_available: number;
+}
+
+const scheduleTemplates: Record<string, ScheduleTemplate[]> = {
+  "ventura-county": [
+    {
+      label: "Group A — Sat & Sun",
+      schedule: "Sat 6:45am–5:00pm, Sun 6:45am–5:00pm",
+      group_name: "Group A",
+      price: "$425",
+      spots_available: 12,
+    },
+    {
+      label: "Group B — Fri, Sat & Sun",
+      schedule: "Fri 5:45pm–9:30pm, Sat 5:45am–4:30pm, Sun 6:00am–11:30am",
+      group_name: "Group B",
+      price: "$425",
+      spots_available: 12,
+    },
+    {
+      label: "Intermediate — Sat Only",
+      schedule: "Sat 7:30am–5:00pm",
+      group_name: "",
+      price: "$350",
+      spots_available: 12,
+    },
+  ],
+  "high-desert": [
+    {
+      label: "Standard — Wed, Sat & Sun",
+      schedule: "Wed 5:45pm–9:30pm, Sat 6:45am–6:00pm, Sun 6:45am–12:00pm",
+      group_name: "",
+      price: "$425",
+      spots_available: 12,
+    },
+  ],
+};
+
 const AdminSchedule = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +101,7 @@ const AdminSchedule = () => {
   const [availability, setAvailability] = useState<AvailabilityInfo[]>([]);
   const [assignmentData, setAssignmentData] = useState<AssignmentInfo[]>([]);
   const [assigningSchedule, setAssigningSchedule] = useState<{ id: string; name: string } | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState("");
   const { toast } = useToast();
 
   const fetchSchedules = async () => {
@@ -125,7 +169,28 @@ const AdminSchedule = () => {
     assignmentData.filter(a => a.schedule_id === scheduleId);
 
   const handleLocationChange = (loc: string) => {
-    setForm(f => ({ ...f, location: loc, location_label: locationLabels[loc] || loc }));
+    setForm(f => ({ ...f, location: loc, location_label: locationLabels[loc] || loc, schedule: "", group_name: "" }));
+    setSelectedTemplate(""); // reset template when location changes
+  };
+
+
+  const handleTemplateChange = (value: string) => {
+    setSelectedTemplate(value);
+    if (value === "custom") {
+      // Keep current form values, let user type freely
+      return;
+    }
+    const templates = scheduleTemplates[form.location] || [];
+    const tpl = templates.find(t => t.label === value);
+    if (tpl) {
+      setForm(f => ({
+        ...f,
+        schedule: tpl.schedule,
+        group_name: tpl.group_name,
+        price: tpl.price,
+        spots_available: tpl.spots_available,
+      }));
+    }
   };
 
   const handleSave = async () => {
@@ -186,6 +251,7 @@ const AdminSchedule = () => {
   const openNew = () => {
     setEditingId(null);
     setForm(emptyForm);
+    setSelectedTemplate("");
     setDialogOpen(true);
   };
 
@@ -236,6 +302,18 @@ const AdminSchedule = () => {
                   <Label>Group (optional)</Label>
                   <Input value={form.group_name ?? ""} onChange={e => setForm(f => ({ ...f, group_name: e.target.value }))} placeholder="e.g. Group A" />
                 </div>
+              </div>
+              <div>
+                <Label>Schedule Template</Label>
+                <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
+                  <SelectTrigger><SelectValue placeholder="Select a preset..." /></SelectTrigger>
+                  <SelectContent>
+                    {(scheduleTemplates[form.location] || []).map(t => (
+                      <SelectItem key={t.label} value={t.label}>{t.label}</SelectItem>
+                    ))}
+                    <SelectItem value="custom">✏️ Custom</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Schedule Description</Label>
