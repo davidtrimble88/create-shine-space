@@ -27,7 +27,7 @@ const courses = [
     price: "From $300",
     duration: "1 Day (8 Hours)",
     description:
-      "Designed for experienced but unlicensed riders. Offers licensing options for riders 21 and older. Includes entry skills test, classroom and on-cycle instruction. Loaner bikes available.",
+      "Designed for experienced but unlicensed riders. Offers licensing options for riders 21 and older. Includes entry skills test, classroom and riding instruction. Loaner bikes available.",
     highlights: ["For experienced riders", "Licensing for 21+", "Military recognized"],
     color: "from-secondary to-secondary/50",
     borderColor: "border-border",
