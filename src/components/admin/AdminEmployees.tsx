@@ -538,9 +538,33 @@ const AdminEmployees = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        navigator.clipboard.writeText(tempPasswordInfo.password);
-                        toast({ title: "Copied!", description: "Password copied to clipboard." });
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(tempPasswordInfo.password);
+                          toast({ title: "Copied!", description: "Password copied to clipboard." });
+                        } catch {
+                          const textArea = document.createElement("textarea");
+                          textArea.value = tempPasswordInfo.password;
+                          textArea.setAttribute("readonly", "");
+                          textArea.style.position = "fixed";
+                          textArea.style.opacity = "0";
+                          document.body.appendChild(textArea);
+                          textArea.focus();
+                          textArea.select();
+
+                          const copied = document.execCommand("copy");
+                          document.body.removeChild(textArea);
+
+                          if (copied) {
+                            toast({ title: "Copied!", description: "Password copied to clipboard." });
+                          } else {
+                            toast({
+                              title: "Copy failed",
+                              description: "Please highlight the password and copy it manually.",
+                              variant: "destructive",
+                            });
+                          }
+                        }
                       }}
                     >
                       Copy
