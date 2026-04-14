@@ -14,10 +14,10 @@ const EmployeeLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, mustChangePassword } = useAuth();
 
-  // If already logged in, redirect to dashboard
-  if (user) {
+  // If already logged in and not needing password change, redirect to dashboard
+  if (user && !mustChangePassword) {
     return <Navigate to="/employee-dashboard" replace />;
   }
 
