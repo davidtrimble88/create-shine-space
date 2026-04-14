@@ -251,6 +251,7 @@ const AdminSchedule = () => {
   const openNew = () => {
     setEditingId(null);
     setForm(emptyForm);
+    setSelectedTemplate("");
     setDialogOpen(true);
   };
 
