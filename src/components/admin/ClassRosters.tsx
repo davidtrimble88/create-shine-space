@@ -42,6 +42,7 @@ const ClassRosters = () => {
   const [allAssignments, setAllAssignments] = useState<FullAssignment[]>([]);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState("");
+  const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,7 +86,6 @@ const ClassRosters = () => {
 
   const selectedSchedule = schedules.find(s => s.id === selectedScheduleId);
 
-  // Get assigned instructors for the selected schedule
   const selectedAssignments = allAssignments
     .filter(a => a.schedule_id === selectedScheduleId)
     .map(a => {
@@ -105,6 +105,21 @@ const ClassRosters = () => {
     return true;
   });
 
+  const handleSaveComment = async (bookingId: string) => {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ roster_comment: commentDraft.trim() || null })
+      .eq("id", bookingId);
+    if (error) {
+      toast.error("Failed to save comment");
+      return;
+    }
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, roster_comment: commentDraft.trim() || null } : b));
+    setEditingCommentId(null);
+    setCommentDraft("");
+    toast.success("Comment saved");
+  };
+
   const handlePrint = () => {
     if (!printRef.current) return;
     const printWindow = window.open("", "_blank");
@@ -118,10 +133,6 @@ const ClassRosters = () => {
             h1 { font-size: 18px; margin-bottom: 2px; text-align: center; }
             h2 { font-size: 14px; margin: 0; text-align: center; font-weight: normal; color: #555; }
             .header { margin-bottom: 12px; }
-            .schedule-info { margin-bottom: 8px; }
-            .schedule-info table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 8px; }
-            .schedule-info th, .schedule-info td { border: 1px solid #999; padding: 4px 6px; text-align: left; }
-            .schedule-info th { background: #e8e8e8; font-weight: 600; }
             .instructors { font-size: 11px; margin-bottom: 6px; }
             .instructors span { font-weight: 600; }
             .roster-table { width: 100%; border-collapse: collapse; font-size: 11px; }
@@ -257,7 +268,7 @@ const ClassRosters = () => {
                       <th className="text-center p-3 font-medium text-muted-foreground w-10">R1</th>
                       <th className="text-center p-3 font-medium text-muted-foreground w-10">C2</th>
                       <th className="text-center p-3 font-medium text-muted-foreground w-10">R2</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground">Comments</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground min-w-[180px]">Comments</th>
                       <th className="text-center p-3 font-medium text-muted-foreground">KS</th>
                       <th className="text-center p-3 font-medium text-muted-foreground">SS</th>
                     </tr>
@@ -275,7 +286,36 @@ const ClassRosters = () => {
                         <td className="p-3 text-center text-muted-foreground">☐</td>
                         <td className="p-3 text-center text-muted-foreground">☐</td>
                         <td className="p-3 text-center text-muted-foreground">☐</td>
-                        <td className="p-3 text-muted-foreground">—</td>
+                        <td className="p-3">
+                          {editingCommentId === b.id ? (
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="text"
+                                value={commentDraft}
+                                onChange={e => setCommentDraft(e.target.value)}
+                                onKeyDown={e => { if (e.key === "Enter") handleSaveComment(b.id); if (e.key === "Escape") setEditingCommentId(null); }}
+                                className="flex-1 bg-background border border-border rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                autoFocus
+                              />
+                              <button onClick={() => handleSaveComment(b.id)} className="text-primary hover:text-primary/80">
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => setEditingCommentId(null)} className="text-muted-foreground hover:text-foreground">
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div
+                              className="flex items-center gap-1 cursor-pointer group"
+                              onClick={() => { setEditingCommentId(b.id); setCommentDraft(b.roster_comment || ""); }}
+                            >
+                              <span className={b.roster_comment ? "text-foreground text-xs" : "text-muted-foreground text-xs italic"}>
+                                {b.roster_comment || "Add comment..."}
+                              </span>
+                              <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          )}
+                        </td>
                         <td className="p-3 text-center text-muted-foreground">—</td>
                         <td className="p-3 text-center text-muted-foreground">—</td>
                       </tr>
@@ -286,7 +326,7 @@ const ClassRosters = () => {
             )}
           </div>
 
-          {/* Hidden printable roster — matches real roster PDF format */}
+          {/* Hidden printable roster */}
           <div className="hidden">
             <div ref={printRef}>
               <div className="header">
@@ -295,7 +335,6 @@ const ClassRosters = () => {
                 <h2>{selectedSchedule.date} &nbsp;—&nbsp; {selectedSchedule.schedule}</h2>
               </div>
 
-              {/* Instructors */}
               {selectedAssignments.length > 0 && (
                 <div className="instructors">
                   <span>Instructors: </span>
@@ -338,17 +377,15 @@ const ClassRosters = () => {
                       <td className="center"></td>
                       <td className="center"></td>
                       <td className="center"></td>
-                      <td></td>
+                      <td>{b.roster_comment || ""}</td>
                       <td className="center"></td>
                       <td className="center"></td>
                     </tr>
                   ))}
-                  {/* Empty rows to fill to 12 */}
                   {emptyRosterRows(Math.max(0, 12 - bookings.length))}
                 </tbody>
               </table>
 
-              {/* Retests section */}
               <div className="section-title">RETESTS</div>
               <table className="roster-table">
                 <thead>
