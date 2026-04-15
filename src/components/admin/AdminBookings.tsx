@@ -106,12 +106,14 @@ const AdminBookings = () => {
     }
   };
 
-  const hasFilters = !!filterCourse || !!filterLocation || !!filterDate;
+  const activeCourse = filterCourse && filterCourse !== "all" ? filterCourse : "";
+  const activeLocation = filterLocation && filterLocation !== "all" ? filterLocation : "";
+  const hasFilters = !!activeCourse || !!activeLocation || !!filterDate;
 
   const filtered = bookings.filter(b => {
     if (search && !`${b.first_name} ${b.last_name} ${b.email} ${b.course}`.toLowerCase().includes(search.toLowerCase())) return false;
-    if (filterCourse && b.course !== filterCourse) return false;
-    if (filterLocation && b.location !== filterLocation) return false;
+    if (activeCourse && b.course !== activeCourse) return false;
+    if (activeLocation && b.location !== activeLocation) return false;
     if (filterDate && b.schedule_date !== filterDate) return false;
     return true;
   });
