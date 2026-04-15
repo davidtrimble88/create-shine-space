@@ -102,6 +102,17 @@ const EarningsAnalytics = () => {
   });
   const sortedDates = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
 
+  // Group by date then site
+  const byDateSite: Record<string, Record<string, { total: number; count: number }>> = {};
+  rows.forEach((r) => {
+    const d = r.created_at.split("T")[0];
+    const loc = r.location_label || "Unknown";
+    if (!byDateSite[d]) byDateSite[d] = {};
+    if (!byDateSite[d][loc]) byDateSite[d][loc] = { total: 0, count: 0 };
+    byDateSite[d][loc].total += parseFee(r.fee);
+    byDateSite[d][loc].count += 1;
+  });
+
   const dateRangeOptions: { value: DateRange; label: string }[] = [
     { value: "today", label: "Today" },
     { value: "yesterday", label: "Yesterday" },
