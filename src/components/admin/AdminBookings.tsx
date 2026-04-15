@@ -153,6 +153,8 @@ const AdminBookings = () => {
     } else {
       toast({ title: "Retest Student Added", description: `${retestForm.first_name} ${retestForm.last_name} added for retest.` });
       setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
+      setRetestPaymentCollected(false);
+      setRetestPaymentMethod("cash");
       setRetestDialogOpen(false);
       fetchData();
     }
