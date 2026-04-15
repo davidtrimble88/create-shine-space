@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ADD COLUMN is_retest boolean NOT NULL DEFAULT false;
