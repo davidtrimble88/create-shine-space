@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X, RotateCcw } from "lucide-react";
+import { UserPlus, Search, Eye, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Booking = Tables<"bookings">;
@@ -42,7 +42,7 @@ const AdminBookings = () => {
   const [retestDialogOpen, setRetestDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
-  const [retestLocationFilter, setRetestLocationFilter] = useState("");
+  
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [filterCourse, setFilterCourse] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
@@ -152,7 +152,7 @@ const AdminBookings = () => {
     }
   };
 
-
+  const activeCourse = filterCourse && filterCourse !== "all" ? filterCourse : "";
   const activeLocation = filterLocation && filterLocation !== "all" ? filterLocation : "";
   const hasFilters = !!activeCourse || !!activeLocation || !!filterDate;
 
@@ -174,6 +174,71 @@ const AdminBookings = () => {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
+        <div className="flex items-center gap-2">
+        <Dialog open={retestDialogOpen} onOpenChange={setRetestDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline"><UserPlus className="w-4 h-4 mr-2" /> Add Retest Student</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add Retest Student</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-2">
+              <div>
+                <Label>Location</Label>
+                <Select value={locationFilter} onValueChange={v => { setLocationFilter(v); setRetestForm(f => ({ ...f, schedule_id: "" })); }}>
+                  <SelectTrigger><SelectValue placeholder="All locations" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Locations</SelectItem>
+                    {Object.entries(locationLabels).map(([k, v]) => (
+                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Class *</Label>
+                <Select value={retestForm.schedule_id} onValueChange={v => setRetestForm(f => ({ ...f, schedule_id: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Select a class" /></SelectTrigger>
+                  <SelectContent>
+                    {schedules
+                      .filter(s => !locationFilter || locationFilter === "all" || s.location === locationFilter)
+                      .map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {courseLabels[s.course] || s.course} — {s.location_label} — {s.date}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>First Name *</Label>
+                  <Input value={retestForm.first_name} onChange={e => setRetestForm(f => ({ ...f, first_name: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Last Name *</Label>
+                  <Input value={retestForm.last_name} onChange={e => setRetestForm(f => ({ ...f, last_name: e.target.value }))} />
+                </div>
+              </div>
+              <div>
+                <Label>Phone *</Label>
+                <Input type="tel" value={retestForm.phone} onChange={e => setRetestForm(f => ({ ...f, phone: e.target.value }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>DL #</Label>
+                  <Input value={retestForm.license_number} onChange={e => setRetestForm(f => ({ ...f, license_number: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Date of Birth</Label>
+                  <Input type="date" value={retestForm.date_of_birth} onChange={e => setRetestForm(f => ({ ...f, date_of_birth: e.target.value }))} />
+                </div>
+              </div>
+              <Button onClick={handleRetestSubmit} className="w-full">Add to Retest Roster</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button><UserPlus className="w-4 h-4 mr-2" /> Add Student</Button>
