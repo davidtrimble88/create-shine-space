@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format, subDays, startOfMonth, startOfWeek } from "date-fns";
+import { format, subDays, startOfMonth } from "date-fns";
 
-type ViewMode = "all" | "by-site" | "by-date";
+type ViewMode = "all" | "by-site" | "by-date" | "date-site";
 type DateRange = "today" | "yesterday" | "7days" | "30days" | "this-month" | "custom";
 
 interface EarningRow {
@@ -102,6 +102,17 @@ const EarningsAnalytics = () => {
   });
   const sortedDates = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
 
+  // Group by date then site
+  const byDateSite: Record<string, Record<string, { total: number; count: number }>> = {};
+  rows.forEach((r) => {
+    const d = r.created_at.split("T")[0];
+    const loc = r.location_label || "Unknown";
+    if (!byDateSite[d]) byDateSite[d] = {};
+    if (!byDateSite[d][loc]) byDateSite[d][loc] = { total: 0, count: 0 };
+    byDateSite[d][loc].total += parseFee(r.fee);
+    byDateSite[d][loc].count += 1;
+  });
+
   const dateRangeOptions: { value: DateRange; label: string }[] = [
     { value: "today", label: "Today" },
     { value: "yesterday", label: "Yesterday" },
@@ -189,6 +200,7 @@ const EarningsAnalytics = () => {
           { value: "all" as ViewMode, label: "All Transactions" },
           { value: "by-site" as ViewMode, label: "By Site" },
           { value: "by-date" as ViewMode, label: "By Date" },
+          { value: "date-site" as ViewMode, label: "Date & Site" },
         ]).map((opt) => (
           <Button
             key={opt.value}
@@ -286,6 +298,37 @@ const EarningsAnalytics = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {viewMode === "date-site" && (
+            <div className="space-y-4">
+              {sortedDates.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No data for this period</p>
+              ) : (
+                sortedDates.map((d) => (
+                  <div key={d} className="bg-card border border-border rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-foreground">{format(new Date(d + "T12:00:00"), "EEEE, MMM d, yyyy")}</h3>
+                      <div className="text-right">
+                        <span className="text-lg font-bold text-foreground">${byDate[d].total.toFixed(2)}</span>
+                        <span className="text-xs text-muted-foreground ml-2">({byDate[d].count} txn{byDate[d].count !== 1 ? "s" : ""})</span>
+                      </div>
+                    </div>
+                    <div className="border-t border-border pt-3 space-y-2">
+                      {Object.entries(byDateSite[d] || {}).sort((a, b) => b[1].total - a[1].total).map(([loc, data]) => (
+                        <div key={loc} className="flex items-center justify-between text-sm">
+                          <span className="flex items-center gap-1.5 text-muted-foreground">
+                            <MapPin className="w-3.5 h-3.5" />
+                            {loc}
+                          </span>
+                          <span className="font-medium text-foreground">${data.total.toFixed(2)} <span className="text-xs text-muted-foreground">({data.count})</span></span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </>
