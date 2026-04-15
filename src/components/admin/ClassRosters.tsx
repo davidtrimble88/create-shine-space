@@ -41,7 +41,8 @@ const ClassRosters = () => {
   const [myAssignedScheduleIds, setMyAssignedScheduleIds] = useState<Set<string>>(new Set());
   const [employees, setEmployees] = useState<{ id: string; full_name: string; user_id: string | null }[]>([]);
   const [allAssignments, setAllAssignments] = useState<FullAssignment[]>([]);
-  const printRef = useRef<HTMLDivElement>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [commentDraft, setCommentDraft] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
