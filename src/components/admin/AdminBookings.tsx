@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -432,6 +433,39 @@ const AdminBookings = () => {
                     <p className="font-medium text-foreground">{new Date(selectedBooking.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
+              </div>
+
+              {/* Roster Comment */}
+              <div className="border-t border-border pt-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Roster Comment</h3>
+                <Textarea
+                  placeholder="Add a comment that will appear on the class roster..."
+                  value={selectedBooking.roster_comment || ""}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setSelectedBooking(prev => prev ? { ...prev, roster_comment: val } : prev);
+                  }}
+                  className="text-sm"
+                  rows={2}
+                />
+                <Button
+                  size="sm"
+                  className="mt-2"
+                  onClick={async () => {
+                    const { error } = await supabase
+                      .from("bookings")
+                      .update({ roster_comment: selectedBooking.roster_comment?.trim() || null })
+                      .eq("id", selectedBooking.id);
+                    if (error) {
+                      toast({ title: "Error", description: "Failed to save comment.", variant: "destructive" });
+                    } else {
+                      toast({ title: "Saved", description: "Roster comment updated." });
+                      setBookings(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, roster_comment: selectedBooking.roster_comment?.trim() || null } : b));
+                    }
+                  }}
+                >
+                  Save Comment
+                </Button>
               </div>
             </div>
           )}
