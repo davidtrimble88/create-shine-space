@@ -27,6 +27,7 @@ export type Database = {
           first_name: string
           gender: string | null
           id: string
+          is_retest: boolean
           issuing_country: string | null
           issuing_state: string | null
           last_name: string
@@ -56,6 +57,7 @@ export type Database = {
           first_name: string
           gender?: string | null
           id?: string
+          is_retest?: boolean
           issuing_country?: string | null
           issuing_state?: string | null
           last_name: string
@@ -85,6 +87,7 @@ export type Database = {
           first_name?: string
           gender?: string | null
           id?: string
+          is_retest?: boolean
           issuing_country?: string | null
           issuing_state?: string | null
           last_name?: string
