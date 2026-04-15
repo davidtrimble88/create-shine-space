@@ -4,10 +4,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X } from "lucide-react";
+import { UserPlus, Search, Eye, X, DollarSign } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Booking = Tables<"bookings">;
@@ -56,8 +57,9 @@ const AdminBookings = () => {
     gender: "",
     date_of_birth: "",
     referral_source: "",
-    payment_status: "pending",
   });
+  const [studentPaymentCollected, setStudentPaymentCollected] = useState(false);
+  const [studentPaymentMethod, setStudentPaymentMethod] = useState("cash");
   const [retestForm, setRetestForm] = useState({
     schedule_id: "",
     first_name: "",
@@ -66,6 +68,8 @@ const AdminBookings = () => {
     license_number: "",
     date_of_birth: "",
   });
+  const [retestPaymentCollected, setRetestPaymentCollected] = useState(false);
+  const [retestPaymentMethod, setRetestPaymentMethod] = useState("cash");
 
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
@@ -103,7 +107,7 @@ const AdminBookings = () => {
       date_of_birth: form.date_of_birth || null,
       referral_source: form.referral_source || "Phone Call",
       fee: sched.price,
-      payment_status: form.payment_status,
+      payment_status: studentPaymentCollected ? "paid" : "unpaid",
       booking_status: "confirmed",
     });
 
@@ -111,7 +115,9 @@ const AdminBookings = () => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Student Added", description: `${form.first_name} ${form.last_name} has been booked.` });
-      setForm({ schedule_id: "", first_name: "", last_name: "", email: "", phone: "", gender: "", date_of_birth: "", referral_source: "", payment_status: "pending" });
+      setForm({ schedule_id: "", first_name: "", last_name: "", email: "", phone: "", gender: "", date_of_birth: "", referral_source: "" });
+      setStudentPaymentCollected(false);
+      setStudentPaymentMethod("cash");
       setDialogOpen(false);
       fetchData();
     }
@@ -137,7 +143,7 @@ const AdminBookings = () => {
       phone: retestForm.phone,
       license_number: retestForm.license_number || null,
       date_of_birth: retestForm.date_of_birth || null,
-      payment_status: "paid",
+      payment_status: retestPaymentCollected ? "paid" : "unpaid",
       booking_status: "confirmed",
       is_retest: true,
     });
@@ -147,6 +153,8 @@ const AdminBookings = () => {
     } else {
       toast({ title: "Retest Student Added", description: `${retestForm.first_name} ${retestForm.last_name} added for retest.` });
       setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
+      setRetestPaymentCollected(false);
+      setRetestPaymentMethod("cash");
       setRetestDialogOpen(false);
       fetchData();
     }
@@ -235,6 +243,33 @@ const AdminBookings = () => {
                   <Input type="date" value={retestForm.date_of_birth} onChange={e => setRetestForm(f => ({ ...f, date_of_birth: e.target.value }))} />
                 </div>
               </div>
+              <div className="border border-border rounded-lg p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-muted-foreground" />
+                    <Label className="mb-0">Payment Collected</Label>
+                  </div>
+                  <Switch checked={retestPaymentCollected} onCheckedChange={setRetestPaymentCollected} />
+                </div>
+                {retestPaymentCollected && (
+                  <div>
+                    <Label className="text-xs">Payment Method</Label>
+                    <Select value={retestPaymentMethod} onValueChange={setRetestPaymentMethod}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="check">Check</SelectItem>
+                        <SelectItem value="card">Card</SelectItem>
+                        <SelectItem value="square">Square</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {!retestPaymentCollected && (
+                  <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
+                )}
+              </div>
               <Button onClick={handleRetestSubmit} className="w-full">Add to Retest Roster</Button>
             </div>
           </DialogContent>
@@ -322,16 +357,32 @@ const AdminBookings = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Payment Status</Label>
-                <Select value={form.payment_status} onValueChange={v => setForm(f => ({ ...f, payment_status: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="partial">Partial</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="border border-border rounded-lg p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-muted-foreground" />
+                    <Label className="mb-0">Payment Collected</Label>
+                  </div>
+                  <Switch checked={studentPaymentCollected} onCheckedChange={setStudentPaymentCollected} />
+                </div>
+                {studentPaymentCollected && (
+                  <div>
+                    <Label className="text-xs">Payment Method</Label>
+                    <Select value={studentPaymentMethod} onValueChange={setStudentPaymentMethod}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="check">Check</SelectItem>
+                        <SelectItem value="card">Card</SelectItem>
+                        <SelectItem value="square">Square</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {!studentPaymentCollected && (
+                  <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
+                )}
               </div>
               <Button onClick={handleSubmit} className="w-full">Add Student to Class</Button>
             </div>
