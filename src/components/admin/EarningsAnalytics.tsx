@@ -35,6 +35,8 @@ const EarningsAnalytics = () => {
     const tomorrowStr = new Date(now.getTime() + 86400000).toISOString().split("T")[0];
 
     switch (dateRange) {
+      case "all-time":
+        return { from: "2000-01-01T00:00:00", to: `${tomorrowStr}T00:00:00` };
       case "today":
         return { from: `${todayStr}T00:00:00`, to: `${tomorrowStr}T00:00:00` };
       case "yesterday": {
