@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { format, subDays, startOfMonth } from "date-fns";
 
 type ViewMode = "all" | "by-site" | "by-date";
-type DateRange = "today" | "yesterday" | "7days" | "30days" | "this-month" | "custom";
+type DateRange = "all-time" | "today" | "yesterday" | "7days" | "30days" | "this-month" | "custom";
 
 interface EarningRow {
   fee: string | null;
