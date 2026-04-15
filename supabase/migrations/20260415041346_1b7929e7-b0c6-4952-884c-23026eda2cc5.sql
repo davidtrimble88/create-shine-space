@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ADD COLUMN roster_comment TEXT DEFAULT NULL;
