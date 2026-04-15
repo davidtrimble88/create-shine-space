@@ -270,12 +270,13 @@ const AdminBookings = () => {
 
       {/* Student Detail Dialog */}
       <Dialog open={!!selectedBooking} onOpenChange={(open) => { if (!open) setSelectedBooking(null); }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Student Details</DialogTitle>
           </DialogHeader>
           {selectedBooking && (
             <div className="space-y-3 text-sm">
+              {/* Personal Info */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-muted-foreground text-xs">First Name</p>
@@ -304,7 +305,44 @@ const AdminBookings = () => {
                   <p className="font-medium text-foreground">{selectedBooking.date_of_birth || "—"}</p>
                 </div>
               </div>
+
+              {/* Address */}
               <div className="border-t border-border pt-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Address</h3>
+                <div>
+                  <p className="font-medium text-foreground">{(selectedBooking as any).address || "—"}</p>
+                  <p className="font-medium text-foreground">
+                    {[(selectedBooking as any).city, (selectedBooking as any).state, (selectedBooking as any).zip].filter(Boolean).join(", ") || "—"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Driver License */}
+              <div className="border-t border-border pt-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Driver License</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-muted-foreground text-xs">License Number</p>
+                    <p className="font-medium text-foreground">{(selectedBooking as any).license_number || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Expiration</p>
+                    <p className="font-medium text-foreground">{(selectedBooking as any).license_expiration || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Issuing Country</p>
+                    <p className="font-medium text-foreground">{(selectedBooking as any).issuing_country || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Issuing State</p>
+                    <p className="font-medium text-foreground">{(selectedBooking as any).issuing_state || "—"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking Info */}
+              <div className="border-t border-border pt-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Booking Info</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <p className="text-muted-foreground text-xs">Course</p>
@@ -322,7 +360,7 @@ const AdminBookings = () => {
                   </div>
                   <div>
                     <p className="text-muted-foreground text-xs">Fee</p>
-                    <p className="font-medium text-foreground">{selectedBooking.fee ? `$${selectedBooking.fee}` : "—"}</p>
+                    <p className="font-medium text-foreground">{selectedBooking.fee || "—"}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mt-3">
@@ -335,9 +373,7 @@ const AdminBookings = () => {
                     <p className="font-medium text-foreground capitalize">{selectedBooking.booking_status}</p>
                   </div>
                 </div>
-              </div>
-              <div className="border-t border-border pt-3">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 mt-3">
                   <div>
                     <p className="text-muted-foreground text-xs">Referral Source</p>
                     <p className="font-medium text-foreground">{selectedBooking.referral_source || "—"}</p>
