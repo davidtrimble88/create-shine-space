@@ -190,7 +190,7 @@ const EarningsAnalytics = () => {
           { value: "all" as ViewMode, label: "All Transactions" },
           { value: "by-site" as ViewMode, label: "By Site" },
           { value: "by-date" as ViewMode, label: "By Date" },
-          { value: "date-site" as ViewMode, label: "Date & Site" },
+          { value: "by-date" as ViewMode, label: "By Date" },
         ]).map((opt) => (
           <Button
             key={opt.value}
