@@ -258,7 +258,6 @@ const ClassRosters = () => {
                       <th className="text-left p-3 font-medium text-muted-foreground">Comments</th>
                       <th className="text-center p-3 font-medium text-muted-foreground">KS</th>
                       <th className="text-center p-3 font-medium text-muted-foreground">SS</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground">Payment</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -277,13 +276,6 @@ const ClassRosters = () => {
                         <td className="p-3 text-muted-foreground">—</td>
                         <td className="p-3 text-center text-muted-foreground">—</td>
                         <td className="p-3 text-center text-muted-foreground">—</td>
-                        <td className="p-3">
-                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                            b.payment_status === "paid" ? "bg-green-500/20 text-green-400" :
-                            b.payment_status === "partial" ? "bg-yellow-500/20 text-yellow-400" :
-                            "bg-red-500/20 text-red-400"
-                          }`}>{b.payment_status}</span>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
