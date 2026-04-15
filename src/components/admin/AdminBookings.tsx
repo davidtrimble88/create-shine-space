@@ -243,6 +243,33 @@ const AdminBookings = () => {
                   <Input type="date" value={retestForm.date_of_birth} onChange={e => setRetestForm(f => ({ ...f, date_of_birth: e.target.value }))} />
                 </div>
               </div>
+              <div className="border border-border rounded-lg p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-muted-foreground" />
+                    <Label className="mb-0">Payment Collected</Label>
+                  </div>
+                  <Switch checked={retestPaymentCollected} onCheckedChange={setRetestPaymentCollected} />
+                </div>
+                {retestPaymentCollected && (
+                  <div>
+                    <Label className="text-xs">Payment Method</Label>
+                    <Select value={retestPaymentMethod} onValueChange={setRetestPaymentMethod}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="check">Check</SelectItem>
+                        <SelectItem value="card">Card</SelectItem>
+                        <SelectItem value="square">Square</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {!retestPaymentCollected && (
+                  <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
+                )}
+              </div>
               <Button onClick={handleRetestSubmit} className="w-full">Add to Retest Roster</Button>
             </div>
           </DialogContent>
@@ -330,16 +357,32 @@ const AdminBookings = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Payment Status</Label>
-                <Select value={form.payment_status} onValueChange={v => setForm(f => ({ ...f, payment_status: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="partial">Partial</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="border border-border rounded-lg p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-muted-foreground" />
+                    <Label className="mb-0">Payment Collected</Label>
+                  </div>
+                  <Switch checked={studentPaymentCollected} onCheckedChange={setStudentPaymentCollected} />
+                </div>
+                {studentPaymentCollected && (
+                  <div>
+                    <Label className="text-xs">Payment Method</Label>
+                    <Select value={studentPaymentMethod} onValueChange={setStudentPaymentMethod}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="check">Check</SelectItem>
+                        <SelectItem value="card">Card</SelectItem>
+                        <SelectItem value="square">Square</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {!studentPaymentCollected && (
+                  <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
+                )}
               </div>
               <Button onClick={handleSubmit} className="w-full">Add Student to Class</Button>
             </div>
