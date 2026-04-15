@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Printer, Users, CalendarDays, MapPin } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
@@ -21,25 +22,40 @@ const locationLabels: Record<string, string> = {
 };
 
 const ClassRosters = () => {
+  const { user } = useAuth();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   const [locationFilter, setLocationFilter] = useState("");
+  const [instructorFilter, setInstructorFilter] = useState("");
+  const [myAssignedScheduleIds, setMyAssignedScheduleIds] = useState<Set<string>>(new Set());
+  const [employees, setEmployees] = useState<{ id: string; full_name: string; user_id: string | null }[]>([]);
+  const [allAssignments, setAllAssignments] = useState<{ schedule_id: string; employee_id: string }[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchSchedules = async () => {
+    const fetchData = async () => {
       const today = new Date().toISOString().split("T")[0];
-      const { data } = await supabase
-        .from("schedules")
-        .select("*")
-        .gte("date", today)
-        .order("date");
-      if (data) setSchedules(data);
+      const [schedRes, empRes, assignRes] = await Promise.all([
+        supabase.from("schedules").select("*").gte("date", today).order("date"),
+        supabase.from("employees").select("id, full_name, user_id").eq("is_active", true),
+        supabase.from("instructor_assignments").select("schedule_id, employee_id"),
+      ]);
+      if (schedRes.data) setSchedules(schedRes.data);
+      if (empRes.data) setEmployees(empRes.data);
+      if (assignRes.data) {
+        setAllAssignments(assignRes.data);
+        // Find current user's employee record and their assigned schedule IDs
+        const myEmp = (empRes.data ?? []).find(e => e.user_id === user?.id);
+        if (myEmp) {
+          const myIds = new Set(assignRes.data.filter(a => a.employee_id === myEmp.id).map(a => a.schedule_id));
+          setMyAssignedScheduleIds(myIds);
+        }
+      }
     };
-    fetchSchedules();
-  }, []);
+    fetchData();
+  }, [user?.id]);
 
   useEffect(() => {
     if (!selectedScheduleId) {
@@ -61,9 +77,17 @@ const ClassRosters = () => {
 
   const selectedSchedule = schedules.find(s => s.id === selectedScheduleId);
 
-  const filteredSchedules = schedules.filter(
-    s => !locationFilter || locationFilter === "all" || s.location === locationFilter
-  );
+  const filteredSchedules = schedules.filter(s => {
+    if (locationFilter && locationFilter !== "all" && s.location !== locationFilter) return false;
+    if (instructorFilter === "my-classes") {
+      return myAssignedScheduleIds.has(s.id);
+    }
+    if (instructorFilter && instructorFilter !== "all") {
+      const empAssignedIds = new Set(allAssignments.filter(a => a.employee_id === instructorFilter).map(a => a.schedule_id));
+      return empAssignedIds.has(s.id);
+    }
+    return true;
+  });
 
   const handlePrint = () => {
     if (!printRef.current) return;
@@ -113,6 +137,21 @@ const ClassRosters = () => {
             <SelectItem value="all">All Locations</SelectItem>
             {Object.entries(locationLabels).map(([k, v]) => (
               <SelectItem key={k} value={k}>{v}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={instructorFilter} onValueChange={v => { setInstructorFilter(v); setSelectedScheduleId(""); }}>
+          <SelectTrigger className="w-[240px]">
+            <div className="flex items-center gap-2">
+              <UserCheck className="w-4 h-4 text-muted-foreground" />
+              <SelectValue placeholder="All Instructors" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Instructors</SelectItem>
+            <SelectItem value="my-classes">My Assigned Classes</SelectItem>
+            {employees.map(e => (
+              <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
