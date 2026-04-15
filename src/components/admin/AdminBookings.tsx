@@ -107,7 +107,7 @@ const AdminBookings = () => {
       date_of_birth: form.date_of_birth || null,
       referral_source: form.referral_source || "Phone Call",
       fee: sched.price,
-      payment_status: form.payment_status,
+      payment_status: studentPaymentCollected ? "paid" : "unpaid",
       booking_status: "confirmed",
     });
 
@@ -115,7 +115,9 @@ const AdminBookings = () => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Student Added", description: `${form.first_name} ${form.last_name} has been booked.` });
-      setForm({ schedule_id: "", first_name: "", last_name: "", email: "", phone: "", gender: "", date_of_birth: "", referral_source: "", payment_status: "pending" });
+      setForm({ schedule_id: "", first_name: "", last_name: "", email: "", phone: "", gender: "", date_of_birth: "", referral_source: "" });
+      setStudentPaymentCollected(false);
+      setStudentPaymentMethod("cash");
       setDialogOpen(false);
       fetchData();
     }
