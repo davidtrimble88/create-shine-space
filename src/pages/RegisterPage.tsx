@@ -151,7 +151,15 @@ const RegisterPage = () => {
         date_of_birth: data.dateOfBirth,
         referral_source: data.referralSource,
         fee: isUnder21 ? "$395" : "$425",
-      });
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        zip: data.zip,
+        license_number: data.licenseNumber,
+        issuing_country: data.issuingCountry,
+        issuing_state: data.issuingState,
+        license_expiration: data.licenseExpiration,
+      } as any);
 
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
