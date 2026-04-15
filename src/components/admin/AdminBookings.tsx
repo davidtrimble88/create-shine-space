@@ -39,8 +39,10 @@ const AdminBookings = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [retestDialogOpen, setRetestDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
+  
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [filterCourse, setFilterCourse] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
@@ -55,6 +57,14 @@ const AdminBookings = () => {
     date_of_birth: "",
     referral_source: "",
     payment_status: "pending",
+  });
+  const [retestForm, setRetestForm] = useState({
+    schedule_id: "",
+    first_name: "",
+    last_name: "",
+    phone: "",
+    license_number: "",
+    date_of_birth: "",
   });
 
   const fetchData = async () => {
@@ -107,6 +117,41 @@ const AdminBookings = () => {
     }
   };
 
+  const handleRetestSubmit = async () => {
+    if (!retestForm.first_name || !retestForm.last_name || !retestForm.phone || !retestForm.schedule_id) {
+      toast({ title: "Missing fields", description: "First name, last name, phone, and class are required.", variant: "destructive" });
+      return;
+    }
+    const sched = schedules.find(s => s.id === retestForm.schedule_id);
+    if (!sched) return;
+
+    const { error } = await supabase.from("bookings").insert({
+      schedule_id: retestForm.schedule_id,
+      course: sched.course,
+      location: sched.location,
+      location_label: sched.location_label,
+      schedule_date: sched.date,
+      first_name: retestForm.first_name,
+      last_name: retestForm.last_name,
+      email: "retest@placeholder.com",
+      phone: retestForm.phone,
+      license_number: retestForm.license_number || null,
+      date_of_birth: retestForm.date_of_birth || null,
+      payment_status: "paid",
+      booking_status: "confirmed",
+      is_retest: true,
+    });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Retest Student Added", description: `${retestForm.first_name} ${retestForm.last_name} added for retest.` });
+      setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
+      setRetestDialogOpen(false);
+      fetchData();
+    }
+  };
+
   const activeCourse = filterCourse && filterCourse !== "all" ? filterCourse : "";
   const activeLocation = filterLocation && filterLocation !== "all" ? filterLocation : "";
   const hasFilters = !!activeCourse || !!activeLocation || !!filterDate;
@@ -129,6 +174,71 @@ const AdminBookings = () => {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
+        <div className="flex items-center gap-2">
+        <Dialog open={retestDialogOpen} onOpenChange={setRetestDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline"><UserPlus className="w-4 h-4 mr-2" /> Add Retest Student</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add Retest Student</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-2">
+              <div>
+                <Label>Location</Label>
+                <Select value={locationFilter} onValueChange={v => { setLocationFilter(v); setRetestForm(f => ({ ...f, schedule_id: "" })); }}>
+                  <SelectTrigger><SelectValue placeholder="All locations" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Locations</SelectItem>
+                    {Object.entries(locationLabels).map(([k, v]) => (
+                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Class *</Label>
+                <Select value={retestForm.schedule_id} onValueChange={v => setRetestForm(f => ({ ...f, schedule_id: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Select a class" /></SelectTrigger>
+                  <SelectContent>
+                    {schedules
+                      .filter(s => !locationFilter || locationFilter === "all" || s.location === locationFilter)
+                      .map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {courseLabels[s.course] || s.course} — {s.location_label} — {s.date}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>First Name *</Label>
+                  <Input value={retestForm.first_name} onChange={e => setRetestForm(f => ({ ...f, first_name: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Last Name *</Label>
+                  <Input value={retestForm.last_name} onChange={e => setRetestForm(f => ({ ...f, last_name: e.target.value }))} />
+                </div>
+              </div>
+              <div>
+                <Label>Phone *</Label>
+                <Input type="tel" value={retestForm.phone} onChange={e => setRetestForm(f => ({ ...f, phone: e.target.value }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>DL #</Label>
+                  <Input value={retestForm.license_number} onChange={e => setRetestForm(f => ({ ...f, license_number: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Date of Birth</Label>
+                  <Input type="date" value={retestForm.date_of_birth} onChange={e => setRetestForm(f => ({ ...f, date_of_birth: e.target.value }))} />
+                </div>
+              </div>
+              <Button onClick={handleRetestSubmit} className="w-full">Add to Retest Roster</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button><UserPlus className="w-4 h-4 mr-2" /> Add Student</Button>
@@ -227,6 +337,7 @@ const AdminBookings = () => {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
@@ -288,7 +399,11 @@ const AdminBookings = () => {
                 <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">No bookings found</td></tr>
               ) : filtered.map(b => (
                 <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
-                  <td className="p-3 font-medium text-foreground">{b.first_name} {b.last_name}<br /><span className="text-xs text-muted-foreground">{b.email}</span></td>
+                  <td className="p-3 font-medium text-foreground">
+                    {b.first_name} {b.last_name}
+                    {b.is_retest && <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded bg-accent/20 text-accent">Retest</span>}
+                    <br /><span className="text-xs text-muted-foreground">{b.is_retest ? "Retest" : b.email}</span>
+                  </td>
                   <td className="p-3 text-muted-foreground">{courseLabels[b.course] || b.course}</td>
                   <td className="p-3 text-muted-foreground">{b.location_label}</td>
                   <td className="p-3 text-muted-foreground">{b.schedule_date || "—"}</td>
