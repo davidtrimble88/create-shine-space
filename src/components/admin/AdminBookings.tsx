@@ -106,9 +106,21 @@ const AdminBookings = () => {
     }
   };
 
-  const filtered = bookings.filter(b =>
-    `${b.first_name} ${b.last_name} ${b.email} ${b.course}`.toLowerCase().includes(search.toLowerCase())
-  );
+  const hasFilters = !!filterCourse || !!filterLocation || !!filterDate;
+
+  const filtered = bookings.filter(b => {
+    if (search && !`${b.first_name} ${b.last_name} ${b.email} ${b.course}`.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterCourse && b.course !== filterCourse) return false;
+    if (filterLocation && b.location !== filterLocation) return false;
+    if (filterDate && b.schedule_date !== filterDate) return false;
+    return true;
+  });
+
+  const clearFilters = () => {
+    setFilterCourse("");
+    setFilterLocation("");
+    setFilterDate("");
+  };
 
   return (
     <div>
@@ -214,10 +226,42 @@ const AdminBookings = () => {
         </Dialog>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-4 max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="Search bookings..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+      {/* Filters */}
+      <div className="flex flex-wrap items-end gap-3 mb-4">
+        <div className="relative max-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <Select value={filterCourse} onValueChange={setFilterCourse}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Courses" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Courses</SelectItem>
+            {Object.entries(courseLabels).map(([k, v]) => (
+              <SelectItem key={k} value={k}>{v}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterLocation} onValueChange={setFilterLocation}>
+          <SelectTrigger className="w-[220px]"><SelectValue placeholder="All Locations" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Locations</SelectItem>
+            {Object.entries(locationLabels).map(([k, v]) => (
+              <SelectItem key={k} value={k}>{v}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
+          type="date"
+          value={filterDate}
+          onChange={e => setFilterDate(e.target.value)}
+          className="w-[170px]"
+          placeholder="Filter by date"
+        />
+        {hasFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+            <X className="w-4 h-4 mr-1" /> Clear
+          </Button>
+        )}
       </div>
 
       {/* Table */}
