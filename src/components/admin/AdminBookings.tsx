@@ -143,7 +143,7 @@ const AdminBookings = () => {
       phone: retestForm.phone,
       license_number: retestForm.license_number || null,
       date_of_birth: retestForm.date_of_birth || null,
-      payment_status: "paid",
+      payment_status: retestPaymentCollected ? "paid" : "unpaid",
       booking_status: "confirmed",
       is_retest: true,
     });
