@@ -41,6 +41,9 @@ const AdminBookings = () => {
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [filterCourse, setFilterCourse] = useState("");
+  const [filterLocation, setFilterLocation] = useState("");
+  const [filterDate, setFilterDate] = useState("");
   const [form, setForm] = useState({
     schedule_id: "",
     first_name: "",
