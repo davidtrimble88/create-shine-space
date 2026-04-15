@@ -258,7 +258,6 @@ const ClassRosters = () => {
                       <th className="text-left p-3 font-medium text-muted-foreground">Comments</th>
                       <th className="text-center p-3 font-medium text-muted-foreground">KS</th>
                       <th className="text-center p-3 font-medium text-muted-foreground">SS</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground">Payment</th>
                     </tr>
                   </thead>
                   <tbody>
