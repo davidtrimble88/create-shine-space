@@ -57,8 +57,9 @@ const AdminBookings = () => {
     gender: "",
     date_of_birth: "",
     referral_source: "",
-    payment_status: "pending",
   });
+  const [studentPaymentCollected, setStudentPaymentCollected] = useState(false);
+  const [studentPaymentMethod, setStudentPaymentMethod] = useState("cash");
   const [retestForm, setRetestForm] = useState({
     schedule_id: "",
     first_name: "",
@@ -67,6 +68,8 @@ const AdminBookings = () => {
     license_number: "",
     date_of_birth: "",
   });
+  const [retestPaymentCollected, setRetestPaymentCollected] = useState(false);
+  const [retestPaymentMethod, setRetestPaymentMethod] = useState("cash");
 
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
