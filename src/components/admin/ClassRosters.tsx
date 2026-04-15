@@ -140,6 +140,21 @@ const ClassRosters = () => {
             ))}
           </SelectContent>
         </Select>
+        <Select value={instructorFilter} onValueChange={v => { setInstructorFilter(v); setSelectedScheduleId(""); }}>
+          <SelectTrigger className="w-[240px]">
+            <div className="flex items-center gap-2">
+              <UserCheck className="w-4 h-4 text-muted-foreground" />
+              <SelectValue placeholder="All Instructors" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Instructors</SelectItem>
+            <SelectItem value="my-classes">My Assigned Classes</SelectItem>
+            {employees.map(e => (
+              <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
           <SelectTrigger className="w-[400px]"><SelectValue placeholder="Select a class to view roster" /></SelectTrigger>
           <SelectContent>
