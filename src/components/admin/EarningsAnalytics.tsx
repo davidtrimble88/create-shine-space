@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format, subDays, startOfMonth, startOfWeek } from "date-fns";
+import { format, subDays, startOfMonth } from "date-fns";
 
 type ViewMode = "all" | "by-site" | "by-date";
 type DateRange = "today" | "yesterday" | "7days" | "30days" | "this-month" | "custom";
