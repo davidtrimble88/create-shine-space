@@ -106,6 +106,7 @@ const EarningsAnalytics = () => {
 
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
+    { value: "all-time", label: "All Time" },
     { value: "today", label: "Today" },
     { value: "yesterday", label: "Yesterday" },
     { value: "7days", label: "Last 7 Days" },
