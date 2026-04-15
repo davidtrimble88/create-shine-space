@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { format, subDays, startOfMonth } from "date-fns";
 
 type ViewMode = "all" | "by-site" | "by-date";
-type DateRange = "today" | "yesterday" | "7days" | "30days" | "this-month" | "custom";
+type DateRange = "all-time" | "today" | "yesterday" | "7days" | "30days" | "this-month" | "custom";
 
 interface EarningRow {
   fee: string | null;
@@ -35,6 +35,8 @@ const EarningsAnalytics = () => {
     const tomorrowStr = new Date(now.getTime() + 86400000).toISOString().split("T")[0];
 
     switch (dateRange) {
+      case "all-time":
+        return { from: "2000-01-01T00:00:00", to: `${tomorrowStr}T00:00:00` };
       case "today":
         return { from: `${todayStr}T00:00:00`, to: `${tomorrowStr}T00:00:00` };
       case "yesterday": {
@@ -104,6 +106,7 @@ const EarningsAnalytics = () => {
 
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
+    { value: "all-time", label: "All Time" },
     { value: "today", label: "Today" },
     { value: "yesterday", label: "Yesterday" },
     { value: "7days", label: "Last 7 Days" },
