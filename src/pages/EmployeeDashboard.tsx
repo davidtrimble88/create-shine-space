@@ -23,6 +23,7 @@ const tabs = [
   { id: "my-schedule", label: "Upcoming Classes", icon: Hand, roles: ["owner", "admin", "manager", "employee"] },
   { id: "employees", label: "Employees", icon: Users, roles: ["owner", "admin"] },
   { id: "bookings", label: "Bookings", icon: ClipboardList, roles: ["owner", "admin"] },
+  { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
   { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
   { id: "roles", label: "Role Permissions", icon: KeyRound, roles: ["owner"] },
   { id: "security-questions", label: "Security Questions", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
