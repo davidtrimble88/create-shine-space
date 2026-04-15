@@ -290,37 +290,6 @@ const EarningsAnalytics = () => {
               </table>
             </div>
           )}
-
-          {viewMode === "date-site" && (
-            <div className="space-y-4">
-              {sortedDates.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No data for this period</p>
-              ) : (
-                sortedDates.map((d) => (
-                  <div key={d} className="bg-card border border-border rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold text-foreground">{format(new Date(d + "T12:00:00"), "EEEE, MMM d, yyyy")}</h3>
-                      <div className="text-right">
-                        <span className="text-lg font-bold text-foreground">${byDate[d].total.toFixed(2)}</span>
-                        <span className="text-xs text-muted-foreground ml-2">({byDate[d].count} txn{byDate[d].count !== 1 ? "s" : ""})</span>
-                      </div>
-                    </div>
-                    <div className="border-t border-border pt-3 space-y-2">
-                      {Object.entries(byDateSite[d] || {}).sort((a, b) => b[1].total - a[1].total).map(([loc, data]) => (
-                        <div key={loc} className="flex items-center justify-between text-sm">
-                          <span className="flex items-center gap-1.5 text-muted-foreground">
-                            <MapPin className="w-3.5 h-3.5" />
-                            {loc}
-                          </span>
-                          <span className="font-medium text-foreground">${data.total.toFixed(2)} <span className="text-xs text-muted-foreground">({data.count})</span></span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
         </>
       )}
     </div>
