@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format, subDays, startOfMonth } from "date-fns";
 
-type ViewMode = "all" | "by-site" | "by-date" | "date-site";
+type ViewMode = "all" | "by-site" | "by-date";
 type DateRange = "today" | "yesterday" | "7days" | "30days" | "this-month" | "custom";
 
 interface EarningRow {
