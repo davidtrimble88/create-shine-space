@@ -39,8 +39,10 @@ const AdminBookings = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [retestDialogOpen, setRetestDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
+  const [retestLocationFilter, setRetestLocationFilter] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [filterCourse, setFilterCourse] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
@@ -55,6 +57,14 @@ const AdminBookings = () => {
     date_of_birth: "",
     referral_source: "",
     payment_status: "pending",
+  });
+  const [retestForm, setRetestForm] = useState({
+    schedule_id: "",
+    first_name: "",
+    last_name: "",
+    phone: "",
+    license_number: "",
+    date_of_birth: "",
   });
 
   const fetchData = async () => {
