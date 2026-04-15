@@ -399,7 +399,11 @@ const AdminBookings = () => {
                 <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">No bookings found</td></tr>
               ) : filtered.map(b => (
                 <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
-                  <td className="p-3 font-medium text-foreground">{b.first_name} {b.last_name}<br /><span className="text-xs text-muted-foreground">{b.email}</span></td>
+                  <td className="p-3 font-medium text-foreground">
+                    {b.first_name} {b.last_name}
+                    {b.is_retest && <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded bg-accent/20 text-accent">Retest</span>}
+                    <br /><span className="text-xs text-muted-foreground">{b.is_retest ? "Retest" : b.email}</span>
+                  </td>
                   <td className="p-3 text-muted-foreground">{courseLabels[b.course] || b.course}</td>
                   <td className="p-3 text-muted-foreground">{b.location_label}</td>
                   <td className="p-3 text-muted-foreground">{b.schedule_date || "—"}</td>
