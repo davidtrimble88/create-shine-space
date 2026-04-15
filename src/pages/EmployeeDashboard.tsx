@@ -129,6 +129,7 @@ const EmployeeDashboard = () => {
         {activeTab === "my-schedule" && <ViewerSchedule />}
         {activeTab === "employees" && <AdminEmployees />}
         {activeTab === "bookings" && <AdminBookings />}
+        {activeTab === "earnings" && <EarningsAnalytics />}
         {activeTab === "analytics" && <WebsiteAnalytics />}
         {activeTab === "roles" && <RolePermissions />}
         {activeTab === "security-questions" && <SecurityQuestionsSetup />}
