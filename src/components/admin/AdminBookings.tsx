@@ -117,7 +117,42 @@ const AdminBookings = () => {
     }
   };
 
-  const activeCourse = filterCourse && filterCourse !== "all" ? filterCourse : "";
+  const handleRetestSubmit = async () => {
+    if (!retestForm.first_name || !retestForm.last_name || !retestForm.phone || !retestForm.schedule_id) {
+      toast({ title: "Missing fields", description: "First name, last name, phone, and class are required.", variant: "destructive" });
+      return;
+    }
+    const sched = schedules.find(s => s.id === retestForm.schedule_id);
+    if (!sched) return;
+
+    const { error } = await supabase.from("bookings").insert({
+      schedule_id: retestForm.schedule_id,
+      course: sched.course,
+      location: sched.location,
+      location_label: sched.location_label,
+      schedule_date: sched.date,
+      first_name: retestForm.first_name,
+      last_name: retestForm.last_name,
+      email: "retest@placeholder.com",
+      phone: retestForm.phone,
+      license_number: retestForm.license_number || null,
+      date_of_birth: retestForm.date_of_birth || null,
+      payment_status: "paid",
+      booking_status: "confirmed",
+      is_retest: true,
+    });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Retest Student Added", description: `${retestForm.first_name} ${retestForm.last_name} added for retest.` });
+      setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
+      setRetestDialogOpen(false);
+      fetchData();
+    }
+  };
+
+
   const activeLocation = filterLocation && filterLocation !== "all" ? filterLocation : "";
   const hasFilters = !!activeCourse || !!activeLocation || !!filterDate;
 
