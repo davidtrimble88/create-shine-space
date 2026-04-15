@@ -40,6 +40,7 @@ const AdminBookings = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [form, setForm] = useState({
     schedule_id: "",
     first_name: "",
