@@ -337,6 +337,7 @@ const AdminBookings = () => {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
