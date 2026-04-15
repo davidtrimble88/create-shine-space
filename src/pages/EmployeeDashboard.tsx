@@ -14,6 +14,7 @@ import RolePermissions from "@/components/admin/RolePermissions";
 import HowToGuide from "@/components/admin/HowToGuide";
 import SecurityQuestionsSetup from "@/components/admin/SecurityQuestionsSetup";
 import ChangePasswordInline from "@/components/admin/ChangePasswordInline";
+import EarningsAnalytics from "@/components/admin/EarningsAnalytics";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
