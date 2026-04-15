@@ -4,10 +4,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X } from "lucide-react";
+import { UserPlus, Search, Eye, X, DollarSign } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Booking = Tables<"bookings">;
