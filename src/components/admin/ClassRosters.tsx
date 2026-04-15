@@ -77,9 +77,17 @@ const ClassRosters = () => {
 
   const selectedSchedule = schedules.find(s => s.id === selectedScheduleId);
 
-  const filteredSchedules = schedules.filter(
-    s => !locationFilter || locationFilter === "all" || s.location === locationFilter
-  );
+  const filteredSchedules = schedules.filter(s => {
+    if (locationFilter && locationFilter !== "all" && s.location !== locationFilter) return false;
+    if (instructorFilter === "my-classes") {
+      return myAssignedScheduleIds.has(s.id);
+    }
+    if (instructorFilter && instructorFilter !== "all") {
+      const empAssignedIds = new Set(allAssignments.filter(a => a.employee_id === instructorFilter).map(a => a.schedule_id));
+      return empAssignedIds.has(s.id);
+    }
+    return true;
+  });
 
   const handlePrint = () => {
     if (!printRef.current) return;
