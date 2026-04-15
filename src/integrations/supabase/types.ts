@@ -16,7 +16,9 @@ export type Database = {
     Tables: {
       bookings: {
         Row: {
+          address: string | null
           booking_status: string
+          city: string | null
           course: string
           created_at: string
           date_of_birth: string | null
@@ -25,7 +27,11 @@ export type Database = {
           first_name: string
           gender: string | null
           id: string
+          issuing_country: string | null
+          issuing_state: string | null
           last_name: string
+          license_expiration: string | null
+          license_number: string | null
           location: string
           location_label: string
           payment_status: string
@@ -33,10 +39,14 @@ export type Database = {
           referral_source: string | null
           schedule_date: string | null
           schedule_id: string | null
+          state: string | null
           updated_at: string
+          zip: string | null
         }
         Insert: {
+          address?: string | null
           booking_status?: string
+          city?: string | null
           course: string
           created_at?: string
           date_of_birth?: string | null
@@ -45,7 +55,11 @@ export type Database = {
           first_name: string
           gender?: string | null
           id?: string
+          issuing_country?: string | null
+          issuing_state?: string | null
           last_name: string
+          license_expiration?: string | null
+          license_number?: string | null
           location: string
           location_label: string
           payment_status?: string
@@ -53,10 +67,14 @@ export type Database = {
           referral_source?: string | null
           schedule_date?: string | null
           schedule_id?: string | null
+          state?: string | null
           updated_at?: string
+          zip?: string | null
         }
         Update: {
+          address?: string | null
           booking_status?: string
+          city?: string | null
           course?: string
           created_at?: string
           date_of_birth?: string | null
@@ -65,7 +83,11 @@ export type Database = {
           first_name?: string
           gender?: string | null
           id?: string
+          issuing_country?: string | null
+          issuing_state?: string | null
           last_name?: string
+          license_expiration?: string | null
+          license_number?: string | null
           location?: string
           location_label?: string
           payment_status?: string
@@ -73,7 +95,9 @@ export type Database = {
           referral_source?: string | null
           schedule_date?: string | null
           schedule_id?: string | null
+          state?: string | null
           updated_at?: string
+          zip?: string | null
         }
         Relationships: [
           {
