@@ -230,11 +230,12 @@ const AdminBookings = () => {
                 <th className="text-left p-3 font-medium text-muted-foreground">Payment</th>
                 <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
                 <th className="text-left p-3 font-medium text-muted-foreground">Referral</th>
+                <th className="text-left p-3 font-medium text-muted-foreground"></th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">No bookings found</td></tr>
+                <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">No bookings found</td></tr>
               ) : filtered.map(b => (
                 <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
                   <td className="p-3 font-medium text-foreground">{b.first_name} {b.last_name}<br /><span className="text-xs text-muted-foreground">{b.email}</span></td>
@@ -255,12 +256,102 @@ const AdminBookings = () => {
                     }`}>{b.booking_status}</span>
                   </td>
                   <td className="p-3 text-muted-foreground text-xs">{b.referral_source || "—"}</td>
+                  <td className="p-3">
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedBooking(b)}>
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Student Detail Dialog */}
+      <Dialog open={!!selectedBooking} onOpenChange={(open) => { if (!open) setSelectedBooking(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Student Details</DialogTitle>
+          </DialogHeader>
+          {selectedBooking && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-muted-foreground text-xs">First Name</p>
+                  <p className="font-medium text-foreground">{selectedBooking.first_name}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Last Name</p>
+                  <p className="font-medium text-foreground">{selectedBooking.last_name}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Email</p>
+                <p className="font-medium text-foreground">{selectedBooking.email}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Phone</p>
+                <p className="font-medium text-foreground">{selectedBooking.phone}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-muted-foreground text-xs">Gender</p>
+                  <p className="font-medium text-foreground capitalize">{selectedBooking.gender || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Date of Birth</p>
+                  <p className="font-medium text-foreground">{selectedBooking.date_of_birth || "—"}</p>
+                </div>
+              </div>
+              <div className="border-t border-border pt-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-muted-foreground text-xs">Course</p>
+                    <p className="font-medium text-foreground">{courseLabels[selectedBooking.course] || selectedBooking.course}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Location</p>
+                    <p className="font-medium text-foreground">{selectedBooking.location_label}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <p className="text-muted-foreground text-xs">Class Date</p>
+                    <p className="font-medium text-foreground">{selectedBooking.schedule_date || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Fee</p>
+                    <p className="font-medium text-foreground">{selectedBooking.fee ? `$${selectedBooking.fee}` : "—"}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <p className="text-muted-foreground text-xs">Payment Status</p>
+                    <p className="font-medium text-foreground capitalize">{selectedBooking.payment_status}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Booking Status</p>
+                    <p className="font-medium text-foreground capitalize">{selectedBooking.booking_status}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="border-t border-border pt-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-muted-foreground text-xs">Referral Source</p>
+                    <p className="font-medium text-foreground">{selectedBooking.referral_source || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Booked On</p>
+                    <p className="font-medium text-foreground">{new Date(selectedBooking.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
