@@ -7,7 +7,7 @@ const benefitIcons = [Shield, Award, Bike, GraduationCap, Clock, Users];
 const defaultBenefits = [
   { title: "DMV Test Waiver", description: "Pass our course and skip the DMV riding test. Walk out ready to get your license." },
   { title: "CMSP Certified", description: "Official California Motorcyclist Safety Program certification recognized statewide." },
-  { title: "Bikes Provided", description: "We provide well-maintained motorcycles and all required safety gear for training." },
+  { title: "Bikes Provided", description: "We provide well-maintained motorcycles for training." },
   { title: "Expert Instructors", description: "Learn from certified professionals with thousands of hours of teaching experience." },
   { title: "Weekend Classes", description: "Complete your training in just one weekend. Flexible scheduling available." },
   { title: "Small Class Sizes", description: "Maximum attention with our intimate group sizes. Never feel lost in the crowd." },
