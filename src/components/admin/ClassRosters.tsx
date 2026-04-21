@@ -478,82 +478,128 @@ const ClassRosters = () => {
         )}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <Select value={locationFilter} onValueChange={v => { setLocationFilter(v); setSelectedScheduleId(""); }}>
-          <SelectTrigger className="w-[220px]"><SelectValue placeholder="All Locations" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Locations</SelectItem>
-            {Object.entries(locationLabels).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={instructorFilter} onValueChange={v => { setInstructorFilter(v); setSelectedScheduleId(""); }}>
-          <SelectTrigger className="w-[240px]">
-            <div className="flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-muted-foreground" />
-              <SelectValue placeholder="All Instructors" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Instructors</SelectItem>
-            <SelectItem value="my-classes">My Assigned Classes</SelectItem>
-            {employees.map(e => (
-              <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {selectedScheduleId && (
+      {selectedScheduleId && (
+        <div className="mb-4">
           <Button variant="outline" onClick={() => setSelectedScheduleId("")}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to classes
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Class list — clickable */}
+      {/* Class list — table with filterable headers */}
       {!selectedScheduleId && (
-        <div className="mb-6">
-          {filteredSchedules.length === 0 ? (
-            <div className="bg-card border border-border rounded-xl p-6 text-sm text-muted-foreground">
-              No {view === "past" ? "past" : "upcoming"} classes match the current filters.
-            </div>
-          ) : (
-            <div className="bg-card border border-border rounded-xl divide-y divide-border overflow-hidden">
-              {filteredSchedules.map(s => {
-                const assignedNames = allAssignments
-                  .filter(a => a.schedule_id === s.id)
-                  .map(a => employees.find(e => e.id === a.employee_id)?.full_name)
-                  .filter(Boolean);
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => setSelectedScheduleId(s.id)}
-                    className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors flex items-center justify-between gap-4"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold text-foreground">
-                        {courseLabels[s.course] || s.course}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
-                        <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {s.date}</span>
-                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {s.location_label}</span>
-                        {assignedNames.length > 0 && (
-                          <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" /> {assignedNames.join(", ")}</span>
-                        )}
-                      </div>
+        <div className="mb-6 bg-card border border-border rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-secondary/50">
+                  <th className="text-left p-3 font-medium text-muted-foreground min-w-[200px]">
+                    <div className="space-y-1">
+                      <div className="text-xs uppercase tracking-wide">Course</div>
+                      <Select value={courseFilter} onValueChange={setCourseFilter}>
+                        <SelectTrigger className="h-8 text-xs font-normal"><SelectValue placeholder="All courses" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All courses</SelectItem>
+                          {Array.from(new Set(schedules.map(s => s.course))).map(c => (
+                            <SelectItem key={c} value={c}>{courseLabels[c] || c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-sm font-semibold text-foreground">
-                        {enrollmentCounts[s.id] || 0} registered
-                      </div>
-                      <div className="text-xs text-muted-foreground">{s.spots_available} spots open</div>
+                  </th>
+                  <th className="text-left p-3 font-medium text-muted-foreground min-w-[160px]">
+                    <div className="space-y-1">
+                      <div className="text-xs uppercase tracking-wide flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Date</div>
+                      <Input
+                        value={dateFilter}
+                        onChange={e => setDateFilter(e.target.value)}
+                        placeholder="YYYY-MM-DD"
+                        className="h-8 text-xs font-normal"
+                      />
                     </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                  </th>
+                  <th className="text-left p-3 font-medium text-muted-foreground min-w-[200px]">
+                    <div className="space-y-1">
+                      <div className="text-xs uppercase tracking-wide flex items-center gap-1"><MapPin className="w-3 h-3" /> Location</div>
+                      <Select value={locationFilter || "all"} onValueChange={v => setLocationFilter(v === "all" ? "" : v)}>
+                        <SelectTrigger className="h-8 text-xs font-normal"><SelectValue placeholder="All locations" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All locations</SelectItem>
+                          {Object.entries(locationLabels).map(([k, v]) => (
+                            <SelectItem key={k} value={k}>{v}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </th>
+                  <th className="text-left p-3 font-medium text-muted-foreground min-w-[220px]">
+                    <div className="space-y-1">
+                      <div className="text-xs uppercase tracking-wide flex items-center gap-1"><UserCheck className="w-3 h-3" /> Instructors</div>
+                      <Select value={instructorFilter || "all"} onValueChange={v => setInstructorFilter(v === "all" ? "" : v)}>
+                        <SelectTrigger className="h-8 text-xs font-normal"><SelectValue placeholder="All instructors" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All instructors</SelectItem>
+                          <SelectItem value="my-classes">My Assigned Classes</SelectItem>
+                          {employees.map(e => (
+                            <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </th>
+                  <th className="text-right p-3 font-medium text-muted-foreground min-w-[140px]">
+                    <div className="space-y-1">
+                      <div className="text-xs uppercase tracking-wide flex items-center justify-end gap-1"><Users className="w-3 h-3" /> Students</div>
+                      <Select value={enrollmentFilter} onValueChange={setEnrollmentFilter}>
+                        <SelectTrigger className="h-8 text-xs font-normal"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="empty">No students</SelectItem>
+                          <SelectItem value="has">Has students</SelectItem>
+                          <SelectItem value="full">Full</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredSchedules.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-6 text-sm text-muted-foreground text-center">
+                      No {view === "past" ? "past" : "upcoming"} classes match the current filters.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredSchedules.map(s => {
+                    const assignedNames = allAssignments
+                      .filter(a => a.schedule_id === s.id)
+                      .map(a => employees.find(e => e.id === a.employee_id)?.full_name)
+                      .filter(Boolean);
+                    const count = enrollmentCounts[s.id] || 0;
+                    return (
+                      <tr
+                        key={s.id}
+                        onClick={() => setSelectedScheduleId(s.id)}
+                        className="border-b border-border/50 hover:bg-muted/50 transition-colors cursor-pointer"
+                      >
+                        <td className="p-3 font-semibold text-foreground">{courseLabels[s.course] || s.course}</td>
+                        <td className="p-3 text-muted-foreground">{s.date}</td>
+                        <td className="p-3 text-muted-foreground">{s.location_label}</td>
+                        <td className="p-3 text-muted-foreground">
+                          {assignedNames.length > 0 ? assignedNames.join(", ") : <span className="italic text-xs">Unassigned</span>}
+                        </td>
+                        <td className="p-3 text-right">
+                          <div className="text-sm font-semibold text-foreground">{count} registered</div>
+                          <div className="text-xs text-muted-foreground">{s.spots_available} spots open</div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
