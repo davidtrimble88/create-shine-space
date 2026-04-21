@@ -8,7 +8,7 @@ import { format, addDays } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus, History, ArrowLeft } from "lucide-react";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import InstructorAssignment, { roleLabelMap } from "./InstructorAssignment";
 
