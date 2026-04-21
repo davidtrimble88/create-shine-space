@@ -383,6 +383,84 @@ const ClassRosters = () => {
         </div>
       </div>
 
+      {/* Student Search */}
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Input
+            value={studentSearch}
+            onChange={e => setStudentSearch(e.target.value)}
+            placeholder="Search students by name, email, phone, DL #, city, ZIP…"
+            className="pl-9 pr-9"
+          />
+          {studentSearch && (
+            <button
+              onClick={() => setStudentSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        {studentSearch.trim().length >= 2 && (
+          <div className="mt-2 bg-card border border-border rounded-lg overflow-hidden">
+            {searching ? (
+              <p className="px-4 py-3 text-sm text-muted-foreground">Searching…</p>
+            ) : searchResults.length === 0 ? (
+              <p className="px-4 py-3 text-sm text-muted-foreground">No students found.</p>
+            ) : (
+              <div className="max-h-80 overflow-y-auto divide-y divide-border">
+                {searchResults.map(b => {
+                  const sched = schedules.find(s => s.id === b.schedule_id);
+                  const courseName = sched ? (courseLabels[sched.course] || sched.course) : (courseLabels[b.course] || b.course);
+                  const dateStr = sched?.date || b.schedule_date || "Unscheduled";
+                  const locLabel = sched?.location_label || b.location_label;
+                  const inCurrentView = !!sched;
+                  return (
+                    <button
+                      key={b.id}
+                      onClick={() => {
+                        if (b.schedule_id && inCurrentView) {
+                          setSelectedScheduleId(b.schedule_id);
+                          setStudentSearch("");
+                        } else if (b.schedule_id && sched === undefined) {
+                          // schedule exists but not in current view (past vs upcoming) — flip view
+                          const today = new Date().toISOString().split("T")[0];
+                          if (b.schedule_date && b.schedule_date < today && view !== "past") {
+                            setView("past");
+                          } else if (b.schedule_date && b.schedule_date >= today && view !== "upcoming") {
+                            setView("upcoming");
+                          }
+                          setTimeout(() => setSelectedScheduleId(b.schedule_id!), 50);
+                          setStudentSearch("");
+                        }
+                      }}
+                      className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors flex items-start justify-between gap-4"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold text-foreground">
+                          {b.first_name} {b.last_name}
+                          {b.is_retest && <span className="ml-2 text-xs text-primary">(Retest)</span>}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                          {b.email !== "retest@placeholder.com" ? b.email : ""}{b.email !== "retest@placeholder.com" && b.phone ? " • " : ""}{b.phone}
+                          {b.license_number ? ` • DL ${b.license_number}` : ""}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-xs font-medium text-foreground">{courseName}</div>
+                        <div className="text-xs text-muted-foreground">{dateStr} • {locLabel}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <Select value={locationFilter} onValueChange={v => { setLocationFilter(v); setSelectedScheduleId(""); }}>
