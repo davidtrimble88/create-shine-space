@@ -136,6 +136,7 @@ const AdminSchedule = () => {
   const [form, setForm] = useState(emptyForm);
   const [filterCourse, setFilterCourse] = useState<string>("all");
   const [filterLocation, setFilterLocation] = useState<string>("all");
+  const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [availability, setAvailability] = useState<AvailabilityInfo[]>([]);
   const [assignmentData, setAssignmentData] = useState<AssignmentInfo[]>([]);
   const [assigningSchedule, setAssigningSchedule] = useState<{ id: string; name: string } | null>(null);
