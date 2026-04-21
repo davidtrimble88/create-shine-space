@@ -33,6 +33,7 @@ interface FullAssignment {
 
 const ClassRosters = () => {
   const { user } = useAuth();
+  const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
