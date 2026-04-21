@@ -48,6 +48,9 @@ const ClassRosters = () => {
   const [showRetestDialog, setShowRetestDialog] = useState(false);
   const [retestForm, setRetestForm] = useState({ first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
   const [addingRetest, setAddingRetest] = useState(false);
+  const [studentSearch, setStudentSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<Booking[]>([]);
+  const [searching, setSearching] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
