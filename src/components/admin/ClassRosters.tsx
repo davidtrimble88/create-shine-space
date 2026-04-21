@@ -51,6 +51,7 @@ const ClassRosters = () => {
   const [studentSearch, setStudentSearch] = useState("");
   const [searchResults, setSearchResults] = useState<Booking[]>([]);
   const [searching, setSearching] = useState(false);
+  const [enrollmentCounts, setEnrollmentCounts] = useState<Record<string, number>>({});
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
