@@ -35,6 +35,7 @@ const AdminBookings = () => {
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [referralOptions, setReferralOptions] = useState<string[]>(FALLBACK_REFERRALS);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [retestDialogOpen, setRetestDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
