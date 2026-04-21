@@ -459,6 +459,40 @@ const AdminEmployees = () => {
         </Dialog>
       </div>
 
+      {/* Search + Role Filter */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="relative flex-1 min-w-[240px]">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Input
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="Search by name, email, phone, or position…"
+            className="pl-9 pr-9"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="All access levels" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All access levels</SelectItem>
+            <SelectItem value="owner">Owner</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="manager">Manager</SelectItem>
+            <SelectItem value="employee">Viewer</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {(() => {
         const term = searchTerm.trim().toLowerCase();
         const filteredEmployees = employees.filter(emp => {
