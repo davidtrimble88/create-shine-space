@@ -97,6 +97,40 @@ const ClassRosters = () => {
     fetchBookings();
   }, [selectedScheduleId]);
 
+  // Global student search across all bookings
+  useEffect(() => {
+    const term = studentSearch.trim();
+    if (term.length < 2) {
+      setSearchResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const handle = setTimeout(async () => {
+      const like = `%${term}%`;
+      const orFilter = [
+        `first_name.ilike.${like}`,
+        `last_name.ilike.${like}`,
+        `email.ilike.${like}`,
+        `phone.ilike.${like}`,
+        `license_number.ilike.${like}`,
+        `city.ilike.${like}`,
+        `state.ilike.${like}`,
+        `zip.ilike.${like}`,
+        `address.ilike.${like}`,
+      ].join(",");
+      const { data } = await supabase
+        .from("bookings")
+        .select("*")
+        .or(orFilter)
+        .order("schedule_date", { ascending: false })
+        .limit(50);
+      setSearchResults(data ?? []);
+      setSearching(false);
+    }, 250);
+    return () => clearTimeout(handle);
+  }, [studentSearch]);
+
   const selectedSchedule = schedules.find(s => s.id === selectedScheduleId);
 
   const regularBookings = bookings.filter(b => !b.is_retest);
