@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2 } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { roleLabelMap } from "@/components/admin/InstructorAssignment";
 import type { Tables } from "@/integrations/supabase/types";
@@ -33,6 +33,7 @@ interface FullAssignment {
 
 const ClassRosters = () => {
   const { user } = useAuth();
+  const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -52,8 +53,12 @@ const ClassRosters = () => {
   useEffect(() => {
     const fetchData = async () => {
       const today = new Date().toISOString().split("T")[0];
-      const [schedRes, empRes, assignRes] = await Promise.all([
-        supabase.from("schedules").select("*").gte("date", today).order("date"),
+      setSelectedScheduleId("");
+      const schedQuery = supabase.from("schedules").select("*");
+      const schedRes = view === "past"
+        ? await schedQuery.lt("date", today).order("date", { ascending: false })
+        : await schedQuery.gte("date", today).order("date");
+      const [empRes, assignRes] = await Promise.all([
         supabase.from("employees").select("id, full_name, user_id").eq("is_active", true),
         supabase.from("instructor_assignments").select("schedule_id, employee_id, assignment_role"),
       ]);
@@ -69,7 +74,7 @@ const ClassRosters = () => {
       }
     };
     fetchData();
-  }, [user?.id]);
+  }, [user?.id, view]);
 
   useEffect(() => {
     if (!selectedScheduleId) {
@@ -275,51 +280,64 @@ const ClassRosters = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Class Rosters</h1>
+        <h1 className="text-2xl font-bold text-foreground">
+          {view === "past" ? "Past Class Rosters" : "Class Rosters"}
+        </h1>
         <div className="flex items-center gap-2">
+          {view === "upcoming" ? (
+            <Button variant="outline" onClick={() => setView("past")}>
+              <History className="w-4 h-4 mr-2" /> Past Rosters
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={() => setView("upcoming")}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
+            </Button>
+          )}
           {selectedSchedule && (
             <>
-              <Dialog open={showRetestDialog} onOpenChange={setShowRetestDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <Plus className="w-4 h-4 mr-2" /> Add Retest Student
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add Retest Student</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-3 mt-2">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground mb-1 block">First Name *</label>
-                        <Input value={retestForm.first_name} onChange={e => setRetestForm(p => ({ ...p, first_name: e.target.value }))} />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Last Name *</label>
-                        <Input value={retestForm.last_name} onChange={e => setRetestForm(p => ({ ...p, last_name: e.target.value }))} />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Phone *</label>
-                      <Input value={retestForm.phone} onChange={e => setRetestForm(p => ({ ...p, phone: e.target.value }))} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground mb-1 block">DL #</label>
-                        <Input value={retestForm.license_number} onChange={e => setRetestForm(p => ({ ...p, license_number: e.target.value }))} />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Date of Birth</label>
-                        <Input type="date" value={retestForm.date_of_birth} onChange={e => setRetestForm(p => ({ ...p, date_of_birth: e.target.value }))} />
-                      </div>
-                    </div>
-                    <Button onClick={handleAddRetest} disabled={addingRetest} className="w-full">
-                      {addingRetest ? "Adding..." : "Add to Retest Roster"}
+              {view === "upcoming" && (
+                <Dialog open={showRetestDialog} onOpenChange={setShowRetestDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Plus className="w-4 h-4 mr-2" /> Add Retest Student
                     </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add Retest Student</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3 mt-2">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">First Name *</label>
+                          <Input value={retestForm.first_name} onChange={e => setRetestForm(p => ({ ...p, first_name: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Last Name *</label>
+                          <Input value={retestForm.last_name} onChange={e => setRetestForm(p => ({ ...p, last_name: e.target.value }))} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Phone *</label>
+                        <Input value={retestForm.phone} onChange={e => setRetestForm(p => ({ ...p, phone: e.target.value }))} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">DL #</label>
+                          <Input value={retestForm.license_number} onChange={e => setRetestForm(p => ({ ...p, license_number: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Date of Birth</label>
+                          <Input type="date" value={retestForm.date_of_birth} onChange={e => setRetestForm(p => ({ ...p, date_of_birth: e.target.value }))} />
+                        </div>
+                      </div>
+                      <Button onClick={handleAddRetest} disabled={addingRetest} className="w-full">
+                        {addingRetest ? "Adding..." : "Add to Retest Roster"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
               <Button onClick={handlePrint}>
                 <Printer className="w-4 h-4 mr-2" /> Print Roster
               </Button>
