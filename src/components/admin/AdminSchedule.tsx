@@ -145,7 +145,13 @@ const AdminSchedule = () => {
 
   const fetchSchedules = async () => {
     setLoading(true);
-    let query = supabase.from("schedules").select("*").order("date", { ascending: true });
+    const today = new Date().toISOString().split("T")[0];
+    let query = supabase.from("schedules").select("*");
+    if (view === "past") {
+      query = query.lt("date", today).order("date", { ascending: false });
+    } else {
+      query = query.gte("date", today).order("date", { ascending: true });
+    }
     if (filterCourse !== "all") query = query.eq("course", filterCourse);
     if (filterLocation !== "all") query = query.eq("location", filterLocation);
     const [schedRes, availRes, assignRes] = await Promise.all([
