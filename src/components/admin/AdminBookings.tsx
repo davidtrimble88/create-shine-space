@@ -26,19 +26,16 @@ const locationLabels: Record<string, string> = {
   "ventura-county": "Ventura County — Somis",
 };
 
-const referralOptions = [
+const FALLBACK_REFERRALS = [
   "Google", "Learn To Ride VC Website", "Yelp", "Facebook", "Instagram",
-  "Chopperfest", "Cal Coast Motorsports", "Word of Mouth / Friend", "DMV",
-  "CHP", "Cycle Gear", "Ventura Fair", "Ventura Harley Davidson",
-  "Thousand Oaks Powersports", "Santa Barbara Motorsports", "My Garage Ventura",
-  "The Shop Ventura", "BBB (Better Business Bureau)", "Overland Outdoor Expo",
-  "Phone Call", "Walk-in", "Other",
+  "Word of Mouth / Friend", "Phone Call", "Walk-in", "Other",
 ];
 
 const AdminBookings = () => {
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [referralOptions, setReferralOptions] = useState<string[]>(FALLBACK_REFERRALS);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [retestDialogOpen, setRetestDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -73,12 +70,14 @@ const AdminBookings = () => {
 
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
-    const [bookRes, schedRes] = await Promise.all([
+    const [bookRes, schedRes, refRes] = await Promise.all([
       supabase.from("bookings").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("schedules").select("*").gte("date", today).order("date"),
+      supabase.from("referral_sources").select("name").eq("is_active", true).order("sort_order").order("name"),
     ]);
     if (bookRes.data) setBookings(bookRes.data);
     if (schedRes.data) setSchedules(schedRes.data);
+    if (refRes.data && refRes.data.length > 0) setReferralOptions(refRes.data.map(r => r.name));
   };
 
   useEffect(() => { fetchData(); }, []);

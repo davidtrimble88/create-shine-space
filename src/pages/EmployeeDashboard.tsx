@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus } from "lucide-react";
 import { useState } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -16,6 +16,7 @@ import SecurityQuestionsSetup from "@/components/admin/SecurityQuestionsSetup";
 import ChangePasswordInline from "@/components/admin/ChangePasswordInline";
 import EarningsAnalytics from "@/components/admin/EarningsAnalytics";
 import ClassRosters from "@/components/admin/ClassRosters";
+import AdminReferralSources from "@/components/admin/AdminReferralSources";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
@@ -24,6 +25,7 @@ const tabs = [
   { id: "my-schedule", label: "Upcoming Classes", icon: Hand, roles: ["owner", "admin", "manager", "employee"] },
   { id: "employees", label: "Employees", icon: Users, roles: ["owner", "admin"] },
   { id: "bookings", label: "Bookings", icon: ClipboardList, roles: ["owner", "admin"] },
+  { id: "referrals", label: "Referral Sources", icon: ListPlus, roles: ["owner", "admin"] },
   { id: "rosters", label: "Class Rosters", icon: ListChecks, roles: ["owner", "admin", "manager", "employee"] },
   { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
   { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
@@ -131,6 +133,7 @@ const EmployeeDashboard = () => {
         {activeTab === "my-schedule" && <ViewerSchedule />}
         {activeTab === "employees" && <AdminEmployees />}
         {activeTab === "bookings" && <AdminBookings />}
+        {activeTab === "referrals" && <AdminReferralSources />}
         {activeTab === "earnings" && <EarningsAnalytics />}
         {activeTab === "rosters" && <ClassRosters />}
         {activeTab === "analytics" && <WebsiteAnalytics />}

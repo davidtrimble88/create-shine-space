@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -53,26 +53,13 @@ const registrationSchema = z.object({
 
 type RegistrationFormData = z.infer<typeof registrationSchema>;
 
-const referralOptions = [
+const FALLBACK_REFERRALS = [
   "Google",
   "Learn To Ride VC Website",
   "Yelp",
   "Facebook",
   "Instagram",
-  "Chopperfest",
-  "Cal Coast Motorsports",
   "Word of Mouth / Friend",
-  "DMV",
-  "CHP",
-  "Cycle Gear",
-  "Ventura Fair",
-  "Ventura Harley Davidson",
-  "Thousand Oaks Powersports",
-  "Santa Barbara Motorsports",
-  "My Garage Ventura",
-  "The Shop Ventura",
-  "BBB (Better Business Bureau)",
-  "Overland Outdoor Expo",
   "Other",
 ];
 
@@ -81,6 +68,19 @@ const RegisterPage = () => {
   const course = searchParams.get("course") || "basic";
   const location = searchParams.get("location") || "ventura-county";
   const schedule = searchParams.get("schedule") || sessionStorage.getItem("selectedScheduleId") || "";
+  const [referralOptions, setReferralOptions] = useState<string[]>(FALLBACK_REFERRALS);
+
+  useEffect(() => {
+    supabase
+      .from("referral_sources")
+      .select("name")
+      .eq("is_active", true)
+      .order("sort_order")
+      .order("name")
+      .then(({ data }) => {
+        if (data && data.length > 0) setReferralOptions(data.map(r => r.name));
+      });
+  }, []);
 
   const courseLabels: Record<string, string> = {
     basic: "Motorcycle Training Course",
