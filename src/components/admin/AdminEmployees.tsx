@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound, Search } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Employee = Tables<"employees">;
@@ -51,6 +51,8 @@ const AdminEmployees = () => {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [tempPasswordInfo, setTempPasswordInfo] = useState<{ name: string; email: string; password: string } | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const tempPasswordInputRef = useRef<HTMLInputElement>(null);
@@ -457,16 +459,72 @@ const AdminEmployees = () => {
         </Dialog>
       </div>
 
-      {loading ? (
-        <p className="text-muted-foreground">Loading...</p>
-      ) : employees.length === 0 ? (
-        <div className="bg-card border border-border rounded-xl p-8 text-center">
-          <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">No employees yet. Add your first team member above.</p>
+      {/* Search + Role Filter */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="relative flex-1 min-w-[240px]">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Input
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="Search by name, email, phone, or position…"
+            className="pl-9 pr-9"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
-      ) : (
-        <div className="grid gap-4">
-          {employees.map((emp) => {
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="All access levels" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All access levels</SelectItem>
+            <SelectItem value="owner">Owner</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="manager">Manager</SelectItem>
+            <SelectItem value="employee">Viewer</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {(() => {
+        const term = searchTerm.trim().toLowerCase();
+        const filteredEmployees = employees.filter(emp => {
+          if (roleFilter !== "all" && (emp.role ?? "employee") !== roleFilter) return false;
+          if (!term) return true;
+          return (
+            emp.full_name?.toLowerCase().includes(term) ||
+            emp.email?.toLowerCase().includes(term) ||
+            (emp.phone ?? "").toLowerCase().includes(term) ||
+            (emp.position ?? "").toLowerCase().includes(term)
+          );
+        });
+        if (loading) return <p className="text-muted-foreground">Loading...</p>;
+        if (employees.length === 0) {
+          return (
+            <div className="bg-card border border-border rounded-xl p-8 text-center">
+              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No employees yet. Add your first team member above.</p>
+            </div>
+          );
+        }
+        if (filteredEmployees.length === 0) {
+          return (
+            <div className="bg-card border border-border rounded-xl p-8 text-center">
+              <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No employees match your search or filter.</p>
+            </div>
+          );
+        }
+        return (
+          <div className="grid gap-4">
+            {filteredEmployees.map((emp) => {
             const RoleIcon = roleIcons[emp.role ?? "employee"] ?? Eye;
             return (
               <div key={emp.id} className="bg-card border border-border rounded-xl p-5 flex items-center justify-between">
@@ -513,8 +571,9 @@ const AdminEmployees = () => {
               </div>
             );
           })}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* Temp Password Dialog */}
       <Dialog open={!!tempPasswordInfo} onOpenChange={(open) => { if (!open) setTempPasswordInfo(null); }}>
