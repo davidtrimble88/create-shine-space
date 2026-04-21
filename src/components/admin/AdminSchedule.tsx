@@ -440,7 +440,8 @@ const AdminSchedule = () => {
               <Button onClick={handleSave} className="w-full">{editingId ? "Save Changes" : "Add Class"}</Button>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
