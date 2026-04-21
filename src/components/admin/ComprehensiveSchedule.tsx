@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Printer, Mail, CalendarDays } from "lucide-react";
+import { Printer, Mail, CalendarDays, History, ArrowLeft } from "lucide-react";
 import { roleLabelMap } from "./InstructorAssignment";
 
 interface ScheduleRow {
@@ -31,6 +31,7 @@ const ComprehensiveSchedule = () => {
   const [filterLocation, setFilterLocation] = useState("all");
   const [filterCourse, setFilterCourse] = useState("all");
   const [filterInstructor, setFilterInstructor] = useState("all");
+  const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [instructorList, setInstructorList] = useState<{ id: string; name: string }[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -38,7 +39,13 @@ const ComprehensiveSchedule = () => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      let query = supabase.from("schedules").select("*").order("date", { ascending: true });
+      const today = new Date().toISOString().split("T")[0];
+      let query = supabase.from("schedules").select("*");
+      if (view === "past") {
+        query = query.lt("date", today).order("date", { ascending: false });
+      } else {
+        query = query.gte("date", today).order("date", { ascending: true });
+      }
       if (filterCourse !== "all") query = query.eq("course", filterCourse);
       if (filterLocation !== "all") query = query.eq("location", filterLocation);
 
@@ -73,7 +80,7 @@ const ComprehensiveSchedule = () => {
       setLoading(false);
     };
     load();
-  }, [filterCourse, filterLocation]);
+  }, [filterCourse, filterLocation, view]);
 
   const filteredRows = filterInstructor === "all"
     ? rows
@@ -135,8 +142,19 @@ const ComprehensiveSchedule = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-        <h1 className="text-2xl font-bold text-foreground">Comprehensive Schedule</h1>
+        <h1 className="text-2xl font-bold text-foreground">
+          {view === "past" ? "Past Schedule" : "Comprehensive Schedule"}
+        </h1>
         <div className="flex gap-2">
+          {view === "upcoming" ? (
+            <Button variant="outline" size="sm" onClick={() => setView("past")}>
+              <History className="w-4 h-4 mr-2" /> Past Classes
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setView("upcoming")}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={handlePrint}>
             <Printer className="w-4 h-4 mr-2" /> Print
           </Button>

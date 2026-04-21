@@ -8,7 +8,7 @@ import { format, addDays } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus, History, ArrowLeft } from "lucide-react";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import InstructorAssignment, { roleLabelMap } from "./InstructorAssignment";
 
@@ -136,6 +136,7 @@ const AdminSchedule = () => {
   const [form, setForm] = useState(emptyForm);
   const [filterCourse, setFilterCourse] = useState<string>("all");
   const [filterLocation, setFilterLocation] = useState<string>("all");
+  const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [availability, setAvailability] = useState<AvailabilityInfo[]>([]);
   const [assignmentData, setAssignmentData] = useState<AssignmentInfo[]>([]);
   const [assigningSchedule, setAssigningSchedule] = useState<{ id: string; name: string } | null>(null);
@@ -144,7 +145,13 @@ const AdminSchedule = () => {
 
   const fetchSchedules = async () => {
     setLoading(true);
-    let query = supabase.from("schedules").select("*").order("date", { ascending: true });
+    const today = new Date().toISOString().split("T")[0];
+    let query = supabase.from("schedules").select("*");
+    if (view === "past") {
+      query = query.lt("date", today).order("date", { ascending: false });
+    } else {
+      query = query.gte("date", today).order("date", { ascending: true });
+    }
     if (filterCourse !== "all") query = query.eq("course", filterCourse);
     if (filterLocation !== "all") query = query.eq("location", filterLocation);
     const [schedRes, availRes, assignRes] = await Promise.all([
@@ -198,7 +205,7 @@ const AdminSchedule = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchSchedules(); }, [filterCourse, filterLocation]);
+  useEffect(() => { fetchSchedules(); }, [filterCourse, filterLocation, view]);
 
   const getAvailabilityForSchedule = (scheduleId: string) =>
     availability.filter(a => a.schedule_id === scheduleId);
@@ -331,14 +338,26 @@ const AdminSchedule = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Schedule Management</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openNew}>
-              <Plus className="w-4 h-4 mr-2" /> Add Class
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <h1 className="text-2xl font-bold text-foreground">
+          {view === "past" ? "Past Classes" : "Schedule Management"}
+        </h1>
+        <div className="flex items-center gap-2">
+          {view === "upcoming" ? (
+            <Button variant="outline" onClick={() => setView("past")}>
+              <History className="w-4 h-4 mr-2" /> Past Classes
             </Button>
-          </DialogTrigger>
+          ) : (
+            <Button variant="outline" onClick={() => setView("upcoming")}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
+            </Button>
+          )}
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openNew}>
+                <Plus className="w-4 h-4 mr-2" /> Add Class
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>{editingId ? "Edit Class" : "Add New Class"}</DialogTitle>
@@ -421,7 +440,8 @@ const AdminSchedule = () => {
               <Button onClick={handleSave} className="w-full">{editingId ? "Save Changes" : "Add Class"}</Button>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filters */}

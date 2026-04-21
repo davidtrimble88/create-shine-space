@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, parseISO, eachWeekendOfInterval } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
@@ -47,14 +47,20 @@ const ViewerSchedule = () => {
   const [toggling, setToggling] = useState<string | null>(null);
   const [dismissing, setDismissing] = useState<string | null>(null);
   const [filterLocation, setFilterLocation] = useState<string>("all");
+  const [view, setView] = useState<"upcoming" | "past">("upcoming");
 
   const canDismiss = userRole === "owner" || userRole === "admin";
 
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
 
+    const schedQueryBuilder = supabase.from("schedules").select("*");
+    const schedPromise = view === "past"
+      ? schedQueryBuilder.lt("date", today).order("date", { ascending: false })
+      : schedQueryBuilder.gte("date", today).order("date", { ascending: true });
+
     const [schedRes, dismissedRes] = await Promise.all([
-      supabase.from("schedules").select("*").gte("date", today).order("date", { ascending: true }),
+      schedPromise,
       (supabase as any).from("dismissed_weekends").select("date").gte("date", today),
     ]);
 
@@ -83,7 +89,7 @@ const ViewerSchedule = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, [user]);
+  useEffect(() => { fetchData(); }, [user, view]);
 
   const toggleAvailability = async (scheduleId: string) => {
     if (!user) return;
@@ -242,8 +248,12 @@ const ViewerSchedule = () => {
   };
 
   const buildDisplayList = (): DisplayEntry[] => {
-    const placeholders = generateWeekendPlaceholders();
     const scheduleEntries: ScheduleEntry[] = schedules.map(s => ({ type: "schedule", data: s }));
+    // Past view: just show actual scheduled classes (no weekend placeholders)
+    if (view === "past") {
+      return scheduleEntries;
+    }
+    const placeholders = generateWeekendPlaceholders();
     const all: DisplayEntry[] = [...scheduleEntries, ...placeholders];
 
     all.sort((a, b) => {
@@ -273,11 +283,26 @@ const ViewerSchedule = () => {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Upcoming Classes</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Review the schedule and mark which classes you're available to teach.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">
+            {view === "past" ? "Past Classes" : "Upcoming Classes"}
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {view === "past"
+              ? "Review classes that have already taken place."
+              : "Review the schedule and mark which classes you're available to teach."}
+          </p>
+        </div>
+        {view === "upcoming" ? (
+          <Button variant="outline" onClick={() => setView("past")}>
+            <History className="w-4 h-4 mr-2" /> Past Classes
+          </Button>
+        ) : (
+          <Button variant="outline" onClick={() => setView("upcoming")}>
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
+          </Button>
+        )}
       </div>
 
       <div className="flex gap-4 mb-6">
