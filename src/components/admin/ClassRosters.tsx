@@ -487,17 +487,55 @@ const ClassRosters = () => {
             ))}
           </SelectContent>
         </Select>
-        <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
-          <SelectTrigger className="w-[400px]"><SelectValue placeholder="Select a class to view roster" /></SelectTrigger>
-          <SelectContent>
-            {filteredSchedules.map(s => (
-              <SelectItem key={s.id} value={s.id}>
-                {s.date} — {courseLabels[s.course] || s.course} — {s.location_label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {selectedScheduleId && (
+          <Button variant="outline" onClick={() => setSelectedScheduleId("")}>
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to classes
+          </Button>
+        )}
       </div>
+
+      {/* Class list — clickable */}
+      {!selectedScheduleId && (
+        <div className="mb-6">
+          {filteredSchedules.length === 0 ? (
+            <div className="bg-card border border-border rounded-xl p-6 text-sm text-muted-foreground">
+              No {view === "past" ? "past" : "upcoming"} classes match the current filters.
+            </div>
+          ) : (
+            <div className="bg-card border border-border rounded-xl divide-y divide-border overflow-hidden">
+              {filteredSchedules.map(s => {
+                const assignedNames = allAssignments
+                  .filter(a => a.schedule_id === s.id)
+                  .map(a => employees.find(e => e.id === a.employee_id)?.full_name)
+                  .filter(Boolean);
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => setSelectedScheduleId(s.id)}
+                    className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors flex items-center justify-between gap-4"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold text-foreground">
+                        {courseLabels[s.course] || s.course}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                        <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {s.date}</span>
+                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {s.location_label}</span>
+                        {assignedNames.length > 0 && (
+                          <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" /> {assignedNames.join(", ")}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-xs text-muted-foreground">{s.spots_available} spots open</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Roster */}
       {loading && <p className="text-muted-foreground">Loading roster...</p>}
