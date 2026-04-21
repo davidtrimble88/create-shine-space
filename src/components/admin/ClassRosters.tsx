@@ -165,12 +165,19 @@ const ClassRosters = () => {
 
   const filteredSchedules = schedules.filter(s => {
     if (locationFilter && locationFilter !== "all" && s.location !== locationFilter) return false;
+    if (courseFilter && courseFilter !== "all" && s.course !== courseFilter) return false;
+    if (dateFilter && !s.date.includes(dateFilter.trim())) return false;
     if (instructorFilter === "my-classes") {
-      return myAssignedScheduleIds.has(s.id);
-    }
-    if (instructorFilter && instructorFilter !== "all") {
+      if (!myAssignedScheduleIds.has(s.id)) return false;
+    } else if (instructorFilter && instructorFilter !== "all") {
       const empAssignedIds = new Set(allAssignments.filter(a => a.employee_id === instructorFilter).map(a => a.schedule_id));
-      return empAssignedIds.has(s.id);
+      if (!empAssignedIds.has(s.id)) return false;
+    }
+    if (enrollmentFilter !== "all") {
+      const count = enrollmentCounts[s.id] || 0;
+      if (enrollmentFilter === "empty" && count !== 0) return false;
+      if (enrollmentFilter === "has" && count === 0) return false;
+      if (enrollmentFilter === "full" && count < s.spots_available) return false;
     }
     return true;
   });
