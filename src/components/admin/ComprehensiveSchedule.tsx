@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Printer, Mail, CalendarDays } from "lucide-react";
+import { Printer, Mail, CalendarDays, History, ArrowLeft } from "lucide-react";
 import { roleLabelMap } from "./InstructorAssignment";
 
 interface ScheduleRow {
@@ -31,6 +31,7 @@ const ComprehensiveSchedule = () => {
   const [filterLocation, setFilterLocation] = useState("all");
   const [filterCourse, setFilterCourse] = useState("all");
   const [filterInstructor, setFilterInstructor] = useState("all");
+  const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [instructorList, setInstructorList] = useState<{ id: string; name: string }[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -38,7 +39,13 @@ const ComprehensiveSchedule = () => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      let query = supabase.from("schedules").select("*").order("date", { ascending: true });
+      const today = new Date().toISOString().split("T")[0];
+      let query = supabase.from("schedules").select("*");
+      if (view === "past") {
+        query = query.lt("date", today).order("date", { ascending: false });
+      } else {
+        query = query.gte("date", today).order("date", { ascending: true });
+      }
       if (filterCourse !== "all") query = query.eq("course", filterCourse);
       if (filterLocation !== "all") query = query.eq("location", filterLocation);
 
@@ -73,7 +80,7 @@ const ComprehensiveSchedule = () => {
       setLoading(false);
     };
     load();
-  }, [filterCourse, filterLocation]);
+  }, [filterCourse, filterLocation, view]);
 
   const filteredRows = filterInstructor === "all"
     ? rows
