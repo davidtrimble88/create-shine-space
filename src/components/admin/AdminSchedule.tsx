@@ -205,7 +205,7 @@ const AdminSchedule = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchSchedules(); }, [filterCourse, filterLocation]);
+  useEffect(() => { fetchSchedules(); }, [filterCourse, filterLocation, view]);
 
   const getAvailabilityForSchedule = (scheduleId: string) =>
     availability.filter(a => a.schedule_id === scheduleId);
