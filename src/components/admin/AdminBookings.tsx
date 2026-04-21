@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X, DollarSign } from "lucide-react";
+import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Booking = Tables<"bookings">;
@@ -164,6 +164,19 @@ const AdminBookings = () => {
   const activeLocation = filterLocation && filterLocation !== "all" ? filterLocation : "";
   const hasFilters = !!activeCourse || !!activeLocation || !!filterDate;
 
+  type SortKey = "student" | "course" | "location" | "date" | "payment" | "status" | "referral";
+  const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
   const filtered = bookings.filter(b => {
     if (search && !`${b.first_name} ${b.last_name} ${b.email} ${b.course}`.toLowerCase().includes(search.toLowerCase())) return false;
     if (activeCourse && b.course !== activeCourse) return false;
@@ -171,6 +184,31 @@ const AdminBookings = () => {
     if (filterDate && b.schedule_date !== filterDate) return false;
     return true;
   });
+
+  const sorted = [...filtered].sort((a, b) => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    const getVal = (row: Booking): string => {
+      switch (sortKey) {
+        case "student": return `${row.last_name} ${row.first_name}`.toLowerCase();
+        case "course": return (courseLabels[row.course] || row.course).toLowerCase();
+        case "location": return (row.location_label || "").toLowerCase();
+        case "date": return row.schedule_date || "";
+        case "payment": return row.payment_status || "";
+        case "status": return row.booking_status || "";
+        case "referral": return (row.referral_source || "").toLowerCase();
+      }
+    };
+    const av = getVal(a);
+    const bv = getVal(b);
+    if (av < bv) return -1 * dir;
+    if (av > bv) return 1 * dir;
+    return 0;
+  });
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sortKey !== k) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+    return sortDir === "asc" ? <ArrowUp className="w-3 h-3 text-accent" /> : <ArrowDown className="w-3 h-3 text-accent" />;
+  };
 
   const clearFilters = () => {
     setFilterCourse("");
@@ -435,20 +473,33 @@ const AdminBookings = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-secondary/50">
-                <th className="text-left p-3 font-medium text-muted-foreground">Student</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Course</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Location</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Date</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Payment</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
-                <th className="text-left p-3 font-medium text-muted-foreground">Referral</th>
+                {([
+                  ["student", "Student"],
+                  ["course", "Course"],
+                  ["location", "Location"],
+                  ["date", "Date"],
+                  ["payment", "Payment"],
+                  ["status", "Status"],
+                  ["referral", "Referral"],
+                ] as [SortKey, string][]).map(([key, label]) => (
+                  <th key={key} className="text-left p-3 font-medium text-muted-foreground">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort(key)}
+                      className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+                    >
+                      {label}
+                      <SortIcon k={key} />
+                    </button>
+                  </th>
+                ))}
                 <th className="text-left p-3 font-medium text-muted-foreground"></th>
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {sorted.length === 0 ? (
                 <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">No bookings found</td></tr>
-              ) : filtered.map(b => (
+              ) : sorted.map(b => (
                 <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
                   <td className="p-3 font-medium text-foreground">
                     {b.first_name} {b.last_name}
