@@ -459,16 +459,38 @@ const AdminEmployees = () => {
         </Dialog>
       </div>
 
-      {loading ? (
-        <p className="text-muted-foreground">Loading...</p>
-      ) : employees.length === 0 ? (
-        <div className="bg-card border border-border rounded-xl p-8 text-center">
-          <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">No employees yet. Add your first team member above.</p>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {employees.map((emp) => {
+      {(() => {
+        const term = searchTerm.trim().toLowerCase();
+        const filteredEmployees = employees.filter(emp => {
+          if (roleFilter !== "all" && (emp.role ?? "employee") !== roleFilter) return false;
+          if (!term) return true;
+          return (
+            emp.full_name?.toLowerCase().includes(term) ||
+            emp.email?.toLowerCase().includes(term) ||
+            (emp.phone ?? "").toLowerCase().includes(term) ||
+            (emp.position ?? "").toLowerCase().includes(term)
+          );
+        });
+        if (loading) return <p className="text-muted-foreground">Loading...</p>;
+        if (employees.length === 0) {
+          return (
+            <div className="bg-card border border-border rounded-xl p-8 text-center">
+              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No employees yet. Add your first team member above.</p>
+            </div>
+          );
+        }
+        if (filteredEmployees.length === 0) {
+          return (
+            <div className="bg-card border border-border rounded-xl p-8 text-center">
+              <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No employees match your search or filter.</p>
+            </div>
+          );
+        }
+        return (
+          <div className="grid gap-4">
+            {filteredEmployees.map((emp) => {
             const RoleIcon = roleIcons[emp.role ?? "employee"] ?? Eye;
             return (
               <div key={emp.id} className="bg-card border border-border rounded-xl p-5 flex items-center justify-between">
