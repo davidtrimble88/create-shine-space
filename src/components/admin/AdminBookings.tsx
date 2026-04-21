@@ -26,13 +26,9 @@ const locationLabels: Record<string, string> = {
   "ventura-county": "Ventura County — Somis",
 };
 
-const referralOptions = [
+const FALLBACK_REFERRALS = [
   "Google", "Learn To Ride VC Website", "Yelp", "Facebook", "Instagram",
-  "Chopperfest", "Cal Coast Motorsports", "Word of Mouth / Friend", "DMV",
-  "CHP", "Cycle Gear", "Ventura Fair", "Ventura Harley Davidson",
-  "Thousand Oaks Powersports", "Santa Barbara Motorsports", "My Garage Ventura",
-  "The Shop Ventura", "BBB (Better Business Bureau)", "Overland Outdoor Expo",
-  "Phone Call", "Walk-in", "Other",
+  "Word of Mouth / Friend", "Phone Call", "Walk-in", "Other",
 ];
 
 const AdminBookings = () => {
