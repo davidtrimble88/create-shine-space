@@ -544,6 +544,9 @@ const ClassRosters = () => {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
+                      <div className="text-sm font-semibold text-foreground">
+                        {enrollmentCounts[s.id] || 0} registered
+                      </div>
                       <div className="text-xs text-muted-foreground">{s.spots_available} spots open</div>
                     </div>
                   </button>
