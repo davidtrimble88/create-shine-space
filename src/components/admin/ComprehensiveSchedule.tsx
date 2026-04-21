@@ -142,8 +142,19 @@ const ComprehensiveSchedule = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-        <h1 className="text-2xl font-bold text-foreground">Comprehensive Schedule</h1>
+        <h1 className="text-2xl font-bold text-foreground">
+          {view === "past" ? "Past Schedule" : "Comprehensive Schedule"}
+        </h1>
         <div className="flex gap-2">
+          {view === "upcoming" ? (
+            <Button variant="outline" size="sm" onClick={() => setView("past")}>
+              <History className="w-4 h-4 mr-2" /> Past Classes
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setView("upcoming")}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={handlePrint}>
             <Printer className="w-4 h-4 mr-2" /> Print
           </Button>
