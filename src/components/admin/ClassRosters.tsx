@@ -53,8 +53,12 @@ const ClassRosters = () => {
   useEffect(() => {
     const fetchData = async () => {
       const today = new Date().toISOString().split("T")[0];
-      const [schedRes, empRes, assignRes] = await Promise.all([
-        supabase.from("schedules").select("*").gte("date", today).order("date"),
+      setSelectedScheduleId("");
+      const schedQuery = supabase.from("schedules").select("*");
+      const schedRes = view === "past"
+        ? await schedQuery.lt("date", today).order("date", { ascending: false })
+        : await schedQuery.gte("date", today).order("date");
+      const [empRes, assignRes] = await Promise.all([
         supabase.from("employees").select("id, full_name, user_id").eq("is_active", true),
         supabase.from("instructor_assignments").select("schedule_id, employee_id, assignment_role"),
       ]);
@@ -70,7 +74,7 @@ const ClassRosters = () => {
       }
     };
     fetchData();
-  }, [user?.id]);
+  }, [user?.id, view]);
 
   useEffect(() => {
     if (!selectedScheduleId) {
