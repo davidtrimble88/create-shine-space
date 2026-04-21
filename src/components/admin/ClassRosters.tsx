@@ -40,6 +40,9 @@ const ClassRosters = () => {
   const [loading, setLoading] = useState(false);
   const [locationFilter, setLocationFilter] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("");
+  const [courseFilter, setCourseFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
+  const [enrollmentFilter, setEnrollmentFilter] = useState("all");
   const [myAssignedScheduleIds, setMyAssignedScheduleIds] = useState<Set<string>>(new Set());
   const [employees, setEmployees] = useState<{ id: string; full_name: string; user_id: string | null }[]>([]);
   const [allAssignments, setAllAssignments] = useState<FullAssignment[]>([]);
