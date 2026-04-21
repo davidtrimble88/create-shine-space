@@ -70,12 +70,14 @@ const AdminBookings = () => {
 
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
-    const [bookRes, schedRes] = await Promise.all([
+    const [bookRes, schedRes, refRes] = await Promise.all([
       supabase.from("bookings").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("schedules").select("*").gte("date", today).order("date"),
+      supabase.from("referral_sources").select("name").eq("is_active", true).order("sort_order").order("name"),
     ]);
     if (bookRes.data) setBookings(bookRes.data);
     if (schedRes.data) setSchedules(schedRes.data);
+    if (refRes.data && refRes.data.length > 0) setReferralOptions(refRes.data.map(r => r.name));
   };
 
   useEffect(() => { fetchData(); }, []);
