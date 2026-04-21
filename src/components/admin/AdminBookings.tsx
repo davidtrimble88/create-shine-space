@@ -164,6 +164,19 @@ const AdminBookings = () => {
   const activeLocation = filterLocation && filterLocation !== "all" ? filterLocation : "";
   const hasFilters = !!activeCourse || !!activeLocation || !!filterDate;
 
+  type SortKey = "student" | "course" | "location" | "date" | "payment" | "status" | "referral";
+  const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
   const filtered = bookings.filter(b => {
     if (search && !`${b.first_name} ${b.last_name} ${b.email} ${b.course}`.toLowerCase().includes(search.toLowerCase())) return false;
     if (activeCourse && b.course !== activeCourse) return false;
@@ -171,6 +184,31 @@ const AdminBookings = () => {
     if (filterDate && b.schedule_date !== filterDate) return false;
     return true;
   });
+
+  const sorted = [...filtered].sort((a, b) => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    const getVal = (row: Booking): string => {
+      switch (sortKey) {
+        case "student": return `${row.last_name} ${row.first_name}`.toLowerCase();
+        case "course": return (courseLabels[row.course] || row.course).toLowerCase();
+        case "location": return (row.location_label || "").toLowerCase();
+        case "date": return row.schedule_date || "";
+        case "payment": return row.payment_status || "";
+        case "status": return row.booking_status || "";
+        case "referral": return (row.referral_source || "").toLowerCase();
+      }
+    };
+    const av = getVal(a);
+    const bv = getVal(b);
+    if (av < bv) return -1 * dir;
+    if (av > bv) return 1 * dir;
+    return 0;
+  });
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sortKey !== k) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+    return sortDir === "asc" ? <ArrowUp className="w-3 h-3 text-accent" /> : <ArrowDown className="w-3 h-3 text-accent" />;
+  };
 
   const clearFilters = () => {
     setFilterCourse("");
