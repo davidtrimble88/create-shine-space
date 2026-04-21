@@ -537,8 +537,9 @@ const AdminEmployees = () => {
               </div>
             );
           })}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* Temp Password Dialog */}
       <Dialog open={!!tempPasswordInfo} onOpenChange={(open) => { if (!open) setTempPasswordInfo(null); }}>
