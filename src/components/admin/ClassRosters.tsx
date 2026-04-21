@@ -66,7 +66,23 @@ const ClassRosters = () => {
         supabase.from("employees").select("id, full_name, user_id").eq("is_active", true),
         supabase.from("instructor_assignments").select("schedule_id, employee_id, assignment_role"),
       ]);
-      if (schedRes.data) setSchedules(schedRes.data);
+      if (schedRes.data) {
+        setSchedules(schedRes.data);
+        const ids = schedRes.data.map(s => s.id);
+        if (ids.length > 0) {
+          const { data: bookingRows } = await supabase
+            .from("bookings")
+            .select("schedule_id")
+            .in("schedule_id", ids);
+          const counts: Record<string, number> = {};
+          (bookingRows ?? []).forEach(b => {
+            if (b.schedule_id) counts[b.schedule_id] = (counts[b.schedule_id] || 0) + 1;
+          });
+          setEnrollmentCounts(counts);
+        } else {
+          setEnrollmentCounts({});
+        }
+      }
       if (empRes.data) setEmployees(empRes.data);
       if (assignRes.data) {
         setAllAssignments(assignRes.data);
