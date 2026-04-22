@@ -48,6 +48,12 @@ const EmployeeDashboard = () => {
   const { user, isAdmin, userRole, loading, mustChangePassword, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
+  useEffect(() => {
+    const handler = () => setActiveTab("rosters");
+    window.addEventListener("openRoster", handler);
+    return () => window.removeEventListener("openRoster", handler);
+  }, []);
+
   if (!loading && user && mustChangePassword) {
     return <Navigate to="/change-password" replace />;
   }
