@@ -221,7 +221,18 @@ const ComprehensiveSchedule = () => {
                   </thead>
                   <tbody>
                     {items.map(r => (
-                      <tr key={r.id} className="border-b border-border/50">
+                      <tr
+                        key={r.id}
+                        className="border-b border-border/50 cursor-pointer hover:bg-secondary/40 transition-colors"
+                        onClick={() => {
+                          sessionStorage.setItem(
+                            "openRosterSchedule",
+                            JSON.stringify({ id: r.id, date: r.date })
+                          );
+                          window.dispatchEvent(new CustomEvent("openRoster"));
+                        }}
+                        title="Click to view this class roster"
+                      >
                         <td className="p-3 text-foreground whitespace-nowrap">
                           {new Date(r.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                         </td>

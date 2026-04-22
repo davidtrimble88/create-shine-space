@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
 import AdminOverview from "@/components/admin/AdminOverview";
@@ -47,6 +47,12 @@ const roleLabels: Record<string, { label: string; icon: typeof Shield }> = {
 const EmployeeDashboard = () => {
   const { user, isAdmin, userRole, loading, mustChangePassword, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
+
+  useEffect(() => {
+    const handler = () => setActiveTab("rosters");
+    window.addEventListener("openRoster", handler);
+    return () => window.removeEventListener("openRoster", handler);
+  }, []);
 
   if (!loading && user && mustChangePassword) {
     return <Navigate to="/change-password" replace />;

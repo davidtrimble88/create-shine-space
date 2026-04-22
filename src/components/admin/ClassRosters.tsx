@@ -57,7 +57,26 @@ const ClassRosters = () => {
   useEffect(() => {
     const fetchData = async () => {
       const today = new Date().toISOString().split("T")[0];
-      setSelectedScheduleId("");
+
+      // Honor cross-component request to open a specific roster
+      const pending = sessionStorage.getItem("openRosterSchedule");
+      let pendingId: string | null = null;
+      let pendingDate: string | null = null;
+      if (pending) {
+        try {
+          const parsed = JSON.parse(pending);
+          pendingId = parsed.id ?? null;
+          pendingDate = parsed.date ?? null;
+          // If the requested class is past but we're on upcoming (or vice versa), flip view
+          if (pendingDate) {
+            const wantPast = pendingDate < today;
+            if (wantPast && view !== "past") { setView("past"); return; }
+            if (!wantPast && view !== "upcoming") { setView("upcoming"); return; }
+          }
+        } catch { /* ignore */ }
+      }
+
+      if (!pendingId) setSelectedScheduleId("");
       const schedQuery = supabase.from("schedules").select("*");
       const schedRes = view === "past"
         ? await schedQuery.lt("date", today).order("date", { ascending: false })
@@ -81,6 +100,10 @@ const ClassRosters = () => {
           setEnrollmentCounts(counts);
         } else {
           setEnrollmentCounts({});
+        }
+        if (pendingId && schedRes.data.some(s => s.id === pendingId)) {
+          setSelectedScheduleId(pendingId);
+          sessionStorage.removeItem("openRosterSchedule");
         }
       }
       if (empRes.data) setEmployees(empRes.data);
