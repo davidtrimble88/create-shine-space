@@ -17,7 +17,7 @@ const AdminOverview = () => {
   const [todayByLocation, setTodayByLocation] = useState<LocationEarnings>({});
   const [yesterdayByLocation, setYesterdayByLocation] = useState<LocationEarnings>({});
 
-  const canSeeEarnings = userRole === "owner" || userRole === "admin";
+  const canSeeEarnings = effectiveRole === "owner";
 
   useEffect(() => {
     const fetchStats = async () => {
