@@ -199,6 +199,41 @@ const ClassRosters = () => {
     fetchBookings();
   }, [selectedScheduleId]);
 
+  // When the Schedule Retest dialog opens, fetch retest counts for matching upcoming classes
+  useEffect(() => {
+    if (!scheduleRetestFor) return;
+    const fetchCounts = async () => {
+      const todayStr = new Date().toISOString().split("T")[0];
+      const failedDate = new Date((scheduleRetestFor.schedule_date || "") + "T00:00:00");
+      const deadlineDate = new Date(failedDate);
+      deadlineDate.setDate(deadlineDate.getDate() + RETEST_WINDOW_DAYS);
+      const deadlineStr = deadlineDate.toISOString().split("T")[0];
+      const candidateIds = schedules
+        .filter(s => s.course === scheduleRetestFor.course && s.date >= todayStr && s.date <= deadlineStr)
+        .map(s => s.id);
+      if (candidateIds.length === 0) {
+        setRetestCountsByClass({});
+        return;
+      }
+      const { data } = await (supabase as any)
+        .from("bookings")
+        .select("schedule_id, roster_comment")
+        .in("schedule_id", candidateIds)
+        .eq("is_retest", true);
+      const counts: Record<string, { skill: number; knowledge: number }> = {};
+      (data ?? []).forEach((row: { schedule_id: string | null; roster_comment: string | null }) => {
+        if (!row.schedule_id) return;
+        if (!counts[row.schedule_id]) counts[row.schedule_id] = { skill: 0, knowledge: 0 };
+        const c = (row.roster_comment || "").toLowerCase();
+        if (c.includes("knowledge")) counts[row.schedule_id].knowledge += 1;
+        else counts[row.schedule_id].skill += 1; // default: treat unlabeled retests as skill
+      });
+      setRetestCountsByClass(counts);
+    };
+    fetchCounts();
+  }, [scheduleRetestFor, schedules]);
+
+
   // Global student search across all bookings
   useEffect(() => {
     const term = studentSearch.trim();
