@@ -22,6 +22,9 @@ export type Database = {
           course: string
           created_at: string
           date_of_birth: string | null
+          dl389_completed: boolean
+          dl389_completed_at: string | null
+          dl389_completed_by: string | null
           email: string
           fee: string | null
           first_name: string
@@ -54,6 +57,9 @@ export type Database = {
           course: string
           created_at?: string
           date_of_birth?: string | null
+          dl389_completed?: boolean
+          dl389_completed_at?: string | null
+          dl389_completed_by?: string | null
           email: string
           fee?: string | null
           first_name: string
@@ -86,6 +92,9 @@ export type Database = {
           course?: string
           created_at?: string
           date_of_birth?: string | null
+          dl389_completed?: boolean
+          dl389_completed_at?: string | null
+          dl389_completed_by?: string | null
           email?: string
           fee?: string | null
           first_name?: string
