@@ -155,11 +155,11 @@ const ClassRosters = () => {
       }
 
       // Pending retests = failed students with retest_type skill/knowledge
-      const { data: retestRows } = await supabase
+      const { data: retestRows } = await (supabase as any)
         .from("bookings")
         .select("*")
-        .eq("result", "fail" as any)
-        .in("retest_type" as any, ["skill", "knowledge"]);
+        .eq("result", "fail")
+        .in("retest_type", ["skill", "knowledge"]);
       setPendingRetests((retestRows ?? []) as Booking[]);
 
       if (pendingId) {
