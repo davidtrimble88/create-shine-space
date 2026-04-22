@@ -514,7 +514,10 @@ const ClassRosters = () => {
         </div>
         {result === "fail" && retest && (
           <div className="text-[10px] text-center mt-1 text-muted-foreground">
-            {retest === "skill" ? "Skill retest" : retest === "knowledge" ? "Knowledge retest" : "Not eligible"}
+            {retest === "skill" ? "Skill retest"
+              : retest === "knowledge" ? "Knowledge retest"
+              : retest === "both" ? "Skill & Knowledge retest"
+              : "Not eligible"}
           </div>
         )}
       </td>
