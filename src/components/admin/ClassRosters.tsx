@@ -41,7 +41,8 @@ const daysBetween = (from: Date, to: Date) => {
 };
 
 const ClassRosters = () => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
+  const canManageEvaluations = userRole === "owner" || userRole === "admin";
   const [view, setView] = useState<ViewMode>("active");
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
