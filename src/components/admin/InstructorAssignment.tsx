@@ -143,7 +143,7 @@ const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="w-5 h-5" />
@@ -189,9 +189,9 @@ const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
                   )}
                 </button>
                 {assigned && entry && (
-                  <div className="px-3 pb-2.5 pl-14 flex items-center gap-2 flex-nowrap">
+                  <div className="px-3 pb-2.5 pl-14 space-y-2">
                     <Select value={entry.role} onValueChange={v => setRole(emp.id, v)}>
-                      <SelectTrigger className="h-8 text-xs flex-1 min-w-0">
+                      <SelectTrigger className="h-8 text-xs w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -200,7 +200,7 @@ const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
                         ))}
                       </SelectContent>
                     </Select>
-                    <div className="flex gap-1 shrink-0">
+                    <div className="flex gap-1.5 flex-nowrap">
                       {DUTIES.map(d => {
                         const active = entry.duties.has(d.value);
                         return (
@@ -208,7 +208,7 @@ const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
                             key={d.value}
                             type="button"
                             onClick={() => toggleDuty(emp.id, d.value)}
-                            className={`h-8 w-9 px-0 text-xs font-semibold rounded-md border transition-colors ${
+                            className={`h-8 flex-1 text-xs font-semibold rounded-md border transition-colors ${
                               active
                                 ? "bg-accent text-accent-foreground border-accent"
                                 : "bg-background text-muted-foreground border-border hover:bg-secondary hover:text-foreground"
