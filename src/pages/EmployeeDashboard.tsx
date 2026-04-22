@@ -1,7 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -47,7 +48,7 @@ const roleLabels: Record<string, { label: string; icon: typeof Shield }> = {
 };
 
 const EmployeeDashboard = () => {
-  const { user, isAdmin, userRole, loading, mustChangePassword, signOut } = useAuth();
+  const { user, isAdmin, userRole, effectiveRole, viewAsRole, setViewAsRole, loading, mustChangePassword, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
   useEffect(() => {
@@ -55,6 +56,12 @@ const EmployeeDashboard = () => {
     window.addEventListener("openRoster", handler);
     return () => window.removeEventListener("openRoster", handler);
   }, []);
+
+  // If owner switches to a view that hides the active tab, send them back to overview
+  useEffect(() => {
+    const stillVisible = tabs.find(t => t.id === activeTab)?.roles.includes(effectiveRole as any);
+    if (!stillVisible) setActiveTab("overview");
+  }, [effectiveRole, activeTab]);
 
   if (!loading && user && mustChangePassword) {
     return <Navigate to="/change-password" replace />;
@@ -72,9 +79,11 @@ const EmployeeDashboard = () => {
     return <Navigate to="/employee-login" replace />;
   }
 
-  const visibleTabs = tabs.filter(t => t.roles.includes(userRole as any));
-  const roleInfo = roleLabels[userRole] || roleLabels.employee;
+  const visibleTabs = tabs.filter(t => t.roles.includes(effectiveRole as any));
+  const roleInfo = roleLabels[effectiveRole] || roleLabels.employee;
   const RoleIcon = roleInfo.icon;
+  const isOwner = userRole === "owner";
+  const isImpersonating = isOwner && !!viewAsRole && viewAsRole !== "owner";
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -118,14 +127,45 @@ const EmployeeDashboard = () => {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center gap-2 mb-3">
+        <div className="p-4 border-t border-border space-y-3">
+          {isOwner && (
+            <div>
+              <label className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium flex items-center gap-1 mb-1.5">
+                <Eye className="w-3 h-3" /> View as
+              </label>
+              <Select
+                value={viewAsRole ?? "owner"}
+                onValueChange={(v) => setViewAsRole(v === "owner" ? null : (v as any))}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="owner">Owner (default)</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="employee">Employee / Viewer</SelectItem>
+                </SelectContent>
+              </Select>
+              {isImpersonating && (
+                <button
+                  type="button"
+                  onClick={() => setViewAsRole(null)}
+                  className="mt-1.5 w-full text-[10px] text-accent hover:text-accent/80 flex items-center justify-center gap-1"
+                >
+                  <EyeOff className="w-3 h-3" /> Exit preview, return to Owner
+                </button>
+              )}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
             <span className="flex items-center gap-1 text-xs font-medium bg-accent/10 text-accent px-2 py-1 rounded-full">
               <RoleIcon className="w-3 h-3" />
               {roleInfo.label}
+              {isImpersonating && <span className="text-[10px] opacity-70">(preview)</span>}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground truncate mb-3">{user.email}</p>
+          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
           <Button variant="outline" size="sm" onClick={signOut} className="w-full">
             <LogOut className="w-4 h-4 mr-2" />
             Sign Out
