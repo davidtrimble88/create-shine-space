@@ -68,6 +68,10 @@ const ClassRosters = () => {
   const [evalPendingSchedules, setEvalPendingSchedules] = useState<Schedule[]>([]);
   // Fail-result dialog state
   const [failDialogBookingId, setFailDialogBookingId] = useState<string | null>(null);
+  // Schedule-retest dialog state
+  const [scheduleRetestFor, setScheduleRetestFor] = useState<Booking | null>(null);
+  const [retestTargetScheduleId, setRetestTargetScheduleId] = useState<string>("");
+  const [schedulingRetest, setSchedulingRetest] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Load schedules + employees + assignments based on view
