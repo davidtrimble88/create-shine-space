@@ -199,10 +199,13 @@ const RegisterPage = () => {
         city: data.city,
         state: data.state,
         zip: data.zip,
-        license_number: data.licenseNumber,
+        license_number:
+          data.idType === "other"
+            ? `${data.otherIdType?.trim()}: ${data.licenseNumber}`
+            : data.licenseNumber,
         issuing_country: data.issuingCountry,
-        issuing_state: data.issuingState,
-        license_expiration: data.licenseExpiration,
+        issuing_state: data.idType === "drivers_license" ? data.issuingState : null,
+        license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
       } as any);
 
       if (error) {
