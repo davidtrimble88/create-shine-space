@@ -221,6 +221,7 @@ const RegisterPage = () => {
   };
 
   const dateOfBirth = useWatch({ control: form.control, name: "dateOfBirth" });
+  const idType = useWatch({ control: form.control, name: "idType" });
   
 
   const age = dateOfBirth
