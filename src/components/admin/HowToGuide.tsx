@@ -21,6 +21,7 @@ import {
   DollarSign,
   ShieldCheck,
   Lock,
+  FolderOpen,
 } from "lucide-react";
 
 interface GuideSection {
