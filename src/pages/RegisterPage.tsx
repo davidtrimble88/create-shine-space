@@ -49,6 +49,21 @@ const registrationSchema = z.object({
   agreement: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
+  parentGuardianAck: z.boolean().optional(),
+}).superRefine((data, ctx) => {
+  if (!data.dateOfBirth) return;
+  const today = new Date();
+  const birth = new Date(data.dateOfBirth);
+  let a = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) a--;
+  if (a < 18 && data.parentGuardianAck !== true) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["parentGuardianAck"],
+      message: "A parent or legal guardian must acknowledge they will be making payment",
+    });
+  }
 });
 
 type RegistrationFormData = z.infer<typeof registrationSchema>;
