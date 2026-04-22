@@ -606,7 +606,7 @@ const ClassRosters = () => {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-foreground">{viewTitle}</h1>
         <div className="flex items-center gap-2 flex-wrap">
-          {view === "active" && (
+          {view === "active" && canManageEvaluations && (
             <>
               <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("evaluation_pending"); }}>
                 <ClipboardList className="w-4 h-4 mr-2" /> Evaluation Pending
