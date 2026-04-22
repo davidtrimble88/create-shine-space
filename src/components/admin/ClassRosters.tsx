@@ -536,8 +536,8 @@ const ClassRosters = () => {
       payment_status: "paid",
       is_retest: true,
       roster_comment: src.retest_type === "skill"
-        ? "Skill retest (auto-scheduled from Pending Retests)"
-        : "Knowledge retest (auto-scheduled from Pending Retests)",
+        ? "Skill retest"
+        : "Knowledge retest",
     }).select().single();
 
     if (error || !data) {
