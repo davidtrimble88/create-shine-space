@@ -49,6 +49,21 @@ const registrationSchema = z.object({
   agreement: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
+  parentGuardianAck: z.boolean().optional(),
+}).superRefine((data, ctx) => {
+  if (!data.dateOfBirth) return;
+  const today = new Date();
+  const birth = new Date(data.dateOfBirth);
+  let a = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) a--;
+  if (a < 18 && data.parentGuardianAck !== true) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["parentGuardianAck"],
+      message: "A parent or legal guardian must acknowledge they will be making payment",
+    });
+  }
 });
 
 type RegistrationFormData = z.infer<typeof registrationSchema>;
@@ -188,6 +203,7 @@ const RegisterPage = () => {
     : null;
 
   const isUnder21 = age !== null && age < 21;
+  const isUnder18 = age !== null && age < 18;
   const fee = isUnder21 ? "$395" : "$425";
 
   return (
@@ -518,7 +534,7 @@ const RegisterPage = () => {
                 </div>
 
                 {/* Agreement */}
-                <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
+                <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6">
                   <FormField
                     control={form.control}
                     name="agreement"
@@ -539,6 +555,30 @@ const RegisterPage = () => {
                       </FormItem>
                     )}
                   />
+
+                  {isUnder18 && (
+                    <FormField
+                      control={form.control}
+                      name="parentGuardianAck"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-accent/40 bg-accent/10 p-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={!!field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm leading-relaxed">
+                              <span className="font-bold text-accent">Parent / Legal Guardian Acknowledgment (required for students under 18):</span>{" "}
+                              Because the student is under 18 years old, a parent or legal guardian must be the one making the payment for this course. By checking this box, the parent or legal guardian acknowledges and agrees to this requirement. *
+                            </FormLabel>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </div>
 
                 <div className="text-center space-y-3">
