@@ -1047,6 +1047,9 @@ const ClassRosters = () => {
   if (view === "pending_retests" && canManageEvaluations) {
     return renderPendingRetests();
   }
+  if (view === "dl389" && canManageEvaluations) {
+    return renderDL389();
+  }
 
   const viewTitle =
     view === "past" ? "Past Class Rosters" :
@@ -1065,6 +1068,14 @@ const ClassRosters = () => {
                 {evalPendingSchedules.length > 0 && (
                   <span className="ml-2 bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded text-xs font-bold">
                     {evalPendingSchedules.length}
+                  </span>
+                )}
+              </Button>
+              <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("dl389"); }}>
+                <FileCheck className="w-4 h-4 mr-2" /> DL389
+                {dl389Schedules.length > 0 && (
+                  <span className="ml-2 bg-blue-500/20 text-blue-500 px-1.5 py-0.5 rounded text-xs font-bold">
+                    {Object.values(dl389PendingCounts).reduce((a, b) => a + b, 0)}
                   </span>
                 )}
               </Button>
