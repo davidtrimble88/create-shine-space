@@ -592,7 +592,11 @@ const ClassRosters = () => {
   // ========================
   // Render
   // ========================
-  if (view === "pending_retests") {
+  // Force-redirect non-privileged users away from restricted views
+  if (!canManageEvaluations && view !== "active") {
+    setView("active");
+  }
+  if (view === "pending_retests" && canManageEvaluations) {
     return renderPendingRetests();
   }
 
