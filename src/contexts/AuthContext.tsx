@@ -41,6 +41,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<AppRole>("employee");
   const [loading, setLoading] = useState(true);
   const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [viewAsRole, setViewAsRoleState] = useState<AppRole | null>(() => {
+    if (typeof window === "undefined") return null;
+    const stored = window.localStorage.getItem("viewAsRole");
+    return (stored as AppRole | null) ?? null;
+  });
+
+  const setViewAsRole = (role: AppRole | null) => {
+    setViewAsRoleState(role);
+    if (typeof window !== "undefined") {
+      if (role) window.localStorage.setItem("viewAsRole", role);
+      else window.localStorage.removeItem("viewAsRole");
+    }
+  };
+
+  // Only owners can impersonate; if owner clears or non-owner logs in, drop override
+  const effectiveRole: AppRole = userRole === "owner" && viewAsRole ? viewAsRole : userRole;
 
   const clearMustChangePassword = () => setMustChangePassword(false);
 
@@ -121,7 +137,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, isAdmin, userRole, loading, mustChangePassword, clearMustChangePassword, signOut }}>
+    <AuthContext.Provider value={{ session, user, isAdmin, userRole, effectiveRole, viewAsRole, setViewAsRole, loading, mustChangePassword, clearMustChangePassword, signOut }}>
       {children}
     </AuthContext.Provider>
   );
