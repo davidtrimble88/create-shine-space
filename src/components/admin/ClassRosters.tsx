@@ -151,28 +151,36 @@ const ClassRosters = () => {
         ...pastList.map(s => s.id),
       ];
       if (allIds.length > 0) {
-        const { data: bookingRows } = await supabase
+        const { data: bookingRows } = await (supabase as any)
           .from("bookings")
-          .select("schedule_id, result, is_retest")
+          .select("schedule_id, result, is_retest, dl389_completed")
           .in("schedule_id", allIds);
         const counts: Record<string, number> = {};
         const evalCounts: Record<string, number> = {};
-        (bookingRows ?? []).forEach(b => {
+        const dl389Counts: Record<string, number> = {};
+        (bookingRows ?? []).forEach((b: { schedule_id: string | null; result: string | null; is_retest: boolean; dl389_completed: boolean }) => {
           if (!b.schedule_id) return;
           counts[b.schedule_id] = (counts[b.schedule_id] || 0) + 1;
-          if (!(b as any).result) {
+          if (!b.result) {
             evalCounts[b.schedule_id] = (evalCounts[b.schedule_id] || 0) + 1;
+          } else if (b.result === "pass" && !b.dl389_completed) {
+            dl389Counts[b.schedule_id] = (dl389Counts[b.schedule_id] || 0) + 1;
           }
         });
         setEnrollmentCounts(counts);
         setEvalPendingCounts(evalCounts);
+        setDl389PendingCounts(dl389Counts);
 
         // Eval-pending schedules = past schedules with at least one un-evaluated student
         setEvalPendingSchedules(pastList.filter(s => (evalCounts[s.id] || 0) > 0));
+        // DL389-pending schedules = past, fully evaluated, but at least one passed student still needs DL389
+        setDl389Schedules(pastList.filter(s => (evalCounts[s.id] || 0) === 0 && (dl389Counts[s.id] || 0) > 0));
       } else {
         setEnrollmentCounts({});
         setEvalPendingCounts({});
         setEvalPendingSchedules([]);
+        setDl389PendingCounts({});
+        setDl389Schedules([]);
       }
 
       // Pending retests = failed students with retest_type skill/knowledge/both
