@@ -321,6 +321,55 @@ const ClassRosters = () => {
     return rows;
   };
 
+  const handleSetResult = async (bookingId: string, next: "pass" | "fail" | null) => {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ result: next } as any)
+      .eq("id", bookingId);
+    if (error) {
+      toast.error("Failed to update result");
+      return;
+    }
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, result: next } as any : b));
+    toast.success(next === null ? "Result cleared" : next === "pass" ? "Marked as Pass" : "Marked as Fail");
+  };
+
+  const renderResultCell = (b: Booking) => {
+    const result = (b as any).result as "pass" | "fail" | null | undefined;
+    return (
+      <td className="p-3">
+        <div className="flex items-center justify-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => handleSetResult(b.id, result === "pass" ? null : "pass")}
+            className={`p-1.5 rounded-full transition-colors ${
+              result === "pass"
+                ? "bg-green-500/20 text-green-500"
+                : "text-muted-foreground hover:text-green-500 hover:bg-green-500/10"
+            }`}
+            title={result === "pass" ? "Click to clear" : "Mark as Pass"}
+            aria-label="Mark as Pass"
+          >
+            <Smile className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSetResult(b.id, result === "fail" ? null : "fail")}
+            className={`p-1.5 rounded-full transition-colors ${
+              result === "fail"
+                ? "bg-destructive/20 text-destructive"
+                : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            }`}
+            title={result === "fail" ? "Click to clear" : "Mark as Fail"}
+            aria-label="Mark as Fail"
+          >
+            <Frown className="w-4 h-4" />
+          </button>
+        </div>
+      </td>
+    );
+  };
+
   const renderCommentCell = (b: Booking) => (
     <td className="p-3">
       {editingCommentId === b.id ? (
