@@ -1356,7 +1356,9 @@ const ClassRosters = () => {
                       <th className="text-left p-3 font-medium text-muted-foreground min-w-[180px]">Comments</th>
                       <th className="text-center p-3 font-medium text-muted-foreground">KS</th>
                       <th className="text-center p-3 font-medium text-muted-foreground">SS</th>
-                      <th className="text-center p-3 font-medium text-muted-foreground">Result</th>
+                      {canManageEvaluations && (
+                        <th className="text-center p-3 font-medium text-muted-foreground">Result</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -1375,7 +1377,7 @@ const ClassRosters = () => {
                         {renderCommentCell(b)}
                         <td className="p-3 text-center text-muted-foreground">—</td>
                         <td className="p-3 text-center text-muted-foreground">—</td>
-                        {renderResultCell(b)}
+                        {canManageEvaluations && renderResultCell(b)}
                       </tr>
                     ))}
                   </tbody>
@@ -1402,7 +1404,9 @@ const ClassRosters = () => {
                         <th className="text-left p-3 font-medium text-muted-foreground min-w-[180px]">Comments</th>
                         <th className="text-center p-3 font-medium text-muted-foreground">KS</th>
                         <th className="text-center p-3 font-medium text-muted-foreground">SS</th>
-                        <th className="text-center p-3 font-medium text-muted-foreground">Result</th>
+                        {canManageEvaluations && (
+                          <th className="text-center p-3 font-medium text-muted-foreground">Result</th>
+                        )}
                         <th className="text-center p-3 font-medium text-muted-foreground w-10"></th>
                       </tr>
                     </thead>
@@ -1418,7 +1422,7 @@ const ClassRosters = () => {
                           {renderCommentCell(b)}
                           <td className="p-3 text-center text-muted-foreground">—</td>
                           <td className="p-3 text-center text-muted-foreground">—</td>
-                          {renderResultCell(b)}
+                          {canManageEvaluations && renderResultCell(b)}
                           <td className="p-3 text-center">
                             <button onClick={() => handleRemoveRetest(b.id)} className="text-destructive hover:text-destructive/80">
                               <Trash2 className="w-3.5 h-3.5" />
