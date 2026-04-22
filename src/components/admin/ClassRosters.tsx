@@ -636,7 +636,7 @@ const ClassRosters = () => {
           )}
           {selectedSchedule && (
             <>
-              {view === "active" && (
+              {view === "active" && canManageEvaluations && (
                 <Dialog open={showRetestDialog} onOpenChange={setShowRetestDialog}>
                   <DialogTrigger asChild>
                     <Button variant="outline">
