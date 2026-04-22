@@ -225,8 +225,16 @@ const ClassRosters = () => {
         if (!row.schedule_id) return;
         if (!counts[row.schedule_id]) counts[row.schedule_id] = { skill: 0, knowledge: 0 };
         const c = (row.roster_comment || "").toLowerCase();
-        if (c.includes("knowledge")) counts[row.schedule_id].knowledge += 1;
-        else counts[row.schedule_id].skill += 1; // default: treat unlabeled retests as skill
+        const hasSkill = c.includes("skill");
+        const hasKnowledge = c.includes("knowledge");
+        if (hasSkill && hasKnowledge) {
+          counts[row.schedule_id].skill += 1;
+          counts[row.schedule_id].knowledge += 1;
+        } else if (hasKnowledge) {
+          counts[row.schedule_id].knowledge += 1;
+        } else {
+          counts[row.schedule_id].skill += 1; // default: treat unlabeled retests as skill
+        }
       });
       setRetestCountsByClass(counts);
     };
