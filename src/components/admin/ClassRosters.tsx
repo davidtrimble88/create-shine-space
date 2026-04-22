@@ -458,7 +458,7 @@ const ClassRosters = () => {
     toast.success(next === null ? "Result cleared" : "Marked as Pass");
   };
 
-  const handleSetFailWithRetest = async (retestType: "skill" | "knowledge" | "none") => {
+  const handleSetFailWithRetest = async (retestType: "skill" | "knowledge" | "both" | "none") => {
     if (!failDialogBookingId) return;
     const updates: any = { result: "fail", retest_type: retestType };
     const { error } = await supabase
@@ -471,11 +471,12 @@ const ClassRosters = () => {
     }
     setBookings(prev => prev.map(b => b.id === failDialogBookingId ? { ...b, ...updates } : b));
     setFailDialogBookingId(null);
-    toast.success(
-      retestType === "none"
-        ? "Marked as Fail — Not eligible for retest"
-        : `Marked as Fail — ${retestType === "skill" ? "Skill" : "Knowledge"} retest eligible`
-    );
+    const label =
+      retestType === "none" ? "Not eligible for retest" :
+      retestType === "skill" ? "Skill retest eligible" :
+      retestType === "knowledge" ? "Knowledge retest eligible" :
+      "Skill & Knowledge retest eligible";
+    toast.success(`Marked as Fail — ${label}`);
   };
 
   const renderResultCell = (b: Booking) => {
