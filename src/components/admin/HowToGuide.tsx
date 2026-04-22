@@ -34,15 +34,26 @@ interface GuideSection {
 
 const guideSections: GuideSection[] = [
   {
-    id: "overview",
+    id: "overview-staff",
     title: "Dashboard Overview",
     icon: LayoutDashboard,
-    roles: ["owner", "admin", "manager", "employee"],
+    roles: ["manager", "employee"],
     steps: [
       "The Overview tab is your home screen when you log in.",
-      "It displays a summary of upcoming classes you're assigned to.",
-      "You can see recent activity and quick stats relevant to your role.",
-      "Use the sidebar on the left to navigate between different sections.",
+      "It shows how many upcoming classes you are personally assigned to teach.",
+      "Use the sidebar on the left to navigate between sections you have access to.",
+    ],
+  },
+  {
+    id: "overview-admin",
+    title: "Dashboard Overview",
+    icon: LayoutDashboard,
+    roles: ["owner", "admin"],
+    steps: [
+      "The Overview tab is your home screen when you log in.",
+      "It displays total classes, your upcoming assigned classes, and the active employee count.",
+      "Owners also see today's and yesterday's earnings broken down by location.",
+      "Use the sidebar on the left to navigate between every section available to your role.",
     ],
   },
   {
@@ -127,19 +138,31 @@ const guideSections: GuideSection[] = [
     ],
   },
   {
-    id: "rosters",
+    id: "rosters-staff",
+    title: "Class Rosters",
+    icon: ListChecks,
+    roles: ["manager", "employee"],
+    steps: [
+      "Open 'Class Rosters' to see all upcoming classes with their student lists.",
+      "Each class card shows the number of regular students 'registered' and, separately, how many 'retest' students are signed up. Retests are NOT counted in the registered total.",
+      "Click a class to open its full roster with student details (name, phone, DL/ID, DOB).",
+      "Use the print button to generate a clean roster for class day.",
+    ],
+  },
+  {
+    id: "rosters-admin",
     title: "Class Rosters, Evaluations & Retests",
     icon: ListChecks,
-    roles: ["owner", "admin", "manager", "employee"],
+    roles: ["owner", "admin"],
     steps: [
       "Open 'Class Rosters' to see all upcoming classes with their student lists.",
       "Each class card shows the number of regular students 'registered' and, separately, how many 'retest' students are signed up. Retests are NOT counted in the registered total.",
       "Click a class to open its full roster with student details (name, phone, DL/ID, DOB, comments).",
-      "Comments column: Add roster notes per student. Retest students added via the booking funnel will not get auto-generated comment text.",
+      "Comments column: Add roster notes per student. Comments are visible on screen but never appear on printed rosters.",
       "Use 'Add Retest Student' inside a roster to register a returning student for a re-test in the Skill, Knowledge, or both portions.",
-      "Result column (Owner/Admin only): mark each student Pass or Fail after the class. Marking Fail opens a dialog to choose which retest portion they're eligible for.",
+      "Result column: mark each student Pass or Fail after the class. Marking Fail opens a dialog to choose which retest portion they're eligible for.",
       "After the class date passes, classes with un-evaluated students appear under 'Evaluation Pending' until every student has a Pass/Fail recorded.",
-      "Once all students are evaluated, classes with passed students move to the 'DL389' queue (Owner/Admin only).",
+      "Once all students are evaluated, classes with passed students move to the 'DL389' queue.",
     ],
   },
   {
@@ -167,16 +190,26 @@ const guideSections: GuideSection[] = [
     ],
   },
   {
-    id: "files",
+    id: "files-staff",
     title: "Shared Files",
     icon: FolderOpen,
-    roles: ["owner", "admin", "manager", "employee"],
+    roles: ["manager", "employee"],
     steps: [
-      "The 'Files' tab is where management shares documents, forms, and resources with the whole team.",
-      "All signed-in staff can browse and download any file shown here.",
-      "Owners and Admins can upload new files (max 50 MB each), give them a display name and optional description, and edit or delete files later.",
-      "Managers and Employees see a read-only view with download buttons.",
-      "Use this for things like blank DL389 forms, instructor manuals, policy documents, or any other shared resource.",
+      "The 'Files' tab holds documents, forms, and resources shared by management.",
+      "Browse the list and click download on any file you need (e.g., blank DL389 forms, instructor manuals, policy documents).",
+      "This view is read-only — contact an Owner or Admin if a file needs to be added or updated.",
+    ],
+  },
+  {
+    id: "files-admin",
+    title: "Shared Files",
+    icon: FolderOpen,
+    roles: ["owner", "admin"],
+    steps: [
+      "The 'Files' tab is where you share documents, forms, and resources with the whole team.",
+      "Click 'Upload File' to add a new resource (max 50 MB), give it a display name and optional description.",
+      "Use the edit and delete buttons to keep the library current.",
+      "All signed-in staff can browse and download these files.",
     ],
   },
   {
@@ -241,10 +274,10 @@ const guideSections: GuideSection[] = [
 ];
 
 const HowToGuide = () => {
-  const { userRole } = useAuth();
+  const { effectiveRole } = useAuth();
 
   const visibleSections = guideSections.filter((s) =>
-    s.roles.includes(userRole)
+    s.roles.includes(effectiveRole)
   );
 
   return (
