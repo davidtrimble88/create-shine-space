@@ -248,18 +248,41 @@ const ComprehensiveSchedule = () => {
                         <td className="p-3 text-muted-foreground">{r.group_name || "—"}</td>
                         <td className="p-3 text-muted-foreground text-xs">{r.schedule}</td>
                         <td className="p-3">
-                          {r.instructors.length > 0 ? (
-                            <div className="space-y-1">
-                              {r.instructors.map((inst, i) => (
-                                <div key={i} className="flex items-center gap-1.5">
-                                  <span className="text-[10px] font-medium text-accent bg-accent/10 px-1.5 py-0.5 rounded">
-                                    {roleLabelMap[inst.role] || inst.role}
-                                  </span>
-                                  <span className="text-xs text-foreground">{inst.name}</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
+                          {r.instructors.length > 0 ? (() => {
+                            const DUTY_CODES = new Set(["c1", "r1", "c2", "r2"]);
+                            const dutyOrder = ["c1", "r1", "c2", "r2"];
+                            const grouped = new Map<string, { name: string; role: string; duties: string[] }>();
+                            r.instructors.forEach(inst => {
+                              let entry = grouped.get(inst.employeeId);
+                              if (!entry) {
+                                entry = { name: inst.name, role: "instructor_1", duties: [] };
+                                grouped.set(inst.employeeId, entry);
+                              }
+                              if (DUTY_CODES.has(inst.role)) entry.duties.push(inst.role);
+                              else entry.role = inst.role;
+                            });
+                            return (
+                              <div className="space-y-1.5">
+                                {Array.from(grouped.entries()).map(([empId, entry]) => (
+                                  <div key={empId} className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[10px] font-medium text-accent bg-accent/10 px-1.5 py-0.5 rounded">
+                                      {roleLabelMap[entry.role] || entry.role}
+                                    </span>
+                                    <span className="text-xs text-foreground">{entry.name}</span>
+                                    {entry.duties.length > 0 && (
+                                      <div className="flex gap-1 ml-1">
+                                        {dutyOrder.filter(d => entry.duties.includes(d)).map(d => (
+                                          <span key={d} className="text-[10px] font-semibold text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
+                                            {roleLabelMap[d] || d.toUpperCase()}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })() : (
                             <span className="text-xs text-muted-foreground italic">Not assigned</span>
                           )}
                         </td>
