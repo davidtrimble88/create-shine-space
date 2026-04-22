@@ -735,11 +735,18 @@ const ClassRosters = () => {
                   <Select value={retestTargetScheduleId} onValueChange={setRetestTargetScheduleId}>
                     <SelectTrigger><SelectValue placeholder="Select an available class" /></SelectTrigger>
                     <SelectContent>
-                      {candidates.map(s => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.date} • {s.location_label} • {s.spots_available} spot{s.spots_available !== 1 ? "s" : ""} open
-                        </SelectItem>
-                      ))}
+                      {candidates.map(s => {
+                        const rc = retestCountsByClass[s.id] || { skill: 0, knowledge: 0 };
+                        const totalRetests = rc.skill + rc.knowledge;
+                        const retestSummary = totalRetests === 0
+                          ? "no retests scheduled"
+                          : `${totalRetests} retest${totalRetests !== 1 ? "s" : ""} (${rc.skill} skill, ${rc.knowledge} knowledge)`;
+                        return (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.date} • {s.location_label} • {s.spots_available} spot{s.spots_available !== 1 ? "s" : ""} open • {retestSummary}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
