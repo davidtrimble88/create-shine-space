@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarDays, Users, BookOpen, DollarSign, MapPin } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,15 +17,51 @@ const AdminOverview = () => {
   const [todayByLocation, setTodayByLocation] = useState<LocationEarnings>({});
   const [yesterdayByLocation, setYesterdayByLocation] = useState<LocationEarnings>({});
 
-  const canSeeEarnings = effectiveRole === "owner";
+  const canSeeEarnings = effectiveRole === "owner" || effectiveRole === "admin";
+
+  const fetchEarnings = useCallback(async () => {
+    if (!canSeeEarnings) return;
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+    const [todayRes, yesterdayRes] = await Promise.all([
+      supabase.from("bookings").select("fee, location_label").eq("payment_status", "paid").gte("created_at", `${todayStr}T00:00:00`).lt("created_at", `${todayStr}T23:59:59.999`),
+      supabase.from("bookings").select("fee, location_label").eq("payment_status", "paid").gte("created_at", `${yesterdayStr}T00:00:00`).lt("created_at", `${yesterdayStr}T23:59:59.999`),
+    ]);
+
+    const parseFee = (fee: string | null) => {
+      const val = parseFloat((fee || "0").replace(/[^0-9.]/g, ""));
+      return isNaN(val) ? 0 : val;
+    };
+
+    const sumAndGroup = (rows: { fee: string | null; location_label: string | null }[] | null) => {
+      let total = 0;
+      const byLoc: LocationEarnings = {};
+      (rows || []).forEach((r) => {
+        const amount = parseFee(r.fee);
+        total += amount;
+        const loc = r.location_label || "Unknown";
+        byLoc[loc] = (byLoc[loc] || 0) + amount;
+      });
+      return { total, byLoc };
+    };
+
+    const todayData = sumAndGroup(todayRes.data);
+    const yesterdayData = sumAndGroup(yesterdayRes.data);
+
+    setTodayEarnings(todayData.total);
+    setTodayByLocation(todayData.byLoc);
+    setYesterdayEarnings(yesterdayData.total);
+    setYesterdayByLocation(yesterdayData.byLoc);
+  }, [canSeeEarnings]);
 
   useEffect(() => {
     const fetchStats = async () => {
       const today = new Date();
       const todayStr = today.toISOString().split("T")[0];
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split("T")[0];
 
       // Find employee record for this user, then count upcoming classes they are assigned to
       let upcomingCount = 0;
@@ -55,41 +91,25 @@ const AdminOverview = () => {
       setEmployeeCount(empRes.count ?? 0);
       setUpcomingClasses(upcomingCount);
 
-      if (canSeeEarnings) {
-        const [todayRes, yesterdayRes] = await Promise.all([
-          supabase.from("bookings").select("fee, location_label").eq("payment_status", "paid").gte("created_at", `${todayStr}T00:00:00`).lt("created_at", `${todayStr}T23:59:59.999`),
-          supabase.from("bookings").select("fee, location_label").eq("payment_status", "paid").gte("created_at", `${yesterdayStr}T00:00:00`).lt("created_at", `${yesterdayStr}T23:59:59.999`),
-        ]);
-
-        const parseFee = (fee: string | null) => {
-          const val = parseFloat((fee || "0").replace(/[^0-9.]/g, ""));
-          return isNaN(val) ? 0 : val;
-        };
-
-        const sumAndGroup = (rows: any[] | null) => {
-          let total = 0;
-          const byLoc: LocationEarnings = {};
-          (rows || []).forEach((r) => {
-            const amount = parseFee(r.fee);
-            total += amount;
-            const loc = r.location_label || "Unknown";
-            byLoc[loc] = (byLoc[loc] || 0) + amount;
-          });
-          return { total, byLoc };
-        };
-
-        const todayData = sumAndGroup(todayRes.data);
-        const yesterdayData = sumAndGroup(yesterdayRes.data);
-
-        setTodayEarnings(todayData.total);
-        setTodayByLocation(todayData.byLoc);
-        setYesterdayEarnings(yesterdayData.total);
-        setYesterdayByLocation(yesterdayData.byLoc);
-      }
+      await fetchEarnings();
     };
 
     fetchStats();
-  }, [canSeeEarnings, user]);
+  }, [canSeeEarnings, user, fetchEarnings]);
+
+  // Realtime: refresh earnings when bookings change
+  useEffect(() => {
+    if (!canSeeEarnings) return;
+    const channel = supabase
+      .channel("admin-overview-bookings")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings" },
+        () => { fetchEarnings(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [canSeeEarnings, fetchEarnings]);
 
   const stats = [
     { label: "Total Classes", value: scheduleCount, icon: BookOpen, color: "text-accent" },
