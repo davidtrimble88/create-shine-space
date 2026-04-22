@@ -586,7 +586,9 @@ const ClassRosters = () => {
       is_retest: true,
       roster_comment: src.retest_type === "skill"
         ? "Skill retest"
-        : "Knowledge retest",
+        : src.retest_type === "both"
+          ? "Skill & Knowledge retest"
+          : "Knowledge retest",
     }).select().single();
 
     if (error || !data) {
