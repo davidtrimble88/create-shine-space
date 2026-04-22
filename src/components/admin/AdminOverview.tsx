@@ -8,7 +8,7 @@ interface LocationEarnings {
 }
 
 const AdminOverview = () => {
-  const { userRole } = useAuth();
+  const { effectiveRole } = useAuth();
   const [scheduleCount, setScheduleCount] = useState(0);
   const [employeeCount, setEmployeeCount] = useState(0);
   const [upcomingClasses, setUpcomingClasses] = useState(0);
