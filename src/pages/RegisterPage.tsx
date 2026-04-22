@@ -203,6 +203,7 @@ const RegisterPage = () => {
     : null;
 
   const isUnder21 = age !== null && age < 21;
+  const isUnder18 = age !== null && age < 18;
   const fee = isUnder21 ? "$395" : "$425";
 
   return (
