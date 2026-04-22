@@ -8,7 +8,7 @@ interface LocationEarnings {
 }
 
 const AdminOverview = () => {
-  const { effectiveRole } = useAuth();
+  const { effectiveRole, user } = useAuth();
   const [scheduleCount, setScheduleCount] = useState(0);
   const [employeeCount, setEmployeeCount] = useState(0);
   const [upcomingClasses, setUpcomingClasses] = useState(0);
@@ -27,15 +27,33 @@ const AdminOverview = () => {
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-      const [schedRes, empRes, upRes] = await Promise.all([
+      // Find employee record for this user, then count upcoming classes they are assigned to
+      let upcomingCount = 0;
+      if (user) {
+        const { data: empRow } = await supabase
+          .from("employees")
+          .select("id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (empRow?.id) {
+          const { data: assigns } = await supabase
+            .from("instructor_assignments")
+            .select("schedule_id, schedules!inner(date)")
+            .eq("employee_id", empRow.id)
+            .gte("schedules.date", todayStr);
+          upcomingCount = assigns?.length ?? 0;
+        }
+      }
+
+      const [schedRes, empRes] = await Promise.all([
         supabase.from("schedules").select("id", { count: "exact", head: true }),
         supabase.from("employees").select("id", { count: "exact", head: true }),
-        supabase.from("schedules").select("id", { count: "exact", head: true }).gte("date", todayStr),
       ]);
 
       setScheduleCount(schedRes.count ?? 0);
       setEmployeeCount(empRes.count ?? 0);
-      setUpcomingClasses(upRes.count ?? 0);
+      setUpcomingClasses(upcomingCount);
 
       if (canSeeEarnings) {
         const [todayRes, yesterdayRes] = await Promise.all([
@@ -71,7 +89,7 @@ const AdminOverview = () => {
     };
 
     fetchStats();
-  }, [canSeeEarnings]);
+  }, [canSeeEarnings, user]);
 
   const stats = [
     { label: "Total Classes", value: scheduleCount, icon: BookOpen, color: "text-accent" },
