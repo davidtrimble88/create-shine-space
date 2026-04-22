@@ -73,6 +73,8 @@ const ClassRosters = () => {
   const [pastSchedules, setPastSchedules] = useState<Schedule[]>([]);
   const [pendingRetests, setPendingRetests] = useState<Booking[]>([]);
   const [evalPendingSchedules, setEvalPendingSchedules] = useState<Schedule[]>([]);
+  const [dl389Schedules, setDl389Schedules] = useState<Schedule[]>([]);
+  const [dl389PendingCounts, setDl389PendingCounts] = useState<Record<string, number>>({});
   // Fail-result dialog state
   const [failDialogBookingId, setFailDialogBookingId] = useState<string | null>(null);
   // Schedule-retest dialog state
@@ -81,6 +83,11 @@ const ClassRosters = () => {
   const [schedulingRetest, setSchedulingRetest] = useState(false);
   // Per-schedule retest counts: { [schedule_id]: { skill: n, knowledge: n } }
   const [retestCountsByClass, setRetestCountsByClass] = useState<Record<string, { skill: number; knowledge: number }>>({});
+  // DL389 view: list of passed students that still need their DL389 created
+  const [dl389Students, setDl389Students] = useState<Booking[]>([]);
+  const [dl389StudentSchedules, setDl389StudentSchedules] = useState<Record<string, Schedule>>({});
+  const [dl389Detail, setDl389Detail] = useState<Booking | null>(null);
+  const [savingDl389, setSavingDl389] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Load schedules + employees + assignments based on view
