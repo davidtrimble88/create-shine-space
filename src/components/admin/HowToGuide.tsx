@@ -274,10 +274,10 @@ const guideSections: GuideSection[] = [
 ];
 
 const HowToGuide = () => {
-  const { userRole } = useAuth();
+  const { effectiveRole } = useAuth();
 
   const visibleSections = guideSections.filter((s) =>
-    s.roles.includes(userRole)
+    s.roles.includes(effectiveRole)
   );
 
   return (
