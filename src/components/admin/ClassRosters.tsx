@@ -508,6 +508,56 @@ const ClassRosters = () => {
     </td>
   );
 
+  const handleScheduleRetest = async () => {
+    if (!scheduleRetestFor || !retestTargetScheduleId) {
+      toast.error("Please choose a class");
+      return;
+    }
+    const target = schedules.find(s => s.id === retestTargetScheduleId);
+    if (!target) {
+      toast.error("Selected class not found");
+      return;
+    }
+    setSchedulingRetest(true);
+    const src = scheduleRetestFor;
+    const { data, error } = await supabase.from("bookings").insert({
+      first_name: src.first_name,
+      last_name: src.last_name,
+      phone: src.phone,
+      email: src.email && src.email !== "retest@placeholder.com" ? src.email : "retest@placeholder.com",
+      license_number: src.license_number || null,
+      date_of_birth: src.date_of_birth || null,
+      course: target.course,
+      location: target.location,
+      location_label: target.location_label,
+      schedule_id: target.id,
+      schedule_date: target.date,
+      booking_status: "confirmed",
+      payment_status: "paid",
+      is_retest: true,
+      roster_comment: src.retest_type === "skill"
+        ? "Skill retest (auto-scheduled from Pending Retests)"
+        : "Knowledge retest (auto-scheduled from Pending Retests)",
+    }).select().single();
+
+    if (error || !data) {
+      setSchedulingRetest(false);
+      toast.error("Failed to schedule retest");
+      return;
+    }
+    // Clear retest_type on the original failed booking so it leaves the Pending Retests list
+    await (supabase as any)
+      .from("bookings")
+      .update({ retest_type: null })
+      .eq("id", src.id);
+
+    setSchedulingRetest(false);
+    setPendingRetests(prev => prev.filter(b => b.id !== src.id));
+    setScheduleRetestFor(null);
+    setRetestTargetScheduleId("");
+    toast.success(`Retest scheduled for ${target.date} at ${target.location_label}`);
+  };
+
   // ========================
   // Pending Retests view
   // ========================
