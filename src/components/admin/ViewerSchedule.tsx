@@ -37,7 +37,7 @@ interface ScheduleEntry {
 type DisplayEntry = PlaceholderEntry | ScheduleEntry;
 
 const ViewerSchedule = () => {
-  const { user, userRole } = useAuth();
+  const { user, effectiveRole } = useAuth();
   const { toast } = useToast();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [myAvailability, setMyAvailability] = useState<Set<string>>(new Set());
@@ -49,7 +49,8 @@ const ViewerSchedule = () => {
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
 
-  const canDismiss = userRole === "owner" || userRole === "admin";
+  const canDismiss = effectiveRole === "owner" || effectiveRole === "admin";
+  const canViewPast = effectiveRole !== "employee";
 
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
@@ -294,7 +295,7 @@ const ViewerSchedule = () => {
               : "Review the schedule and mark which classes you're available to teach."}
           </p>
         </div>
-        {view === "upcoming" ? (
+        {canViewPast && (view === "upcoming" ? (
           <Button variant="outline" onClick={() => setView("past")}>
             <History className="w-4 h-4 mr-2" /> Past Classes
           </Button>
@@ -302,7 +303,7 @@ const ViewerSchedule = () => {
           <Button variant="outline" onClick={() => setView("upcoming")}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
           </Button>
-        )}
+        ))}
       </div>
 
       <div className="flex gap-4 mb-6">
