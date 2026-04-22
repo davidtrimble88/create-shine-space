@@ -4,14 +4,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { roleLabelMap } from "@/components/admin/InstructorAssignment";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
-type Booking = Tables<"bookings">;
+type Booking = Tables<"bookings"> & { result?: "pass" | "fail" | null; retest_type?: "skill" | "knowledge" | "none" | null };
+
+type ViewMode = "active" | "evaluation_pending" | "past" | "pending_retests";
+
+const RETEST_WINDOW_DAYS = 60;
 
 const courseLabels: Record<string, string> = {
   basic: "Motorcycle Training Course",
@@ -31,9 +35,14 @@ interface FullAssignment {
   assignment_role: string;
 }
 
+const daysBetween = (from: Date, to: Date) => {
+  const ms = to.getTime() - from.getTime();
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+};
+
 const ClassRosters = () => {
   const { user } = useAuth();
-  const [view, setView] = useState<"upcoming" | "past">("upcoming");
+  const [view, setView] = useState<ViewMode>("active");
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -52,8 +61,15 @@ const ClassRosters = () => {
   const [searchResults, setSearchResults] = useState<Booking[]>([]);
   const [searching, setSearching] = useState(false);
   const [enrollmentCounts, setEnrollmentCounts] = useState<Record<string, number>>({});
+  const [evalPendingCounts, setEvalPendingCounts] = useState<Record<string, number>>({});
+  const [pastSchedules, setPastSchedules] = useState<Schedule[]>([]);
+  const [pendingRetests, setPendingRetests] = useState<Booking[]>([]);
+  const [evalPendingSchedules, setEvalPendingSchedules] = useState<Schedule[]>([]);
+  // Fail-result dialog state
+  const [failDialogBookingId, setFailDialogBookingId] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
+  // Load schedules + employees + assignments based on view
   useEffect(() => {
     const fetchData = async () => {
       const today = new Date().toISOString().split("T")[0];
@@ -67,45 +83,20 @@ const ClassRosters = () => {
           const parsed = JSON.parse(pending);
           pendingId = parsed.id ?? null;
           pendingDate = parsed.date ?? null;
-          // If the requested class is past but we're on upcoming (or vice versa), flip view
           if (pendingDate) {
             const wantPast = pendingDate < today;
-            if (wantPast && view !== "past") { setView("past"); return; }
-            if (!wantPast && view !== "upcoming") { setView("upcoming"); return; }
+            if (wantPast && view !== "past" && view !== "evaluation_pending") { setView("past"); return; }
+            if (!wantPast && view !== "active") { setView("active"); return; }
           }
         } catch { /* ignore */ }
       }
 
       if (!pendingId) setSelectedScheduleId("");
-      const schedQuery = supabase.from("schedules").select("*");
-      const schedRes = view === "past"
-        ? await schedQuery.lt("date", today).order("date", { ascending: false })
-        : await schedQuery.gte("date", today).order("date");
+
       const [empRes, assignRes] = await Promise.all([
         supabase.from("employees").select("id, full_name, user_id").eq("is_active", true),
         supabase.from("instructor_assignments").select("schedule_id, employee_id, assignment_role"),
       ]);
-      if (schedRes.data) {
-        setSchedules(schedRes.data);
-        const ids = schedRes.data.map(s => s.id);
-        if (ids.length > 0) {
-          const { data: bookingRows } = await supabase
-            .from("bookings")
-            .select("schedule_id")
-            .in("schedule_id", ids);
-          const counts: Record<string, number> = {};
-          (bookingRows ?? []).forEach(b => {
-            if (b.schedule_id) counts[b.schedule_id] = (counts[b.schedule_id] || 0) + 1;
-          });
-          setEnrollmentCounts(counts);
-        } else {
-          setEnrollmentCounts({});
-        }
-        if (pendingId && schedRes.data.some(s => s.id === pendingId)) {
-          setSelectedScheduleId(pendingId);
-          sessionStorage.removeItem("openRosterSchedule");
-        }
-      }
       if (empRes.data) setEmployees(empRes.data);
       if (assignRes.data) {
         setAllAssignments(assignRes.data);
@@ -113,6 +104,70 @@ const ClassRosters = () => {
         if (myEmp) {
           const myIds = new Set(assignRes.data.filter(a => a.employee_id === myEmp.id).map(a => a.schedule_id));
           setMyAssignedScheduleIds(myIds);
+        }
+      }
+
+      // Active = upcoming/today
+      const activeRes = await supabase
+        .from("schedules")
+        .select("*")
+        .gte("date", today)
+        .order("date");
+      if (activeRes.data) setSchedules(activeRes.data);
+
+      // Past schedules (date < today). Used for past + eval-pending views.
+      const pastRes = await supabase
+        .from("schedules")
+        .select("*")
+        .lt("date", today)
+        .order("date", { ascending: false });
+      const pastList = pastRes.data ?? [];
+      setPastSchedules(pastList);
+
+      // Build enrollment + eval-pending counts for ALL relevant schedules
+      const allIds = [
+        ...(activeRes.data ?? []).map(s => s.id),
+        ...pastList.map(s => s.id),
+      ];
+      if (allIds.length > 0) {
+        const { data: bookingRows } = await supabase
+          .from("bookings")
+          .select("schedule_id, result, is_retest")
+          .in("schedule_id", allIds);
+        const counts: Record<string, number> = {};
+        const evalCounts: Record<string, number> = {};
+        (bookingRows ?? []).forEach(b => {
+          if (!b.schedule_id) return;
+          counts[b.schedule_id] = (counts[b.schedule_id] || 0) + 1;
+          if (!(b as any).result) {
+            evalCounts[b.schedule_id] = (evalCounts[b.schedule_id] || 0) + 1;
+          }
+        });
+        setEnrollmentCounts(counts);
+        setEvalPendingCounts(evalCounts);
+
+        // Eval-pending schedules = past schedules with at least one un-evaluated student
+        setEvalPendingSchedules(pastList.filter(s => (evalCounts[s.id] || 0) > 0));
+      } else {
+        setEnrollmentCounts({});
+        setEvalPendingCounts({});
+        setEvalPendingSchedules([]);
+      }
+
+      // Pending retests = failed students with retest_type skill/knowledge
+      const { data: retestRows } = await (supabase as any)
+        .from("bookings")
+        .select("*")
+        .eq("result", "fail")
+        .in("retest_type", ["skill", "knowledge"]);
+      setPendingRetests((retestRows ?? []) as Booking[]);
+
+      if (pendingId) {
+        const inActive = (activeRes.data ?? []).some(s => s.id === pendingId);
+        const inPast = pastList.some(s => s.id === pendingId);
+        if (inActive || inPast) {
+          setSelectedScheduleId(pendingId);
+          sessionStorage.removeItem("openRosterSchedule");
         }
       }
     };
@@ -131,7 +186,7 @@ const ClassRosters = () => {
         .select("*")
         .eq("schedule_id", selectedScheduleId)
         .order("last_name");
-      if (data) setBookings(data);
+      if (data) setBookings(data as Booking[]);
       setLoading(false);
     };
     fetchBookings();
@@ -165,13 +220,14 @@ const ClassRosters = () => {
         .or(orFilter)
         .order("schedule_date", { ascending: false })
         .limit(50);
-      setSearchResults(data ?? []);
+      setSearchResults((data ?? []) as Booking[]);
       setSearching(false);
     }, 250);
     return () => clearTimeout(handle);
   }, [studentSearch]);
 
-  const selectedSchedule = schedules.find(s => s.id === selectedScheduleId);
+  const allKnownSchedules = [...schedules, ...pastSchedules];
+  const selectedSchedule = allKnownSchedules.find(s => s.id === selectedScheduleId);
 
   const regularBookings = bookings.filter(b => !b.is_retest);
   const retestBookings = bookings.filter(b => b.is_retest);
@@ -183,7 +239,16 @@ const ClassRosters = () => {
       return { name: emp?.full_name ?? "Unknown", role: roleLabelMap[a.assignment_role] ?? a.assignment_role };
     });
 
-  const filteredSchedules = schedules.filter(s => {
+  // Pick which schedule list drives the current view
+  const baseSchedules = view === "active"
+    ? schedules
+    : view === "past"
+      ? pastSchedules
+      : view === "evaluation_pending"
+        ? evalPendingSchedules
+        : [];
+
+  const filteredSchedules = baseSchedules.filter(s => {
     if (locationFilter && locationFilter !== "all" && s.location !== locationFilter) return false;
     if (instructorFilter === "my-classes") {
       return myAssignedScheduleIds.has(s.id);
@@ -236,7 +301,7 @@ const ClassRosters = () => {
     if (error) {
       toast.error("Failed to add retest student");
     } else if (data) {
-      setBookings(prev => [...prev, data]);
+      setBookings(prev => [...prev, data as Booking]);
       setRetestForm({ first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
       setShowRetestDialog(false);
       toast.success("Retest student added");
@@ -322,20 +387,50 @@ const ClassRosters = () => {
   };
 
   const handleSetResult = async (bookingId: string, next: "pass" | "fail" | null) => {
+    // For 'fail' we open a dialog to capture retest eligibility
+    if (next === "fail") {
+      setFailDialogBookingId(bookingId);
+      return;
+    }
+    const updates: any = { result: next };
+    if (next === null) updates.retest_type = null;
+    if (next === "pass") updates.retest_type = null;
+
     const { error } = await supabase
       .from("bookings")
-      .update({ result: next } as any)
+      .update(updates)
       .eq("id", bookingId);
     if (error) {
       toast.error("Failed to update result");
       return;
     }
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, result: next } as any : b));
-    toast.success(next === null ? "Result cleared" : next === "pass" ? "Marked as Pass" : "Marked as Fail");
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...updates } : b));
+    toast.success(next === null ? "Result cleared" : "Marked as Pass");
+  };
+
+  const handleSetFailWithRetest = async (retestType: "skill" | "knowledge" | "none") => {
+    if (!failDialogBookingId) return;
+    const updates: any = { result: "fail", retest_type: retestType };
+    const { error } = await supabase
+      .from("bookings")
+      .update(updates)
+      .eq("id", failDialogBookingId);
+    if (error) {
+      toast.error("Failed to update result");
+      return;
+    }
+    setBookings(prev => prev.map(b => b.id === failDialogBookingId ? { ...b, ...updates } : b));
+    setFailDialogBookingId(null);
+    toast.success(
+      retestType === "none"
+        ? "Marked as Fail — Not eligible for retest"
+        : `Marked as Fail — ${retestType === "skill" ? "Skill" : "Knowledge"} retest eligible`
+    );
   };
 
   const renderResultCell = (b: Booking) => {
-    const result = (b as any).result as "pass" | "fail" | null | undefined;
+    const result = b.result as "pass" | "fail" | null | undefined;
+    const retest = b.retest_type as string | null | undefined;
     return (
       <td className="p-3">
         <div className="flex items-center justify-center gap-1.5">
@@ -366,6 +461,11 @@ const ClassRosters = () => {
             <Frown className="w-4 h-4" />
           </button>
         </div>
+        {result === "fail" && retest && (
+          <div className="text-[10px] text-center mt-1 text-muted-foreground">
+            {retest === "skill" ? "Skill retest" : retest === "knowledge" ? "Knowledge retest" : "Not eligible"}
+          </div>
+        )}
       </td>
     );
   };
@@ -403,25 +503,139 @@ const ClassRosters = () => {
     </td>
   );
 
+  // ========================
+  // Pending Retests view
+  // ========================
+  const renderPendingRetests = () => {
+    const today = new Date();
+    // Auto-move expired (>60 days) — these stay only in Past Roster.
+    const eligible = pendingRetests
+      .filter(b => {
+        if (!b.schedule_date) return false;
+        const failed = new Date(b.schedule_date + "T00:00:00");
+        const deadline = new Date(failed);
+        deadline.setDate(deadline.getDate() + RETEST_WINDOW_DAYS);
+        return deadline >= today;
+      })
+      .sort((a, b) => (a.schedule_date || "").localeCompare(b.schedule_date || ""));
+
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <RotateCcw className="w-6 h-6" /> Pending Retests
+          </h1>
+          <Button variant="outline" onClick={() => setView("active")}>
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Class Rosters
+          </Button>
+        </div>
+
+        {eligible.length === 0 ? (
+          <div className="bg-card border border-border rounded-xl p-12 text-center">
+            <Clock className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground">No students currently awaiting a retest within the 60-day window.</p>
+          </div>
+        ) : (
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-secondary/50">
+                  <th className="text-left p-3 font-medium text-muted-foreground">Student</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Original Class</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Retest Type</th>
+                  <th className="text-center p-3 font-medium text-muted-foreground">Days Remaining</th>
+                </tr>
+              </thead>
+              <tbody>
+                {eligible.map(b => {
+                  const failed = new Date((b.schedule_date || "") + "T00:00:00");
+                  const deadline = new Date(failed);
+                  deadline.setDate(deadline.getDate() + RETEST_WINDOW_DAYS);
+                  const daysLeft = daysBetween(today, deadline);
+                  const courseName = courseLabels[b.course] || b.course;
+                  const urgent = daysLeft <= 14;
+                  return (
+                    <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
+                      <td className="p-3">
+                        <div className="font-semibold text-foreground uppercase">{b.first_name} {b.last_name}</div>
+                        {b.license_number && <div className="text-xs text-muted-foreground">DL {b.license_number}</div>}
+                      </td>
+                      <td className="p-3 text-muted-foreground">{b.phone}</td>
+                      <td className="p-3">
+                        <div className="text-foreground">{courseName}</div>
+                        <div className="text-xs text-muted-foreground">{b.schedule_date} • {b.location_label}</div>
+                      </td>
+                      <td className="p-3">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                          b.retest_type === "skill" ? "bg-primary/20 text-primary" : "bg-amber-500/20 text-amber-500"
+                        }`}>
+                          {b.retest_type === "skill" ? "Skill" : "Knowledge"}
+                        </span>
+                      </td>
+                      <td className={`p-3 text-center font-semibold ${urgent ? "text-destructive" : "text-foreground"}`}>
+                        {daysLeft} {daysLeft === 1 ? "day" : "days"}
+                        <div className="text-[10px] font-normal text-muted-foreground">deadline {deadline.toISOString().split("T")[0]}</div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ========================
+  // Render
+  // ========================
+  if (view === "pending_retests") {
+    return renderPendingRetests();
+  }
+
+  const viewTitle =
+    view === "past" ? "Past Class Rosters" :
+    view === "evaluation_pending" ? "Evaluation Pending" :
+    "Class Rosters";
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-foreground">
-          {view === "past" ? "Past Class Rosters" : "Class Rosters"}
-        </h1>
-        <div className="flex items-center gap-2">
-          {view === "upcoming" ? (
-            <Button variant="outline" onClick={() => setView("past")}>
-              <History className="w-4 h-4 mr-2" /> Past Rosters
-            </Button>
-          ) : (
-            <Button variant="outline" onClick={() => setView("upcoming")}>
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h1 className="text-2xl font-bold text-foreground">{viewTitle}</h1>
+        <div className="flex items-center gap-2 flex-wrap">
+          {view === "active" && (
+            <>
+              <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("evaluation_pending"); }}>
+                <ClipboardList className="w-4 h-4 mr-2" /> Evaluation Pending
+                {evalPendingSchedules.length > 0 && (
+                  <span className="ml-2 bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded text-xs font-bold">
+                    {evalPendingSchedules.length}
+                  </span>
+                )}
+              </Button>
+              <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("pending_retests"); }}>
+                <RotateCcw className="w-4 h-4 mr-2" /> Pending Retests
+                {pendingRetests.length > 0 && (
+                  <span className="ml-2 bg-primary/20 text-primary px-1.5 py-0.5 rounded text-xs font-bold">
+                    {pendingRetests.length}
+                  </span>
+                )}
+              </Button>
+              <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("past"); }}>
+                <History className="w-4 h-4 mr-2" /> Past Rosters
+              </Button>
+            </>
+          )}
+          {view !== "active" && (
+            <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("active"); }}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Class Rosters
             </Button>
           )}
           {selectedSchedule && (
             <>
-              {view === "upcoming" && (
+              {view === "active" && (
                 <Dialog open={showRetestDialog} onOpenChange={setShowRetestDialog}>
                   <DialogTrigger asChild>
                     <Button variant="outline">
@@ -501,26 +715,19 @@ const ClassRosters = () => {
             ) : (
               <div className="max-h-80 overflow-y-auto divide-y divide-border">
                 {searchResults.map(b => {
-                  const sched = schedules.find(s => s.id === b.schedule_id);
+                  const sched = allKnownSchedules.find(s => s.id === b.schedule_id);
                   const courseName = sched ? (courseLabels[sched.course] || sched.course) : (courseLabels[b.course] || b.course);
                   const dateStr = sched?.date || b.schedule_date || "Unscheduled";
                   const locLabel = sched?.location_label || b.location_label;
-                  const inCurrentView = !!sched;
                   return (
                     <button
                       key={b.id}
                       onClick={() => {
-                        if (b.schedule_id && inCurrentView) {
-                          setSelectedScheduleId(b.schedule_id);
-                          setStudentSearch("");
-                        } else if (b.schedule_id && sched === undefined) {
-                          // schedule exists but not in current view (past vs upcoming) — flip view
+                        if (b.schedule_id) {
                           const today = new Date().toISOString().split("T")[0];
-                          if (b.schedule_date && b.schedule_date < today && view !== "past") {
-                            setView("past");
-                          } else if (b.schedule_date && b.schedule_date >= today && view !== "upcoming") {
-                            setView("upcoming");
-                          }
+                          const isPast = b.schedule_date && b.schedule_date < today;
+                          if (isPast && view === "active") setView("past");
+                          else if (!isPast && view !== "active") setView("active");
                           setTimeout(() => setSelectedScheduleId(b.schedule_id!), 50);
                           setStudentSearch("");
                         }
@@ -588,7 +795,9 @@ const ClassRosters = () => {
         <div className="mb-6">
           {filteredSchedules.length === 0 ? (
             <div className="bg-card border border-border rounded-xl p-6 text-sm text-muted-foreground">
-              No {view === "past" ? "past" : "upcoming"} classes match the current filters.
+              {view === "evaluation_pending"
+                ? "No classes have students awaiting evaluation. Great work!"
+                : `No ${view === "past" ? "past" : "upcoming"} classes match the current filters.`}
             </div>
           ) : (
             <div className="bg-card border border-border rounded-xl divide-y divide-border overflow-hidden">
@@ -597,6 +806,7 @@ const ClassRosters = () => {
                   .filter(a => a.schedule_id === s.id)
                   .map(a => employees.find(e => e.id === a.employee_id)?.full_name)
                   .filter(Boolean);
+                const pending = evalPendingCounts[s.id] || 0;
                 return (
                   <button
                     key={s.id}
@@ -604,8 +814,13 @@ const ClassRosters = () => {
                     className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors flex items-center justify-between gap-4"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold text-foreground">
+                      <div className="text-sm font-semibold text-foreground flex items-center gap-2">
                         {courseLabels[s.course] || s.course}
+                        {view === "evaluation_pending" && (
+                          <span className="bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded text-xs font-bold flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" /> {pending} pending
+                          </span>
+                        )}
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
                         <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {s.date}</span>
@@ -859,12 +1074,41 @@ const ClassRosters = () => {
         </>
       )}
 
-      {!selectedScheduleId && !loading && (
+      {!selectedScheduleId && !loading && view === "active" && (
         <div className="bg-card border border-border rounded-xl p-12 text-center">
           <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
           <p className="text-muted-foreground">Select a class above to view its roster.</p>
         </div>
       )}
+
+      {/* Fail-result dialog: pick retest eligibility */}
+      <Dialog open={!!failDialogBookingId} onOpenChange={open => { if (!open) setFailDialogBookingId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mark as Fail — Retest Eligibility</DialogTitle>
+            <DialogDescription>
+              Choose whether this student is eligible to retest within {RETEST_WINDOW_DAYS} days. Eligible students will appear in the Pending Retests list with a countdown.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-2 mt-2">
+            <Button variant="outline" onClick={() => handleSetFailWithRetest("skill")} className="justify-start">
+              <RotateCcw className="w-4 h-4 mr-2 text-primary" />
+              Eligible — <span className="font-semibold ml-1">Skill Retest</span>
+            </Button>
+            <Button variant="outline" onClick={() => handleSetFailWithRetest("knowledge")} className="justify-start">
+              <RotateCcw className="w-4 h-4 mr-2 text-amber-500" />
+              Eligible — <span className="font-semibold ml-1">Knowledge Retest</span>
+            </Button>
+            <Button variant="outline" onClick={() => handleSetFailWithRetest("none")} className="justify-start">
+              <X className="w-4 h-4 mr-2 text-destructive" />
+              Not eligible for retest
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setFailDialogBookingId(null)}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
