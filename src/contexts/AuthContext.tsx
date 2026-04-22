@@ -9,6 +9,9 @@ interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   userRole: AppRole;
+  effectiveRole: AppRole;
+  viewAsRole: AppRole | null;
+  setViewAsRole: (role: AppRole | null) => void;
   loading: boolean;
   mustChangePassword: boolean;
   clearMustChangePassword: () => void;
@@ -20,6 +23,9 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isAdmin: false,
   userRole: "employee",
+  effectiveRole: "employee",
+  viewAsRole: null,
+  setViewAsRole: () => {},
   loading: true,
   mustChangePassword: false,
   clearMustChangePassword: () => {},
