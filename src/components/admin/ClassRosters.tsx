@@ -11,7 +11,7 @@ import { roleLabelMap } from "@/components/admin/InstructorAssignment";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
-type Booking = Tables<"bookings"> & { result?: "pass" | "fail" | null; retest_type?: "skill" | "knowledge" | "none" | null };
+type Booking = Tables<"bookings"> & { result?: "pass" | "fail" | null; retest_type?: "skill" | "knowledge" | "both" | "none" | null };
 
 type ViewMode = "active" | "evaluation_pending" | "past" | "pending_retests";
 
