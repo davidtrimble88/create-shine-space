@@ -540,7 +540,7 @@ const AdminSchedule = () => {
                               <span className="text-xs font-medium text-accent bg-accent/10 px-1.5 py-0.5 rounded">
                                 {roleLabelMap[entry.role] || entry.role}
                               </span>
-                              <span className="text-xs text-foreground">{entry.employee_name ?? entry.name}</span>
+                              <span className="text-xs text-foreground">{entry.name}</span>
                               {entry.duties.length > 0 && (
                                 <div className="flex gap-1 ml-1">
                                   {dutyOrder.filter(d => entry.duties.includes(d)).map(d => (
