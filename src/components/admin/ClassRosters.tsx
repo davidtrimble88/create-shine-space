@@ -162,9 +162,10 @@ const ClassRosters = () => {
         const dl389Counts: Record<string, number> = {};
         (bookingRows ?? []).forEach((b: { schedule_id: string | null; result: string | null; is_retest: boolean; dl389_completed: boolean }) => {
           if (!b.schedule_id) return;
-          counts[b.schedule_id] = (counts[b.schedule_id] || 0) + 1;
           if (b.is_retest) {
             retestCountsLocal[b.schedule_id] = (retestCountsLocal[b.schedule_id] || 0) + 1;
+          } else {
+            counts[b.schedule_id] = (counts[b.schedule_id] || 0) + 1;
           }
           if (!b.result) {
             evalCounts[b.schedule_id] = (evalCounts[b.schedule_id] || 0) + 1;
