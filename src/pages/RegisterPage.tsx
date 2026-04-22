@@ -462,36 +462,92 @@ const RegisterPage = () => {
                   </div>
                 </div>
 
-                {/* Driver License */}
+                {/* ID Information */}
                 <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
-                  <h2 className="text-xl font-bold text-foreground mb-6">Driver License</h2>
+                  <h2 className="text-xl font-bold text-foreground mb-2">ID Information</h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    A valid government-issued ID is required. If you do not have a driver's license, you may use another form of ID such as a passport, school ID, state ID card, or military ID.
+                  </p>
+
+                  <FormField
+                    control={form.control}
+                    name="idType"
+                    render={({ field }) => (
+                      <FormItem className="mb-4">
+                        <FormLabel>ID Type *</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            className="flex flex-col sm:flex-row gap-4 mt-2"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="drivers_license" id="id-dl" />
+                              <Label htmlFor="id-dl">Driver's License</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="other" id="id-other" />
+                              <Label htmlFor="id-other">Other ID (Passport, School ID, etc.)</Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {idType === "other" && (
+                    <div className="mb-4">
+                      <FormField
+                        control={form.control}
+                        name="otherIdType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Type of ID *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Passport, School ID, State ID, Military ID" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="licenseNumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>License Number *</FormLabel>
+                          <FormLabel>
+                            {idType === "other" ? "ID Number *" : "License Number *"}
+                          </FormLabel>
                           <FormControl>
-                            <Input placeholder="D1234567" {...field} />
+                            <Input
+                              placeholder={idType === "other" ? "ID number" : "D1234567"}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="licenseExpiration"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Expiration Date *</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {idType === "drivers_license" && (
+                      <FormField
+                        control={form.control}
+                        name="licenseExpiration"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Expiration Date *</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                     <FormField
                       control={form.control}
                       name="issuingCountry"
@@ -505,19 +561,21 @@ const RegisterPage = () => {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="issuingState"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Issuing State *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="CA" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {idType === "drivers_license" && (
+                      <FormField
+                        control={form.control}
+                        name="issuingState"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Issuing State *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="CA" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
                 </div>
 
