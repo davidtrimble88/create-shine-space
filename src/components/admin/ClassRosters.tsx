@@ -5,15 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { roleLabelMap } from "@/components/admin/InstructorAssignment";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
-type Booking = Tables<"bookings"> & { result?: "pass" | "fail" | null; retest_type?: "skill" | "knowledge" | "both" | "none" | null };
+type Booking = Tables<"bookings"> & {
+  result?: "pass" | "fail" | null;
+  retest_type?: "skill" | "knowledge" | "both" | "none" | null;
+  dl389_completed?: boolean;
+  dl389_completed_at?: string | null;
+  dl389_completed_by?: string | null;
+};
 
-type ViewMode = "active" | "evaluation_pending" | "past" | "pending_retests";
+type ViewMode = "active" | "evaluation_pending" | "dl389" | "past" | "pending_retests";
 
 const RETEST_WINDOW_DAYS = 60;
 
