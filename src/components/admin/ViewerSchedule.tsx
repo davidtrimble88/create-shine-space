@@ -37,7 +37,7 @@ interface ScheduleEntry {
 type DisplayEntry = PlaceholderEntry | ScheduleEntry;
 
 const ViewerSchedule = () => {
-  const { user, userRole } = useAuth();
+  const { user, effectiveRole } = useAuth();
   const { toast } = useToast();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [myAvailability, setMyAvailability] = useState<Set<string>>(new Set());
@@ -49,7 +49,8 @@ const ViewerSchedule = () => {
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
 
-  const canDismiss = userRole === "owner" || userRole === "admin";
+  const canDismiss = effectiveRole === "owner" || effectiveRole === "admin";
+  const canViewPast = effectiveRole !== "employee";
 
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
