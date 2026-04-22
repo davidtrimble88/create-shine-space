@@ -41,7 +41,8 @@ const daysBetween = (from: Date, to: Date) => {
 };
 
 const ClassRosters = () => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
+  const canManageEvaluations = userRole === "owner" || userRole === "admin";
   const [view, setView] = useState<ViewMode>("active");
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
@@ -591,7 +592,14 @@ const ClassRosters = () => {
   // ========================
   // Render
   // ========================
-  if (view === "pending_retests") {
+  // Force-redirect non-privileged users away from restricted views
+  useEffect(() => {
+    if (!canManageEvaluations && view !== "active") {
+      setView("active");
+    }
+  }, [canManageEvaluations, view]);
+
+  if (view === "pending_retests" && canManageEvaluations) {
     return renderPendingRetests();
   }
 
@@ -605,7 +613,7 @@ const ClassRosters = () => {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-foreground">{viewTitle}</h1>
         <div className="flex items-center gap-2 flex-wrap">
-          {view === "active" && (
+          {view === "active" && canManageEvaluations && (
             <>
               <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("evaluation_pending"); }}>
                 <ClipboardList className="w-4 h-4 mr-2" /> Evaluation Pending
@@ -635,7 +643,7 @@ const ClassRosters = () => {
           )}
           {selectedSchedule && (
             <>
-              {view === "active" && (
+              {view === "active" && canManageEvaluations && (
                 <Dialog open={showRetestDialog} onOpenChange={setShowRetestDialog}>
                   <DialogTrigger asChild>
                     <Button variant="outline">
