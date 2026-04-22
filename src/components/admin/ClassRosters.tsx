@@ -696,6 +696,7 @@ const ClassRosters = () => {
                         {renderCommentCell(b)}
                         <td className="p-3 text-center text-muted-foreground">—</td>
                         <td className="p-3 text-center text-muted-foreground">—</td>
+                        {renderResultCell(b)}
                       </tr>
                     ))}
                   </tbody>
