@@ -22,9 +22,12 @@ interface AvailabilityInfo {
 
 interface AssignmentInfo {
   schedule_id: string;
+  employee_id: string;
   employee_name: string;
   role: string;
 }
+
+const DUTY_CODES = new Set(["c1", "r1", "c2", "r2"]);
 
 const courseLabels: Record<string, string> = {
   basic: "Motorcycle Training Course",
@@ -194,6 +197,7 @@ const AdminSchedule = () => {
       setAssignmentData(
         assignRes.data.map(a => ({
           schedule_id: a.schedule_id,
+          employee_id: a.employee_id,
           employee_name: empNameMap.get(a.employee_id) ?? "Unknown",
           role: a.assignment_role ?? "instructor_1",
         }))
@@ -517,14 +521,35 @@ const AdminSchedule = () => {
                     {(() => {
                       const assigned = getAssignmentsForSchedule(s.id);
                       if (assigned.length === 0) return <span className="text-muted-foreground text-xs italic">Not assigned</span>;
+                      // Group by employee: primary role + duty codes side-by-side
+                      const grouped = new Map<string, { name: string; role: string; duties: string[] }>();
+                      assigned.forEach(a => {
+                        let entry = grouped.get(a.employee_id);
+                        if (!entry) {
+                          entry = { name: a.employee_name, role: "instructor_1", duties: [] };
+                          grouped.set(a.employee_id, entry);
+                        }
+                        if (DUTY_CODES.has(a.role)) entry.duties.push(a.role);
+                        else entry.role = a.role;
+                      });
+                      const dutyOrder = ["c1", "r1", "c2", "r2"];
                       return (
-                        <div className="space-y-1">
-                          {assigned.map((a, i) => (
-                            <div key={i} className="flex items-center gap-1.5">
+                        <div className="space-y-1.5">
+                          {Array.from(grouped.entries()).map(([empId, entry]) => (
+                            <div key={empId} className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-xs font-medium text-accent bg-accent/10 px-1.5 py-0.5 rounded">
-                                {roleLabelMap[a.role] || a.role}
+                                {roleLabelMap[entry.role] || entry.role}
                               </span>
-                              <span className="text-xs text-foreground">{a.employee_name}</span>
+                              <span className="text-xs text-foreground">{entry.employee_name ?? entry.name}</span>
+                              {entry.duties.length > 0 && (
+                                <div className="flex gap-1 ml-1">
+                                  {dutyOrder.filter(d => entry.duties.includes(d)).map(d => (
+                                    <span key={d} className="text-[10px] font-semibold text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
+                                      {roleLabelMap[d] || d.toUpperCase()}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
