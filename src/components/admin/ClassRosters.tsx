@@ -72,6 +72,8 @@ const ClassRosters = () => {
   const [scheduleRetestFor, setScheduleRetestFor] = useState<Booking | null>(null);
   const [retestTargetScheduleId, setRetestTargetScheduleId] = useState<string>("");
   const [schedulingRetest, setSchedulingRetest] = useState(false);
+  // Per-schedule retest counts: { [schedule_id]: { skill: n, knowledge: n } }
+  const [retestCountsByClass, setRetestCountsByClass] = useState<Record<string, { skill: number; knowledge: number }>>({});
   const printRef = useRef<HTMLDivElement>(null);
 
   // Load schedules + employees + assignments based on view
