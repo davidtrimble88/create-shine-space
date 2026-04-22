@@ -312,12 +312,29 @@ const ClassRosters = () => {
   const regularBookings = bookings.filter(b => !b.is_retest);
   const retestBookings = bookings.filter(b => b.is_retest);
 
-  const selectedAssignments = allAssignments
-    .filter(a => a.schedule_id === selectedScheduleId)
-    .map(a => {
+  const DUTY_CODES_SET = new Set(["c1", "r1", "c2", "r2"]);
+  const DUTY_ORDER = ["c1", "r1", "c2", "r2"];
+  const selectedAssignments = (() => {
+    const rows = allAssignments.filter(a => a.schedule_id === selectedScheduleId);
+    const grouped = new Map<string, { name: string; role: string; duties: string[] }>();
+    rows.forEach(a => {
       const emp = employees.find(e => e.id === a.employee_id);
-      return { name: emp?.full_name ?? "Unknown", role: roleLabelMap[a.assignment_role] ?? a.assignment_role };
+      const name = emp?.full_name ?? "Unknown";
+      let entry = grouped.get(a.employee_id);
+      if (!entry) {
+        entry = { name, role: "instructor_1", duties: [] };
+        grouped.set(a.employee_id, entry);
+      }
+      if (DUTY_CODES_SET.has(a.assignment_role)) entry.duties.push(a.assignment_role);
+      else entry.role = a.assignment_role;
     });
+    return Array.from(grouped.values()).map(e => {
+      const roleLabel = roleLabelMap[e.role] ?? e.role;
+      const dutyLabels = DUTY_ORDER.filter(d => e.duties.includes(d)).map(d => (roleLabelMap[d] ?? d).toUpperCase());
+      const role = dutyLabels.length > 0 ? `${roleLabel}: ${dutyLabels.join("/")}` : roleLabel;
+      return { name: e.name, role };
+    });
+  })();
 
   // Pick which schedule list drives the current view.
   // Past Roster excludes schedules that still have DL389 work pending.
