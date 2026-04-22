@@ -739,6 +739,7 @@ const ClassRosters = () => {
                           {renderCommentCell(b)}
                           <td className="p-3 text-center text-muted-foreground">—</td>
                           <td className="p-3 text-center text-muted-foreground">—</td>
+                          {renderResultCell(b)}
                           <td className="p-3 text-center">
                             <button onClick={() => handleRemoveRetest(b.id)} className="text-destructive hover:text-destructive/80">
                               <Trash2 className="w-3.5 h-3.5" />
