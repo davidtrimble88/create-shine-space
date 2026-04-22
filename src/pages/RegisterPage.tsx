@@ -41,16 +41,43 @@ const registrationSchema = z.object({
   city: z.string().trim().min(1, "City is required").max(100),
   state: z.string().trim().min(1, "State is required").max(50),
   zip: z.string().trim().min(5, "Valid ZIP code required").max(10),
-  licenseNumber: z.string().trim().min(1, "Driver license number is required").max(50),
+  idType: z.enum(["drivers_license", "other"], { required_error: "Please select an ID type" }),
+  otherIdType: z.string().trim().max(100).optional(),
+  licenseNumber: z.string().trim().min(1, "ID number is required").max(50),
   issuingCountry: z.string().trim().min(1, "Issuing country is required").max(50),
-  issuingState: z.string().trim().min(1, "Issuing state is required").max(50),
-  licenseExpiration: z.string().min(1, "License expiration date is required"),
+  issuingState: z.string().trim().max(50).optional(),
+  licenseExpiration: z.string().optional(),
   referralSource: z.string().min(1, "Please select how you found us"),
   agreement: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
   parentGuardianAck: z.boolean().optional(),
 }).superRefine((data, ctx) => {
+  if (data.idType === "drivers_license") {
+    if (!data.issuingState || data.issuingState.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["issuingState"],
+        message: "Issuing state is required",
+      });
+    }
+    if (!data.licenseExpiration || data.licenseExpiration.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["licenseExpiration"],
+        message: "License expiration date is required",
+      });
+    }
+  } else if (data.idType === "other") {
+    if (!data.otherIdType || data.otherIdType.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["otherIdType"],
+        message: "Please specify the type of ID",
+      });
+    }
+  }
+
   if (!data.dateOfBirth) return;
   const today = new Date();
   const birth = new Date(data.dateOfBirth);
