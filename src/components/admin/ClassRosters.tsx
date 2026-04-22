@@ -11,7 +11,7 @@ import { roleLabelMap } from "@/components/admin/InstructorAssignment";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
-type Booking = Tables<"bookings"> & { result?: "pass" | "fail" | null; retest_type?: "skill" | "knowledge" | "none" | null };
+type Booking = Tables<"bookings"> & { result?: "pass" | "fail" | null; retest_type?: "skill" | "knowledge" | "both" | "none" | null };
 
 type ViewMode = "active" | "evaluation_pending" | "past" | "pending_retests";
 
@@ -161,12 +161,12 @@ const ClassRosters = () => {
         setEvalPendingSchedules([]);
       }
 
-      // Pending retests = failed students with retest_type skill/knowledge
+      // Pending retests = failed students with retest_type skill/knowledge/both
       const { data: retestRows } = await (supabase as any)
         .from("bookings")
         .select("*")
         .eq("result", "fail")
-        .in("retest_type", ["skill", "knowledge"]);
+        .in("retest_type", ["skill", "knowledge", "both"]);
       setPendingRetests((retestRows ?? []) as Booking[]);
 
       if (pendingId) {
@@ -225,8 +225,16 @@ const ClassRosters = () => {
         if (!row.schedule_id) return;
         if (!counts[row.schedule_id]) counts[row.schedule_id] = { skill: 0, knowledge: 0 };
         const c = (row.roster_comment || "").toLowerCase();
-        if (c.includes("knowledge")) counts[row.schedule_id].knowledge += 1;
-        else counts[row.schedule_id].skill += 1; // default: treat unlabeled retests as skill
+        const hasSkill = c.includes("skill");
+        const hasKnowledge = c.includes("knowledge");
+        if (hasSkill && hasKnowledge) {
+          counts[row.schedule_id].skill += 1;
+          counts[row.schedule_id].knowledge += 1;
+        } else if (hasKnowledge) {
+          counts[row.schedule_id].knowledge += 1;
+        } else {
+          counts[row.schedule_id].skill += 1; // default: treat unlabeled retests as skill
+        }
       });
       setRetestCountsByClass(counts);
     };
@@ -450,7 +458,7 @@ const ClassRosters = () => {
     toast.success(next === null ? "Result cleared" : "Marked as Pass");
   };
 
-  const handleSetFailWithRetest = async (retestType: "skill" | "knowledge" | "none") => {
+  const handleSetFailWithRetest = async (retestType: "skill" | "knowledge" | "both" | "none") => {
     if (!failDialogBookingId) return;
     const updates: any = { result: "fail", retest_type: retestType };
     const { error } = await supabase
@@ -463,11 +471,12 @@ const ClassRosters = () => {
     }
     setBookings(prev => prev.map(b => b.id === failDialogBookingId ? { ...b, ...updates } : b));
     setFailDialogBookingId(null);
-    toast.success(
-      retestType === "none"
-        ? "Marked as Fail — Not eligible for retest"
-        : `Marked as Fail — ${retestType === "skill" ? "Skill" : "Knowledge"} retest eligible`
-    );
+    const label =
+      retestType === "none" ? "Not eligible for retest" :
+      retestType === "skill" ? "Skill retest eligible" :
+      retestType === "knowledge" ? "Knowledge retest eligible" :
+      "Skill & Knowledge retest eligible";
+    toast.success(`Marked as Fail — ${label}`);
   };
 
   const renderResultCell = (b: Booking) => {
@@ -505,7 +514,10 @@ const ClassRosters = () => {
         </div>
         {result === "fail" && retest && (
           <div className="text-[10px] text-center mt-1 text-muted-foreground">
-            {retest === "skill" ? "Skill retest" : retest === "knowledge" ? "Knowledge retest" : "Not eligible"}
+            {retest === "skill" ? "Skill retest"
+              : retest === "knowledge" ? "Knowledge retest"
+              : retest === "both" ? "Skill & Knowledge retest"
+              : "Not eligible"}
           </div>
         )}
       </td>
@@ -574,7 +586,9 @@ const ClassRosters = () => {
       is_retest: true,
       roster_comment: src.retest_type === "skill"
         ? "Skill retest"
-        : "Knowledge retest",
+        : src.retest_type === "both"
+          ? "Skill & Knowledge retest"
+          : "Knowledge retest",
     }).select().single();
 
     if (error || !data) {
@@ -661,9 +675,13 @@ const ClassRosters = () => {
                       </td>
                       <td className="p-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                          b.retest_type === "skill" ? "bg-primary/20 text-primary" : "bg-amber-500/20 text-amber-500"
+                          b.retest_type === "skill" ? "bg-primary/20 text-primary"
+                            : b.retest_type === "both" ? "bg-accent/30 text-foreground"
+                            : "bg-amber-500/20 text-amber-500"
                         }`}>
-                          {b.retest_type === "skill" ? "Skill" : "Knowledge"}
+                          {b.retest_type === "skill" ? "Skill"
+                            : b.retest_type === "both" ? "Skill & Knowledge"
+                            : "Knowledge"}
                         </span>
                       </td>
                       <td className={`p-3 text-center font-semibold ${urgent ? "text-destructive" : "text-foreground"}`}>
@@ -699,7 +717,7 @@ const ClassRosters = () => {
                     <span className="font-semibold text-foreground">
                       {courseLabels[scheduleRetestFor.course] || scheduleRetestFor.course}
                     </span>{" "}
-                    class as a {scheduleRetestFor.retest_type === "skill" ? "Skill" : "Knowledge"} retest.
+                    class as a {scheduleRetestFor.retest_type === "skill" ? "Skill" : scheduleRetestFor.retest_type === "both" ? "Skill & Knowledge" : "Knowledge"} retest.
                   </>
                 )}
               </DialogDescription>
@@ -1287,6 +1305,10 @@ const ClassRosters = () => {
             <Button variant="outline" onClick={() => handleSetFailWithRetest("knowledge")} className="justify-start">
               <RotateCcw className="w-4 h-4 mr-2 text-amber-500" />
               Eligible — <span className="font-semibold ml-1">Knowledge Retest</span>
+            </Button>
+            <Button variant="outline" onClick={() => handleSetFailWithRetest("both")} className="justify-start">
+              <RotateCcw className="w-4 h-4 mr-2 text-foreground" />
+              Eligible — <span className="font-semibold ml-1">Skill &amp; Knowledge Retest</span>
             </Button>
             <Button variant="outline" onClick={() => handleSetFailWithRetest("none")} className="justify-start">
               <X className="w-4 h-4 mr-2 text-destructive" />
