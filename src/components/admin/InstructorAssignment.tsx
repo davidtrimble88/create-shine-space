@@ -11,6 +11,10 @@ const ROLES = [
   { value: "instructor_2", label: "Instructor 2" },
   { value: "range_assistant", label: "Range Assistant" },
   { value: "instructor_candidate", label: "Instructor Candidate" },
+  { value: "c1", label: "C1 — Classroom Day 1" },
+  { value: "r1", label: "R1 — Range Day 1" },
+  { value: "c2", label: "C2 — Classroom Day 2" },
+  { value: "r2", label: "R2 — Range Day 2" },
 ];
 
 const roleLabelMap: Record<string, string> = Object.fromEntries(ROLES.map(r => [r.value, r.label]));
