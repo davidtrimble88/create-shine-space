@@ -72,6 +72,8 @@ const ClassRosters = () => {
   const [scheduleRetestFor, setScheduleRetestFor] = useState<Booking | null>(null);
   const [retestTargetScheduleId, setRetestTargetScheduleId] = useState<string>("");
   const [schedulingRetest, setSchedulingRetest] = useState(false);
+  // Per-schedule retest counts: { [schedule_id]: { skill: n, knowledge: n } }
+  const [retestCountsByClass, setRetestCountsByClass] = useState<Record<string, { skill: number; knowledge: number }>>({});
   const printRef = useRef<HTMLDivElement>(null);
 
   // Load schedules + employees + assignments based on view
@@ -196,6 +198,41 @@ const ClassRosters = () => {
     };
     fetchBookings();
   }, [selectedScheduleId]);
+
+  // When the Schedule Retest dialog opens, fetch retest counts for matching upcoming classes
+  useEffect(() => {
+    if (!scheduleRetestFor) return;
+    const fetchCounts = async () => {
+      const todayStr = new Date().toISOString().split("T")[0];
+      const failedDate = new Date((scheduleRetestFor.schedule_date || "") + "T00:00:00");
+      const deadlineDate = new Date(failedDate);
+      deadlineDate.setDate(deadlineDate.getDate() + RETEST_WINDOW_DAYS);
+      const deadlineStr = deadlineDate.toISOString().split("T")[0];
+      const candidateIds = schedules
+        .filter(s => s.course === scheduleRetestFor.course && s.date >= todayStr && s.date <= deadlineStr)
+        .map(s => s.id);
+      if (candidateIds.length === 0) {
+        setRetestCountsByClass({});
+        return;
+      }
+      const { data } = await (supabase as any)
+        .from("bookings")
+        .select("schedule_id, roster_comment")
+        .in("schedule_id", candidateIds)
+        .eq("is_retest", true);
+      const counts: Record<string, { skill: number; knowledge: number }> = {};
+      (data ?? []).forEach((row: { schedule_id: string | null; roster_comment: string | null }) => {
+        if (!row.schedule_id) return;
+        if (!counts[row.schedule_id]) counts[row.schedule_id] = { skill: 0, knowledge: 0 };
+        const c = (row.roster_comment || "").toLowerCase();
+        if (c.includes("knowledge")) counts[row.schedule_id].knowledge += 1;
+        else counts[row.schedule_id].skill += 1; // default: treat unlabeled retests as skill
+      });
+      setRetestCountsByClass(counts);
+    };
+    fetchCounts();
+  }, [scheduleRetestFor, schedules]);
+
 
   // Global student search across all bookings
   useEffect(() => {
@@ -698,11 +735,18 @@ const ClassRosters = () => {
                   <Select value={retestTargetScheduleId} onValueChange={setRetestTargetScheduleId}>
                     <SelectTrigger><SelectValue placeholder="Select an available class" /></SelectTrigger>
                     <SelectContent>
-                      {candidates.map(s => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.date} • {s.location_label} • {s.spots_available} spot{s.spots_available !== 1 ? "s" : ""} open
-                        </SelectItem>
-                      ))}
+                      {candidates.map(s => {
+                        const rc = retestCountsByClass[s.id] || { skill: 0, knowledge: 0 };
+                        const totalRetests = rc.skill + rc.knowledge;
+                        const retestSummary = totalRetests === 0
+                          ? "no retests scheduled"
+                          : `${totalRetests} retest${totalRetests !== 1 ? "s" : ""} (${rc.skill} skill, ${rc.knowledge} knowledge)`;
+                        return (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.date} • {s.location_label} • {s.spots_available} spot{s.spots_available !== 1 ? "s" : ""} open • {retestSummary}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
