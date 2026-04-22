@@ -16,6 +16,11 @@ import {
   KeyRound,
   HelpCircle,
   Shield,
+  ListChecks,
+  ListPlus,
+  DollarSign,
+  ShieldCheck,
+  Lock,
 } from "lucide-react";
 
 interface GuideSection {
@@ -116,6 +121,60 @@ const guideSections: GuideSection[] = [
       "Filter bookings by location, course, or status to find specific entries.",
       "Update payment status and booking status as students complete their registration.",
       "Use the manual enrollment feature to register students over the phone or in person.",
+      "When a minor (under 18) registers, the form requires a parent/legal guardian acknowledgment that they are making payment — this is enforced automatically.",
+      "Students can register with a Driver's License OR another ID (Passport, School ID, Military ID, etc.). For 'Other' IDs, the type is stored alongside the ID number.",
+    ],
+  },
+  {
+    id: "rosters",
+    title: "Class Rosters, Evaluations & Retests",
+    icon: ListChecks,
+    roles: ["owner", "admin", "manager", "employee"],
+    steps: [
+      "Open 'Class Rosters' to see all upcoming classes with their student lists.",
+      "Each class card shows the number of regular students 'registered' and, separately, how many 'retest' students are signed up. Retests are NOT counted in the registered total.",
+      "Click a class to open its full roster with student details (name, phone, DL/ID, DOB, comments).",
+      "Comments column: Add roster notes per student. Retest students added via the booking funnel will not get auto-generated comment text.",
+      "Use 'Add Retest Student' inside a roster to register a returning student for a re-test in the Skill, Knowledge, or both portions.",
+      "Result column (Owner/Admin only): mark each student Pass or Fail after the class. Marking Fail opens a dialog to choose which retest portion they're eligible for.",
+      "After the class date passes, classes with un-evaluated students appear under 'Evaluation Pending' until every student has a Pass/Fail recorded.",
+      "Once all students are evaluated, classes with passed students move to the 'DL389' queue (Owner/Admin only).",
+    ],
+  },
+  {
+    id: "dl389",
+    title: "DL389 Certificate Tracking",
+    icon: FileText,
+    roles: ["owner", "admin"],
+    steps: [
+      "The 'DL389' view (inside Class Rosters) lists every passed student who still needs a DL389 certificate created.",
+      "Click a student to open a dialog with their full details — name, contact info, DOB, license/ID, address, and roster comments — everything you need to fill out the DL389.",
+      "After you've created the DL389 for that student, check the 'DL389 has been created' toggle in the dialog.",
+      "Once every passed student in a class has been marked complete, the class automatically moves into the 'Past Roster' archive.",
+      "This view is restricted to Owners and Admins only.",
+    ],
+  },
+  {
+    id: "referrals",
+    title: "Referral Sources",
+    icon: ListPlus,
+    roles: ["owner", "admin"],
+    steps: [
+      "The 'Referral Sources' tab manages the dropdown options shown on the public registration form ('How did you hear about us?').",
+      "Add new sources, rename existing ones, or reorder them using the sort order field.",
+      "Toggle a source inactive to hide it from the public form without deleting it (existing bookings keep their reference).",
+    ],
+  },
+  {
+    id: "earnings",
+    title: "Earnings Analytics",
+    icon: DollarSign,
+    roles: ["owner"],
+    steps: [
+      "The 'Earnings' tab shows revenue trends pulled from completed bookings.",
+      "Filter by date range, location, or course to break down income.",
+      "Use this view to track monthly performance and identify top-performing courses or locations.",
+      "Restricted to Owner role only.",
     ],
   },
   {
@@ -139,6 +198,30 @@ const guideSections: GuideSection[] = [
       "The 'Role Permissions' tab provides a complete breakdown of what each role can do.",
       "Use it as a reference when deciding which role to assign to an employee.",
       "The permission matrix shows every feature and which roles have access.",
+    ],
+  },
+  {
+    id: "security-questions",
+    title: "Security Questions",
+    icon: ShieldCheck,
+    roles: ["owner", "admin", "manager", "employee"],
+    steps: [
+      "Set up security questions so you can recover your account if you forget your password.",
+      "Choose questions and provide answers you'll remember — answers are case-insensitive but should be specific.",
+      "You can update your questions and answers at any time from this tab.",
+      "These questions are used during the self-serve password reset flow on the login page.",
+    ],
+  },
+  {
+    id: "change-password",
+    title: "Change Password",
+    icon: Lock,
+    roles: ["owner", "admin", "manager", "employee"],
+    steps: [
+      "Use the 'Change Password' tab to update your account password at any time.",
+      "Enter your current password, then your new password twice to confirm.",
+      "If an admin reset your password, you'll be required to change it on next login before accessing the dashboard.",
+      "Choose a strong password — mix letters, numbers, and symbols.",
     ],
   },
 ];
