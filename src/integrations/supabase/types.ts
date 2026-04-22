@@ -38,6 +38,7 @@ export type Database = {
           payment_status: string
           phone: string
           referral_source: string | null
+          result: string | null
           roster_comment: string | null
           schedule_date: string | null
           schedule_id: string | null
@@ -68,6 +69,7 @@ export type Database = {
           payment_status?: string
           phone: string
           referral_source?: string | null
+          result?: string | null
           roster_comment?: string | null
           schedule_date?: string | null
           schedule_id?: string | null
@@ -98,6 +100,7 @@ export type Database = {
           payment_status?: string
           phone?: string
           referral_source?: string | null
+          result?: string | null
           roster_comment?: string | null
           schedule_date?: string | null
           schedule_id?: string | null
