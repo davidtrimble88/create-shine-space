@@ -311,11 +311,13 @@ const ClassRosters = () => {
       return { name: emp?.full_name ?? "Unknown", role: roleLabelMap[a.assignment_role] ?? a.assignment_role };
     });
 
-  // Pick which schedule list drives the current view
+  // Pick which schedule list drives the current view.
+  // Past Roster excludes schedules that still have DL389 work pending.
+  const dl389PendingScheduleIds = new Set(dl389Schedules.map(s => s.id));
   const baseSchedules = view === "active"
     ? schedules
     : view === "past"
-      ? pastSchedules
+      ? pastSchedules.filter(s => !dl389PendingScheduleIds.has(s.id) && (evalPendingCounts[s.id] || 0) === 0)
       : view === "evaluation_pending"
         ? evalPendingSchedules
         : [];
