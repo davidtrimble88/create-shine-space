@@ -34,15 +34,26 @@ interface GuideSection {
 
 const guideSections: GuideSection[] = [
   {
-    id: "overview",
+    id: "overview-staff",
     title: "Dashboard Overview",
     icon: LayoutDashboard,
-    roles: ["owner", "admin", "manager", "employee"],
+    roles: ["manager", "employee"],
     steps: [
       "The Overview tab is your home screen when you log in.",
-      "It displays a summary of upcoming classes you're assigned to.",
-      "You can see recent activity and quick stats relevant to your role.",
-      "Use the sidebar on the left to navigate between different sections.",
+      "It shows how many upcoming classes you are personally assigned to teach.",
+      "Use the sidebar on the left to navigate between sections you have access to.",
+    ],
+  },
+  {
+    id: "overview-admin",
+    title: "Dashboard Overview",
+    icon: LayoutDashboard,
+    roles: ["owner", "admin"],
+    steps: [
+      "The Overview tab is your home screen when you log in.",
+      "It displays total classes, your upcoming assigned classes, and the active employee count.",
+      "Owners also see today's and yesterday's earnings broken down by location.",
+      "Use the sidebar on the left to navigate between every section available to your role.",
     ],
   },
   {
