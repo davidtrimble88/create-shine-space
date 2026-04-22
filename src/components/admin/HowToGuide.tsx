@@ -190,16 +190,26 @@ const guideSections: GuideSection[] = [
     ],
   },
   {
-    id: "files",
+    id: "files-staff",
     title: "Shared Files",
     icon: FolderOpen,
-    roles: ["owner", "admin", "manager", "employee"],
+    roles: ["manager", "employee"],
     steps: [
-      "The 'Files' tab is where management shares documents, forms, and resources with the whole team.",
-      "All signed-in staff can browse and download any file shown here.",
-      "Owners and Admins can upload new files (max 50 MB each), give them a display name and optional description, and edit or delete files later.",
-      "Managers and Employees see a read-only view with download buttons.",
-      "Use this for things like blank DL389 forms, instructor manuals, policy documents, or any other shared resource.",
+      "The 'Files' tab holds documents, forms, and resources shared by management.",
+      "Browse the list and click download on any file you need (e.g., blank DL389 forms, instructor manuals, policy documents).",
+      "This view is read-only — contact an Owner or Admin if a file needs to be added or updated.",
+    ],
+  },
+  {
+    id: "files-admin",
+    title: "Shared Files",
+    icon: FolderOpen,
+    roles: ["owner", "admin"],
+    steps: [
+      "The 'Files' tab is where you share documents, forms, and resources with the whole team.",
+      "Click 'Upload File' to add a new resource (max 50 MB), give it a display name and optional description.",
+      "Use the edit and delete buttons to keep the library current.",
+      "All signed-in staff can browse and download these files.",
     ],
   },
   {
