@@ -47,7 +47,7 @@ const roleLabels: Record<string, { label: string; icon: typeof Shield }> = {
 };
 
 const EmployeeDashboard = () => {
-  const { user, isAdmin, userRole, loading, mustChangePassword, signOut } = useAuth();
+  const { user, isAdmin, userRole, effectiveRole, viewAsRole, setViewAsRole, loading, mustChangePassword, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
   useEffect(() => {
@@ -55,6 +55,12 @@ const EmployeeDashboard = () => {
     window.addEventListener("openRoster", handler);
     return () => window.removeEventListener("openRoster", handler);
   }, []);
+
+  // If owner switches to a view that hides the active tab, send them back to overview
+  useEffect(() => {
+    const stillVisible = tabs.find(t => t.id === activeTab)?.roles.includes(effectiveRole as any);
+    if (!stillVisible) setActiveTab("overview");
+  }, [effectiveRole, activeTab]);
 
   if (!loading && user && mustChangePassword) {
     return <Navigate to="/change-password" replace />;
@@ -72,9 +78,11 @@ const EmployeeDashboard = () => {
     return <Navigate to="/employee-login" replace />;
   }
 
-  const visibleTabs = tabs.filter(t => t.roles.includes(userRole as any));
-  const roleInfo = roleLabels[userRole] || roleLabels.employee;
+  const visibleTabs = tabs.filter(t => t.roles.includes(effectiveRole as any));
+  const roleInfo = roleLabels[effectiveRole] || roleLabels.employee;
   const RoleIcon = roleInfo.icon;
+  const isOwner = userRole === "owner";
+  const isImpersonating = isOwner && !!viewAsRole && viewAsRole !== "owner";
 
   return (
     <div className="min-h-screen bg-background flex">
