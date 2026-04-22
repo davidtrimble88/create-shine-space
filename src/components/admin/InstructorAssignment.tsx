@@ -189,9 +189,9 @@ const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
                   )}
                 </button>
                 {assigned && entry && (
-                  <div className="px-3 pb-2.5 pl-14 flex flex-wrap items-center gap-2">
+                  <div className="px-3 pb-2.5 pl-14 flex items-center gap-2 flex-nowrap">
                     <Select value={entry.role} onValueChange={v => setRole(emp.id, v)}>
-                      <SelectTrigger className="h-8 text-xs w-44">
+                      <SelectTrigger className="h-8 text-xs flex-1 min-w-0">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -200,7 +200,7 @@ const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
                         ))}
                       </SelectContent>
                     </Select>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 shrink-0">
                       {DUTIES.map(d => {
                         const active = entry.duties.has(d.value);
                         return (
@@ -208,7 +208,7 @@ const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
                             key={d.value}
                             type="button"
                             onClick={() => toggleDuty(emp.id, d.value)}
-                            className={`h-8 min-w-[2.25rem] px-2 text-xs font-semibold rounded-md border transition-colors ${
+                            className={`h-8 w-9 px-0 text-xs font-semibold rounded-md border transition-colors ${
                               active
                                 ? "bg-accent text-accent-foreground border-accent"
                                 : "bg-background text-muted-foreground border-border hover:bg-secondary hover:text-foreground"
