@@ -11,13 +11,21 @@ const ROLES = [
   { value: "instructor_2", label: "Instructor 2" },
   { value: "range_assistant", label: "Range Assistant" },
   { value: "instructor_candidate", label: "Instructor Candidate" },
-  { value: "c1", label: "C1 — Classroom Day 1" },
-  { value: "r1", label: "R1 — Range Day 1" },
-  { value: "c2", label: "C2 — Classroom Day 2" },
-  { value: "r2", label: "R2 — Range Day 2" },
 ];
 
-const roleLabelMap: Record<string, string> = Object.fromEntries(ROLES.map(r => [r.value, r.label]));
+const DUTIES = [
+  { value: "c1", label: "C1" },
+  { value: "r1", label: "R1" },
+  { value: "c2", label: "C2" },
+  { value: "r2", label: "R2" },
+];
+
+const DUTY_VALUES = new Set(DUTIES.map(d => d.value));
+
+const roleLabelMap: Record<string, string> = {
+  ...Object.fromEntries(ROLES.map(r => [r.value, r.label])),
+  ...Object.fromEntries(DUTIES.map(d => [d.value, d.label])),
+};
 
 interface Employee {
   id: string;
@@ -27,9 +35,10 @@ interface Employee {
   user_id?: string | null;
 }
 
-interface Assignment {
+interface AssignmentEntry {
   employee_id: string;
-  assignment_role: string;
+  role: string; // primary role (instructor_1, etc.)
+  duties: Set<string>; // c1/r1/c2/r2
 }
 
 interface Props {
@@ -41,7 +50,7 @@ interface Props {
 const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [availableUserIds, setAvailableUserIds] = useState<Set<string>>(new Set());
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [assignments, setAssignments] = useState<AssignmentEntry[]>([]);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
@@ -64,40 +73,60 @@ const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
         if (!aAvail && bAvail) return 1;
         return a.full_name.localeCompare(b.full_name);
       });
-
       setEmployees(emps);
-      setAssignments((assignRes.data ?? []).map(a => ({
-        employee_id: a.employee_id,
-        assignment_role: a.assignment_role ?? "instructor_1",
-      })));
+
+      // Group rows by employee: collect primary role + duty codes
+      const grouped = new Map<string, AssignmentEntry>();
+      (assignRes.data ?? []).forEach(row => {
+        const r = row.assignment_role ?? "instructor_1";
+        let entry = grouped.get(row.employee_id);
+        if (!entry) {
+          entry = { employee_id: row.employee_id, role: "instructor_1", duties: new Set() };
+          grouped.set(row.employee_id, entry);
+        }
+        if (DUTY_VALUES.has(r)) entry.duties.add(r);
+        else entry.role = r;
+      });
+      setAssignments(Array.from(grouped.values()));
     };
     load();
   }, [scheduleId]);
 
   const isAssigned = (empId: string) => assignments.some(a => a.employee_id === empId);
-  const getRole = (empId: string) => assignments.find(a => a.employee_id === empId)?.assignment_role ?? "instructor_1";
+  const getEntry = (empId: string) => assignments.find(a => a.employee_id === empId);
 
   const toggleEmployee = (empId: string) => {
     if (isAssigned(empId)) {
       setAssignments(prev => prev.filter(a => a.employee_id !== empId));
     } else {
-      setAssignments(prev => [...prev, { employee_id: empId, assignment_role: "instructor_1" }]);
+      setAssignments(prev => [...prev, { employee_id: empId, role: "instructor_1", duties: new Set() }]);
     }
   };
 
   const setRole = (empId: string, role: string) => {
-    setAssignments(prev => prev.map(a => a.employee_id === empId ? { ...a, assignment_role: role } : a));
+    setAssignments(prev => prev.map(a => a.employee_id === empId ? { ...a, role } : a));
+  };
+
+  const toggleDuty = (empId: string, duty: string) => {
+    setAssignments(prev => prev.map(a => {
+      if (a.employee_id !== empId) return a;
+      const next = new Set(a.duties);
+      if (next.has(duty)) next.delete(duty); else next.add(duty);
+      return { ...a, duties: next };
+    }));
   };
 
   const handleSave = async () => {
     setSaving(true);
     await supabase.from("instructor_assignments").delete().eq("schedule_id", scheduleId);
-    if (assignments.length > 0) {
-      const rows = assignments.map(a => ({
-        schedule_id: scheduleId,
-        employee_id: a.employee_id,
-        assignment_role: a.assignment_role,
-      }));
+    const rows: { schedule_id: string; employee_id: string; assignment_role: string }[] = [];
+    assignments.forEach(a => {
+      rows.push({ schedule_id: scheduleId, employee_id: a.employee_id, assignment_role: a.role });
+      a.duties.forEach(d => {
+        rows.push({ schedule_id: scheduleId, employee_id: a.employee_id, assignment_role: d });
+      });
+    });
+    if (rows.length > 0) {
       const { error } = await supabase.from("instructor_assignments").insert(rows);
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -126,6 +155,7 @@ const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
         <div className="flex-1 overflow-y-auto space-y-1 my-4">
           {employees.map(emp => {
             const assigned = isAssigned(emp.id);
+            const entry = getEntry(emp.id);
             const avail = hasAvailability(emp);
             return (
               <div
@@ -158,10 +188,10 @@ const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
                     <X className="w-4 h-4 text-muted-foreground shrink-0" />
                   )}
                 </button>
-                {assigned && (
-                  <div className="px-3 pb-2.5 pl-14">
-                    <Select value={getRole(emp.id)} onValueChange={v => setRole(emp.id, v)}>
-                      <SelectTrigger className="h-8 text-xs w-52">
+                {assigned && entry && (
+                  <div className="px-3 pb-2.5 pl-14 flex flex-wrap items-center gap-2">
+                    <Select value={entry.role} onValueChange={v => setRole(emp.id, v)}>
+                      <SelectTrigger className="h-8 text-xs w-44">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -170,6 +200,26 @@ const InstructorAssignment = ({ scheduleId, scheduleName, onClose }: Props) => {
                         ))}
                       </SelectContent>
                     </Select>
+                    <div className="flex gap-1">
+                      {DUTIES.map(d => {
+                        const active = entry.duties.has(d.value);
+                        return (
+                          <button
+                            key={d.value}
+                            type="button"
+                            onClick={() => toggleDuty(emp.id, d.value)}
+                            className={`h-8 min-w-[2.25rem] px-2 text-xs font-semibold rounded-md border transition-colors ${
+                              active
+                                ? "bg-accent text-accent-foreground border-accent"
+                                : "bg-background text-muted-foreground border-border hover:bg-secondary hover:text-foreground"
+                            }`}
+                            title={`Toggle ${d.label}`}
+                          >
+                            {d.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
