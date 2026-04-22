@@ -21,6 +21,7 @@ import {
   DollarSign,
   ShieldCheck,
   Lock,
+  FolderOpen,
 } from "lucide-react";
 
 interface GuideSection {
@@ -163,6 +164,19 @@ const guideSections: GuideSection[] = [
       "The 'Referral Sources' tab manages the dropdown options shown on the public registration form ('How did you hear about us?').",
       "Add new sources, rename existing ones, or reorder them using the sort order field.",
       "Toggle a source inactive to hide it from the public form without deleting it (existing bookings keep their reference).",
+    ],
+  },
+  {
+    id: "files",
+    title: "Shared Files",
+    icon: FolderOpen,
+    roles: ["owner", "admin", "manager", "employee"],
+    steps: [
+      "The 'Files' tab is where management shares documents, forms, and resources with the whole team.",
+      "All signed-in staff can browse and download any file shown here.",
+      "Owners and Admins can upload new files (max 50 MB each), give them a display name and optional description, and edit or delete files later.",
+      "Managers and Employees see a read-only view with download buttons.",
+      "Use this for things like blank DL389 forms, instructor manuals, policy documents, or any other shared resource.",
     ],
   },
   {

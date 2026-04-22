@@ -450,6 +450,45 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_files: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_name: string
+          file_path: string
+          file_size: number
+          id: string
+          mime_type: string | null
+          updated_at: string
+          uploaded_by: string | null
+          uploaded_by_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_name: string
+          file_path: string
+          file_size?: number
+          id?: string
+          mime_type?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          uploaded_by_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          file_path?: string
+          file_size?: number
+          id?: string
+          mime_type?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          uploaded_by_name?: string | null
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           content_key: string
