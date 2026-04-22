@@ -717,7 +717,7 @@ const ClassRosters = () => {
                     <span className="font-semibold text-foreground">
                       {courseLabels[scheduleRetestFor.course] || scheduleRetestFor.course}
                     </span>{" "}
-                    class as a {scheduleRetestFor.retest_type === "skill" ? "Skill" : "Knowledge"} retest.
+                    class as a {scheduleRetestFor.retest_type === "skill" ? "Skill" : scheduleRetestFor.retest_type === "both" ? "Skill & Knowledge" : "Knowledge"} retest.
                   </>
                 )}
               </DialogDescription>
