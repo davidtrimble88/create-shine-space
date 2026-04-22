@@ -600,6 +600,7 @@ const ClassRosters = () => {
                   <th className="text-left p-3 font-medium text-muted-foreground">Original Class</th>
                   <th className="text-left p-3 font-medium text-muted-foreground">Retest Type</th>
                   <th className="text-center p-3 font-medium text-muted-foreground">Days Remaining</th>
+                  <th className="text-center p-3 font-medium text-muted-foreground">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -632,6 +633,15 @@ const ClassRosters = () => {
                         {daysLeft} {daysLeft === 1 ? "day" : "days"}
                         <div className="text-[10px] font-normal text-muted-foreground">deadline {deadline.toISOString().split("T")[0]}</div>
                       </td>
+                      <td className="p-3 text-center">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setScheduleRetestFor(b); setRetestTargetScheduleId(""); }}
+                        >
+                          <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Schedule Retest
+                        </Button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -639,9 +649,82 @@ const ClassRosters = () => {
             </table>
           </div>
         )}
+
+        {/* Schedule Retest dialog */}
+        <Dialog open={!!scheduleRetestFor} onOpenChange={open => { if (!open) { setScheduleRetestFor(null); setRetestTargetScheduleId(""); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Schedule Retest</DialogTitle>
+              <DialogDescription>
+                {scheduleRetestFor && (
+                  <>
+                    Book <span className="font-semibold text-foreground">{scheduleRetestFor.first_name} {scheduleRetestFor.last_name}</span> into an upcoming{" "}
+                    <span className="font-semibold text-foreground">
+                      {courseLabels[scheduleRetestFor.course] || scheduleRetestFor.course}
+                    </span>{" "}
+                    class as a {scheduleRetestFor.retest_type === "skill" ? "Skill" : "Knowledge"} retest.
+                  </>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            {scheduleRetestFor && (() => {
+              const src = scheduleRetestFor;
+              const failedDate = new Date((src.schedule_date || "") + "T00:00:00");
+              const deadlineDate = new Date(failedDate);
+              deadlineDate.setDate(deadlineDate.getDate() + RETEST_WINDOW_DAYS);
+              const todayStr = new Date().toISOString().split("T")[0];
+              const deadlineStr = deadlineDate.toISOString().split("T")[0];
+              const candidates = schedules
+                .filter(s =>
+                  s.course === src.course &&
+                  s.date >= todayStr &&
+                  s.date <= deadlineStr &&
+                  s.spots_available > 0
+                )
+                .sort((a, b) => a.date.localeCompare(b.date));
+
+              if (candidates.length === 0) {
+                return (
+                  <div className="bg-muted/50 border border-border rounded-md p-4 text-sm text-muted-foreground">
+                    No upcoming {courseLabels[src.course] || src.course} classes with open spots are available before the {deadlineStr} deadline.
+                  </div>
+                );
+              }
+              return (
+                <div className="space-y-3">
+                  <label className="text-xs font-medium text-muted-foreground block">
+                    Choose a class (must be on or before {deadlineStr})
+                  </label>
+                  <Select value={retestTargetScheduleId} onValueChange={setRetestTargetScheduleId}>
+                    <SelectTrigger><SelectValue placeholder="Select an available class" /></SelectTrigger>
+                    <SelectContent>
+                      {candidates.map(s => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.date} • {s.location_label} • {s.spots_available} spot{s.spots_available !== 1 ? "s" : ""} open
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            })()}
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => { setScheduleRetestFor(null); setRetestTargetScheduleId(""); }}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleScheduleRetest}
+                disabled={!retestTargetScheduleId || schedulingRetest}
+              >
+                {schedulingRetest ? "Scheduling…" : "Schedule Retest"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   };
+
 
   // ========================
   // Render
