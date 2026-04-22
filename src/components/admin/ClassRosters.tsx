@@ -1306,6 +1306,10 @@ const ClassRosters = () => {
               <RotateCcw className="w-4 h-4 mr-2 text-amber-500" />
               Eligible — <span className="font-semibold ml-1">Knowledge Retest</span>
             </Button>
+            <Button variant="outline" onClick={() => handleSetFailWithRetest("both")} className="justify-start">
+              <RotateCcw className="w-4 h-4 mr-2 text-foreground" />
+              Eligible — <span className="font-semibold ml-1">Skill &amp; Knowledge Retest</span>
+            </Button>
             <Button variant="outline" onClick={() => handleSetFailWithRetest("none")} className="justify-start">
               <X className="w-4 h-4 mr-2 text-destructive" />
               Not eligible for retest
