@@ -41,16 +41,43 @@ const registrationSchema = z.object({
   city: z.string().trim().min(1, "City is required").max(100),
   state: z.string().trim().min(1, "State is required").max(50),
   zip: z.string().trim().min(5, "Valid ZIP code required").max(10),
-  licenseNumber: z.string().trim().min(1, "Driver license number is required").max(50),
+  idType: z.enum(["drivers_license", "other"], { required_error: "Please select an ID type" }),
+  otherIdType: z.string().trim().max(100).optional(),
+  licenseNumber: z.string().trim().min(1, "ID number is required").max(50),
   issuingCountry: z.string().trim().min(1, "Issuing country is required").max(50),
-  issuingState: z.string().trim().min(1, "Issuing state is required").max(50),
-  licenseExpiration: z.string().min(1, "License expiration date is required"),
+  issuingState: z.string().trim().max(50).optional(),
+  licenseExpiration: z.string().optional(),
   referralSource: z.string().min(1, "Please select how you found us"),
   agreement: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
   parentGuardianAck: z.boolean().optional(),
 }).superRefine((data, ctx) => {
+  if (data.idType === "drivers_license") {
+    if (!data.issuingState || data.issuingState.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["issuingState"],
+        message: "Issuing state is required",
+      });
+    }
+    if (!data.licenseExpiration || data.licenseExpiration.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["licenseExpiration"],
+        message: "License expiration date is required",
+      });
+    }
+  } else if (data.idType === "other") {
+    if (!data.otherIdType || data.otherIdType.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["otherIdType"],
+        message: "Please specify the type of ID",
+      });
+    }
+  }
+
   if (!data.dateOfBirth) return;
   const today = new Date();
   const birth = new Date(data.dateOfBirth);
@@ -122,6 +149,8 @@ const RegisterPage = () => {
       city: "",
       state: "",
       zip: "",
+      idType: "drivers_license",
+      otherIdType: "",
       licenseNumber: "",
       issuingCountry: "US",
       issuingState: "",
@@ -170,10 +199,13 @@ const RegisterPage = () => {
         city: data.city,
         state: data.state,
         zip: data.zip,
-        license_number: data.licenseNumber,
+        license_number:
+          data.idType === "other"
+            ? `${data.otherIdType?.trim()}: ${data.licenseNumber}`
+            : data.licenseNumber,
         issuing_country: data.issuingCountry,
-        issuing_state: data.issuingState,
-        license_expiration: data.licenseExpiration,
+        issuing_state: data.idType === "drivers_license" ? data.issuingState : null,
+        license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
       } as any);
 
       if (error) {
@@ -189,6 +221,7 @@ const RegisterPage = () => {
   };
 
   const dateOfBirth = useWatch({ control: form.control, name: "dateOfBirth" });
+  const idType = useWatch({ control: form.control, name: "idType" });
   
 
   const age = dateOfBirth
@@ -429,36 +462,92 @@ const RegisterPage = () => {
                   </div>
                 </div>
 
-                {/* Driver License */}
+                {/* ID Information */}
                 <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
-                  <h2 className="text-xl font-bold text-foreground mb-6">Driver License</h2>
+                  <h2 className="text-xl font-bold text-foreground mb-2">ID Information</h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    A valid government-issued ID is required. If you do not have a driver's license, you may use another form of ID such as a passport, school ID, state ID card, or military ID.
+                  </p>
+
+                  <FormField
+                    control={form.control}
+                    name="idType"
+                    render={({ field }) => (
+                      <FormItem className="mb-4">
+                        <FormLabel>ID Type *</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            className="flex flex-col sm:flex-row gap-4 mt-2"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="drivers_license" id="id-dl" />
+                              <Label htmlFor="id-dl">Driver's License</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="other" id="id-other" />
+                              <Label htmlFor="id-other">Other ID (Passport, School ID, etc.)</Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {idType === "other" && (
+                    <div className="mb-4">
+                      <FormField
+                        control={form.control}
+                        name="otherIdType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Type of ID *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Passport, School ID, State ID, Military ID" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="licenseNumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>License Number *</FormLabel>
+                          <FormLabel>
+                            {idType === "other" ? "ID Number *" : "License Number *"}
+                          </FormLabel>
                           <FormControl>
-                            <Input placeholder="D1234567" {...field} />
+                            <Input
+                              placeholder={idType === "other" ? "ID number" : "D1234567"}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="licenseExpiration"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Expiration Date *</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {idType === "drivers_license" && (
+                      <FormField
+                        control={form.control}
+                        name="licenseExpiration"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Expiration Date *</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                     <FormField
                       control={form.control}
                       name="issuingCountry"
@@ -472,19 +561,21 @@ const RegisterPage = () => {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="issuingState"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Issuing State *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="CA" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {idType === "drivers_license" && (
+                      <FormField
+                        control={form.control}
+                        name="issuingState"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Issuing State *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="CA" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
                 </div>
 
