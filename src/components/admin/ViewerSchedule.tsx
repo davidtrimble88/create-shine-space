@@ -295,7 +295,7 @@ const ViewerSchedule = () => {
               : "Review the schedule and mark which classes you're available to teach."}
           </p>
         </div>
-        {view === "upcoming" ? (
+        {canViewPast && (view === "upcoming" ? (
           <Button variant="outline" onClick={() => setView("past")}>
             <History className="w-4 h-4 mr-2" /> Past Classes
           </Button>
@@ -303,7 +303,7 @@ const ViewerSchedule = () => {
           <Button variant="outline" onClick={() => setView("upcoming")}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
           </Button>
-        )}
+        ))}
       </div>
 
       <div className="flex gap-4 mb-6">
