@@ -5,15 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { roleLabelMap } from "@/components/admin/InstructorAssignment";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
-type Booking = Tables<"bookings"> & { result?: "pass" | "fail" | null; retest_type?: "skill" | "knowledge" | "both" | "none" | null };
+type Booking = Tables<"bookings"> & {
+  result?: "pass" | "fail" | null;
+  retest_type?: "skill" | "knowledge" | "both" | "none" | null;
+  dl389_completed?: boolean;
+  dl389_completed_at?: string | null;
+  dl389_completed_by?: string | null;
+};
 
-type ViewMode = "active" | "evaluation_pending" | "past" | "pending_retests";
+type ViewMode = "active" | "evaluation_pending" | "dl389" | "past" | "pending_retests";
 
 const RETEST_WINDOW_DAYS = 60;
 
@@ -66,6 +73,8 @@ const ClassRosters = () => {
   const [pastSchedules, setPastSchedules] = useState<Schedule[]>([]);
   const [pendingRetests, setPendingRetests] = useState<Booking[]>([]);
   const [evalPendingSchedules, setEvalPendingSchedules] = useState<Schedule[]>([]);
+  const [dl389Schedules, setDl389Schedules] = useState<Schedule[]>([]);
+  const [dl389PendingCounts, setDl389PendingCounts] = useState<Record<string, number>>({});
   // Fail-result dialog state
   const [failDialogBookingId, setFailDialogBookingId] = useState<string | null>(null);
   // Schedule-retest dialog state
@@ -74,6 +83,11 @@ const ClassRosters = () => {
   const [schedulingRetest, setSchedulingRetest] = useState(false);
   // Per-schedule retest counts: { [schedule_id]: { skill: n, knowledge: n } }
   const [retestCountsByClass, setRetestCountsByClass] = useState<Record<string, { skill: number; knowledge: number }>>({});
+  // DL389 view: list of passed students that still need their DL389 created
+  const [dl389Students, setDl389Students] = useState<Booking[]>([]);
+  const [dl389StudentSchedules, setDl389StudentSchedules] = useState<Record<string, Schedule>>({});
+  const [dl389Detail, setDl389Detail] = useState<Booking | null>(null);
+  const [savingDl389, setSavingDl389] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Load schedules + employees + assignments based on view
@@ -137,28 +151,36 @@ const ClassRosters = () => {
         ...pastList.map(s => s.id),
       ];
       if (allIds.length > 0) {
-        const { data: bookingRows } = await supabase
+        const { data: bookingRows } = await (supabase as any)
           .from("bookings")
-          .select("schedule_id, result, is_retest")
+          .select("schedule_id, result, is_retest, dl389_completed")
           .in("schedule_id", allIds);
         const counts: Record<string, number> = {};
         const evalCounts: Record<string, number> = {};
-        (bookingRows ?? []).forEach(b => {
+        const dl389Counts: Record<string, number> = {};
+        (bookingRows ?? []).forEach((b: { schedule_id: string | null; result: string | null; is_retest: boolean; dl389_completed: boolean }) => {
           if (!b.schedule_id) return;
           counts[b.schedule_id] = (counts[b.schedule_id] || 0) + 1;
-          if (!(b as any).result) {
+          if (!b.result) {
             evalCounts[b.schedule_id] = (evalCounts[b.schedule_id] || 0) + 1;
+          } else if (b.result === "pass" && !b.dl389_completed) {
+            dl389Counts[b.schedule_id] = (dl389Counts[b.schedule_id] || 0) + 1;
           }
         });
         setEnrollmentCounts(counts);
         setEvalPendingCounts(evalCounts);
+        setDl389PendingCounts(dl389Counts);
 
         // Eval-pending schedules = past schedules with at least one un-evaluated student
         setEvalPendingSchedules(pastList.filter(s => (evalCounts[s.id] || 0) > 0));
+        // DL389-pending schedules = past, fully evaluated, but at least one passed student still needs DL389
+        setDl389Schedules(pastList.filter(s => (evalCounts[s.id] || 0) === 0 && (dl389Counts[s.id] || 0) > 0));
       } else {
         setEnrollmentCounts({});
         setEvalPendingCounts({});
         setEvalPendingSchedules([]);
+        setDl389PendingCounts({});
+        setDl389Schedules([]);
       }
 
       // Pending retests = failed students with retest_type skill/knowledge/both
@@ -289,11 +311,13 @@ const ClassRosters = () => {
       return { name: emp?.full_name ?? "Unknown", role: roleLabelMap[a.assignment_role] ?? a.assignment_role };
     });
 
-  // Pick which schedule list drives the current view
+  // Pick which schedule list drives the current view.
+  // Past Roster excludes schedules that still have DL389 work pending.
+  const dl389PendingScheduleIds = new Set(dl389Schedules.map(s => s.id));
   const baseSchedules = view === "active"
     ? schedules
     : view === "past"
-      ? pastSchedules
+      ? pastSchedules.filter(s => !dl389PendingScheduleIds.has(s.id) && (evalPendingCounts[s.id] || 0) === 0)
       : view === "evaluation_pending"
         ? evalPendingSchedules
         : [];
@@ -610,8 +634,230 @@ const ClassRosters = () => {
   };
 
   // ========================
-  // Pending Retests view
+  // DL389 view
   // ========================
+  // Fetch all passed students still pending DL389 when the user opens DL389 view
+  useEffect(() => {
+    if (view !== "dl389" || !canManageEvaluations) return;
+    const fetchDl389 = async () => {
+      const today = new Date().toISOString().split("T")[0];
+      const { data } = await (supabase as any)
+        .from("bookings")
+        .select("*")
+        .eq("result", "pass")
+        .eq("dl389_completed", false)
+        .lt("schedule_date", today)
+        .order("schedule_date", { ascending: false });
+      const list = (data ?? []) as Booking[];
+      setDl389Students(list);
+      // Build a quick lookup for the student's class info
+      const ids = Array.from(new Set(list.map(b => b.schedule_id).filter(Boolean))) as string[];
+      if (ids.length > 0) {
+        const { data: scheds } = await supabase
+          .from("schedules")
+          .select("*")
+          .in("id", ids);
+        const map: Record<string, Schedule> = {};
+        (scheds ?? []).forEach(s => { map[s.id] = s as Schedule; });
+        setDl389StudentSchedules(map);
+      } else {
+        setDl389StudentSchedules({});
+      }
+    };
+    fetchDl389();
+  }, [view, canManageEvaluations]);
+
+  const handleMarkDl389Created = async (booking: Booking, completed: boolean) => {
+    setSavingDl389(true);
+    const updates: any = {
+      dl389_completed: completed,
+      dl389_completed_at: completed ? new Date().toISOString() : null,
+      dl389_completed_by: completed ? user?.id ?? null : null,
+    };
+    const { error } = await (supabase as any)
+      .from("bookings")
+      .update(updates)
+      .eq("id", booking.id);
+    setSavingDl389(false);
+    if (error) {
+      toast.error("Failed to update DL389 status");
+      return;
+    }
+    if (completed) {
+      // Remove from list — student moves to Past Roster
+      setDl389Students(prev => prev.filter(b => b.id !== booking.id));
+      // Update counts so Past Roster includes the schedule once empty
+      if (booking.schedule_id) {
+        setDl389PendingCounts(prev => {
+          const next = { ...prev };
+          const remaining = (next[booking.schedule_id!] || 1) - 1;
+          if (remaining <= 0) {
+            delete next[booking.schedule_id!];
+            setDl389Schedules(prevS => prevS.filter(s => s.id !== booking.schedule_id));
+          } else {
+            next[booking.schedule_id!] = remaining;
+          }
+          return next;
+        });
+      }
+      setDl389Detail(null);
+      toast.success("DL389 marked as created — student moved to Past Roster");
+    } else {
+      toast.success("DL389 status cleared");
+    }
+  };
+
+  const renderDL389 = () => {
+    const grouped: Record<string, Booking[]> = {};
+    dl389Students.forEach(b => {
+      const key = b.schedule_id || "unknown";
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(b);
+    });
+    const groupKeys = Object.keys(grouped).sort((a, b) => {
+      const da = dl389StudentSchedules[a]?.date || "";
+      const db = dl389StudentSchedules[b]?.date || "";
+      return db.localeCompare(da);
+    });
+
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <FileCheck className="w-6 h-6" /> DL389
+          </h1>
+          <Button variant="outline" onClick={() => setView("active")}>
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Class Rosters
+          </Button>
+        </div>
+
+        <p className="text-sm text-muted-foreground mb-4">
+          Passed students awaiting their DL389 form. Click a student to view their full info, then check the box to mark the DL389 as created — the student will move into the Past Roster.
+        </p>
+
+        {dl389Students.length === 0 ? (
+          <div className="bg-card border border-border rounded-xl p-12 text-center">
+            <FileCheck className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground">No students waiting on a DL389 right now.</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {groupKeys.map(key => {
+              const sched = dl389StudentSchedules[key];
+              const courseName = sched ? (courseLabels[sched.course] || sched.course) : "Class";
+              return (
+                <div key={key} className="bg-card border border-border rounded-xl overflow-hidden">
+                  <div className="px-4 py-3 bg-secondary/50 border-b border-border">
+                    <div className="font-semibold text-foreground">{courseName}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {sched?.date} • {sched?.location_label}
+                    </div>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {grouped[key].map(b => (
+                      <button
+                        key={b.id}
+                        onClick={() => setDl389Detail(b)}
+                        className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors flex items-center justify-between gap-4"
+                      >
+                        <div>
+                          <div className="text-sm font-semibold text-foreground uppercase">
+                            {b.first_name} {b.last_name}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {b.license_number ? `DL ${b.license_number}` : "No DL #"} • {b.phone}
+                          </div>
+                        </div>
+                        <div className="text-xs text-primary flex items-center gap-1">
+                          <FileText className="w-3.5 h-3.5" /> View & Mark
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Student detail dialog */}
+        <Dialog open={!!dl389Detail} onOpenChange={open => { if (!open) setDl389Detail(null); }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>DL389 — Student Info</DialogTitle>
+              <DialogDescription>
+                Review this student's information, then check the box to confirm the DL389 has been created.
+              </DialogDescription>
+            </DialogHeader>
+            {dl389Detail && (() => {
+              const b = dl389Detail;
+              const sched = b.schedule_id ? dl389StudentSchedules[b.schedule_id] : undefined;
+              const courseName = sched ? (courseLabels[sched.course] || sched.course) : (courseLabels[b.course] || b.course);
+              const Field = ({ label, value }: { label: string; value: string | null | undefined }) => (
+                <div>
+                  <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
+                  <div className="text-sm text-foreground mt-0.5">{value && value !== "retest@placeholder.com" ? value : "—"}</div>
+                </div>
+              );
+              return (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="First Name" value={b.first_name} />
+                    <Field label="Last Name" value={b.last_name} />
+                    <Field label="Phone" value={b.phone} />
+                    <Field label="Email" value={b.email} />
+                    <Field label="Date of Birth" value={b.date_of_birth} />
+                    <Field label="Gender" value={b.gender} />
+                    <Field label="DL #" value={b.license_number} />
+                    <Field label="DL Expiration" value={b.license_expiration} />
+                    <Field label="Issuing State" value={b.issuing_state} />
+                    <Field label="Issuing Country" value={b.issuing_country} />
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Address</div>
+                    <div className="text-sm text-foreground mt-0.5">
+                      {[b.address, b.city, b.state, b.zip].filter(Boolean).join(", ") || "—"}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border">
+                    <Field label="Course" value={courseName} />
+                    <Field label="Class Date" value={sched?.date || b.schedule_date} />
+                    <Field label="Location" value={sched?.location_label || b.location_label} />
+                    <Field label="Result" value="Pass" />
+                  </div>
+                  {b.roster_comment && (
+                    <div>
+                      <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Roster Comment</div>
+                      <div className="text-sm text-foreground mt-0.5">{b.roster_comment}</div>
+                    </div>
+                  )}
+                  <div className="flex items-start gap-3 p-3 rounded-md border border-border bg-secondary/40">
+                    <Checkbox
+                      id={`dl389-${b.id}`}
+                      checked={!!b.dl389_completed}
+                      disabled={savingDl389}
+                      onCheckedChange={checked => handleMarkDl389Created(b, checked === true)}
+                      className="mt-0.5"
+                    />
+                    <label htmlFor={`dl389-${b.id}`} className="text-sm text-foreground cursor-pointer select-none">
+                      <span className="font-semibold">DL389 has been created</span>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        Checking this will move the student into the Past Roster.
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              );
+            })()}
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setDl389Detail(null)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  };
+
   const renderPendingRetests = () => {
     const today = new Date();
     // Auto-move expired (>60 days) — these stay only in Past Roster.
@@ -801,6 +1047,9 @@ const ClassRosters = () => {
   if (view === "pending_retests" && canManageEvaluations) {
     return renderPendingRetests();
   }
+  if (view === "dl389" && canManageEvaluations) {
+    return renderDL389();
+  }
 
   const viewTitle =
     view === "past" ? "Past Class Rosters" :
@@ -819,6 +1068,14 @@ const ClassRosters = () => {
                 {evalPendingSchedules.length > 0 && (
                   <span className="ml-2 bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded text-xs font-bold">
                     {evalPendingSchedules.length}
+                  </span>
+                )}
+              </Button>
+              <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("dl389"); }}>
+                <FileCheck className="w-4 h-4 mr-2" /> DL389
+                {dl389Schedules.length > 0 && (
+                  <span className="ml-2 bg-blue-500/20 text-blue-500 px-1.5 py-0.5 rounded text-xs font-bold">
+                    {Object.values(dl389PendingCounts).reduce((a, b) => a + b, 0)}
                   </span>
                 )}
               </Button>
