@@ -1538,7 +1538,7 @@ const ClassRosters = () => {
                       <td>{b.date_of_birth || ""}</td>
                       <td className="center"></td>
                       <td className="center"></td>
-                      <td>{b.roster_comment || ""}</td>
+                      <td></td>
                       <td className="center"></td>
                       <td className="center"></td>
                     </tr>
