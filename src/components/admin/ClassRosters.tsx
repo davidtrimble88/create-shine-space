@@ -675,9 +675,13 @@ const ClassRosters = () => {
                       </td>
                       <td className="p-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                          b.retest_type === "skill" ? "bg-primary/20 text-primary" : "bg-amber-500/20 text-amber-500"
+                          b.retest_type === "skill" ? "bg-primary/20 text-primary"
+                            : b.retest_type === "both" ? "bg-accent/30 text-foreground"
+                            : "bg-amber-500/20 text-amber-500"
                         }`}>
-                          {b.retest_type === "skill" ? "Skill" : "Knowledge"}
+                          {b.retest_type === "skill" ? "Skill"
+                            : b.retest_type === "both" ? "Skill & Knowledge"
+                            : "Knowledge"}
                         </span>
                       </td>
                       <td className={`p-3 text-center font-semibold ${urgent ? "text-destructive" : "text-foreground"}`}>
