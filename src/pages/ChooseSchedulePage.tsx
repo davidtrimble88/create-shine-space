@@ -39,6 +39,7 @@ const ChooseSchedulePage = () => {
         .eq("course", course)
         .eq("location", location)
         .gte("date", today)
+        .gt("spots_available", 0)
         .order("date", { ascending: true });
       setClasses(data ?? []);
       setLoading(false);
