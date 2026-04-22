@@ -151,7 +151,7 @@ const EmployeeDashboard = () => {
                 <button
                   type="button"
                   onClick={() => setViewAsRole(null)}
-                  className="mt-1.5 w-full text-[10px] text-amber-500 hover:text-amber-400 flex items-center justify-center gap-1"
+                  className="mt-1.5 w-full text-[10px] text-accent hover:text-accent/80 flex items-center justify-center gap-1"
                 >
                   <EyeOff className="w-3 h-3" /> Exit preview, return to Owner
                 </button>
