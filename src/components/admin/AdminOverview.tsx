@@ -89,7 +89,7 @@ const AdminOverview = () => {
     };
 
     fetchStats();
-  }, [canSeeEarnings]);
+  }, [canSeeEarnings, user]);
 
   const stats = [
     { label: "Total Classes", value: scheduleCount, icon: BookOpen, color: "text-accent" },
