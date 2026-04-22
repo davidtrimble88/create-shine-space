@@ -69,6 +69,7 @@ const ClassRosters = () => {
   const [searchResults, setSearchResults] = useState<Booking[]>([]);
   const [searching, setSearching] = useState(false);
   const [enrollmentCounts, setEnrollmentCounts] = useState<Record<string, number>>({});
+  const [retestCounts, setRetestCounts] = useState<Record<string, number>>({});
   const [evalPendingCounts, setEvalPendingCounts] = useState<Record<string, number>>({});
   const [pastSchedules, setPastSchedules] = useState<Schedule[]>([]);
   const [pendingRetests, setPendingRetests] = useState<Booking[]>([]);
@@ -156,11 +157,15 @@ const ClassRosters = () => {
           .select("schedule_id, result, is_retest, dl389_completed")
           .in("schedule_id", allIds);
         const counts: Record<string, number> = {};
+        const retestCountsLocal: Record<string, number> = {};
         const evalCounts: Record<string, number> = {};
         const dl389Counts: Record<string, number> = {};
         (bookingRows ?? []).forEach((b: { schedule_id: string | null; result: string | null; is_retest: boolean; dl389_completed: boolean }) => {
           if (!b.schedule_id) return;
           counts[b.schedule_id] = (counts[b.schedule_id] || 0) + 1;
+          if (b.is_retest) {
+            retestCountsLocal[b.schedule_id] = (retestCountsLocal[b.schedule_id] || 0) + 1;
+          }
           if (!b.result) {
             evalCounts[b.schedule_id] = (evalCounts[b.schedule_id] || 0) + 1;
           } else if (b.result === "pass" && !b.dl389_completed) {
@@ -168,6 +173,7 @@ const ClassRosters = () => {
           }
         });
         setEnrollmentCounts(counts);
+        setRetestCounts(retestCountsLocal);
         setEvalPendingCounts(evalCounts);
         setDl389PendingCounts(dl389Counts);
 
@@ -177,6 +183,7 @@ const ClassRosters = () => {
         setDl389Schedules(pastList.filter(s => (evalCounts[s.id] || 0) === 0 && (dl389Counts[s.id] || 0) > 0));
       } else {
         setEnrollmentCounts({});
+        setRetestCounts({});
         setEvalPendingCounts({});
         setEvalPendingSchedules([]);
         setDl389PendingCounts({});
@@ -1298,6 +1305,11 @@ const ClassRosters = () => {
                       <div className="text-sm font-semibold text-foreground">
                         {enrollmentCounts[s.id] || 0} registered
                       </div>
+                      {(retestCounts[s.id] || 0) > 0 && (
+                        <div className="text-xs text-primary font-medium">
+                          {retestCounts[s.id]} retest{retestCounts[s.id] !== 1 ? "s" : ""}
+                        </div>
+                      )}
                       <div className="text-xs text-muted-foreground">{s.spots_available} spots open</div>
                     </div>
                   </button>
