@@ -593,9 +593,12 @@ const ClassRosters = () => {
   // Render
   // ========================
   // Force-redirect non-privileged users away from restricted views
-  if (!canManageEvaluations && view !== "active") {
-    setView("active");
-  }
+  useEffect(() => {
+    if (!canManageEvaluations && view !== "active") {
+      setView("active");
+    }
+  }, [canManageEvaluations, view]);
+
   if (view === "pending_retests" && canManageEvaluations) {
     return renderPendingRetests();
   }
