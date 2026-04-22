@@ -149,6 +149,8 @@ const RegisterPage = () => {
       city: "",
       state: "",
       zip: "",
+      idType: "drivers_license",
+      otherIdType: "",
       licenseNumber: "",
       issuingCountry: "US",
       issuingState: "",
