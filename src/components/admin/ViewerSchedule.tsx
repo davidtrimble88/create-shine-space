@@ -542,9 +542,13 @@ const PlaceholderCard = ({
                       ) : isAvail ? (
                         <Check className="w-4 h-4 mr-2" />
                       ) : (
-                        <MapPin className="w-4 h-4 mr-2" />
+                        <Hand className="w-4 h-4 mr-2" />
                       )}
+                      <MapPin className="w-3.5 h-3.5 mr-1 opacity-70" />
                       {loc.label}
+                      <span className="ml-1.5 opacity-80">
+                        {isAvail ? "— I'm Available" : "— Mark Available"}
+                      </span>
                     </Button>
                   );
                 })}
