@@ -1366,6 +1366,11 @@ const ClassRosters = () => {
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold text-foreground flex items-center gap-2">
                         {courseLabels[s.course] || s.course}
+                        {s.cancelled_at && (
+                          <span className="bg-destructive/20 text-destructive px-1.5 py-0.5 rounded text-xs font-bold uppercase tracking-wide">
+                            Cancelled
+                          </span>
+                        )}
                         {view === "evaluation_pending" && (
                           <span className="bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded text-xs font-bold flex items-center gap-1">
                             <AlertCircle className="w-3 h-3" /> {pending} pending
