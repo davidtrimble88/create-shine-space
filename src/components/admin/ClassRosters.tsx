@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { roleLabelMap } from "@/components/admin/InstructorAssignment";
@@ -18,6 +19,10 @@ type Booking = Tables<"bookings"> & {
   dl389_completed?: boolean;
   dl389_completed_at?: string | null;
   dl389_completed_by?: string | null;
+  dropped?: boolean;
+  dropped_reason?: string | null;
+  dropped_at?: string | null;
+  dropped_by?: string | null;
 };
 
 type ViewMode = "active" | "evaluation_pending" | "dl389" | "past" | "pending_retests";
@@ -34,6 +39,22 @@ const locationLabels: Record<string, string> = {
   "high-desert-hesperia": "High Desert — Hesperia",
   "high-desert-wrightwood": "High Desert — Wrightwood",
   "ventura-county": "Ventura County — Somis",
+};
+
+const PART_OPTIONS = [
+  { value: "c1", label: "C1 — Classroom 1" },
+  { value: "r1", label: "R1 — Range 1" },
+  { value: "c2", label: "C2 — Classroom 2" },
+  { value: "r2", label: "R2 — Range 2" },
+];
+
+const partLabel = (p: string | null | undefined) => {
+  if (!p) return "Full class";
+  if (p === "full") return "Full class (all parts)";
+  if (p.includes(",")) {
+    return p.split(",").map(v => PART_OPTIONS.find(o => o.value === v)?.label ?? v.toUpperCase()).join(", ");
+  }
+  return PART_OPTIONS.find(o => o.value === p)?.label ?? p.toUpperCase();
 };
 
 interface FullAssignment {
@@ -92,6 +113,15 @@ const ClassRosters = () => {
   const [dl389Detail, setDl389Detail] = useState<Booking | null>(null);
   const [savingDl389, setSavingDl389] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+
+  // No-Show / Drop dialog state
+  const [noShowFor, setNoShowFor] = useState<Booking | null>(null);
+  const [noShowParts, setNoShowParts] = useState<string[]>([]);
+  const [noShowReason, setNoShowReason] = useState("");
+  const [savingNoShow, setSavingNoShow] = useState(false);
+  const [dropFor, setDropFor] = useState<Booking | null>(null);
+  const [dropReason, setDropReason] = useState("");
+  const [savingDrop, setSavingDrop] = useState(false);
 
   // Load schedules + employees + assignments based on view
   useEffect(() => {
@@ -370,7 +400,9 @@ const ClassRosters = () => {
   const allKnownSchedules = [...schedules, ...pastSchedules, ...evalPendingSchedules];
   const selectedSchedule = allKnownSchedules.find(s => s.id === selectedScheduleId);
 
-  const regularBookings = bookings.filter(b => !b.is_retest);
+  const nonRetestBookings = bookings.filter(b => !b.is_retest);
+  const regularBookings = nonRetestBookings.filter(b => !b.dropped);
+  const droppedBookings = nonRetestBookings.filter(b => b.dropped);
   const retestBookings = bookings.filter(b => b.is_retest);
 
   const DUTY_CODES_SET = new Set(["c1", "r1", "c2", "r2"]);
@@ -498,6 +530,97 @@ const ClassRosters = () => {
     }
     setBookings(prev => prev.filter(b => b.id !== bookingId));
     toast.success("Retest student removed");
+  };
+
+  // ===== No-Show: flag student to be rescheduled =====
+  const openNoShow = (b: Booking) => {
+    setNoShowFor(b);
+    setNoShowParts([]);
+    setNoShowReason("");
+  };
+
+  const submitNoShow = async () => {
+    if (!noShowFor) return;
+    if (noShowParts.length === 0) {
+      toast.error("Pick at least one part the student missed");
+      return;
+    }
+    setSavingNoShow(true);
+    const isFull = noShowParts.length === PART_OPTIONS.length;
+    const partValue = isFull ? "full" : [...noShowParts].sort().join(",");
+    const sched = selectedSchedule;
+    const { error } = await (supabase as any)
+      .from("bookings")
+      .update({
+        needs_reschedule: true,
+        reschedule_part: partValue,
+        reschedule_reason: noShowReason.trim() ? `No-show: ${noShowReason.trim()}` : "No-show",
+        original_schedule_id: sched?.id ?? noShowFor.schedule_id,
+        original_schedule_date: sched?.date ?? noShowFor.schedule_date,
+        original_location_label: sched?.location_label ?? noShowFor.location_label,
+        original_course: sched?.course ?? noShowFor.course,
+      })
+      .eq("id", noShowFor.id);
+    setSavingNoShow(false);
+    if (error) {
+      toast.error("Failed to mark as no-show");
+      return;
+    }
+    setBookings(prev => prev.map(b => b.id === noShowFor.id ? { ...b, needs_reschedule: true, reschedule_part: partValue } : b));
+    setNoShowFor(null);
+    toast.success(`${noShowFor.first_name} ${noShowFor.last_name} flagged as no-show — moved to Needs Rescheduling.`);
+  };
+
+  // ===== Drop: remove from class with admin/owner-only reason =====
+  const openDrop = (b: Booking) => {
+    setDropFor(b);
+    setDropReason(b.dropped_reason || "");
+  };
+
+  const submitDrop = async () => {
+    if (!dropFor) return;
+    if (!dropReason.trim()) {
+      toast.error("A reason is required to drop a student");
+      return;
+    }
+    setSavingDrop(true);
+    const { error } = await (supabase as any)
+      .from("bookings")
+      .update({
+        dropped: true,
+        dropped_reason: dropReason.trim(),
+        dropped_at: new Date().toISOString(),
+        dropped_by: user?.id ?? null,
+        needs_reschedule: false,
+      })
+      .eq("id", dropFor.id);
+    setSavingDrop(false);
+    if (error) {
+      toast.error("Failed to drop student");
+      return;
+    }
+    setBookings(prev => prev.map(b => b.id === dropFor.id ? { ...b, dropped: true, dropped_reason: dropReason.trim(), needs_reschedule: false } : b));
+    setDropFor(null);
+    toast.success(`${dropFor.first_name} ${dropFor.last_name} dropped from class.`);
+  };
+
+  const handleUndropStudent = async (b: Booking) => {
+    if (!confirm(`Restore ${b.first_name} ${b.last_name} to the active roster?`)) return;
+    const { error } = await (supabase as any)
+      .from("bookings")
+      .update({
+        dropped: false,
+        dropped_reason: null,
+        dropped_at: null,
+        dropped_by: null,
+      })
+      .eq("id", b.id);
+    if (error) {
+      toast.error("Failed to restore student");
+      return;
+    }
+    setBookings(prev => prev.map(x => x.id === b.id ? { ...x, dropped: false, dropped_reason: null } : x));
+    toast.success("Student restored to roster");
   };
 
   const handlePrint = () => {
@@ -1490,6 +1613,9 @@ const ClassRosters = () => {
                       {selectedScheduleId === "__cancelled_eval__" && canManageEvaluations && (
                         <th className="text-center p-3 font-medium text-muted-foreground">Action</th>
                       )}
+                      {view === "active" && selectedScheduleId !== "__cancelled_eval__" && canManageEvaluations && (
+                        <th className="text-center p-3 font-medium text-muted-foreground">Manage</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -1521,10 +1647,76 @@ const ClassRosters = () => {
                             </Button>
                           </td>
                         )}
+                        {view === "active" && selectedScheduleId !== "__cancelled_eval__" && canManageEvaluations && (
+                          <td className="p-3">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => openNoShow(b)}
+                                title="Mark as No-Show (move to Needs Rescheduling)"
+                                aria-label="Mark as No-Show"
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 transition-colors"
+                              >
+                                <UserX className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDrop(b)}
+                                title="Drop student from class (admin/owner only)"
+                                aria-label="Drop student"
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              >
+                                <UserMinus className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {/* Dropped students — admin/owner only */}
+            {canManageEvaluations && droppedBookings.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-border">
+                <h3 className="text-md font-bold text-foreground mb-3 flex items-center gap-2">
+                  <UserMinus className="w-4 h-4 text-destructive" /> DROPPED STUDENTS
+                  <span className="text-xs font-normal text-muted-foreground">(visible to admin & owner only)</span>
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border bg-secondary/50">
+                        <th className="text-left p-3 font-medium text-muted-foreground">Student</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Reason</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Dropped</th>
+                        <th className="text-center p-3 font-medium text-muted-foreground">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {droppedBookings.map(b => (
+                        <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
+                          <td className="p-3 font-medium text-foreground uppercase">
+                            {b.first_name} {b.last_name}
+                          </td>
+                          <td className="p-3 text-muted-foreground">{b.phone}</td>
+                          <td className="p-3 text-foreground italic">{b.dropped_reason || "—"}</td>
+                          <td className="p-3 text-muted-foreground text-xs">
+                            {b.dropped_at ? new Date(b.dropped_at).toLocaleDateString() : "—"}
+                          </td>
+                          <td className="p-3 text-center">
+                            <Button size="sm" variant="outline" onClick={() => handleUndropStudent(b)}>
+                              <Undo2 className="w-3 h-3 mr-1" /> Restore
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
@@ -1721,6 +1913,111 @@ const ClassRosters = () => {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setFailDialogBookingId(null)}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* No-Show dialog */}
+      <Dialog open={!!noShowFor} onOpenChange={open => { if (!open) setNoShowFor(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserX className="w-5 h-5 text-amber-500" /> Mark as No-Show
+            </DialogTitle>
+            <DialogDescription>
+              {noShowFor && (
+                <>
+                  Flag <span className="font-semibold text-foreground">{noShowFor.first_name} {noShowFor.last_name}</span> as a no-show
+                  for one or more parts of this class. They'll be added to the <strong>Needs Rescheduling</strong> list.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div>
+              <div className="text-xs font-medium text-muted-foreground mb-2">Which part(s) did they miss?</div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox
+                    checked={noShowParts.length === PART_OPTIONS.length}
+                    onCheckedChange={v => setNoShowParts(v ? PART_OPTIONS.map(o => o.value) : [])}
+                  />
+                  <span className="font-semibold">Entire class (all parts)</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2 pl-1">
+                  {PART_OPTIONS.map(o => (
+                    <label key={o.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Checkbox
+                        checked={noShowParts.includes(o.value)}
+                        onCheckedChange={v => setNoShowParts(prev =>
+                          v ? Array.from(new Set([...prev, o.value])) : prev.filter(p => p !== o.value)
+                        )}
+                      />
+                      {o.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Notes (optional)</label>
+              <Textarea
+                value={noShowReason}
+                onChange={e => setNoShowReason(e.target.value)}
+                placeholder="Any additional context"
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setNoShowFor(null)}>Cancel</Button>
+            <Button onClick={submitNoShow} disabled={savingNoShow || noShowParts.length === 0}>
+              {savingNoShow ? "Saving…" : "Mark No-Show & Move to Reschedule"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Drop dialog — admin/owner only */}
+      <Dialog open={!!dropFor} onOpenChange={open => { if (!open) setDropFor(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserMinus className="w-5 h-5 text-destructive" /> Drop Student from Class
+            </DialogTitle>
+            <DialogDescription>
+              {dropFor && (
+                <>
+                  Drop <span className="font-semibold text-foreground">{dropFor.first_name} {dropFor.last_name}</span> from this class.
+                  A reason is required and will be saved to their record — visible only to admin and owner accounts.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Reason for dropping *</label>
+              <Textarea
+                value={dropReason}
+                onChange={e => setDropReason(e.target.value)}
+                placeholder="e.g. Unsafe riding behavior, refused to follow safety instructions, voluntarily withdrew, etc."
+                rows={4}
+                autoFocus
+              />
+            </div>
+            <div className="text-xs text-muted-foreground bg-secondary/40 border border-border rounded-md p-2">
+              This note stays attached to the student's record and is only visible to admin and owner accounts.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDropFor(null)}>Cancel</Button>
+            <Button
+              onClick={submitDrop}
+              disabled={savingDrop || !dropReason.trim()}
+              variant="destructive"
+            >
+              {savingDrop ? "Dropping…" : "Drop Student"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
