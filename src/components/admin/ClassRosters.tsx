@@ -74,6 +74,8 @@ const ClassRosters = () => {
   const [pastSchedules, setPastSchedules] = useState<Schedule[]>([]);
   const [pendingRetests, setPendingRetests] = useState<Booking[]>([]);
   const [evalPendingSchedules, setEvalPendingSchedules] = useState<Schedule[]>([]);
+  // Students from cancelled classes who were marked Resolved and still need evaluation.
+  const [cancelledEvalBookings, setCancelledEvalBookings] = useState<Booking[]>([]);
   const [dl389Schedules, setDl389Schedules] = useState<Schedule[]>([]);
   const [dl389PendingCounts, setDl389PendingCounts] = useState<Record<string, number>>({});
   // Fail-result dialog state
@@ -178,15 +180,69 @@ const ClassRosters = () => {
         setEvalPendingCounts(evalCounts);
         setDl389PendingCounts(dl389Counts);
 
-        // Eval-pending schedules = past schedules with at least one un-evaluated student
-        setEvalPendingSchedules(pastList.filter(s => (evalCounts[s.id] || 0) > 0));
+        // Eval-pending schedules = past schedules with un-evaluated students,
+        // EXCLUDING any schedule that has been cancelled (those students live
+        // in their own synthetic "Cancelled Classes" bucket below).
+        const liveEvalPending = pastList.filter(s =>
+          (evalCounts[s.id] || 0) > 0 && !s.cancelled_at
+        );
+
+        // Pull bookings tied to ANY cancelled schedule (past or future) where
+        // the student was marked resolved (needs_reschedule=false) but still
+        // has no result. These deserve their own evaluation slot since the
+        // original class is gone.
+        const { data: cancelledSchedRows } = await supabase
+          .from("schedules")
+          .select("id")
+          .not("cancelled_at", "is", null);
+        const cancelledIds = (cancelledSchedRows ?? []).map(r => r.id);
+        let cancelledEvalList: Booking[] = [];
+        if (cancelledIds.length > 0) {
+          const { data: cBks } = await (supabase as any)
+            .from("bookings")
+            .select("*")
+            .in("schedule_id", cancelledIds)
+            .is("result", null)
+            .eq("needs_reschedule", false);
+          cancelledEvalList = (cBks ?? []) as Booking[];
+        }
+        setCancelledEvalBookings(cancelledEvalList);
+
+        // Build the final eval-pending list. If we have any cancelled-class
+        // students, prepend a synthetic schedule entry so the bucket is
+        // clickable from the same list UI.
+        const finalEvalList: Schedule[] = [...liveEvalPending];
+        if (cancelledEvalList.length > 0) {
+          finalEvalList.unshift({
+            id: "__cancelled_eval__",
+            date: today,
+            course: "basic",
+            location: "cancelled",
+            location_label: "Cancelled Classes — Resolved Students",
+            group_name: "Needs Evaluation",
+            schedule: "",
+            spots_available: 0,
+            price: "",
+            cancelled_at: null,
+            cancelled_by: null,
+            cancellation_reason: null,
+            created_at: today,
+            updated_at: today,
+            created_by: null,
+          } as unknown as Schedule);
+          // Surface the count in the per-card pending badge.
+          evalCounts["__cancelled_eval__"] = cancelledEvalList.length;
+          setEvalPendingCounts({ ...evalCounts });
+        }
+        setEvalPendingSchedules(finalEvalList);
         // DL389-pending schedules = past, fully evaluated, but at least one passed student still needs DL389
-        setDl389Schedules(pastList.filter(s => (evalCounts[s.id] || 0) === 0 && (dl389Counts[s.id] || 0) > 0));
+        setDl389Schedules(pastList.filter(s => (evalCounts[s.id] || 0) === 0 && (dl389Counts[s.id] || 0) > 0 && !s.cancelled_at));
       } else {
         setEnrollmentCounts({});
         setRetestCounts({});
         setEvalPendingCounts({});
         setEvalPendingSchedules([]);
+        setCancelledEvalBookings([]);
         setDl389PendingCounts({});
         setDl389Schedules([]);
       }
@@ -216,6 +272,11 @@ const ClassRosters = () => {
       setBookings([]);
       return;
     }
+    // Synthetic bucket: students from cancelled classes who were marked Resolved.
+    if (selectedScheduleId === "__cancelled_eval__") {
+      setBookings(cancelledEvalBookings);
+      return;
+    }
     const fetchBookings = async () => {
       setLoading(true);
       const { data } = await supabase
@@ -227,7 +288,7 @@ const ClassRosters = () => {
       setLoading(false);
     };
     fetchBookings();
-  }, [selectedScheduleId]);
+  }, [selectedScheduleId, cancelledEvalBookings]);
 
   // When the Schedule Retest dialog opens, fetch retest counts for matching upcoming classes
   useEffect(() => {
@@ -306,7 +367,7 @@ const ClassRosters = () => {
     return () => clearTimeout(handle);
   }, [studentSearch]);
 
-  const allKnownSchedules = [...schedules, ...pastSchedules];
+  const allKnownSchedules = [...schedules, ...pastSchedules, ...evalPendingSchedules];
   const selectedSchedule = allKnownSchedules.find(s => s.id === selectedScheduleId);
 
   const regularBookings = bookings.filter(b => !b.is_retest);
@@ -340,9 +401,9 @@ const ClassRosters = () => {
   // Past Roster excludes schedules that still have DL389 work pending.
   const dl389PendingScheduleIds = new Set(dl389Schedules.map(s => s.id));
   const baseSchedules = view === "active"
-    ? schedules
+    ? schedules.filter(s => !s.cancelled_at)
     : view === "past"
-      ? pastSchedules.filter(s => !dl389PendingScheduleIds.has(s.id) && (evalPendingCounts[s.id] || 0) === 0)
+      ? pastSchedules.filter(s => !s.cancelled_at && !dl389PendingScheduleIds.has(s.id) && (evalPendingCounts[s.id] || 0) === 0)
       : view === "evaluation_pending"
         ? evalPendingSchedules
         : [];
