@@ -712,15 +712,29 @@ const AdminSchedule = () => {
                 {cancelTarget.date} — {courseLabels[cancelTarget.course] ?? cancelTarget.course} — {cancelTarget.location_label}
               </div>
               <div>
-                <Label>What to cancel</Label>
-                <Select value={cancelPart} onValueChange={setCancelPart}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                <Label>What to cancel (check all that apply)</Label>
+                <div className="mt-2 space-y-2 rounded-md border border-border p-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={isFullCancel}
+                      onCheckedChange={(v) =>
+                        setCancelParts(v ? PART_OPTIONS.map(o => o.value) : [])
+                      }
+                    />
+                    <span className="font-medium">Full class (all parts)</span>
+                  </label>
+                  <div className="border-t border-border pt-2 space-y-2">
                     {PART_OPTIONS.map(o => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      <label key={o.value} className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                          checked={cancelParts.includes(o.value)}
+                          onCheckedChange={(v) => togglePart(o.value, !!v)}
+                        />
+                        <span>{o.label}</span>
+                      </label>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                </div>
               </div>
               <div>
                 <Label>Reason (optional)</Label>
