@@ -98,6 +98,15 @@ const ClassRosters = () => {
   const [savingDl389, setSavingDl389] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
+  // No-Show / Drop dialog state
+  const [noShowFor, setNoShowFor] = useState<Booking | null>(null);
+  const [noShowParts, setNoShowParts] = useState<string[]>([]);
+  const [noShowReason, setNoShowReason] = useState("");
+  const [savingNoShow, setSavingNoShow] = useState(false);
+  const [dropFor, setDropFor] = useState<Booking | null>(null);
+  const [dropReason, setDropReason] = useState("");
+  const [savingDrop, setSavingDrop] = useState(false);
+
   // Load schedules + employees + assignments based on view
   useEffect(() => {
     const fetchData = async () => {
