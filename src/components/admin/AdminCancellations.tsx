@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
@@ -22,15 +23,19 @@ interface Props {
 }
 
 const PART_OPTIONS = [
-  { value: "full", label: "Full class (all parts)" },
   { value: "c1", label: "C1 — Classroom 1" },
   { value: "r1", label: "R1 — Range 1" },
   { value: "c2", label: "C2 — Classroom 2" },
   { value: "r2", label: "R2 — Range 2" },
 ];
 
-const partLabel = (p: string) =>
-  PART_OPTIONS.find(o => o.value === p)?.label ?? p.toUpperCase();
+const partLabel = (p: string) => {
+  if (p === "full") return "Full class (all parts)";
+  if (p.includes(",")) {
+    return p.split(",").map(v => PART_OPTIONS.find(o => o.value === v)?.label ?? v.toUpperCase()).join(", ");
+  }
+  return PART_OPTIONS.find(o => o.value === p)?.label ?? p.toUpperCase();
+};
 
 const courseLabels: Record<string, string> = {
   basic: "Motorcycle Training Course",
@@ -50,7 +55,7 @@ const AdminCancellations = ({ onBack }: Props) => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
-  const [selectedPart, setSelectedPart] = useState("full");
+  const [selectedParts, setSelectedParts] = useState<string[]>([]);
   const [reason, setReason] = useState("");
 
   const [reassignDialog, setReassignDialog] = useState<Booking | null>(null);
@@ -93,9 +98,12 @@ const AdminCancellations = ({ onBack }: Props) => {
     );
   }
 
+  const isFullCancel = selectedParts.length === PART_OPTIONS.length;
+  const cancelPartValue = isFullCancel ? "full" : [...selectedParts].sort().join(",");
+
   const submitCancellation = async () => {
-    if (!selectedScheduleId || !selectedPart) {
-      toast({ title: "Missing info", description: "Pick a class and which part to cancel.", variant: "destructive" });
+    if (!selectedScheduleId || selectedParts.length === 0) {
+      toast({ title: "Missing info", description: "Pick a class and at least one part to cancel.", variant: "destructive" });
       return;
     }
     const sched = schedules.find(s => s.id === selectedScheduleId);
@@ -104,7 +112,7 @@ const AdminCancellations = ({ onBack }: Props) => {
     // Insert cancellation record
     const { error: cErr } = await supabase.from("schedule_cancellations").insert({
       schedule_id: selectedScheduleId,
-      cancelled_part: selectedPart,
+      cancelled_part: cancelPartValue,
       reason: reason || null,
       cancelled_by: user?.id ?? null,
     });
@@ -125,7 +133,7 @@ const AdminCancellations = ({ onBack }: Props) => {
         .from("bookings")
         .update({
           needs_reschedule: true,
-          reschedule_part: selectedPart,
+          reschedule_part: cancelPartValue,
           reschedule_reason: reason || null,
           original_schedule_id: selectedScheduleId,
           original_schedule_date: sched.date,
@@ -139,10 +147,21 @@ const AdminCancellations = ({ onBack }: Props) => {
       }
     }
 
-    toast({ title: "Cancelled", description: `${partLabel(selectedPart)} on ${sched.date} cancelled. ${bks?.length ?? 0} student(s) flagged for rescheduling.` });
+    // For full cancellations, mark the schedule itself as cancelled so it
+    // disappears from public/admin schedule lists and blocks new registrations.
+    if (isFullCancel) {
+      await supabase.from("schedules").update({
+        cancelled_at: new Date().toISOString(),
+        cancelled_by: user?.id ?? null,
+        cancellation_reason: reason || null,
+        spots_available: 0,
+      }).eq("id", selectedScheduleId);
+    }
+
+    toast({ title: "Cancelled", description: `${partLabel(cancelPartValue)} on ${sched.date} cancelled. ${bks?.length ?? 0} student(s) flagged for rescheduling.` });
     setDialogOpen(false);
     setSelectedScheduleId("");
-    setSelectedPart("full");
+    setSelectedParts([]);
     setReason("");
     fetchAll();
   };
@@ -249,15 +268,33 @@ const AdminCancellations = ({ onBack }: Props) => {
                 </Select>
               </div>
               <div>
-                <Label>What to cancel</Label>
-                <Select value={selectedPart} onValueChange={setSelectedPart}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                <Label>What to cancel (check all that apply)</Label>
+                <div className="mt-2 space-y-2 rounded-md border border-border p-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={isFullCancel}
+                      onCheckedChange={(v) =>
+                        setSelectedParts(v ? PART_OPTIONS.map(o => o.value) : [])
+                      }
+                    />
+                    <span className="font-medium">Full class (all parts)</span>
+                  </label>
+                  <div className="border-t border-border pt-2 space-y-2">
                     {PART_OPTIONS.map(o => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      <label key={o.value} className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                          checked={selectedParts.includes(o.value)}
+                          onCheckedChange={(v) =>
+                            setSelectedParts(prev =>
+                              v ? [...prev, o.value] : prev.filter(p => p !== o.value)
+                            )
+                          }
+                        />
+                        <span>{o.label}</span>
+                      </label>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                </div>
               </div>
               <div>
                 <Label>Reason (optional)</Label>

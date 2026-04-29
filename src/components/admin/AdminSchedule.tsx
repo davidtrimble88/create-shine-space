@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { format, addDays } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -148,25 +149,38 @@ const AdminSchedule = () => {
   const [assigningSchedule, setAssigningSchedule] = useState<{ id: string; name: string } | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [cancelTarget, setCancelTarget] = useState<Schedule | null>(null);
-  const [cancelPart, setCancelPart] = useState("full");
+  const [cancelParts, setCancelParts] = useState<string[]>([]);
   const [cancelReason, setCancelReason] = useState("");
   const { toast } = useToast();
   const { user, userRole } = useAuth();
   const canCancel = userRole === "owner" || userRole === "admin";
 
   const PART_OPTIONS = [
-    { value: "full", label: "Full class (all parts)" },
     { value: "c1", label: "C1 — Classroom 1" },
     { value: "r1", label: "R1 — Range 1" },
     { value: "c2", label: "C2 — Classroom 2" },
     { value: "r2", label: "R2 — Range 2" },
   ];
 
+  const togglePart = (val: string, checked: boolean) => {
+    setCancelParts(prev => checked ? [...prev, val] : prev.filter(p => p !== val));
+  };
+
+  const isFullCancel = cancelParts.length === PART_OPTIONS.length;
+  const cancelPartValue = isFullCancel ? "full" : [...cancelParts].sort().join(",");
+  const cancelPartLabel = isFullCancel
+    ? "Full class (all parts)"
+    : cancelParts.map(v => PART_OPTIONS.find(o => o.value === v)?.label ?? v).join(", ");
+
   const submitCancel = async () => {
     if (!cancelTarget) return;
+    if (cancelParts.length === 0) {
+      toast({ title: "Pick at least one part", description: "Select which sessions are cancelled.", variant: "destructive" });
+      return;
+    }
     const { error: cErr } = await supabase.from("schedule_cancellations").insert({
       schedule_id: cancelTarget.id,
-      cancelled_part: cancelPart,
+      cancelled_part: cancelPartValue,
       reason: cancelReason || null,
       cancelled_by: user?.id ?? null,
     });
@@ -178,7 +192,7 @@ const AdminSchedule = () => {
     if (bks && bks.length > 0) {
       await supabase.from("bookings").update({
         needs_reschedule: true,
-        reschedule_part: cancelPart,
+        reschedule_part: cancelPartValue,
         reschedule_reason: cancelReason || null,
         original_schedule_id: cancelTarget.id,
         original_schedule_date: cancelTarget.date,
@@ -189,7 +203,7 @@ const AdminSchedule = () => {
     // For full cancellations, mark the schedule itself as cancelled so it
     // disappears from the public schedule list and admin schedule view, and
     // is no longer available for new registrations.
-    if (cancelPart === "full") {
+    if (isFullCancel) {
       await supabase.from("schedules").update({
         cancelled_at: new Date().toISOString(),
         cancelled_by: user?.id ?? null,
@@ -197,9 +211,9 @@ const AdminSchedule = () => {
         spots_available: 0,
       }).eq("id", cancelTarget.id);
     }
-    toast({ title: "Cancelled", description: `${PART_OPTIONS.find(o => o.value === cancelPart)?.label} on ${cancelTarget.date}. ${bks?.length ?? 0} student(s) flagged for rescheduling.` });
+    toast({ title: "Cancelled", description: `${cancelPartLabel} on ${cancelTarget.date}. ${bks?.length ?? 0} student(s) flagged for rescheduling.` });
     setCancelTarget(null);
-    setCancelPart("full");
+    setCancelParts([]);
     setCancelReason("");
     fetchSchedules();
   };
@@ -661,7 +675,7 @@ const AdminSchedule = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => { setCancelTarget(s); setCancelPart("full"); setCancelReason(""); }}
+                          onClick={() => { setCancelTarget(s); setCancelParts([]); setCancelReason(""); }}
                           className="text-accent hover:text-accent"
                           title="Cancel class or part"
                         >
@@ -699,15 +713,29 @@ const AdminSchedule = () => {
                 {cancelTarget.date} — {courseLabels[cancelTarget.course] ?? cancelTarget.course} — {cancelTarget.location_label}
               </div>
               <div>
-                <Label>What to cancel</Label>
-                <Select value={cancelPart} onValueChange={setCancelPart}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                <Label>What to cancel (check all that apply)</Label>
+                <div className="mt-2 space-y-2 rounded-md border border-border p-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={isFullCancel}
+                      onCheckedChange={(v) =>
+                        setCancelParts(v ? PART_OPTIONS.map(o => o.value) : [])
+                      }
+                    />
+                    <span className="font-medium">Full class (all parts)</span>
+                  </label>
+                  <div className="border-t border-border pt-2 space-y-2">
                     {PART_OPTIONS.map(o => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      <label key={o.value} className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                          checked={cancelParts.includes(o.value)}
+                          onCheckedChange={(v) => togglePart(o.value, !!v)}
+                        />
+                        <span>{o.label}</span>
+                      </label>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                </div>
               </div>
               <div>
                 <Label>Reason (optional)</Label>
