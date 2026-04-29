@@ -41,7 +41,21 @@ const locationLabels: Record<string, string> = {
   "ventura-county": "Ventura County — Somis",
 };
 
-interface FullAssignment {
+const PART_OPTIONS = [
+  { value: "c1", label: "C1 — Classroom 1" },
+  { value: "r1", label: "R1 — Range 1" },
+  { value: "c2", label: "C2 — Classroom 2" },
+  { value: "r2", label: "R2 — Range 2" },
+];
+
+const partLabel = (p: string | null | undefined) => {
+  if (!p) return "Full class";
+  if (p === "full") return "Full class (all parts)";
+  if (p.includes(",")) {
+    return p.split(",").map(v => PART_OPTIONS.find(o => o.value === v)?.label ?? v.toUpperCase()).join(", ");
+  }
+  return PART_OPTIONS.find(o => o.value === p)?.label ?? p.toUpperCase();
+};
   schedule_id: string;
   employee_id: string;
   assignment_role: string;
