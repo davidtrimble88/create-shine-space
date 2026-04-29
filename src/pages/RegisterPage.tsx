@@ -174,6 +174,7 @@ const RegisterPage = () => {
           .select("id, date")
           .eq("course", course)
           .eq("location", location)
+          .is("cancelled_at", null)
           .limit(1);
         if (schedData && schedData.length > 0) {
           scheduleId = schedData[0].id;
