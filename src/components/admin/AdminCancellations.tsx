@@ -331,7 +331,7 @@ const AdminCancellations = ({ onBack }: Props) => {
           <p className="text-sm text-muted-foreground">No students currently waiting to be rescheduled.</p>
         ) : (
           <div className="space-y-3">
-            {pendingBookings.map(b => (
+            {pendingBookings.filter(b => pendingLocFilter === "all" || b.location === pendingLocFilter).map(b => (
               <div key={b.id} className="bg-card border border-accent/40 rounded-lg p-4">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="space-y-1">
