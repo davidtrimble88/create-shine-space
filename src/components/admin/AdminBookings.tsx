@@ -83,7 +83,23 @@ const AdminBookings = () => {
     if (refRes.data && refRes.data.length > 0) setReferralOptions(refRes.data.map(r => r.name));
   };
 
-  useEffect(() => { fetchData(); }, []);
+  const fetchPendingCount = async () => {
+    const { count } = await supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("needs_reschedule", true);
+    setPendingRescheduleCount(count ?? 0);
+  };
+
+  useEffect(() => { fetchData(); fetchPendingCount(); }, []);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-bookings-reschedule-count")
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => fetchPendingCount())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const selectedSchedule = schedules.find(s => s.id === form.schedule_id);
 
