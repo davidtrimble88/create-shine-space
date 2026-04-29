@@ -69,6 +69,9 @@ const AdminCancellations = ({ onBack }: Props) => {
   const [undoRestorable, setUndoRestorable] = useState<Booking[]>([]);
   const [undoSelected, setUndoSelected] = useState<Set<string>>(new Set());
 
+  // Per-cancellation counts: { [cancellationId]: { original, pending } }
+  const [cancelCounts, setCancelCounts] = useState<Record<string, { original: number; pending: number }>>({});
+
   const fetchAll = useCallback(async () => {
     const today = new Date().toISOString().split("T")[0];
     const [schedRes, cancelRes, bookRes, allSchedRes] = await Promise.all([
@@ -81,6 +84,30 @@ const AdminCancellations = ({ onBack }: Props) => {
     if (cancelRes.data) setCancellations(cancelRes.data);
     if (bookRes.data) setPendingBookings(bookRes.data);
     if (allSchedRes.data) setAllSchedules(allSchedRes.data);
+
+    // Compute counts per cancellation
+    const cans = cancelRes.data ?? [];
+    if (cans.length > 0) {
+      const scheduleIds = Array.from(new Set(cans.map(c => c.schedule_id)));
+      const { data: relatedBookings } = await supabase
+        .from("bookings")
+        .select("id, original_schedule_id, reschedule_part, needs_reschedule")
+        .in("original_schedule_id", scheduleIds);
+      const counts: Record<string, { original: number; pending: number }> = {};
+      for (const c of cans) {
+        const matches = (relatedBookings ?? []).filter(b =>
+          b.original_schedule_id === c.schedule_id &&
+          (b.reschedule_part ?? "full") === c.cancelled_part
+        );
+        counts[c.id] = {
+          original: matches.length,
+          pending: matches.filter(b => b.needs_reschedule).length,
+        };
+      }
+      setCancelCounts(counts);
+    } else {
+      setCancelCounts({});
+    }
   }, []);
 
   useEffect(() => {
