@@ -170,6 +170,18 @@ const AdminCancellations = ({ onBack }: Props) => {
     if (!reassignDialog || !reassignTarget) return;
     const target = allSchedules.find(s => s.id === reassignTarget);
     if (!target) return;
+
+    // Build a roster note so instructors know exactly which part(s) the
+    // student is retaking from the original cancelled class.
+    const part = reassignDialog.reschedule_part ?? "full";
+    const retakeNote = part === "full"
+      ? "Retaking full class (rescheduled from cancelled session)"
+      : `Retaking: ${partLabel(part)}`;
+    const existing = (reassignDialog.roster_comment ?? "").trim();
+    const mergedComment = existing && !existing.includes("Retaking")
+      ? `${existing} | ${retakeNote}`
+      : retakeNote;
+
     const { error } = await supabase
       .from("bookings")
       .update({
@@ -181,13 +193,14 @@ const AdminCancellations = ({ onBack }: Props) => {
         needs_reschedule: false,
         rescheduled_at: new Date().toISOString(),
         rescheduled_by: user?.id ?? null,
+        roster_comment: mergedComment,
       })
       .eq("id", reassignDialog.id);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Rescheduled", description: `${reassignDialog.first_name} ${reassignDialog.last_name} moved to ${target.date}.` });
+    toast({ title: "Rescheduled", description: `${reassignDialog.first_name} ${reassignDialog.last_name} moved to ${target.date}. Roster note added.` });
     setReassignDialog(null);
     setReassignTarget("");
     fetchAll();
