@@ -1,6 +1,9 @@
 // Returns PUBLIC Square config (App ID + Location ID) for a given region.
 // These are not secrets — they are required by Square's browser SDK.
-import { corsHeaders } from "@supabase/supabase-js/cors";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 Deno.serve((req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });

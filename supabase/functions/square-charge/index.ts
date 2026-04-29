@@ -1,8 +1,12 @@
 // Charges a card via Square (server-side) and creates the booking.
 // Picks the correct Square account based on the booking's region.
-import { corsHeaders } from "@supabase/supabase-js/cors";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
 import { z } from "https://esm.sh/zod@3.23.8";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 const BodySchema = z.object({
   sourceId: z.string().min(1),
