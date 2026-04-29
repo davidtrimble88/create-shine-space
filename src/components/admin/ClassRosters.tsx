@@ -272,6 +272,11 @@ const ClassRosters = () => {
       setBookings([]);
       return;
     }
+    // Synthetic bucket: students from cancelled classes who were marked Resolved.
+    if (selectedScheduleId === "__cancelled_eval__") {
+      setBookings(cancelledEvalBookings);
+      return;
+    }
     const fetchBookings = async () => {
       setLoading(true);
       const { data } = await supabase
@@ -283,7 +288,7 @@ const ClassRosters = () => {
       setLoading(false);
     };
     fetchBookings();
-  }, [selectedScheduleId]);
+  }, [selectedScheduleId, cancelledEvalBookings]);
 
   // When the Schedule Retest dialog opens, fetch retest counts for matching upcoming classes
   useEffect(() => {
