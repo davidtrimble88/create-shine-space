@@ -8,9 +8,12 @@ import { format, addDays } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus, History, ArrowLeft } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus, History, ArrowLeft, Ban } from "lucide-react";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import InstructorAssignment, { roleLabelMap } from "./InstructorAssignment";
+import { useAuth } from "@/contexts/AuthContext";
+import { Textarea } from "@/components/ui/textarea";
+import { DialogFooter } from "@/components/ui/dialog";
 
 type Schedule = Tables<"schedules">;
 
@@ -144,7 +147,50 @@ const AdminSchedule = () => {
   const [assignmentData, setAssignmentData] = useState<AssignmentInfo[]>([]);
   const [assigningSchedule, setAssigningSchedule] = useState<{ id: string; name: string } | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [cancelTarget, setCancelTarget] = useState<Schedule | null>(null);
+  const [cancelPart, setCancelPart] = useState("full");
+  const [cancelReason, setCancelReason] = useState("");
   const { toast } = useToast();
+  const { user, userRole } = useAuth();
+  const canCancel = userRole === "owner" || userRole === "admin";
+
+  const PART_OPTIONS = [
+    { value: "full", label: "Full class (all parts)" },
+    { value: "c1", label: "C1 — Classroom 1" },
+    { value: "r1", label: "R1 — Range 1" },
+    { value: "c2", label: "C2 — Classroom 2" },
+    { value: "r2", label: "R2 — Range 2" },
+  ];
+
+  const submitCancel = async () => {
+    if (!cancelTarget) return;
+    const { error: cErr } = await supabase.from("schedule_cancellations").insert({
+      schedule_id: cancelTarget.id,
+      cancelled_part: cancelPart,
+      reason: cancelReason || null,
+      cancelled_by: user?.id ?? null,
+    });
+    if (cErr) {
+      toast({ title: "Error", description: cErr.message, variant: "destructive" });
+      return;
+    }
+    const { data: bks } = await supabase.from("bookings").select("id").eq("schedule_id", cancelTarget.id);
+    if (bks && bks.length > 0) {
+      await supabase.from("bookings").update({
+        needs_reschedule: true,
+        reschedule_part: cancelPart,
+        reschedule_reason: cancelReason || null,
+        original_schedule_id: cancelTarget.id,
+        original_schedule_date: cancelTarget.date,
+        original_location_label: cancelTarget.location_label,
+        original_course: cancelTarget.course,
+      }).in("id", bks.map(b => b.id));
+    }
+    toast({ title: "Cancelled", description: `${PART_OPTIONS.find(o => o.value === cancelPart)?.label} on ${cancelTarget.date}. ${bks?.length ?? 0} student(s) flagged for rescheduling.` });
+    setCancelTarget(null);
+    setCancelPart("full");
+    setCancelReason("");
+  };
 
   const fetchSchedules = async () => {
     setLoading(true);
@@ -599,6 +645,17 @@ const AdminSchedule = () => {
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(s)}>
                         <Pencil className="w-4 h-4" />
                       </Button>
+                      {canCancel && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => { setCancelTarget(s); setCancelPart("full"); setCancelReason(""); }}
+                          className="text-accent hover:text-accent"
+                          title="Cancel class or part"
+                        >
+                          <Ban className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button variant="ghost" size="sm" onClick={() => handleDelete(s.id)} className="text-destructive hover:text-destructive">
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -618,6 +675,43 @@ const AdminSchedule = () => {
           onClose={() => { setAssigningSchedule(null); fetchSchedules(); }}
         />
       )}
+
+      <Dialog open={!!cancelTarget} onOpenChange={(o) => { if (!o) setCancelTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Class or Session</DialogTitle>
+          </DialogHeader>
+          {cancelTarget && (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                {cancelTarget.date} — {courseLabels[cancelTarget.course] ?? cancelTarget.course} — {cancelTarget.location_label}
+              </div>
+              <div>
+                <Label>What to cancel</Label>
+                <Select value={cancelPart} onValueChange={setCancelPart}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PART_OPTIONS.map(o => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Reason (optional)</Label>
+                <Textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} placeholder="Weather, instructor unavailable, etc." />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                All students on this class will be flagged for rescheduling. View them under <span className="font-semibold">Bookings → Cancellations</span>.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelTarget(null)}>Close</Button>
+            <Button variant="destructive" onClick={submitCancel}>Confirm Cancellation</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
