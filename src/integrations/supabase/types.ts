@@ -38,9 +38,18 @@ export type Database = {
           license_number: string | null
           location: string
           location_label: string
+          needs_reschedule: boolean
+          original_course: string | null
+          original_location_label: string | null
+          original_schedule_date: string | null
+          original_schedule_id: string | null
           payment_status: string
           phone: string
           referral_source: string | null
+          reschedule_part: string | null
+          reschedule_reason: string | null
+          rescheduled_at: string | null
+          rescheduled_by: string | null
           result: string | null
           retest_type: string | null
           roster_comment: string | null
@@ -73,9 +82,18 @@ export type Database = {
           license_number?: string | null
           location: string
           location_label: string
+          needs_reschedule?: boolean
+          original_course?: string | null
+          original_location_label?: string | null
+          original_schedule_date?: string | null
+          original_schedule_id?: string | null
           payment_status?: string
           phone: string
           referral_source?: string | null
+          reschedule_part?: string | null
+          reschedule_reason?: string | null
+          rescheduled_at?: string | null
+          rescheduled_by?: string | null
           result?: string | null
           retest_type?: string | null
           roster_comment?: string | null
@@ -108,9 +126,18 @@ export type Database = {
           license_number?: string | null
           location?: string
           location_label?: string
+          needs_reschedule?: boolean
+          original_course?: string | null
+          original_location_label?: string | null
+          original_schedule_date?: string | null
+          original_schedule_id?: string | null
           payment_status?: string
           phone?: string
           referral_source?: string | null
+          reschedule_part?: string | null
+          reschedule_reason?: string | null
+          rescheduled_at?: string | null
+          rescheduled_by?: string | null
           result?: string | null
           retest_type?: string | null
           roster_comment?: string | null
@@ -372,6 +399,33 @@ export type Database = {
           name?: string
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      schedule_cancellations: {
+        Row: {
+          cancelled_at: string
+          cancelled_by: string | null
+          cancelled_part: string
+          id: string
+          reason: string | null
+          schedule_id: string
+        }
+        Insert: {
+          cancelled_at?: string
+          cancelled_by?: string | null
+          cancelled_part: string
+          id?: string
+          reason?: string | null
+          schedule_id: string
+        }
+        Update: {
+          cancelled_at?: string
+          cancelled_by?: string | null
+          cancelled_part?: string
+          id?: string
+          reason?: string | null
+          schedule_id?: string
         }
         Relationships: []
       }
