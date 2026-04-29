@@ -435,6 +435,27 @@ const ClassRosters = () => {
     toast.success("Comment saved");
   };
 
+  // Re-flag a cancelled-class student so they go back into the
+  // "Needs Rescheduling" list (used when a Resolved click was a mistake).
+  const handleRestoreToReschedule = async (booking: Booking) => {
+    if (!confirm(`Move ${booking.first_name} ${booking.last_name} back to the Needs Rescheduling list?`)) return;
+    const { error } = await supabase
+      .from("bookings")
+      .update({
+        needs_reschedule: true,
+        rescheduled_at: null,
+        rescheduled_by: null,
+      })
+      .eq("id", booking.id);
+    if (error) {
+      toast.error("Failed to restore student");
+      return;
+    }
+    setBookings(prev => prev.filter(b => b.id !== booking.id));
+    setCancelledEvalBookings(prev => prev.filter(b => b.id !== booking.id));
+    toast.success(`${booking.first_name} ${booking.last_name} moved back to Needs Rescheduling.`);
+  };
+
   const handleAddRetest = async () => {
     if (!selectedSchedule || !retestForm.first_name.trim() || !retestForm.last_name.trim() || !retestForm.phone.trim()) {
       toast.error("First name, last name, and phone are required");
@@ -1432,6 +1453,17 @@ const ClassRosters = () => {
               </div>
             )}
 
+            {selectedScheduleId === "__cancelled_eval__" && regularBookings.length > 0 && (
+              <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-foreground flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                <span>
+                  These students were marked <strong>Resolved</strong> from a cancelled class.
+                  Evaluate them here, or click <strong>Restore</strong> to send them back to the
+                  Cancellations &rsaquo; Needs Rescheduling list.
+                </span>
+              </div>
+            )}
+
             {regularBookings.length === 0 ? (
               <p className="text-muted-foreground py-4 text-center">No students enrolled in this class yet.</p>
             ) : (
@@ -1455,6 +1487,9 @@ const ClassRosters = () => {
                       {canManageEvaluations && (
                         <th className="text-center p-3 font-medium text-muted-foreground">Result</th>
                       )}
+                      {selectedScheduleId === "__cancelled_eval__" && canManageEvaluations && (
+                        <th className="text-center p-3 font-medium text-muted-foreground">Action</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -1474,6 +1509,18 @@ const ClassRosters = () => {
                         <td className="p-3 text-center text-muted-foreground">—</td>
                         <td className="p-3 text-center text-muted-foreground">—</td>
                         {canManageEvaluations && renderResultCell(b)}
+                        {selectedScheduleId === "__cancelled_eval__" && canManageEvaluations && (
+                          <td className="p-3 text-center">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRestoreToReschedule(b)}
+                              title="Move back to Needs Rescheduling"
+                            >
+                              <RotateCcw className="w-3 h-3 mr-1" /> Restore
+                            </Button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
