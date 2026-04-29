@@ -674,7 +674,7 @@ const AdminSchedule = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => { setCancelTarget(s); setCancelPart("full"); setCancelReason(""); }}
+                          onClick={() => { setCancelTarget(s); setCancelParts([]); setCancelReason(""); }}
                           className="text-accent hover:text-accent"
                           title="Cancel class or part"
                         >
