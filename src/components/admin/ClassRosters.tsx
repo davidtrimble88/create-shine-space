@@ -19,6 +19,10 @@ type Booking = Tables<"bookings"> & {
   dl389_completed?: boolean;
   dl389_completed_at?: string | null;
   dl389_completed_by?: string | null;
+  dropped?: boolean;
+  dropped_reason?: string | null;
+  dropped_at?: string | null;
+  dropped_by?: string | null;
 };
 
 type ViewMode = "active" | "evaluation_pending" | "dl389" | "past" | "pending_retests";
