@@ -367,7 +367,7 @@ const ClassRosters = () => {
     return () => clearTimeout(handle);
   }, [studentSearch]);
 
-  const allKnownSchedules = [...schedules, ...pastSchedules];
+  const allKnownSchedules = [...schedules, ...pastSchedules, ...evalPendingSchedules];
   const selectedSchedule = allKnownSchedules.find(s => s.id === selectedScheduleId);
 
   const regularBookings = bookings.filter(b => !b.is_retest);
