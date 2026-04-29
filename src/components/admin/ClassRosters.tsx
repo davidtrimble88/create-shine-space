@@ -401,9 +401,9 @@ const ClassRosters = () => {
   // Past Roster excludes schedules that still have DL389 work pending.
   const dl389PendingScheduleIds = new Set(dl389Schedules.map(s => s.id));
   const baseSchedules = view === "active"
-    ? schedules
+    ? schedules.filter(s => !s.cancelled_at)
     : view === "past"
-      ? pastSchedules.filter(s => !dl389PendingScheduleIds.has(s.id) && (evalPendingCounts[s.id] || 0) === 0)
+      ? pastSchedules.filter(s => !s.cancelled_at && !dl389PendingScheduleIds.has(s.id) && (evalPendingCounts[s.id] || 0) === 0)
       : view === "evaluation_pending"
         ? evalPendingSchedules
         : [];
