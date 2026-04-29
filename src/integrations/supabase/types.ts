@@ -431,6 +431,9 @@ export type Database = {
       }
       schedules: {
         Row: {
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           course: string
           created_at: string
           created_by: string | null
@@ -445,6 +448,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           course: string
           created_at?: string
           created_by?: string | null
@@ -459,6 +465,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           course?: string
           created_at?: string
           created_by?: string | null
