@@ -1,0 +1,1 @@
+ALTER TABLE public.schedules DROP CONSTRAINT IF EXISTS schedules_location_check;
