@@ -19,7 +19,7 @@ const Footer = () => {
             viewport={{ once: true }}
             className="md:col-span-1"
           >
-            <img src={logo} alt="Learn to Ride VC" className="h-16 mb-4" />
+            <img src={logo} alt="Learn to Ride VC" className="h-28 mb-4" />
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
               California's premier motorcycle training school. CMSP certified instruction 
               for riders of all skill levels.
