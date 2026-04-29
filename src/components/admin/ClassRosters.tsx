@@ -435,6 +435,27 @@ const ClassRosters = () => {
     toast.success("Comment saved");
   };
 
+  // Re-flag a cancelled-class student so they go back into the
+  // "Needs Rescheduling" list (used when a Resolved click was a mistake).
+  const handleRestoreToReschedule = async (booking: Booking) => {
+    if (!confirm(`Move ${booking.first_name} ${booking.last_name} back to the Needs Rescheduling list?`)) return;
+    const { error } = await supabase
+      .from("bookings")
+      .update({
+        needs_reschedule: true,
+        rescheduled_at: null,
+        rescheduled_by: null,
+      })
+      .eq("id", booking.id);
+    if (error) {
+      toast.error("Failed to restore student");
+      return;
+    }
+    setBookings(prev => prev.filter(b => b.id !== booking.id));
+    setCancelledEvalBookings(prev => prev.filter(b => b.id !== booking.id));
+    toast.success(`${booking.first_name} ${booking.last_name} moved back to Needs Rescheduling.`);
+  };
+
   const handleAddRetest = async () => {
     if (!selectedSchedule || !retestForm.first_name.trim() || !retestForm.last_name.trim() || !retestForm.phone.trim()) {
       toast.error("First name, last name, and phone are required");
