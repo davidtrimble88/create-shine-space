@@ -8,8 +8,9 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import AdminCancellations from "./AdminCancellations";
 
 type Booking = Tables<"bookings">;
 type Schedule = Tables<"schedules">;
@@ -40,6 +41,8 @@ const AdminBookings = () => {
   const [retestDialogOpen, setRetestDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
+  const [view, setView] = useState<"bookings" | "cancellations">("bookings");
+  const [pendingRescheduleCount, setPendingRescheduleCount] = useState(0);
   
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [filterCourse, setFilterCourse] = useState("");
@@ -80,7 +83,23 @@ const AdminBookings = () => {
     if (refRes.data && refRes.data.length > 0) setReferralOptions(refRes.data.map(r => r.name));
   };
 
-  useEffect(() => { fetchData(); }, []);
+  const fetchPendingCount = async () => {
+    const { count } = await supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("needs_reschedule", true);
+    setPendingRescheduleCount(count ?? 0);
+  };
+
+  useEffect(() => { fetchData(); fetchPendingCount(); }, []);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-bookings-reschedule-count")
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => fetchPendingCount())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const selectedSchedule = schedules.find(s => s.id === form.schedule_id);
 
@@ -215,11 +234,24 @@ const AdminBookings = () => {
     setFilterDate("");
   };
 
+  if (view === "cancellations") {
+    return <AdminCancellations onBack={() => { setView("bookings"); fetchPendingCount(); }} />;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
         <div className="flex items-center gap-2">
+        <Button variant="outline" onClick={() => setView("cancellations")} className={pendingRescheduleCount > 0 ? "border-accent text-accent" : ""}>
+          <AlertTriangle className="w-4 h-4 mr-2" />
+          Cancellations
+          {pendingRescheduleCount > 0 && (
+            <span className="ml-2 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold">
+              {pendingRescheduleCount}
+            </span>
+          )}
+        </Button>
         <Dialog open={retestDialogOpen} onOpenChange={setRetestDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline"><UserPlus className="w-4 h-4 mr-2" /> Add Retest Student</Button>
