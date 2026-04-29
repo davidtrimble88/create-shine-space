@@ -64,6 +64,11 @@ const AdminCancellations = ({ onBack }: Props) => {
   const [pendingLocFilter, setPendingLocFilter] = useState<string>("all");
   const [cancelLocFilter, setCancelLocFilter] = useState<string>("all");
 
+  // Undo cancellation dialog state
+  const [undoDialog, setUndoDialog] = useState<Cancellation | null>(null);
+  const [undoRestorable, setUndoRestorable] = useState<Booking[]>([]);
+  const [undoSelected, setUndoSelected] = useState<Set<string>>(new Set());
+
   const fetchAll = useCallback(async () => {
     const today = new Date().toISOString().split("T")[0];
     const [schedRes, cancelRes, bookRes, allSchedRes] = await Promise.all([
@@ -237,8 +242,6 @@ const AdminCancellations = ({ onBack }: Props) => {
   };
 
   const undoCancellation = async (c: Cancellation) => {
-    if (!confirm(`Undo cancellation of ${partLabel(c.cancelled_part)}?`)) return;
-
     // Find originally-affected students who have NOT yet been rescheduled.
     const { data: pending } = await supabase
       .from("bookings")
@@ -250,23 +253,25 @@ const AdminCancellations = ({ onBack }: Props) => {
       (b.reschedule_part ?? "full") === c.cancelled_part
     );
 
-    let restoreStudents = false;
-    if (restorable.length > 0) {
-      restoreStudents = confirm(
-        `${restorable.length} student(s) from this cancelled class have not been rescheduled yet.\n\n` +
-        `Click OK to put them BACK into the reopened class.\n` +
-        `Click Cancel to reopen the class WITHOUT them (their spots will become available again).`
-      );
+    if (restorable.length === 0) {
+      if (!confirm(`Undo cancellation of ${partLabel(c.cancelled_part)}?`)) return;
+      await performUndo(c, []);
+      return;
     }
 
-    // Remove the cancellation record
+    // Open dialog so the admin can pick which students to restore
+    setUndoDialog(c);
+    setUndoRestorable(restorable);
+    setUndoSelected(new Set(restorable.map(b => b.id)));
+  };
+
+  const performUndo = async (c: Cancellation, restoreIds: string[]) => {
     const { error } = await supabase.from("schedule_cancellations").delete().eq("id", c.id);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
 
-    // If schedule was fully cancelled, reopen it
     const sched = allSchedules.find(s => s.id === c.schedule_id);
     const wasFullyCancelled = c.cancelled_part === "full" || (sched?.cancelled_at != null);
 
@@ -278,8 +283,7 @@ const AdminCancellations = ({ onBack }: Props) => {
       }).eq("id", c.schedule_id);
     }
 
-    if (restoreStudents && restorable.length > 0) {
-      // Put students back into the class
+    if (restoreIds.length > 0) {
       await supabase
         .from("bookings")
         .update({
@@ -287,10 +291,9 @@ const AdminCancellations = ({ onBack }: Props) => {
           reschedule_part: null,
           reschedule_reason: null,
         })
-        .in("id", restorable.map(b => b.id));
+        .in("id", restoreIds);
     }
 
-    // Recompute spots_available based on actual current bookings on this schedule
     const { count } = await supabase
       .from("bookings")
       .select("*", { count: "exact", head: true })
@@ -301,10 +304,14 @@ const AdminCancellations = ({ onBack }: Props) => {
 
     toast({
       title: "Cancellation undone",
-      description: restoreStudents && restorable.length > 0
-        ? `Class reopened with ${restorable.length} original student(s) restored.`
-        : `Class reopened${restorable.length > 0 ? " — original students remain in rescheduling queue" : ""}.`,
+      description: restoreIds.length > 0
+        ? `Class reopened with ${restoreIds.length} student(s) restored.`
+        : `Class reopened. Remaining students stay in the rescheduling queue.`,
     });
+
+    setUndoDialog(null);
+    setUndoRestorable([]);
+    setUndoSelected(new Set());
     fetchAll();
   };
 
@@ -549,6 +556,66 @@ const AdminCancellations = ({ onBack }: Props) => {
           <DialogFooter>
             <Button variant="outline" onClick={() => { setReassignDialog(null); setReassignTarget(""); }}>Cancel</Button>
             <Button onClick={reassignStudent} disabled={!reassignTarget}>Confirm Reassignment</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Undo cancellation — pick which students to restore */}
+      <Dialog open={!!undoDialog} onOpenChange={(o) => { if (!o) { setUndoDialog(null); setUndoRestorable([]); setUndoSelected(new Set()); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Undo Cancellation — Restore Students?</DialogTitle>
+          </DialogHeader>
+          {undoDialog && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Select which students to put back into the reopened class. Unchecked students will remain in the rescheduling queue.
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">{undoSelected.size} of {undoRestorable.length} selected</span>
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" variant="outline"
+                    onClick={() => setUndoSelected(new Set(undoRestorable.map(b => b.id)))}>
+                    Select all
+                  </Button>
+                  <Button type="button" size="sm" variant="outline"
+                    onClick={() => setUndoSelected(new Set())}>
+                    Clear
+                  </Button>
+                </div>
+              </div>
+              <div className="max-h-72 overflow-y-auto rounded-md border border-border divide-y divide-border">
+                {undoRestorable.map(b => (
+                  <label key={b.id} className="flex items-center gap-3 p-3 cursor-pointer hover:bg-muted/40">
+                    <Checkbox
+                      checked={undoSelected.has(b.id)}
+                      onCheckedChange={(v) => {
+                        setUndoSelected(prev => {
+                          const next = new Set(prev);
+                          if (v) next.add(b.id); else next.delete(b.id);
+                          return next;
+                        });
+                      }}
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">{b.first_name} {b.last_name}</div>
+                      <div className="text-xs text-muted-foreground">{b.email} · {b.phone}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setUndoDialog(null); setUndoRestorable([]); setUndoSelected(new Set()); }}>
+              Cancel
+            </Button>
+            <Button variant="secondary" onClick={() => undoDialog && performUndo(undoDialog, [])}>
+              Reopen without students
+            </Button>
+            <Button onClick={() => undoDialog && performUndo(undoDialog, Array.from(undoSelected))} disabled={undoSelected.size === 0}>
+              Reopen & restore selected ({undoSelected.size})
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
