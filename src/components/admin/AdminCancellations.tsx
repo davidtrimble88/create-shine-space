@@ -559,6 +559,66 @@ const AdminCancellations = ({ onBack }: Props) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Undo cancellation — pick which students to restore */}
+      <Dialog open={!!undoDialog} onOpenChange={(o) => { if (!o) { setUndoDialog(null); setUndoRestorable([]); setUndoSelected(new Set()); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Undo Cancellation — Restore Students?</DialogTitle>
+          </DialogHeader>
+          {undoDialog && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Select which students to put back into the reopened class. Unchecked students will remain in the rescheduling queue.
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">{undoSelected.size} of {undoRestorable.length} selected</span>
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" variant="outline"
+                    onClick={() => setUndoSelected(new Set(undoRestorable.map(b => b.id)))}>
+                    Select all
+                  </Button>
+                  <Button type="button" size="sm" variant="outline"
+                    onClick={() => setUndoSelected(new Set())}>
+                    Clear
+                  </Button>
+                </div>
+              </div>
+              <div className="max-h-72 overflow-y-auto rounded-md border border-border divide-y divide-border">
+                {undoRestorable.map(b => (
+                  <label key={b.id} className="flex items-center gap-3 p-3 cursor-pointer hover:bg-muted/40">
+                    <Checkbox
+                      checked={undoSelected.has(b.id)}
+                      onCheckedChange={(v) => {
+                        setUndoSelected(prev => {
+                          const next = new Set(prev);
+                          if (v) next.add(b.id); else next.delete(b.id);
+                          return next;
+                        });
+                      }}
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">{b.first_name} {b.last_name}</div>
+                      <div className="text-xs text-muted-foreground">{b.email} · {b.phone}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setUndoDialog(null); setUndoRestorable([]); setUndoSelected(new Set()); }}>
+              Cancel
+            </Button>
+            <Button variant="secondary" onClick={() => undoDialog && performUndo(undoDialog, [])}>
+              Reopen without students
+            </Button>
+            <Button onClick={() => undoDialog && performUndo(undoDialog, Array.from(undoSelected))} disabled={undoSelected.size === 0}>
+              Reopen & restore selected ({undoSelected.size})
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
