@@ -37,6 +37,14 @@ const parseFee = (fee: string | null) => {
 
 const EarningsAnalytics = () => {
   const [rows, setRows] = useState<EarningRow[]>([]);
+const EarningsAnalytics = () => {
+  const [rows, setRows] = useState<EarningRow[]>([]);
+  const [ops, setOps] = useState<OpsStats>({
+    cancellations: 0, fullCancellations: 0, partialCancellations: 0,
+    drops: 0, dropsRescheduleable: 0, dropsFinal: 0,
+    noShows: 0, needsReschedule: 0,
+    passed: 0, failed: 0, resultsTotal: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("all");
   const [dateRange, setDateRange] = useState<DateRange>("30days");
