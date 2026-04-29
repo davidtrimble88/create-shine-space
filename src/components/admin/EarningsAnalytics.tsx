@@ -266,6 +266,59 @@ const EarningsAnalytics = () => {
         </div>
       </div>
 
+      {/* Operations Stats */}
+      <h2 className="text-lg font-semibold text-foreground mb-3">Operations</h2>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <Ban className="w-6 h-6 text-red-400" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.cancellations}</p>
+          <p className="text-xs text-muted-foreground mt-1">Class Cancellations</p>
+          <p className="text-[11px] text-muted-foreground mt-1">{ops.fullCancellations} full · {ops.partialCancellations} partial</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <UserX className="w-6 h-6 text-orange-400" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.drops}</p>
+          <p className="text-xs text-muted-foreground mt-1">Students Dropped</p>
+          <p className="text-[11px] text-muted-foreground mt-1">{ops.dropsRescheduleable} reschedulable · {ops.dropsFinal} final</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <CalendarX className="w-6 h-6 text-yellow-400" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.noShows}</p>
+          <p className="text-xs text-muted-foreground mt-1">No-Shows</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <RefreshCcw className="w-6 h-6 text-accent" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.needsReschedule}</p>
+          <p className="text-xs text-muted-foreground mt-1">Needs Rescheduling</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <CheckCircle2 className="w-6 h-6 text-green-400" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.passed}</p>
+          <p className="text-xs text-muted-foreground mt-1">Passed</p>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            {ops.resultsTotal > 0 ? `${Math.round((ops.passed / ops.resultsTotal) * 100)}% pass rate` : "—"}
+          </p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <XCircle className="w-6 h-6 text-red-400" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.failed}</p>
+          <p className="text-xs text-muted-foreground mt-1">Failed</p>
+          <p className="text-[11px] text-muted-foreground mt-1">{ops.resultsTotal} total graded</p>
+        </div>
+      </div>
+
       {/* View Mode Toggle */}
       <div className="flex gap-2 mb-6">
         {([
