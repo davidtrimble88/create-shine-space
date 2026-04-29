@@ -121,6 +121,7 @@ const ClassRosters = () => {
   const [savingNoShow, setSavingNoShow] = useState(false);
   const [dropFor, setDropFor] = useState<Booking | null>(null);
   const [dropReason, setDropReason] = useState("");
+  const [dropCanReschedule, setDropCanReschedule] = useState<"yes" | "no" | null>(null);
   const [savingDrop, setSavingDrop] = useState(false);
 
   // Load schedules + employees + assignments based on view
@@ -575,6 +576,7 @@ const ClassRosters = () => {
   const openDrop = (b: Booking) => {
     setDropFor(b);
     setDropReason(b.dropped_reason || "");
+    setDropCanReschedule(null);
   };
 
   const submitDrop = async () => {
@@ -583,26 +585,48 @@ const ClassRosters = () => {
       toast.error("A reason is required to drop a student");
       return;
     }
+    if (dropCanReschedule === null) {
+      toast.error("Please choose whether this student can be rescheduled");
+      return;
+    }
     setSavingDrop(true);
+    const sched = selectedSchedule;
+    const canReschedule = dropCanReschedule === "yes";
+    const updates: Record<string, unknown> = {
+      dropped: true,
+      dropped_reason: dropReason.trim(),
+      dropped_at: new Date().toISOString(),
+      dropped_by: user?.id ?? null,
+    };
+    if (canReschedule) {
+      // Send to Needs Rescheduling list (treated like a full-class reschedule)
+      updates.needs_reschedule = true;
+      updates.reschedule_part = "full";
+      updates.reschedule_reason = `Dropped: ${dropReason.trim()}`;
+      updates.original_schedule_id = sched?.id ?? dropFor.schedule_id;
+      updates.original_schedule_date = sched?.date ?? dropFor.schedule_date;
+      updates.original_location_label = sched?.location_label ?? dropFor.location_label;
+      updates.original_course = sched?.course ?? dropFor.course;
+    } else {
+      updates.needs_reschedule = false;
+    }
     const { error } = await (supabase as any)
       .from("bookings")
-      .update({
-        dropped: true,
-        dropped_reason: dropReason.trim(),
-        dropped_at: new Date().toISOString(),
-        dropped_by: user?.id ?? null,
-        needs_reschedule: false,
-      })
+      .update(updates)
       .eq("id", dropFor.id);
     setSavingDrop(false);
     if (error) {
       toast.error("Failed to drop student");
       return;
     }
-    setBookings(prev => prev.map(b => b.id === dropFor.id ? { ...b, dropped: true, dropped_reason: dropReason.trim(), needs_reschedule: false } : b));
+    setBookings(prev => prev.map(b => b.id === dropFor.id ? { ...b, ...updates } as Booking : b));
+    const name = `${dropFor.first_name} ${dropFor.last_name}`;
     setDropFor(null);
-    toast.success(`${dropFor.first_name} ${dropFor.last_name} dropped from class.`);
+    toast.success(canReschedule
+      ? `${name} dropped and moved to Needs Rescheduling.`
+      : `${name} dropped — recorded in past roster.`);
   };
+
 
   const handleUndropStudent = async (b: Booking) => {
     if (!confirm(`Restore ${b.first_name} ${b.last_name} to the active roster?`)) return;
@@ -2005,6 +2029,39 @@ const ClassRosters = () => {
                 autoFocus
               />
             </div>
+            <div>
+              <div className="text-xs font-medium text-muted-foreground mb-2">Can this student be rescheduled into another class? *</div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDropCanReschedule("yes")}
+                  className={`text-left p-3 rounded-md border transition-colors ${
+                    dropCanReschedule === "yes"
+                      ? "border-accent bg-accent/10 text-foreground"
+                      : "border-border hover:bg-secondary/40 text-muted-foreground"
+                  }`}
+                >
+                  <div className="font-semibold text-sm flex items-center gap-1.5">
+                    <RotateCcw className="w-3.5 h-3.5" /> Yes — reschedule
+                  </div>
+                  <div className="text-[11px] mt-0.5">Moves them to the Needs Rescheduling list.</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDropCanReschedule("no")}
+                  className={`text-left p-3 rounded-md border transition-colors ${
+                    dropCanReschedule === "no"
+                      ? "border-destructive bg-destructive/10 text-foreground"
+                      : "border-border hover:bg-secondary/40 text-muted-foreground"
+                  }`}
+                >
+                  <div className="font-semibold text-sm flex items-center gap-1.5">
+                    <X className="w-3.5 h-3.5" /> No — final drop
+                  </div>
+                  <div className="text-[11px] mt-0.5">Goes to past roster, marked Dropped.</div>
+                </button>
+              </div>
+            </div>
             <div className="text-xs text-muted-foreground bg-secondary/40 border border-border rounded-md p-2">
               This note stays attached to the student's record and is only visible to admin and owner accounts.
             </div>
@@ -2013,10 +2070,10 @@ const ClassRosters = () => {
             <Button variant="ghost" onClick={() => setDropFor(null)}>Cancel</Button>
             <Button
               onClick={submitDrop}
-              disabled={savingDrop || !dropReason.trim()}
+              disabled={savingDrop || !dropReason.trim() || dropCanReschedule === null}
               variant="destructive"
             >
-              {savingDrop ? "Dropping…" : "Drop Student"}
+              {savingDrop ? "Dropping…" : dropCanReschedule === "yes" ? "Drop & Move to Reschedule" : "Drop Student"}
             </Button>
           </DialogFooter>
         </DialogContent>
