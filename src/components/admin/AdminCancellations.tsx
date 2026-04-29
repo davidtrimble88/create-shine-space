@@ -98,9 +98,12 @@ const AdminCancellations = ({ onBack }: Props) => {
     );
   }
 
+  const isFullCancel = selectedParts.length === PART_OPTIONS.length;
+  const cancelPartValue = isFullCancel ? "full" : [...selectedParts].sort().join(",");
+
   const submitCancellation = async () => {
-    if (!selectedScheduleId || !selectedPart) {
-      toast({ title: "Missing info", description: "Pick a class and which part to cancel.", variant: "destructive" });
+    if (!selectedScheduleId || selectedParts.length === 0) {
+      toast({ title: "Missing info", description: "Pick a class and at least one part to cancel.", variant: "destructive" });
       return;
     }
     const sched = schedules.find(s => s.id === selectedScheduleId);
@@ -109,7 +112,7 @@ const AdminCancellations = ({ onBack }: Props) => {
     // Insert cancellation record
     const { error: cErr } = await supabase.from("schedule_cancellations").insert({
       schedule_id: selectedScheduleId,
-      cancelled_part: selectedPart,
+      cancelled_part: cancelPartValue,
       reason: reason || null,
       cancelled_by: user?.id ?? null,
     });
@@ -130,7 +133,7 @@ const AdminCancellations = ({ onBack }: Props) => {
         .from("bookings")
         .update({
           needs_reschedule: true,
-          reschedule_part: selectedPart,
+          reschedule_part: cancelPartValue,
           reschedule_reason: reason || null,
           original_schedule_id: selectedScheduleId,
           original_schedule_date: sched.date,
@@ -144,10 +147,21 @@ const AdminCancellations = ({ onBack }: Props) => {
       }
     }
 
-    toast({ title: "Cancelled", description: `${partLabel(selectedPart)} on ${sched.date} cancelled. ${bks?.length ?? 0} student(s) flagged for rescheduling.` });
+    // For full cancellations, mark the schedule itself as cancelled so it
+    // disappears from public/admin schedule lists and blocks new registrations.
+    if (isFullCancel) {
+      await supabase.from("schedules").update({
+        cancelled_at: new Date().toISOString(),
+        cancelled_by: user?.id ?? null,
+        cancellation_reason: reason || null,
+        spots_available: 0,
+      }).eq("id", selectedScheduleId);
+    }
+
+    toast({ title: "Cancelled", description: `${partLabel(cancelPartValue)} on ${sched.date} cancelled. ${bks?.length ?? 0} student(s) flagged for rescheduling.` });
     setDialogOpen(false);
     setSelectedScheduleId("");
-    setSelectedPart("full");
+    setSelectedParts([]);
     setReason("");
     fetchAll();
   };
