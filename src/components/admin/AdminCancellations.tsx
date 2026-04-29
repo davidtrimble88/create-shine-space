@@ -23,15 +23,19 @@ interface Props {
 }
 
 const PART_OPTIONS = [
-  { value: "full", label: "Full class (all parts)" },
   { value: "c1", label: "C1 — Classroom 1" },
   { value: "r1", label: "R1 — Range 1" },
   { value: "c2", label: "C2 — Classroom 2" },
   { value: "r2", label: "R2 — Range 2" },
 ];
 
-const partLabel = (p: string) =>
-  PART_OPTIONS.find(o => o.value === p)?.label ?? p.toUpperCase();
+const partLabel = (p: string) => {
+  if (p === "full") return "Full class (all parts)";
+  if (p.includes(",")) {
+    return p.split(",").map(v => PART_OPTIONS.find(o => o.value === v)?.label ?? v.toUpperCase()).join(", ");
+  }
+  return PART_OPTIONS.find(o => o.value === p)?.label ?? p.toUpperCase();
+};
 
 const courseLabels: Record<string, string> = {
   basic: "Motorcycle Training Course",
