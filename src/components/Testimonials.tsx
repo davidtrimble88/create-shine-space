@@ -99,8 +99,8 @@ const Testimonials = () => {
             { key: "stats.3", number: "4.9/5", label: "Average Rating" }
           ].map((stat, index) => (
             <div key={index} className="text-center">
-              <p className="text-3xl md:text-4xl font-bold text-gradient">
-                <EditableText contentKey={`${stat.key}.number`} fallback={stat.number} />
+              <p className="text-3xl md:text-4xl font-bold">
+                <EditableText contentKey={`${stat.key}.number`} fallback={stat.number} className="text-gradient" />
               </p>
               <p className="text-muted-foreground text-sm mt-1">
                 <EditableText contentKey={`${stat.key}.label`} fallback={stat.label} />
