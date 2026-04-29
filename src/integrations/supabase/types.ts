@@ -25,6 +25,10 @@ export type Database = {
           dl389_completed: boolean
           dl389_completed_at: string | null
           dl389_completed_by: string | null
+          dropped: boolean
+          dropped_at: string | null
+          dropped_by: string | null
+          dropped_reason: string | null
           email: string
           fee: string | null
           first_name: string
@@ -69,6 +73,10 @@ export type Database = {
           dl389_completed?: boolean
           dl389_completed_at?: string | null
           dl389_completed_by?: string | null
+          dropped?: boolean
+          dropped_at?: string | null
+          dropped_by?: string | null
+          dropped_reason?: string | null
           email: string
           fee?: string | null
           first_name: string
@@ -113,6 +121,10 @@ export type Database = {
           dl389_completed?: boolean
           dl389_completed_at?: string | null
           dl389_completed_by?: string | null
+          dropped?: boolean
+          dropped_at?: string | null
+          dropped_by?: string | null
+          dropped_reason?: string | null
           email?: string
           fee?: string | null
           first_name?: string
