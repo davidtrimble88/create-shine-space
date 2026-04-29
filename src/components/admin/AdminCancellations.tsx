@@ -55,6 +55,9 @@ const AdminCancellations = ({ onBack }: Props) => {
 
   const [reassignDialog, setReassignDialog] = useState<Booking | null>(null);
   const [reassignTarget, setReassignTarget] = useState("");
+  const [reassignLocFilter, setReassignLocFilter] = useState<string>("all");
+  const [pendingLocFilter, setPendingLocFilter] = useState<string>("all");
+  const [cancelLocFilter, setCancelLocFilter] = useState<string>("all");
 
   const fetchAll = useCallback(async () => {
     const today = new Date().toISOString().split("T")[0];
