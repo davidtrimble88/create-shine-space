@@ -190,10 +190,11 @@ const AdminSchedule = () => {
     }
     const { data: bks } = await supabase.from("bookings").select("id").eq("schedule_id", cancelTarget.id);
     if (bks && bks.length > 0) {
+      const defaultReason = `Class cancelled (${cancelPartLabel}) on ${cancelTarget.date}${cancelReason ? ` — ${cancelReason}` : ""}`;
       await supabase.from("bookings").update({
         needs_reschedule: true,
         reschedule_part: cancelPartValue,
-        reschedule_reason: cancelReason || null,
+        reschedule_reason: defaultReason,
         original_schedule_id: cancelTarget.id,
         original_schedule_date: cancelTarget.date,
         original_location_label: cancelTarget.location_label,
