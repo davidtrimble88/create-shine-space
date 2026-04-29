@@ -237,13 +237,74 @@ const AdminCancellations = ({ onBack }: Props) => {
   };
 
   const undoCancellation = async (c: Cancellation) => {
-    if (!confirm(`Undo cancellation of ${partLabel(c.cancelled_part)}? Students still flagged will need to be cleared individually.`)) return;
+    if (!confirm(`Undo cancellation of ${partLabel(c.cancelled_part)}?`)) return;
+
+    // Find originally-affected students who have NOT yet been rescheduled.
+    const { data: pending } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("original_schedule_id", c.schedule_id)
+      .eq("needs_reschedule", true);
+
+    const restorable = (pending ?? []).filter(b =>
+      (b.reschedule_part ?? "full") === c.cancelled_part
+    );
+
+    let restoreStudents = false;
+    if (restorable.length > 0) {
+      restoreStudents = confirm(
+        `${restorable.length} student(s) from this cancelled class have not been rescheduled yet.\n\n` +
+        `Click OK to put them BACK into the reopened class.\n` +
+        `Click Cancel to reopen the class WITHOUT them (their spots will become available again).`
+      );
+    }
+
+    // Remove the cancellation record
     const { error } = await supabase.from("schedule_cancellations").delete().eq("id", c.id);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Undone", description: "Cancellation removed." });
+
+    // If schedule was fully cancelled, reopen it
+    const sched = allSchedules.find(s => s.id === c.schedule_id);
+    const wasFullyCancelled = c.cancelled_part === "full" || (sched?.cancelled_at != null);
+
+    if (wasFullyCancelled) {
+      await supabase.from("schedules").update({
+        cancelled_at: null,
+        cancelled_by: null,
+        cancellation_reason: null,
+      }).eq("id", c.schedule_id);
+    }
+
+    if (restoreStudents && restorable.length > 0) {
+      // Put students back into the class
+      await supabase
+        .from("bookings")
+        .update({
+          needs_reschedule: false,
+          reschedule_part: null,
+          reschedule_reason: null,
+        })
+        .in("id", restorable.map(b => b.id));
+    }
+
+    // Recompute spots_available based on actual current bookings on this schedule
+    const { count } = await supabase
+      .from("bookings")
+      .select("*", { count: "exact", head: true })
+      .eq("schedule_id", c.schedule_id);
+    const totalSpots = 12;
+    const remaining = Math.max(totalSpots - (count ?? 0), 0);
+    await supabase.from("schedules").update({ spots_available: remaining }).eq("id", c.schedule_id);
+
+    toast({
+      title: "Cancellation undone",
+      description: restoreStudents && restorable.length > 0
+        ? `Class reopened with ${restorable.length} original student(s) restored.`
+        : `Class reopened${restorable.length > 0 ? " — original students remain in rescheduling queue" : ""}.`,
+    });
     fetchAll();
   };
 
