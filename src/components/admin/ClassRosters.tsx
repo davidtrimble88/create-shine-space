@@ -1613,6 +1613,9 @@ const ClassRosters = () => {
                       {selectedScheduleId === "__cancelled_eval__" && canManageEvaluations && (
                         <th className="text-center p-3 font-medium text-muted-foreground">Action</th>
                       )}
+                      {view === "active" && selectedScheduleId !== "__cancelled_eval__" && canManageEvaluations && (
+                        <th className="text-center p-3 font-medium text-muted-foreground">Manage</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
