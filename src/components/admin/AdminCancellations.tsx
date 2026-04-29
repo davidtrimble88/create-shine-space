@@ -221,15 +221,30 @@ const AdminCancellations = ({ onBack }: Props) => {
             </DialogHeader>
             <div className="space-y-4">
               <div>
+                <Label>Filter by location</Label>
+                <Select value={cancelLocFilter} onValueChange={setCancelLocFilter}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All locations</SelectItem>
+                    {Array.from(new Set(schedules.map(s => s.location))).map(loc => {
+                      const lbl = schedules.find(s => s.location === loc)?.location_label ?? loc;
+                      return <SelectItem key={loc} value={loc}>{lbl}</SelectItem>;
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Class</Label>
                 <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
                   <SelectTrigger><SelectValue placeholder="Select a class" /></SelectTrigger>
                   <SelectContent>
-                    {schedules.map(s => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.date} — {courseLabels[s.course] ?? s.course} — {s.location_label}
-                      </SelectItem>
-                    ))}
+                    {schedules
+                      .filter(s => cancelLocFilter === "all" || s.location === cancelLocFilter)
+                      .map(s => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.date} — {courseLabels[s.course] ?? s.course} — {s.location_label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
