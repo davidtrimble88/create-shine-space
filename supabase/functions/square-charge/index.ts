@@ -16,15 +16,17 @@ const BodySchema = z.object({
 });
 
 function regionCreds(region: "ventura" | "high_desert") {
+  // Trim whitespace defensively — Square rejects IDs with stray spaces.
+  const env = (k: string) => (Deno.env.get(k) ?? "").trim();
   if (region === "ventura") {
     return {
-      token: Deno.env.get("SQUARE_VENTURA_ACCESS_TOKEN"),
-      locationId: Deno.env.get("SQUARE_VENTURA_LOCATION_ID"),
+      token: env("SQUARE_VENTURA_ACCESS_TOKEN"),
+      locationId: env("SQUARE_VENTURA_LOCATION_ID"),
     };
   }
   return {
-    token: Deno.env.get("SQUARE_HIGH_DESERT_ACCESS_TOKEN"),
-    locationId: Deno.env.get("SQUARE_HIGH_DESERT_LOCATION_ID"),
+    token: env("SQUARE_HIGH_DESERT_ACCESS_TOKEN"),
+    locationId: env("SQUARE_HIGH_DESERT_LOCATION_ID"),
   };
 }
 
