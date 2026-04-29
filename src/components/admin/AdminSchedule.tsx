@@ -645,6 +645,17 @@ const AdminSchedule = () => {
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(s)}>
                         <Pencil className="w-4 h-4" />
                       </Button>
+                      {canCancel && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => { setCancelTarget(s); setCancelPart("full"); setCancelReason(""); }}
+                          className="text-accent hover:text-accent"
+                          title="Cancel class or part"
+                        >
+                          <Ban className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button variant="ghost" size="sm" onClick={() => handleDelete(s.id)} className="text-destructive hover:text-destructive">
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -664,6 +675,43 @@ const AdminSchedule = () => {
           onClose={() => { setAssigningSchedule(null); fetchSchedules(); }}
         />
       )}
+
+      <Dialog open={!!cancelTarget} onOpenChange={(o) => { if (!o) setCancelTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Class or Session</DialogTitle>
+          </DialogHeader>
+          {cancelTarget && (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                {cancelTarget.date} — {courseLabels[cancelTarget.course] ?? cancelTarget.course} — {cancelTarget.location_label}
+              </div>
+              <div>
+                <Label>What to cancel</Label>
+                <Select value={cancelPart} onValueChange={setCancelPart}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PART_OPTIONS.map(o => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Reason (optional)</Label>
+                <Textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} placeholder="Weather, instructor unavailable, etc." />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                All students on this class will be flagged for rescheduling. View them under <span className="font-semibold">Bookings → Cancellations</span>.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelTarget(null)}>Close</Button>
+            <Button variant="destructive" onClick={submitCancel}>Confirm Cancellation</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
