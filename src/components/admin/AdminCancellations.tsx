@@ -362,7 +362,7 @@ const AdminCancellations = ({ onBack }: Props) => {
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 min-w-[180px]">
-                    <Button size="sm" onClick={() => { setReassignDialog(b); setReassignTarget(""); }}>
+                    <Button size="sm" onClick={() => { setReassignDialog(b); setReassignTarget(""); setReassignLocFilter("all"); }}>
                       <CalendarClock className="w-3 h-3 mr-1" /> Assign New Class
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => clearFlag(b.id)}>
