@@ -161,12 +161,16 @@ const AdminCancellations = ({ onBack }: Props) => {
 
     if (bks && bks.length > 0) {
       const ids = bks.map(b => b.id);
+      const partLabel = isFullCancel
+        ? "Full class (all parts)"
+        : selectedParts.map(v => PART_OPTIONS.find(o => o.value === v)?.label ?? v).join(", ");
+      const defaultReason = `Class cancelled (${partLabel}) on ${sched.date}${reason ? ` — ${reason}` : ""}`;
       const { error: uErr } = await supabase
         .from("bookings")
         .update({
           needs_reschedule: true,
           reschedule_part: cancelPartValue,
-          reschedule_reason: reason || null,
+          reschedule_reason: defaultReason,
           original_schedule_id: selectedScheduleId,
           original_schedule_date: sched.date,
           original_location_label: sched.location_label,
