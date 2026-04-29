@@ -311,7 +311,7 @@ const AdminCancellations = ({ onBack }: Props) => {
       <section>
         <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
           <h3 className="text-lg font-semibold">
-            Students Needing Rescheduling ({pendingBookings.filter(b => pendingLocFilter === "all" || (b.original_location ?? b.location) === pendingLocFilter).length})
+            Students Needing Rescheduling ({pendingBookings.filter(b => pendingLocFilter === "all" || b.location === pendingLocFilter).length})
           </h3>
           <div className="flex items-center gap-2">
             <Label className="text-xs text-muted-foreground">Filter by location:</Label>
