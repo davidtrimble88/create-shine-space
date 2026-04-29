@@ -388,12 +388,26 @@ const AdminCancellations = ({ onBack }: Props) => {
                 Moving <span className="font-medium text-foreground">{reassignDialog.first_name} {reassignDialog.last_name}</span> to a new class. Their booking will be updated.
               </p>
               <div>
+                <Label>Filter by location</Label>
+                <Select value={reassignLocFilter} onValueChange={setReassignLocFilter}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All locations</SelectItem>
+                    {Array.from(new Set(allSchedules.map(s => s.location))).map(loc => {
+                      const lbl = allSchedules.find(s => s.location === loc)?.location_label ?? loc;
+                      return <SelectItem key={loc} value={loc}>{lbl}</SelectItem>;
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>New class</Label>
                 <Select value={reassignTarget} onValueChange={setReassignTarget}>
                   <SelectTrigger><SelectValue placeholder="Select replacement class" /></SelectTrigger>
                   <SelectContent>
                     {allSchedules
                       .filter(s => s.id !== reassignDialog.original_schedule_id)
+                      .filter(s => reassignLocFilter === "all" || s.location === reassignLocFilter)
                       .map(s => (
                         <SelectItem key={s.id} value={s.id}>
                           {s.date} — {courseLabels[s.course] ?? s.course} — {s.location_label} ({s.spots_available} spots)
