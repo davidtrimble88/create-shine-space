@@ -60,19 +60,7 @@ export const SquarePaymentDialog = ({
 
     (async () => {
       try {
-        // Fetch public Square config for this region
-        const { data: cfg, error: cfgErr } = await supabase.functions.invoke("square-config", {
-          method: "GET" as any,
-          body: undefined,
-        }).catch(async () => {
-          // fallback: GET via fetch using project URL
-          const url = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.functions.supabase.co/square-config?region=${region}`;
-          const res = await fetch(url);
-          const json = await res.json();
-          return { data: json, error: res.ok ? null : new Error(json?.error || "Config error") };
-        });
-
-        // supabase.functions.invoke doesn't easily pass query params, so always use direct fetch:
+        // Fetch public Square config for this region (App ID + Location ID)
         const cfgUrl = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.functions.supabase.co/square-config?region=${region}`;
         const cfgRes = await fetch(cfgUrl);
         const cfgJson = await cfgRes.json();
