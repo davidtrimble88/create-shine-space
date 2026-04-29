@@ -1647,6 +1647,30 @@ const ClassRosters = () => {
                             </Button>
                           </td>
                         )}
+                        {view === "active" && selectedScheduleId !== "__cancelled_eval__" && canManageEvaluations && (
+                          <td className="p-3">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => openNoShow(b)}
+                                title="Mark as No-Show (move to Needs Rescheduling)"
+                                aria-label="Mark as No-Show"
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 transition-colors"
+                              >
+                                <UserX className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDrop(b)}
+                                title="Drop student from class (admin/owner only)"
+                                aria-label="Drop student"
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              >
+                                <UserMinus className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
