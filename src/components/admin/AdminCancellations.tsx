@@ -207,15 +207,32 @@ const AdminCancellations = ({ onBack }: Props) => {
   };
 
   const clearFlag = async (bookingId: string) => {
+    const booking = pendingBookings.find(b => b.id === bookingId);
+    const part = booking?.reschedule_part ?? "full";
+    const evalNote = part === "full"
+      ? "Needs evaluation (resolved from cancelled class)"
+      : `Needs evaluation for: ${partLabel(part)}`;
+    const existing = (booking?.roster_comment ?? "").trim();
+    const mergedComment = existing && !existing.toLowerCase().includes("needs evaluation")
+      ? `${existing} | ${evalNote}`
+      : evalNote;
+
     const { error } = await supabase
       .from("bookings")
-      .update({ needs_reschedule: false, rescheduled_at: new Date().toISOString(), rescheduled_by: user?.id ?? null })
+      .update({
+        needs_reschedule: false,
+        rescheduled_at: new Date().toISOString(),
+        rescheduled_by: user?.id ?? null,
+        // Ensure they land in the "Evaluation Pending" view in Class Rosters.
+        result: null,
+        roster_comment: mergedComment,
+      })
       .eq("id", bookingId);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Cleared", description: "Removed from rescheduling list." });
+    toast({ title: "Resolved", description: "Moved to Evaluation Pending in Class Rosters." });
     fetchAll();
   };
 
