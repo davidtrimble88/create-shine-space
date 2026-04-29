@@ -41,6 +41,29 @@ const ChooseLocationPage = () => {
   const course = searchParams.get("course") || "basic";
   const filteredLocations = course === "basic" ? locations : locations.filter(l => l.id === "ventura-county");
 
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("schedules")
+        .select("location")
+        .eq("course", course)
+        .is("cancelled_at", null)
+        .gte("date", today)
+        .gt("spots_available", 0);
+
+      if (error || !data) return;
+      const tally: Record<string, number> = {};
+      for (const row of data) {
+        tally[row.location] = (tally[row.location] || 0) + 1;
+      }
+      setCounts(tally);
+    };
+    fetchCounts();
+  }, [course]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
