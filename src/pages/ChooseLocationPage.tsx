@@ -105,10 +105,20 @@ const ChooseLocationPage = () => {
                       </div>
 
                       <h2 className="text-2xl font-bold text-foreground mb-1">{loc.name}</h2>
-                      <p className="text-sm text-muted-foreground mb-4 flex items-center gap-1">
+                      <p className="text-sm text-muted-foreground mb-3 flex items-center gap-1">
                         <MapPin className="w-4 h-4 text-accent" />
                         {loc.area}
                       </p>
+                      <div className="mb-4">
+                        {(() => {
+                          const n = counts[loc.id] ?? 0;
+                          return (
+                            <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full border ${n > 0 ? "bg-accent/15 text-accent border-accent/30" : "bg-muted text-muted-foreground border-border"}`}>
+                              {n > 0 ? `${n} class${n === 1 ? "" : "es"} available` : "No upcoming classes"}
+                            </span>
+                          );
+                        })()}
+                      </div>
 
                       <p className="text-sm text-foreground/80 leading-relaxed mb-6">
                         {loc.description}
