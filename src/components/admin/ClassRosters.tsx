@@ -403,7 +403,7 @@ const ClassRosters = () => {
   const baseSchedules = view === "active"
     ? schedules.filter(s => !s.cancelled_at)
     : view === "past"
-      ? pastSchedules.filter(s => !s.cancelled_at && !dl389PendingScheduleIds.has(s.id) && (evalPendingCounts[s.id] || 0) === 0)
+      ? pastSchedules.filter(s => !dl389PendingScheduleIds.has(s.id) && (evalPendingCounts[s.id] || 0) === 0)
       : view === "evaluation_pending"
         ? evalPendingSchedules
         : [];
