@@ -69,6 +69,9 @@ const AdminCancellations = ({ onBack }: Props) => {
   const [undoRestorable, setUndoRestorable] = useState<Booking[]>([]);
   const [undoSelected, setUndoSelected] = useState<Set<string>>(new Set());
 
+  // Per-cancellation counts: { [cancellationId]: { original, pending } }
+  const [cancelCounts, setCancelCounts] = useState<Record<string, { original: number; pending: number }>>({});
+
   const fetchAll = useCallback(async () => {
     const today = new Date().toISOString().split("T")[0];
     const [schedRes, cancelRes, bookRes, allSchedRes] = await Promise.all([
@@ -81,6 +84,30 @@ const AdminCancellations = ({ onBack }: Props) => {
     if (cancelRes.data) setCancellations(cancelRes.data);
     if (bookRes.data) setPendingBookings(bookRes.data);
     if (allSchedRes.data) setAllSchedules(allSchedRes.data);
+
+    // Compute counts per cancellation
+    const cans = cancelRes.data ?? [];
+    if (cans.length > 0) {
+      const scheduleIds = Array.from(new Set(cans.map(c => c.schedule_id)));
+      const { data: relatedBookings } = await supabase
+        .from("bookings")
+        .select("id, original_schedule_id, reschedule_part, needs_reschedule")
+        .in("original_schedule_id", scheduleIds);
+      const counts: Record<string, { original: number; pending: number }> = {};
+      for (const c of cans) {
+        const matches = (relatedBookings ?? []).filter(b =>
+          b.original_schedule_id === c.schedule_id &&
+          (b.reschedule_part ?? "full") === c.cancelled_part
+        );
+        counts[c.id] = {
+          original: matches.length,
+          pending: matches.filter(b => b.needs_reschedule).length,
+        };
+      }
+      setCancelCounts(counts);
+    } else {
+      setCancelCounts({});
+    }
   }, []);
 
   useEffect(() => {
@@ -418,6 +445,7 @@ const AdminCancellations = ({ onBack }: Props) => {
           <div className="space-y-2">
             {cancellations.map(c => {
               const sched = schedules.find(s => s.id === c.schedule_id);
+              const counts = cancelCounts[c.id] ?? { original: 0, pending: 0 };
               return (
                 <div key={c.id} className="bg-card border border-border rounded-lg p-4 flex items-start justify-between gap-4">
                   <div>
@@ -427,7 +455,15 @@ const AdminCancellations = ({ onBack }: Props) => {
                     <div className="text-sm text-muted-foreground">
                       {sched ? `${sched.date} — ${courseLabels[sched.course] ?? sched.course} — ${sched.location_label}` : "Schedule no longer exists"}
                     </div>
-                    {c.reason && <div className="text-sm mt-1 italic">"{c.reason}"</div>}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-foreground border border-border">
+                        Originally registered: <span className="font-semibold">{counts.original}</span>
+                      </span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full border ${counts.pending > 0 ? "bg-accent/15 text-accent border-accent/30" : "bg-muted text-muted-foreground border-border"}`}>
+                        Still need rescheduling: <span className="font-semibold">{counts.pending}</span>
+                      </span>
+                    </div>
+                    {c.reason && <div className="text-sm mt-2 italic">"{c.reason}"</div>}
                     <div className="text-xs text-muted-foreground mt-1">
                       Cancelled {new Date(c.cancelled_at).toLocaleString()}
                     </div>
