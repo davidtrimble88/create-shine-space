@@ -55,6 +55,9 @@ const AdminCancellations = ({ onBack }: Props) => {
 
   const [reassignDialog, setReassignDialog] = useState<Booking | null>(null);
   const [reassignTarget, setReassignTarget] = useState("");
+  const [reassignLocFilter, setReassignLocFilter] = useState<string>("all");
+  const [pendingLocFilter, setPendingLocFilter] = useState<string>("all");
+  const [cancelLocFilter, setCancelLocFilter] = useState<string>("all");
 
   const fetchAll = useCallback(async () => {
     const today = new Date().toISOString().split("T")[0];
@@ -218,15 +221,30 @@ const AdminCancellations = ({ onBack }: Props) => {
             </DialogHeader>
             <div className="space-y-4">
               <div>
+                <Label>Filter by location</Label>
+                <Select value={cancelLocFilter} onValueChange={setCancelLocFilter}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All locations</SelectItem>
+                    {Array.from(new Set(schedules.map(s => s.location))).map(loc => {
+                      const lbl = schedules.find(s => s.location === loc)?.location_label ?? loc;
+                      return <SelectItem key={loc} value={loc}>{lbl}</SelectItem>;
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Class</Label>
                 <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
                   <SelectTrigger><SelectValue placeholder="Select a class" /></SelectTrigger>
                   <SelectContent>
-                    {schedules.map(s => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.date} — {courseLabels[s.course] ?? s.course} — {s.location_label}
-                      </SelectItem>
-                    ))}
+                    {schedules
+                      .filter(s => cancelLocFilter === "all" || s.location === cancelLocFilter)
+                      .map(s => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.date} — {courseLabels[s.course] ?? s.course} — {s.location_label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -291,14 +309,29 @@ const AdminCancellations = ({ onBack }: Props) => {
 
       {/* Students needing reschedule */}
       <section>
-        <h3 className="text-lg font-semibold mb-3">
-          Students Needing Rescheduling ({pendingBookings.length})
-        </h3>
-        {pendingBookings.length === 0 ? (
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+          <h3 className="text-lg font-semibold">
+            Students Needing Rescheduling ({pendingBookings.filter(b => pendingLocFilter === "all" || b.location === pendingLocFilter).length})
+          </h3>
+          <div className="flex items-center gap-2">
+            <Label className="text-xs text-muted-foreground">Filter by location:</Label>
+            <Select value={pendingLocFilter} onValueChange={setPendingLocFilter}>
+              <SelectTrigger className="h-8 w-[220px] text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All locations</SelectItem>
+                {Array.from(new Set(pendingBookings.map(b => b.location))).map(loc => {
+                  const lbl = pendingBookings.find(b => b.location === loc)?.original_location_label ?? pendingBookings.find(b => b.location === loc)?.location_label ?? loc;
+                  return <SelectItem key={loc} value={loc}>{lbl}</SelectItem>;
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {pendingBookings.filter(b => pendingLocFilter === "all" || b.location === pendingLocFilter).length === 0 ? (
           <p className="text-sm text-muted-foreground">No students currently waiting to be rescheduled.</p>
         ) : (
           <div className="space-y-3">
-            {pendingBookings.map(b => (
+            {pendingBookings.filter(b => pendingLocFilter === "all" || b.location === pendingLocFilter).map(b => (
               <div key={b.id} className="bg-card border border-accent/40 rounded-lg p-4">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="space-y-1">
@@ -329,7 +362,7 @@ const AdminCancellations = ({ onBack }: Props) => {
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 min-w-[180px]">
-                    <Button size="sm" onClick={() => { setReassignDialog(b); setReassignTarget(""); }}>
+                    <Button size="sm" onClick={() => { setReassignDialog(b); setReassignTarget(""); setReassignLocFilter("all"); }}>
                       <CalendarClock className="w-3 h-3 mr-1" /> Assign New Class
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => clearFlag(b.id)}>
@@ -355,12 +388,26 @@ const AdminCancellations = ({ onBack }: Props) => {
                 Moving <span className="font-medium text-foreground">{reassignDialog.first_name} {reassignDialog.last_name}</span> to a new class. Their booking will be updated.
               </p>
               <div>
+                <Label>Filter by location</Label>
+                <Select value={reassignLocFilter} onValueChange={setReassignLocFilter}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All locations</SelectItem>
+                    {Array.from(new Set(allSchedules.map(s => s.location))).map(loc => {
+                      const lbl = allSchedules.find(s => s.location === loc)?.location_label ?? loc;
+                      return <SelectItem key={loc} value={loc}>{lbl}</SelectItem>;
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>New class</Label>
                 <Select value={reassignTarget} onValueChange={setReassignTarget}>
                   <SelectTrigger><SelectValue placeholder="Select replacement class" /></SelectTrigger>
                   <SelectContent>
                     {allSchedules
                       .filter(s => s.id !== reassignDialog.original_schedule_id)
+                      .filter(s => reassignLocFilter === "all" || s.location === reassignLocFilter)
                       .map(s => (
                         <SelectItem key={s.id} value={s.id}>
                           {s.date} — {courseLabels[s.course] ?? s.course} — {s.location_label} ({s.spots_available} spots)
