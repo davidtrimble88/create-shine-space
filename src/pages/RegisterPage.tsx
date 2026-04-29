@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import SquarePaymentDialog, { type SquareRegion } from "@/components/SquarePaymentDialog";
 
 const registrationSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(100),
@@ -161,6 +162,11 @@ const RegisterPage = () => {
 
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [pendingBooking, setPendingBooking] = useState<Record<string, unknown> | null>(null);
+  const [paymentRegion, setPaymentRegion] = useState<SquareRegion>("ventura");
+  const [paymentAmountCents, setPaymentAmountCents] = useState(0);
+  const [paymentAmountLabel, setPaymentAmountLabel] = useState("");
 
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
@@ -182,7 +188,11 @@ const RegisterPage = () => {
         }
       }
 
-      const { error } = await supabase.from("bookings").insert({
+      const feeLabel = isUnder21 ? "$395" : "$425";
+      const feeCents = isUnder21 ? 39500 : 42500;
+      const region: SquareRegion = location.startsWith("high-desert") ? "high_desert" : "ventura";
+
+      const bookingPayload = {
         schedule_id: scheduleId,
         course,
         location,
@@ -195,7 +205,7 @@ const RegisterPage = () => {
         gender: data.gender,
         date_of_birth: data.dateOfBirth,
         referral_source: data.referralSource,
-        fee: isUnder21 ? "$395" : "$425",
+        fee: feeLabel,
         address: data.address,
         city: data.city,
         state: data.state,
@@ -207,18 +217,23 @@ const RegisterPage = () => {
         issuing_country: data.issuingCountry,
         issuing_state: data.idType === "drivers_license" ? data.issuingState : null,
         license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
-      } as any);
+      };
 
-      if (error) {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
-      } else {
-        form.reset();
-        navigate("/registration-confirmation");
-      }
+      setPendingBooking(bookingPayload);
+      setPaymentRegion(region);
+      setPaymentAmountCents(feeCents);
+      setPaymentAmountLabel(feeLabel);
+      setPaymentOpen(true);
     } catch (err) {
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
     }
     setSubmitting(false);
+  };
+
+  const handlePaymentSuccess = () => {
+    form.reset();
+    setPendingBooking(null);
+    navigate("/registration-confirmation");
   };
 
   const dateOfBirth = useWatch({ control: form.control, name: "dateOfBirth" });
@@ -696,6 +711,18 @@ const RegisterPage = () => {
       </section>
 
       <Footer />
+
+      {pendingBooking && (
+        <SquarePaymentDialog
+          open={paymentOpen}
+          onOpenChange={setPaymentOpen}
+          region={paymentRegion}
+          amountCents={paymentAmountCents}
+          amountLabel={paymentAmountLabel}
+          bookingPayload={pendingBooking}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 };
