@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, MapPin, CalendarDays, TrendingUp } from "lucide-react";
+import { DollarSign, MapPin, CalendarDays, TrendingUp, Ban, UserX, CalendarX, CheckCircle2, XCircle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -16,6 +16,20 @@ interface EarningRow {
   created_at: string;
 }
 
+interface OpsStats {
+  cancellations: number;
+  fullCancellations: number;
+  partialCancellations: number;
+  drops: number;
+  dropsRescheduleable: number;
+  dropsFinal: number;
+  noShows: number;
+  needsReschedule: number;
+  passed: number;
+  failed: number;
+  resultsTotal: number;
+}
+
 const parseFee = (fee: string | null) => {
   const val = parseFloat((fee || "0").replace(/[^0-9.]/g, ""));
   return isNaN(val) ? 0 : val;
@@ -23,6 +37,12 @@ const parseFee = (fee: string | null) => {
 
 const EarningsAnalytics = () => {
   const [rows, setRows] = useState<EarningRow[]>([]);
+  const [ops, setOps] = useState<OpsStats>({
+    cancellations: 0, fullCancellations: 0, partialCancellations: 0,
+    drops: 0, dropsRescheduleable: 0, dropsFinal: 0,
+    noShows: 0, needsReschedule: 0,
+    passed: 0, failed: 0, resultsTotal: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("all");
   const [dateRange, setDateRange] = useState<DateRange>("30days");
@@ -66,20 +86,79 @@ const EarningsAnalytics = () => {
   };
 
   useEffect(() => {
-    const fetch = async () => {
+    const run = async () => {
       setLoading(true);
       const { from, to } = getDateBounds();
-      const { data } = await supabase
-        .from("bookings")
-        .select("fee, location_label, created_at")
-        .eq("payment_status", "paid")
-        .gte("created_at", from)
-        .lt("created_at", to)
-        .order("created_at", { ascending: false });
-      setRows((data as EarningRow[]) || []);
+
+      const [earningsRes, dropsRes, noShowRes, rescheduleRes, resultsRes, cancelRes] = await Promise.all([
+        supabase
+          .from("bookings")
+          .select("fee, location_label, created_at")
+          .eq("payment_status", "paid")
+          .gte("created_at", from)
+          .lt("created_at", to)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("bookings")
+          .select("id, needs_reschedule, dropped_at")
+          .eq("dropped", true)
+          .gte("dropped_at", from)
+          .lt("dropped_at", to),
+        supabase
+          .from("bookings")
+          .select("id, reschedule_reason")
+          .eq("needs_reschedule", true)
+          .ilike("reschedule_reason", "No-show%")
+          .gte("updated_at", from)
+          .lt("updated_at", to),
+        supabase
+          .from("bookings")
+          .select("id")
+          .eq("needs_reschedule", true)
+          .gte("updated_at", from)
+          .lt("updated_at", to),
+        supabase
+          .from("bookings")
+          .select("id, result")
+          .not("result", "is", null)
+          .gte("updated_at", from)
+          .lt("updated_at", to),
+        supabase
+          .from("schedule_cancellations")
+          .select("id, cancelled_part, cancelled_at")
+          .gte("cancelled_at", from)
+          .lt("cancelled_at", to),
+      ]);
+
+      setRows((earningsRes.data as EarningRow[]) || []);
+
+      const dropsArr = (dropsRes.data as Array<{ needs_reschedule: boolean }>) || [];
+      const noShowArr = noShowRes.data || [];
+      const rescheduleArr = rescheduleRes.data || [];
+      const resultsArr = (resultsRes.data as Array<{ result: string | null }>) || [];
+      const cancelArr = (cancelRes.data as Array<{ cancelled_part: string }>) || [];
+
+      const passed = resultsArr.filter(r => (r.result || "").toLowerCase() === "pass").length;
+      const failed = resultsArr.filter(r => (r.result || "").toLowerCase() === "fail").length;
+      const fullCancel = cancelArr.filter(c => c.cancelled_part === "full").length;
+
+      setOps({
+        cancellations: cancelArr.length,
+        fullCancellations: fullCancel,
+        partialCancellations: cancelArr.length - fullCancel,
+        drops: dropsArr.length,
+        dropsRescheduleable: dropsArr.filter(d => d.needs_reschedule).length,
+        dropsFinal: dropsArr.filter(d => !d.needs_reschedule).length,
+        noShows: noShowArr.length,
+        needsReschedule: rescheduleArr.length,
+        passed,
+        failed,
+        resultsTotal: resultsArr.length,
+      });
+
       setLoading(false);
     };
-    fetch();
+    run();
   }, [dateRange, customFrom, customTo]);
 
   const totalEarnings = rows.reduce((s, r) => s + parseFee(r.fee), 0);
@@ -184,6 +263,59 @@ const EarningsAnalytics = () => {
           </div>
           <p className="text-3xl font-bold text-foreground">{Object.keys(bySite).length}</p>
           <p className="text-sm text-muted-foreground mt-1">Active Locations</p>
+        </div>
+      </div>
+
+      {/* Operations Stats */}
+      <h2 className="text-lg font-semibold text-foreground mb-3">Operations</h2>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <Ban className="w-6 h-6 text-red-400" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.cancellations}</p>
+          <p className="text-xs text-muted-foreground mt-1">Class Cancellations</p>
+          <p className="text-[11px] text-muted-foreground mt-1">{ops.fullCancellations} full · {ops.partialCancellations} partial</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <UserX className="w-6 h-6 text-orange-400" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.drops}</p>
+          <p className="text-xs text-muted-foreground mt-1">Students Dropped</p>
+          <p className="text-[11px] text-muted-foreground mt-1">{ops.dropsRescheduleable} reschedulable · {ops.dropsFinal} final</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <CalendarX className="w-6 h-6 text-yellow-400" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.noShows}</p>
+          <p className="text-xs text-muted-foreground mt-1">No-Shows</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <RefreshCcw className="w-6 h-6 text-accent" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.needsReschedule}</p>
+          <p className="text-xs text-muted-foreground mt-1">Needs Rescheduling</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <CheckCircle2 className="w-6 h-6 text-green-400" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.passed}</p>
+          <p className="text-xs text-muted-foreground mt-1">Passed</p>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            {ops.resultsTotal > 0 ? `${Math.round((ops.passed / ops.resultsTotal) * 100)}% pass rate` : "—"}
+          </p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <XCircle className="w-6 h-6 text-red-400" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{ops.failed}</p>
+          <p className="text-xs text-muted-foreground mt-1">Failed</p>
+          <p className="text-[11px] text-muted-foreground mt-1">{ops.resultsTotal} total graded</p>
         </div>
       </div>
 
