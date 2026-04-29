@@ -64,6 +64,11 @@ const AdminCancellations = ({ onBack }: Props) => {
   const [pendingLocFilter, setPendingLocFilter] = useState<string>("all");
   const [cancelLocFilter, setCancelLocFilter] = useState<string>("all");
 
+  // Undo cancellation dialog state
+  const [undoDialog, setUndoDialog] = useState<Cancellation | null>(null);
+  const [undoRestorable, setUndoRestorable] = useState<Booking[]>([]);
+  const [undoSelected, setUndoSelected] = useState<Set<string>>(new Set());
+
   const fetchAll = useCallback(async () => {
     const today = new Date().toISOString().split("T")[0];
     const [schedRes, cancelRes, bookRes, allSchedRes] = await Promise.all([
