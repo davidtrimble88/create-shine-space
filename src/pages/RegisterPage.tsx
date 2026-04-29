@@ -171,25 +171,40 @@ const RegisterPage = () => {
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
     try {
-      // Find the schedule_id from the schedule query param
+      // Look up the actual selected schedule (by id) to get its price + date
       let scheduleId: string | null = null;
       let scheduleDate: string | null = null;
+      let schedulePrice: string | null = null;
       if (schedule) {
         const { data: schedData } = await supabase
           .from("schedules")
-          .select("id, date")
-          .eq("course", course)
-          .eq("location", location)
+          .select("id, date, price")
+          .eq("id", schedule)
           .is("cancelled_at", null)
-          .limit(1);
-        if (schedData && schedData.length > 0) {
-          scheduleId = schedData[0].id;
-          scheduleDate = schedData[0].date;
+          .maybeSingle();
+        if (schedData) {
+          scheduleId = schedData.id;
+          scheduleDate = schedData.date;
+          schedulePrice = schedData.price;
         }
       }
 
-      const feeLabel = isUnder21 ? "$395" : "$425";
-      const feeCents = isUnder21 ? 39500 : 42500;
+      // Parse the schedule's price (e.g. "$1", "$425") into cents.
+      // Fall back to age-based default only if no schedule price is available.
+      const parsePriceCents = (p: string | null): number | null => {
+        if (!p) return null;
+        const n = Number(String(p).replace(/[^0-9.]/g, ""));
+        if (!isFinite(n) || n <= 0) return null;
+        return Math.round(n * 100);
+      };
+
+      const scheduleCents = parsePriceCents(schedulePrice);
+      const feeLabel = scheduleCents != null
+        ? (schedulePrice as string)
+        : (isUnder21 ? "$395" : "$425");
+      const feeCents = scheduleCents != null
+        ? scheduleCents
+        : (isUnder21 ? 39500 : 42500);
       const region: SquareRegion = location.startsWith("high-desert") ? "high_desert" : "ventura";
 
       const bookingPayload = {
