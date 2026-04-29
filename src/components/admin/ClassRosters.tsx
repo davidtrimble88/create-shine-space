@@ -121,6 +121,7 @@ const ClassRosters = () => {
   const [savingNoShow, setSavingNoShow] = useState(false);
   const [dropFor, setDropFor] = useState<Booking | null>(null);
   const [dropReason, setDropReason] = useState("");
+  const [dropCanReschedule, setDropCanReschedule] = useState<"yes" | "no" | null>(null);
   const [savingDrop, setSavingDrop] = useState(false);
 
   // Load schedules + employees + assignments based on view
