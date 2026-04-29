@@ -621,6 +621,7 @@ const ClassRosters = () => {
     toast.success("Student restored to roster");
   };
 
+  const handlePrint = () => {
     if (!printRef.current) return;
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
