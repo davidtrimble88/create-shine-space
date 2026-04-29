@@ -55,7 +55,7 @@ const AdminCancellations = ({ onBack }: Props) => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
-  const [selectedPart, setSelectedPart] = useState("full");
+  const [selectedParts, setSelectedParts] = useState<string[]>([]);
   const [reason, setReason] = useState("");
 
   const [reassignDialog, setReassignDialog] = useState<Booking | null>(null);
