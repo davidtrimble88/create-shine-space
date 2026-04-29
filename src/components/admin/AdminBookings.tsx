@@ -41,6 +41,8 @@ const AdminBookings = () => {
   const [retestDialogOpen, setRetestDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
+  const [view, setView] = useState<"bookings" | "cancellations">("bookings");
+  const [pendingRescheduleCount, setPendingRescheduleCount] = useState(0);
   
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [filterCourse, setFilterCourse] = useState("");
