@@ -40,6 +40,7 @@ const ChooseSchedulePage = () => {
         .eq("location", location)
         .gte("date", today)
         .gt("spots_available", 0)
+        .is("cancelled_at", null)
         .order("date", { ascending: true });
       setClasses(data ?? []);
       setLoading(false);
