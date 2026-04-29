@@ -234,11 +234,24 @@ const AdminBookings = () => {
     setFilterDate("");
   };
 
+  if (view === "cancellations") {
+    return <AdminCancellations onBack={() => { setView("bookings"); fetchPendingCount(); }} />;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
         <div className="flex items-center gap-2">
+        <Button variant="outline" onClick={() => setView("cancellations")} className={pendingRescheduleCount > 0 ? "border-accent text-accent" : ""}>
+          <AlertTriangle className="w-4 h-4 mr-2" />
+          Cancellations
+          {pendingRescheduleCount > 0 && (
+            <span className="ml-2 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold">
+              {pendingRescheduleCount}
+            </span>
+          )}
+        </Button>
         <Dialog open={retestDialogOpen} onOpenChange={setRetestDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline"><UserPlus className="w-4 h-4 mr-2" /> Add Retest Student</Button>
