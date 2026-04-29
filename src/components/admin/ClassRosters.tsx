@@ -576,6 +576,7 @@ const ClassRosters = () => {
   const openDrop = (b: Booking) => {
     setDropFor(b);
     setDropReason(b.dropped_reason || "");
+    setDropCanReschedule(null);
   };
 
   const submitDrop = async () => {
@@ -584,26 +585,48 @@ const ClassRosters = () => {
       toast.error("A reason is required to drop a student");
       return;
     }
+    if (dropCanReschedule === null) {
+      toast.error("Please choose whether this student can be rescheduled");
+      return;
+    }
     setSavingDrop(true);
+    const sched = selectedSchedule;
+    const canReschedule = dropCanReschedule === "yes";
+    const updates: Record<string, unknown> = {
+      dropped: true,
+      dropped_reason: dropReason.trim(),
+      dropped_at: new Date().toISOString(),
+      dropped_by: user?.id ?? null,
+    };
+    if (canReschedule) {
+      // Send to Needs Rescheduling list (treated like a full-class reschedule)
+      updates.needs_reschedule = true;
+      updates.reschedule_part = "full";
+      updates.reschedule_reason = `Dropped: ${dropReason.trim()}`;
+      updates.original_schedule_id = sched?.id ?? dropFor.schedule_id;
+      updates.original_schedule_date = sched?.date ?? dropFor.schedule_date;
+      updates.original_location_label = sched?.location_label ?? dropFor.location_label;
+      updates.original_course = sched?.course ?? dropFor.course;
+    } else {
+      updates.needs_reschedule = false;
+    }
     const { error } = await (supabase as any)
       .from("bookings")
-      .update({
-        dropped: true,
-        dropped_reason: dropReason.trim(),
-        dropped_at: new Date().toISOString(),
-        dropped_by: user?.id ?? null,
-        needs_reschedule: false,
-      })
+      .update(updates)
       .eq("id", dropFor.id);
     setSavingDrop(false);
     if (error) {
       toast.error("Failed to drop student");
       return;
     }
-    setBookings(prev => prev.map(b => b.id === dropFor.id ? { ...b, dropped: true, dropped_reason: dropReason.trim(), needs_reschedule: false } : b));
+    setBookings(prev => prev.map(b => b.id === dropFor.id ? { ...b, ...updates } as Booking : b));
+    const name = `${dropFor.first_name} ${dropFor.last_name}`;
     setDropFor(null);
-    toast.success(`${dropFor.first_name} ${dropFor.last_name} dropped from class.`);
+    toast.success(canReschedule
+      ? `${name} dropped and moved to Needs Rescheduling.`
+      : `${name} dropped — recorded in past roster.`);
   };
+
 
   const handleUndropStudent = async (b: Booking) => {
     if (!confirm(`Restore ${b.first_name} ${b.last_name} to the active roster?`)) return;
