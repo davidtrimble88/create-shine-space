@@ -309,10 +309,25 @@ const AdminCancellations = ({ onBack }: Props) => {
 
       {/* Students needing reschedule */}
       <section>
-        <h3 className="text-lg font-semibold mb-3">
-          Students Needing Rescheduling ({pendingBookings.length})
-        </h3>
-        {pendingBookings.length === 0 ? (
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+          <h3 className="text-lg font-semibold">
+            Students Needing Rescheduling ({pendingBookings.filter(b => pendingLocFilter === "all" || (b.original_location ?? b.location) === pendingLocFilter).length})
+          </h3>
+          <div className="flex items-center gap-2">
+            <Label className="text-xs text-muted-foreground">Filter by location:</Label>
+            <Select value={pendingLocFilter} onValueChange={setPendingLocFilter}>
+              <SelectTrigger className="h-8 w-[220px] text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All locations</SelectItem>
+                {Array.from(new Set(pendingBookings.map(b => b.location))).map(loc => {
+                  const lbl = pendingBookings.find(b => b.location === loc)?.original_location_label ?? pendingBookings.find(b => b.location === loc)?.location_label ?? loc;
+                  return <SelectItem key={loc} value={loc}>{lbl}</SelectItem>;
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {pendingBookings.filter(b => pendingLocFilter === "all" || b.location === pendingLocFilter).length === 0 ? (
           <p className="text-sm text-muted-foreground">No students currently waiting to be rescheduled.</p>
         ) : (
           <div className="space-y-3">
