@@ -74,6 +74,8 @@ const ClassRosters = () => {
   const [pastSchedules, setPastSchedules] = useState<Schedule[]>([]);
   const [pendingRetests, setPendingRetests] = useState<Booking[]>([]);
   const [evalPendingSchedules, setEvalPendingSchedules] = useState<Schedule[]>([]);
+  // Students from cancelled classes who were marked Resolved and still need evaluation.
+  const [cancelledEvalBookings, setCancelledEvalBookings] = useState<Booking[]>([]);
   const [dl389Schedules, setDl389Schedules] = useState<Schedule[]>([]);
   const [dl389PendingCounts, setDl389PendingCounts] = useState<Record<string, number>>({});
   // Fail-result dialog state
