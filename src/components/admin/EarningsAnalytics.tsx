@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, MapPin, CalendarDays, TrendingUp } from "lucide-react";
+import { DollarSign, MapPin, CalendarDays, TrendingUp, Ban, UserX, CalendarX, CheckCircle2, XCircle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -14,6 +14,20 @@ interface EarningRow {
   fee: string | null;
   location_label: string;
   created_at: string;
+}
+
+interface OpsStats {
+  cancellations: number;
+  fullCancellations: number;
+  partialCancellations: number;
+  drops: number;
+  dropsRescheduleable: number;
+  dropsFinal: number;
+  noShows: number;
+  needsReschedule: number;
+  passed: number;
+  failed: number;
+  resultsTotal: number;
 }
 
 const parseFee = (fee: string | null) => {
