@@ -2029,6 +2029,39 @@ const ClassRosters = () => {
                 autoFocus
               />
             </div>
+            <div>
+              <div className="text-xs font-medium text-muted-foreground mb-2">Can this student be rescheduled into another class? *</div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDropCanReschedule("yes")}
+                  className={`text-left p-3 rounded-md border transition-colors ${
+                    dropCanReschedule === "yes"
+                      ? "border-accent bg-accent/10 text-foreground"
+                      : "border-border hover:bg-secondary/40 text-muted-foreground"
+                  }`}
+                >
+                  <div className="font-semibold text-sm flex items-center gap-1.5">
+                    <RotateCcw className="w-3.5 h-3.5" /> Yes — reschedule
+                  </div>
+                  <div className="text-[11px] mt-0.5">Moves them to the Needs Rescheduling list.</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDropCanReschedule("no")}
+                  className={`text-left p-3 rounded-md border transition-colors ${
+                    dropCanReschedule === "no"
+                      ? "border-destructive bg-destructive/10 text-foreground"
+                      : "border-border hover:bg-secondary/40 text-muted-foreground"
+                  }`}
+                >
+                  <div className="font-semibold text-sm flex items-center gap-1.5">
+                    <X className="w-3.5 h-3.5" /> No — final drop
+                  </div>
+                  <div className="text-[11px] mt-0.5">Goes to past roster, marked Dropped.</div>
+                </button>
+              </div>
+            </div>
             <div className="text-xs text-muted-foreground bg-secondary/40 border border-border rounded-md p-2">
               This note stays attached to the student's record and is only visible to admin and owner accounts.
             </div>
@@ -2037,10 +2070,10 @@ const ClassRosters = () => {
             <Button variant="ghost" onClick={() => setDropFor(null)}>Cancel</Button>
             <Button
               onClick={submitDrop}
-              disabled={savingDrop || !dropReason.trim()}
+              disabled={savingDrop || !dropReason.trim() || dropCanReschedule === null}
               variant="destructive"
             >
-              {savingDrop ? "Dropping…" : "Drop Student"}
+              {savingDrop ? "Dropping…" : dropCanReschedule === "yes" ? "Drop & Move to Reschedule" : "Drop Student"}
             </Button>
           </DialogFooter>
         </DialogContent>
