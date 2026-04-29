@@ -530,7 +530,97 @@ const ClassRosters = () => {
     toast.success("Retest student removed");
   };
 
-  const handlePrint = () => {
+  // ===== No-Show: flag student to be rescheduled =====
+  const openNoShow = (b: Booking) => {
+    setNoShowFor(b);
+    setNoShowParts([]);
+    setNoShowReason("");
+  };
+
+  const submitNoShow = async () => {
+    if (!noShowFor) return;
+    if (noShowParts.length === 0) {
+      toast.error("Pick at least one part the student missed");
+      return;
+    }
+    setSavingNoShow(true);
+    const isFull = noShowParts.length === PART_OPTIONS.length;
+    const partValue = isFull ? "full" : [...noShowParts].sort().join(",");
+    const sched = selectedSchedule;
+    const { error } = await (supabase as any)
+      .from("bookings")
+      .update({
+        needs_reschedule: true,
+        reschedule_part: partValue,
+        reschedule_reason: noShowReason.trim() ? `No-show: ${noShowReason.trim()}` : "No-show",
+        original_schedule_id: sched?.id ?? noShowFor.schedule_id,
+        original_schedule_date: sched?.date ?? noShowFor.schedule_date,
+        original_location_label: sched?.location_label ?? noShowFor.location_label,
+        original_course: sched?.course ?? noShowFor.course,
+      })
+      .eq("id", noShowFor.id);
+    setSavingNoShow(false);
+    if (error) {
+      toast.error("Failed to mark as no-show");
+      return;
+    }
+    setBookings(prev => prev.map(b => b.id === noShowFor.id ? { ...b, needs_reschedule: true, reschedule_part: partValue } : b));
+    setNoShowFor(null);
+    toast.success(`${noShowFor.first_name} ${noShowFor.last_name} flagged as no-show — moved to Needs Rescheduling.`);
+  };
+
+  // ===== Drop: remove from class with admin/owner-only reason =====
+  const openDrop = (b: Booking) => {
+    setDropFor(b);
+    setDropReason(b.dropped_reason || "");
+  };
+
+  const submitDrop = async () => {
+    if (!dropFor) return;
+    if (!dropReason.trim()) {
+      toast.error("A reason is required to drop a student");
+      return;
+    }
+    setSavingDrop(true);
+    const { error } = await (supabase as any)
+      .from("bookings")
+      .update({
+        dropped: true,
+        dropped_reason: dropReason.trim(),
+        dropped_at: new Date().toISOString(),
+        dropped_by: user?.id ?? null,
+        needs_reschedule: false,
+      })
+      .eq("id", dropFor.id);
+    setSavingDrop(false);
+    if (error) {
+      toast.error("Failed to drop student");
+      return;
+    }
+    setBookings(prev => prev.map(b => b.id === dropFor.id ? { ...b, dropped: true, dropped_reason: dropReason.trim(), needs_reschedule: false } : b));
+    setDropFor(null);
+    toast.success(`${dropFor.first_name} ${dropFor.last_name} dropped from class.`);
+  };
+
+  const handleUndropStudent = async (b: Booking) => {
+    if (!confirm(`Restore ${b.first_name} ${b.last_name} to the active roster?`)) return;
+    const { error } = await (supabase as any)
+      .from("bookings")
+      .update({
+        dropped: false,
+        dropped_reason: null,
+        dropped_at: null,
+        dropped_by: null,
+      })
+      .eq("id", b.id);
+    if (error) {
+      toast.error("Failed to restore student");
+      return;
+    }
+    setBookings(prev => prev.map(x => x.id === b.id ? { ...x, dropped: false, dropped_reason: null } : x));
+    toast.success("Student restored to roster");
+  };
+
     if (!printRef.current) return;
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
