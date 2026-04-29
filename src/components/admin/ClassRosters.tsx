@@ -1916,6 +1916,111 @@ const ClassRosters = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* No-Show dialog */}
+      <Dialog open={!!noShowFor} onOpenChange={open => { if (!open) setNoShowFor(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserX className="w-5 h-5 text-amber-500" /> Mark as No-Show
+            </DialogTitle>
+            <DialogDescription>
+              {noShowFor && (
+                <>
+                  Flag <span className="font-semibold text-foreground">{noShowFor.first_name} {noShowFor.last_name}</span> as a no-show
+                  for one or more parts of this class. They'll be added to the <strong>Needs Rescheduling</strong> list.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div>
+              <div className="text-xs font-medium text-muted-foreground mb-2">Which part(s) did they miss?</div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <Checkbox
+                    checked={noShowParts.length === PART_OPTIONS.length}
+                    onCheckedChange={v => setNoShowParts(v ? PART_OPTIONS.map(o => o.value) : [])}
+                  />
+                  <span className="font-semibold">Entire class (all parts)</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2 pl-1">
+                  {PART_OPTIONS.map(o => (
+                    <label key={o.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Checkbox
+                        checked={noShowParts.includes(o.value)}
+                        onCheckedChange={v => setNoShowParts(prev =>
+                          v ? Array.from(new Set([...prev, o.value])) : prev.filter(p => p !== o.value)
+                        )}
+                      />
+                      {o.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Notes (optional)</label>
+              <Textarea
+                value={noShowReason}
+                onChange={e => setNoShowReason(e.target.value)}
+                placeholder="Any additional context"
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setNoShowFor(null)}>Cancel</Button>
+            <Button onClick={submitNoShow} disabled={savingNoShow || noShowParts.length === 0}>
+              {savingNoShow ? "Saving…" : "Mark No-Show & Move to Reschedule"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Drop dialog — admin/owner only */}
+      <Dialog open={!!dropFor} onOpenChange={open => { if (!open) setDropFor(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserMinus className="w-5 h-5 text-destructive" /> Drop Student from Class
+            </DialogTitle>
+            <DialogDescription>
+              {dropFor && (
+                <>
+                  Drop <span className="font-semibold text-foreground">{dropFor.first_name} {dropFor.last_name}</span> from this class.
+                  A reason is required and will be saved to their record — visible only to admin and owner accounts.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Reason for dropping *</label>
+              <Textarea
+                value={dropReason}
+                onChange={e => setDropReason(e.target.value)}
+                placeholder="e.g. Unsafe riding behavior, refused to follow safety instructions, voluntarily withdrew, etc."
+                rows={4}
+                autoFocus
+              />
+            </div>
+            <div className="text-xs text-muted-foreground bg-secondary/40 border border-border rounded-md p-2">
+              This note stays attached to the student's record and is only visible to admin and owner accounts.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDropFor(null)}>Cancel</Button>
+            <Button
+              onClick={submitDrop}
+              disabled={savingDrop || !dropReason.trim()}
+              variant="destructive"
+            >
+              {savingDrop ? "Dropping…" : "Drop Student"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
