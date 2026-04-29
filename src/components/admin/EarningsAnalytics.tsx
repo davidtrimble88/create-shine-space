@@ -86,20 +86,79 @@ const EarningsAnalytics = () => {
   };
 
   useEffect(() => {
-    const fetch = async () => {
+    const run = async () => {
       setLoading(true);
       const { from, to } = getDateBounds();
-      const { data } = await supabase
-        .from("bookings")
-        .select("fee, location_label, created_at")
-        .eq("payment_status", "paid")
-        .gte("created_at", from)
-        .lt("created_at", to)
-        .order("created_at", { ascending: false });
-      setRows((data as EarningRow[]) || []);
+
+      const [earningsRes, dropsRes, noShowRes, rescheduleRes, resultsRes, cancelRes] = await Promise.all([
+        supabase
+          .from("bookings")
+          .select("fee, location_label, created_at")
+          .eq("payment_status", "paid")
+          .gte("created_at", from)
+          .lt("created_at", to)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("bookings")
+          .select("id, needs_reschedule, dropped_at")
+          .eq("dropped", true)
+          .gte("dropped_at", from)
+          .lt("dropped_at", to),
+        supabase
+          .from("bookings")
+          .select("id, reschedule_reason")
+          .eq("needs_reschedule", true)
+          .ilike("reschedule_reason", "No-show%")
+          .gte("updated_at", from)
+          .lt("updated_at", to),
+        supabase
+          .from("bookings")
+          .select("id")
+          .eq("needs_reschedule", true)
+          .gte("updated_at", from)
+          .lt("updated_at", to),
+        supabase
+          .from("bookings")
+          .select("id, result")
+          .not("result", "is", null)
+          .gte("updated_at", from)
+          .lt("updated_at", to),
+        supabase
+          .from("schedule_cancellations")
+          .select("id, cancelled_part, cancelled_at")
+          .gte("cancelled_at", from)
+          .lt("cancelled_at", to),
+      ]);
+
+      setRows((earningsRes.data as EarningRow[]) || []);
+
+      const dropsArr = (dropsRes.data as Array<{ needs_reschedule: boolean }>) || [];
+      const noShowArr = noShowRes.data || [];
+      const rescheduleArr = rescheduleRes.data || [];
+      const resultsArr = (resultsRes.data as Array<{ result: string | null }>) || [];
+      const cancelArr = (cancelRes.data as Array<{ cancelled_part: string }>) || [];
+
+      const passed = resultsArr.filter(r => (r.result || "").toLowerCase() === "pass").length;
+      const failed = resultsArr.filter(r => (r.result || "").toLowerCase() === "fail").length;
+      const fullCancel = cancelArr.filter(c => c.cancelled_part === "full").length;
+
+      setOps({
+        cancellations: cancelArr.length,
+        fullCancellations: fullCancel,
+        partialCancellations: cancelArr.length - fullCancel,
+        drops: dropsArr.length,
+        dropsRescheduleable: dropsArr.filter(d => d.needs_reschedule).length,
+        dropsFinal: dropsArr.filter(d => !d.needs_reschedule).length,
+        noShows: noShowArr.length,
+        needsReschedule: rescheduleArr.length,
+        passed,
+        failed,
+        resultsTotal: resultsArr.length,
+      });
+
       setLoading(false);
     };
-    fetch();
+    run();
   }, [dateRange, customFrom, customTo]);
 
   const totalEarnings = rows.reduce((s, r) => s + parseFee(r.fee), 0);
