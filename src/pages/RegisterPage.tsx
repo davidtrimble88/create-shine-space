@@ -711,6 +711,18 @@ const RegisterPage = () => {
       </section>
 
       <Footer />
+
+      {pendingBooking && (
+        <SquarePaymentDialog
+          open={paymentOpen}
+          onOpenChange={setPaymentOpen}
+          region={paymentRegion}
+          amountCents={paymentAmountCents}
+          amountLabel={paymentAmountLabel}
+          bookingPayload={pendingBooking}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 };
