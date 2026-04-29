@@ -37,8 +37,6 @@ const parseFee = (fee: string | null) => {
 
 const EarningsAnalytics = () => {
   const [rows, setRows] = useState<EarningRow[]>([]);
-const EarningsAnalytics = () => {
-  const [rows, setRows] = useState<EarningRow[]>([]);
   const [ops, setOps] = useState<OpsStats>({
     cancellations: 0, fullCancellations: 0, partialCancellations: 0,
     drops: 0, dropsRescheduleable: 0, dropsFinal: 0,
