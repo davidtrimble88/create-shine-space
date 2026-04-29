@@ -186,10 +186,22 @@ const AdminSchedule = () => {
         original_course: cancelTarget.course,
       }).in("id", bks.map(b => b.id));
     }
+    // For full cancellations, mark the schedule itself as cancelled so it
+    // disappears from the public schedule list and admin schedule view, and
+    // is no longer available for new registrations.
+    if (cancelPart === "full") {
+      await supabase.from("schedules").update({
+        cancelled_at: new Date().toISOString(),
+        cancelled_by: user?.id ?? null,
+        cancellation_reason: cancelReason || null,
+        spots_available: 0,
+      }).eq("id", cancelTarget.id);
+    }
     toast({ title: "Cancelled", description: `${PART_OPTIONS.find(o => o.value === cancelPart)?.label} on ${cancelTarget.date}. ${bks?.length ?? 0} student(s) flagged for rescheduling.` });
     setCancelTarget(null);
     setCancelPart("full");
     setCancelReason("");
+    fetchSchedules();
   };
 
   const fetchSchedules = async () => {
