@@ -56,6 +56,8 @@ const partLabel = (p: string | null | undefined) => {
   }
   return PART_OPTIONS.find(o => o.value === p)?.label ?? p.toUpperCase();
 };
+
+interface FullAssignment {
   schedule_id: string;
   employee_id: string;
   assignment_role: string;
