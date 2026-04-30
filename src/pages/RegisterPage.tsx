@@ -320,7 +320,7 @@ const RegisterPage = () => {
             </p>
             <p className="text-sm text-muted-foreground">
               {courseLabels[course] || course} · {locationLabels[location] || location}
-              {schedule && ` · ${schedule}`}
+              {scheduleLabel && ` · ${scheduleLabel}`}
             </p>
           </motion.div>
 
