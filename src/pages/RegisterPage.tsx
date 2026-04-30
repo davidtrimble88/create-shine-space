@@ -316,7 +316,7 @@ const RegisterPage = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <section className="pt-32 pb-24 relative overflow-hidden">
+      <section className="pt-40 pb-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-accent/5 to-transparent" />
         <div className="container mx-auto px-4 relative">
           <motion.div
