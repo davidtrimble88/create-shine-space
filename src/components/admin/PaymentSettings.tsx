@@ -10,7 +10,9 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { CreditCard, CheckCircle2, AlertTriangle, Loader2, Save, ShieldAlert } from "lucide-react";
+import { CreditCard, CheckCircle2, AlertTriangle, Loader2, Save, ShieldAlert, KeyRound, ExternalLink, Copy } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
 
 type Provider = "square" | "paypal" | "stripe";
 type Mode = "sandbox" | "live";
