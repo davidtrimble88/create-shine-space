@@ -669,10 +669,34 @@ const RegisterPage = () => {
                             onCheckedChange={field.onChange}
                           />
                         </FormControl>
-                        <div className="space-y-1 leading-none">
+                        <div className="space-y-3 leading-none">
                           <FormLabel className="text-sm leading-relaxed">
-                            I have read, understand, and agree to the Gear Requirements and Return Policy located in the Student Info page. I also attest that I am not in possession of a restricted license due to one or more convictions for driving while impaired. I understand that I will need to call the office to secure my spot in the class with payment by the next business day. Rescheduling and refunds are not available once the seat has been paid. *
+                            I have read, understand, and agree to the Gear Requirements and Return Policy below. I also attest that I am not in possession of a restricted license due to one or more convictions for driving while impaired. *
                           </FormLabel>
+
+                          <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3 text-xs">
+                            <div>
+                              <p className="font-semibold text-foreground mb-1">Gear Requirements (bike & helmet provided)</p>
+                              <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
+                                <li>Sturdy over-the-ankle boots (no sneakers, sandals, or low-cut shoes)</li>
+                                <li>Long, durable pants — denim jeans or Kevlar riding pants (no shorts, leggings, or sweats)</li>
+                                <li>Long-sleeve shirt or jacket (riding jacket strongly recommended)</li>
+                                <li>Full-finger gloves (no fingerless gloves)</li>
+                                <li>Eye protection if your helmet doesn't have a face shield</li>
+                              </ul>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-foreground mb-1">Return / Refund Policy</p>
+                              <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
+                                <li>Cancellations must be made at least 5 business days before the class start date for a refund or reschedule.</li>
+                                <li>No refunds or reschedules for cancellations made within 5 business days of the class.</li>
+                                <li>No-shows and late arrivals forfeit the full course fee.</li>
+                                <li>Classes run rain or shine — weather is not grounds for a refund.</li>
+                                <li>If we cancel a class, you will be rescheduled at no additional cost.</li>
+                              </ul>
+                            </div>
+                          </div>
+
                           <FormMessage />
                         </div>
                       </FormItem>
