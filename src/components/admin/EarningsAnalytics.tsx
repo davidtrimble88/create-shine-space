@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format, subDays, startOfMonth } from "date-fns";
+import { format, subDays, startOfMonth, startOfYear, endOfYear } from "date-fns";
 
 type ViewMode = "all" | "by-site" | "by-date";
-type DateRange = "all-time" | "today" | "yesterday" | "7days" | "30days" | "this-month" | "custom";
+type DateRange = "all-time" | "today" | "yesterday" | "7days" | "30days" | "this-month" | "this-year" | "last-year" | "custom";
 
 interface EarningRow {
   fee: string | null;
@@ -74,6 +74,17 @@ const EarningsAnalytics = () => {
       case "this-month": {
         const d = startOfMonth(now).toISOString().split("T")[0];
         return { from: `${d}T00:00:00`, to: `${tomorrowStr}T00:00:00` };
+      }
+      case "this-year": {
+        const d = startOfYear(now).toISOString().split("T")[0];
+        return { from: `${d}T00:00:00`, to: `${tomorrowStr}T00:00:00` };
+      }
+      case "last-year": {
+        const lastYear = new Date(now.getFullYear() - 1, 0, 1);
+        const f = startOfYear(lastYear).toISOString().split("T")[0];
+        const t = endOfYear(lastYear);
+        const tStr = new Date(t.getTime() + 86400000).toISOString().split("T")[0];
+        return { from: `${f}T00:00:00`, to: `${tStr}T00:00:00` };
       }
       case "custom": {
         const f = customFrom ? customFrom.toISOString().split("T")[0] : todayStr;
@@ -191,6 +202,8 @@ const EarningsAnalytics = () => {
     { value: "7days", label: "Last 7 Days" },
     { value: "30days", label: "Last 30 Days" },
     { value: "this-month", label: "This Month" },
+    { value: "this-year", label: "This Year" },
+    { value: "last-year", label: "Last Year" },
     { value: "custom", label: "Custom Range" },
   ];
 
