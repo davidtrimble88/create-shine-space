@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import companyLogo from "@/assets/logo.png";
 
 declare global {
   interface Window {
