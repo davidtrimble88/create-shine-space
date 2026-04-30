@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { CalendarDays, Users, BookOpen, DollarSign, MapPin } from "lucide-react";
+import { CalendarDays, Users, BookOpen, DollarSign, MapPin, Smartphone } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface LocationEarnings {
@@ -121,7 +122,24 @@ const AdminOverview = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-foreground mb-6">Dashboard Overview</h1>
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+        <h1 className="text-2xl font-bold text-foreground">Dashboard Overview</h1>
+        <Link
+          to="/install"
+          className="group flex items-center gap-3 bg-card border border-border hover:border-accent rounded-2xl pl-2 pr-4 py-2 transition-all hover:shadow-lg hover:shadow-accent/20"
+          aria-label="Install mobile app"
+        >
+          <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-md ring-1 ring-border group-hover:ring-accent transition-all">
+            <img src="/app-icon-192.png" alt="Learn To Ride app icon" className="w-full h-full object-cover" />
+          </div>
+          <div className="flex flex-col leading-tight">
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Smartphone className="w-3 h-3" /> Get the app
+            </span>
+            <span className="text-sm font-semibold text-foreground">Install on Phone</span>
+          </div>
+        </Link>
+      </div>
 
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         {stats.map((stat) => (
