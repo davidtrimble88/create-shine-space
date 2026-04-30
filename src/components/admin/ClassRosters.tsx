@@ -1426,6 +1426,9 @@ const ClassRosters = () => {
                   </DialogContent>
                 </Dialog>
               )}
+              <Button variant="outline" onClick={openIncidentForClass}>
+                <AlertTriangle className="w-4 h-4 mr-2" /> Report Incident
+              </Button>
               <Button onClick={handlePrint}>
                 <Printer className="w-4 h-4 mr-2" /> Print Roster
               </Button>
@@ -1677,8 +1680,20 @@ const ClassRosters = () => {
                       <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
                         <td className="p-3 text-muted-foreground">{i + 1}</td>
                         <td className="p-3 font-medium text-foreground uppercase">{b.first_name}</td>
-                        <td className="p-3 font-medium text-foreground uppercase">{b.last_name}</td>
-                        <td className="p-3 text-muted-foreground">{b.phone}</td>
+                        <td className="p-3 font-medium text-foreground uppercase">
+                          <div className="flex items-center gap-2">
+                            <span>{b.last_name}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); openIncidentForStudent(b); }}
+                              title="Submit incident report for this student"
+                              aria-label="Submit incident report"
+                              className="p-1 rounded text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors normal-case"
+                            >
+                              <AlertTriangle className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
                         <td className="p-3 text-muted-foreground">{b.license_number || "—"}</td>
                         <td className="p-3 text-muted-foreground">{b.date_of_birth || "—"}</td>
                         <td className="p-3 text-center text-muted-foreground">☐</td>
