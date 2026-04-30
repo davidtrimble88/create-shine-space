@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2 } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, AlertTriangle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { roleLabelMap } from "@/components/admin/InstructorAssignment";
+import IncidentReportDialog, { type IncidentReportContext } from "@/components/admin/IncidentReportDialog";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
@@ -123,6 +124,35 @@ const ClassRosters = () => {
   const [dropReason, setDropReason] = useState("");
   const [dropCanReschedule, setDropCanReschedule] = useState<"yes" | "no" | null>(null);
   const [savingDrop, setSavingDrop] = useState(false);
+
+  // Incident report dialog
+  const [incidentOpen, setIncidentOpen] = useState(false);
+  const [incidentContext, setIncidentContext] = useState<IncidentReportContext>({});
+
+  const openIncidentForStudent = (b: Booking) => {
+    setIncidentContext({
+      scheduleId: b.schedule_id ?? selectedSchedule?.id ?? null,
+      bookingId: b.id,
+      studentName: `${b.first_name ?? ""} ${b.last_name ?? ""}`.trim(),
+      classDate: selectedSchedule?.date ?? b.schedule_date ?? null,
+      classCourse: selectedSchedule?.course ?? b.course ?? null,
+      classLocationLabel: selectedSchedule?.location_label ?? b.location_label ?? null,
+    });
+    setIncidentOpen(true);
+  };
+
+  const openIncidentForClass = () => {
+    if (!selectedSchedule) return;
+    setIncidentContext({
+      scheduleId: selectedSchedule.id,
+      bookingId: null,
+      studentName: null,
+      classDate: selectedSchedule.date,
+      classCourse: selectedSchedule.course,
+      classLocationLabel: selectedSchedule.location_label,
+    });
+    setIncidentOpen(true);
+  };
 
   // Load schedules + employees + assignments based on view
   useEffect(() => {
@@ -1396,6 +1426,9 @@ const ClassRosters = () => {
                   </DialogContent>
                 </Dialog>
               )}
+              <Button variant="outline" onClick={openIncidentForClass}>
+                <AlertTriangle className="w-4 h-4 mr-2" /> Report Incident
+              </Button>
               <Button onClick={handlePrint}>
                 <Printer className="w-4 h-4 mr-2" /> Print Roster
               </Button>
@@ -1647,7 +1680,20 @@ const ClassRosters = () => {
                       <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
                         <td className="p-3 text-muted-foreground">{i + 1}</td>
                         <td className="p-3 font-medium text-foreground uppercase">{b.first_name}</td>
-                        <td className="p-3 font-medium text-foreground uppercase">{b.last_name}</td>
+                        <td className="p-3 font-medium text-foreground uppercase">
+                          <div className="flex items-center gap-2">
+                            <span>{b.last_name}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); openIncidentForStudent(b); }}
+                              title="Submit incident report for this student"
+                              aria-label="Submit incident report"
+                              className="p-1 rounded text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors normal-case"
+                            >
+                              <AlertTriangle className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
                         <td className="p-3 text-muted-foreground">{b.license_number || "—"}</td>
                         <td className="p-3 text-muted-foreground">{b.date_of_birth || "—"}</td>
@@ -2078,6 +2124,13 @@ const ClassRosters = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Incident Report dialog */}
+      <IncidentReportDialog
+        open={incidentOpen}
+        onOpenChange={setIncidentOpen}
+        context={incidentContext}
+      />
     </div>
   );
 };
