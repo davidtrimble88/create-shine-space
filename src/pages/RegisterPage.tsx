@@ -113,6 +113,7 @@ const RegisterPage = () => {
   const location = searchParams.get("location") || "ventura-county";
   const schedule = searchParams.get("schedule") || sessionStorage.getItem("selectedScheduleId") || "";
   const [referralOptions, setReferralOptions] = useState<string[]>(FALLBACK_REFERRALS);
+  const [scheduleInfo, setScheduleInfo] = useState<{ date: string; schedule: string; location_label: string } | null>(null);
 
   useEffect(() => {
     supabase
@@ -125,6 +126,19 @@ const RegisterPage = () => {
         if (data && data.length > 0) setReferralOptions(data.map(r => r.name));
       });
   }, []);
+
+  useEffect(() => {
+    if (!schedule) return;
+    supabase
+      .from("schedules")
+      .select("date, schedule, location_label")
+      .eq("id", schedule)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setScheduleInfo(data);
+      });
+  }, [schedule]);
+
 
   const courseLabels: Record<string, string> = {
     basic: "Motorcycle Training Course",
