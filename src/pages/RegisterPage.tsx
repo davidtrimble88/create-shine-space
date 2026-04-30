@@ -28,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
+import { Calendar, Clock, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
@@ -301,33 +302,89 @@ const RegisterPage = () => {
             <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
               Step 4 of 4
             </span>
-            <div className="max-w-xl mx-auto bg-card border border-accent/30 rounded-2xl p-6 shadow-lg shadow-accent/10">
-              <p className="text-xs uppercase tracking-wider text-accent font-semibold mb-2">You're signing up for</p>
-              <h1 className="text-2xl md:text-3xl font-bold mb-3">
-                {courseLabels[course] || course}
-              </h1>
-              {scheduleInfo ? (
-                <>
-                  <p className="text-lg md:text-xl text-foreground font-semibold">
-                    {new Date(scheduleInfo.date + "T00:00:00").toLocaleDateString("en-US", {
-                      weekday: "long",
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+
+            <div className="max-w-2xl mx-auto relative">
+              {/* glow */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-accent/40 via-orange-500/30 to-accent/40 rounded-3xl blur-xl opacity-60" />
+
+              <div className="relative bg-gradient-to-br from-card via-card to-card/80 border border-accent/40 rounded-3xl overflow-hidden shadow-2xl shadow-accent/20">
+                {/* header strip */}
+                <div className="bg-gradient-to-r from-accent/20 via-orange-500/20 to-accent/20 px-6 py-3 border-b border-accent/30 text-left">
+                  <p className="text-xs uppercase tracking-[0.2em] text-accent font-bold">
+                    You're enrolling in
                   </p>
-                  <p className="text-sm md:text-base text-muted-foreground mt-1 whitespace-pre-line">
-                    {scheduleInfo.schedule}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border">
-                    📍 {scheduleInfo.location_label}
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  {locationLabels[location] || location}
-                </p>
-              )}
+                </div>
+
+                <div className="p-6 md:p-8 text-left space-y-5">
+                  {/* Course name */}
+                  <h1 className="text-2xl md:text-4xl font-bold leading-tight">
+                    <span className="bg-gradient-to-r from-foreground via-foreground to-accent bg-clip-text text-transparent">
+                      {courseLabels[course] || course}
+                    </span>
+                  </h1>
+
+                  {scheduleInfo ? (
+                    <div className="space-y-4">
+                      {/* Date */}
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center">
+                          <Calendar className="w-6 h-6 text-accent" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Class Date</p>
+                          <p className="text-lg md:text-xl font-bold text-foreground">
+                            {new Date(scheduleInfo.date + "T00:00:00").toLocaleDateString("en-US", {
+                              weekday: "long",
+                              month: "long",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Sessions */}
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center">
+                          <Clock className="w-6 h-6 text-accent" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-1">Schedule</p>
+                          <ul className="space-y-1">
+                            {scheduleInfo.schedule.split(",").map((session, i) => {
+                              const trimmed = session.trim();
+                              const match = trimmed.match(/^([A-Za-z]+)\s+(.+)$/);
+                              const day = match?.[1] ?? "";
+                              const time = match?.[2] ?? trimmed;
+                              return (
+                                <li key={i} className="flex items-baseline gap-3">
+                                  <span className="text-sm font-bold text-accent w-10 flex-shrink-0">{day}</span>
+                                  <span className="text-sm md:text-base text-foreground">{time}</span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Location */}
+                      <div className="flex items-center gap-4 pt-4 border-t border-border/60">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center">
+                          <MapPin className="w-6 h-6 text-accent" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Location</p>
+                          <p className="text-base md:text-lg font-semibold text-foreground">{scheduleInfo.location_label}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {locationLabels[location] || location}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           </motion.div>
 
