@@ -240,6 +240,160 @@ const PaymentSettings = () => {
         </CardContent>
       </Card>
 
+      {/* Credentials setup */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <KeyRound className="w-5 h-5 text-accent" /> Provider Credentials
+          </CardTitle>
+          <CardDescription>
+            API keys are stored as encrypted backend secrets — never in the database or browser.
+            Expand a provider below for step-by-step setup instructions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="square">
+              <AccordionTrigger>
+                <span className="flex items-center gap-2">
+                  Square <Badge variant="default" className="gap-1"><CheckCircle2 className="w-3 h-3" /> Configured</Badge>
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-3 text-sm">
+                <p className="text-muted-foreground">
+                  Square is fully wired with separate credentials per location (Ventura & High Desert).
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {[
+                    "SQUARE_VENTURA_APP_ID",
+                    "SQUARE_VENTURA_ACCESS_TOKEN",
+                    "SQUARE_VENTURA_LOCATION_ID",
+                    "SQUARE_HIGH_DESERT_APP_ID",
+                    "SQUARE_HIGH_DESERT_ACCESS_TOKEN",
+                    "SQUARE_HIGH_DESERT_LOCATION_ID",
+                  ].map((s) => (
+                    <code key={s} className="text-xs bg-muted px-2 py-1 rounded">{s} ✓</code>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  To rotate or update a Square key, ask in chat: "Update Square Ventura access token."
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="paypal">
+              <AccordionTrigger>
+                <span className="flex items-center gap-2">
+                  PayPal{" "}
+                  <Badge variant="outline" className="gap-1 text-amber-500 border-amber-500/50">
+                    <AlertTriangle className="w-3 h-3" /> Needs credentials
+                  </Badge>
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-3 text-sm">
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                  <li>
+                    Go to{" "}
+                    <a
+                      href="https://developer.paypal.com/dashboard/applications/live"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-accent inline-flex items-center gap-1 hover:underline"
+                    >
+                      PayPal Developer Dashboard <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </li>
+                  <li>Create a new <strong>Live</strong> REST API app (or open your existing one)</li>
+                  <li>Copy the <strong>Client ID</strong> and <strong>Secret</strong></li>
+                  <li>Click the button below — paste them into the secure form Lovable shows you</li>
+                </ol>
+                <div className="p-3 bg-muted/50 rounded-lg text-xs space-y-1">
+                  <p className="font-semibold">Required secret names:</p>
+                  <code className="block">PAYPAL_CLIENT_ID</code>
+                  <code className="block">PAYPAL_CLIENT_SECRET</code>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    toast({
+                      title: "Ask Lovable to set up PayPal",
+                      description:
+                        'In chat, type: "Add PayPal credentials" — a secure form will pop up to enter your Client ID & Secret.',
+                    })
+                  }
+                >
+                  <KeyRound className="w-4 h-4 mr-2" /> How to add PayPal keys
+                </Button>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="stripe">
+              <AccordionTrigger>
+                <span className="flex items-center gap-2">
+                  Stripe{" "}
+                  <Badge variant="outline" className="gap-1 text-amber-500 border-amber-500/50">
+                    <AlertTriangle className="w-3 h-3" /> Needs credentials
+                  </Badge>
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-3 text-sm">
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                  <li>
+                    Go to{" "}
+                    <a
+                      href="https://dashboard.stripe.com/apikeys"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-accent inline-flex items-center gap-1 hover:underline"
+                    >
+                      Stripe API Keys <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </li>
+                  <li>Copy your <strong>Publishable key</strong> (pk_live_…) and <strong>Secret key</strong> (sk_live_…)</li>
+                  <li>Create a webhook endpoint and copy its <strong>Signing secret</strong> (whsec_…)</li>
+                  <li>Click the button below — paste them into Lovable's secure form</li>
+                </ol>
+                <div className="p-3 bg-muted/50 rounded-lg text-xs space-y-1">
+                  <p className="font-semibold">Required secret names:</p>
+                  <code className="block">STRIPE_PUBLISHABLE_KEY</code>
+                  <code className="block">STRIPE_SECRET_KEY</code>
+                  <code className="block">STRIPE_WEBHOOK_SECRET</code>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg text-xs space-y-1">
+                  <p className="font-semibold flex items-center gap-1">
+                    <Copy className="w-3 h-3" /> Webhook URL to paste into Stripe:
+                  </p>
+                  <code className="block break-all">
+                    {`https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/stripe-webhook`}
+                  </code>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    toast({
+                      title: "Ask Lovable to set up Stripe",
+                      description:
+                        'In chat, type: "Add Stripe credentials" — a secure form will pop up to enter your keys.',
+                    })
+                  }
+                >
+                  <KeyRound className="w-4 h-4 mr-2" /> How to add Stripe keys
+                </Button>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+
+          <div className="mt-4 p-3 rounded-lg bg-accent/5 border border-accent/20 text-xs text-muted-foreground">
+            <strong className="text-foreground">Why this flow?</strong> Payment API keys must be kept out of
+            the codebase and database. Lovable provides an encrypted secret store for backend functions —
+            asking in chat triggers a secure popup so your keys are never typed into a regular form or
+            logged anywhere.
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Notes */}
       <Card>
         <CardHeader>
