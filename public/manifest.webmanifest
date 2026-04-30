@@ -1,0 +1,25 @@
+{
+  "name": "Learn to Ride VC — Staff",
+  "short_name": "LTR Staff",
+  "description": "Employee portal for Learn to Ride VC instructors and staff.",
+  "start_url": "/employee-login",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1612",
+  "theme_color": "#1a1612",
+  "icons": [
+    {
+      "src": "/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
