@@ -31,6 +31,7 @@ const tabs = [
   { id: "rosters", label: "Class Rosters", icon: ListChecks, roles: ["owner", "admin", "manager", "employee"] },
   { id: "files", label: "Files", icon: FolderOpen, roles: ["owner", "admin", "manager", "employee"] },
   { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
+  { id: "payment-settings", label: "Payment Settings", icon: CreditCard, roles: ["owner"] },
   { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
   { id: "roles", label: "Role Permissions", icon: KeyRound, roles: ["owner"] },
   { id: "security-questions", label: "Security Questions", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
