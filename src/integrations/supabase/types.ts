@@ -47,6 +47,7 @@ export type Database = {
           original_location_label: string | null
           original_schedule_date: string | null
           original_schedule_id: string | null
+          payment_provider: string | null
           payment_status: string
           phone: string
           referral_source: string | null
@@ -95,6 +96,7 @@ export type Database = {
           original_location_label?: string | null
           original_schedule_date?: string | null
           original_schedule_id?: string | null
+          payment_provider?: string | null
           payment_status?: string
           phone: string
           referral_source?: string | null
@@ -143,6 +145,7 @@ export type Database = {
           original_location_label?: string | null
           original_schedule_date?: string | null
           original_schedule_id?: string | null
+          payment_provider?: string | null
           payment_status?: string
           phone?: string
           referral_source?: string | null
@@ -384,6 +387,54 @@ export type Database = {
           page_name?: string | null
           page_path?: string
           visitor_id?: string | null
+        }
+        Relationships: []
+      }
+      payment_settings: {
+        Row: {
+          active_provider: string
+          created_at: string
+          id: string
+          notes: string | null
+          paypal_enabled: boolean
+          paypal_mode: string
+          singleton: boolean
+          square_enabled: boolean
+          square_mode: string
+          stripe_enabled: boolean
+          stripe_mode: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active_provider?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paypal_enabled?: boolean
+          paypal_mode?: string
+          singleton?: boolean
+          square_enabled?: boolean
+          square_mode?: string
+          stripe_enabled?: boolean
+          stripe_mode?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active_provider?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paypal_enabled?: boolean
+          paypal_mode?: string
+          singleton?: boolean
+          square_enabled?: boolean
+          square_mode?: string
+          stripe_enabled?: boolean
+          stripe_mode?: string
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }

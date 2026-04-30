@@ -29,7 +29,8 @@ import {
 } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import SquarePaymentDialog, { type SquareRegion } from "@/components/SquarePaymentDialog";
+import PaymentDialog from "@/components/PaymentDialog";
+import { type SquareRegion } from "@/components/SquarePaymentDialog";
 
 const registrationSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(100),
@@ -728,7 +729,7 @@ const RegisterPage = () => {
       <Footer />
 
       {pendingBooking && (
-        <SquarePaymentDialog
+        <PaymentDialog
           open={paymentOpen}
           onOpenChange={setPaymentOpen}
           region={paymentRegion}
