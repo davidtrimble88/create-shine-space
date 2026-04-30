@@ -11,12 +11,12 @@ const RegistrationConfirmation = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center py-16 px-4">
+      <main className="flex-1 px-4 pt-40 pb-20">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="max-w-xl w-full text-center space-y-8"
+          className="mx-auto max-w-xl w-full text-center space-y-8"
         >
           <div className="flex justify-center">
             <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center">
