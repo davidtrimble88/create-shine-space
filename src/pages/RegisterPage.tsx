@@ -261,6 +261,21 @@ const RegisterPage = () => {
         license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
       };
 
+      if (skipPaymentRef.current) {
+        skipPaymentRef.current = false;
+        const { error: insertErr } = await supabase.from("bookings").insert({
+          ...bookingPayload,
+          payment_status: "skipped",
+          booking_status: "confirmed",
+        });
+        if (insertErr) throw insertErr;
+        toast({ title: "Test booking saved", description: "Payment skipped (testing only)." });
+        form.reset();
+        navigate("/registration-confirmation");
+        setSubmitting(false);
+        return;
+      }
+
       setPendingBooking(bookingPayload);
       setPaymentRegion(region);
       setPaymentAmountCents(feeCents);
