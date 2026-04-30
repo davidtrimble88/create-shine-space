@@ -113,6 +113,7 @@ const RegisterPage = () => {
   const location = searchParams.get("location") || "ventura-county";
   const schedule = searchParams.get("schedule") || sessionStorage.getItem("selectedScheduleId") || "";
   const [referralOptions, setReferralOptions] = useState<string[]>(FALLBACK_REFERRALS);
+  const [scheduleInfo, setScheduleInfo] = useState<{ date: string; schedule: string; location_label: string } | null>(null);
 
   useEffect(() => {
     supabase
@@ -125,6 +126,19 @@ const RegisterPage = () => {
         if (data && data.length > 0) setReferralOptions(data.map(r => r.name));
       });
   }, []);
+
+  useEffect(() => {
+    if (!schedule) return;
+    supabase
+      .from("schedules")
+      .select("date, schedule, location_label")
+      .eq("id", schedule)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setScheduleInfo(data);
+      });
+  }, [schedule]);
+
 
   const courseLabels: Record<string, string> = {
     basic: "Motorcycle Training Course",
@@ -287,16 +301,34 @@ const RegisterPage = () => {
             <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
               Step 4 of 4
             </span>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Student <span className="text-accent">Registration</span>
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-2">
-              Complete the form below to reserve your spot.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {courseLabels[course] || course} · {locationLabels[location] || location}
-              {schedule && ` · ${schedule}`}
-            </p>
+            <div className="max-w-xl mx-auto bg-card border border-accent/30 rounded-2xl p-6 shadow-lg shadow-accent/10">
+              <p className="text-xs uppercase tracking-wider text-accent font-semibold mb-2">You're signing up for</p>
+              <h1 className="text-2xl md:text-3xl font-bold mb-3">
+                {courseLabels[course] || course}
+              </h1>
+              {scheduleInfo ? (
+                <>
+                  <p className="text-lg md:text-xl text-foreground font-semibold">
+                    {new Date(scheduleInfo.date + "T00:00:00").toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
+                  <p className="text-sm md:text-base text-muted-foreground mt-1 whitespace-pre-line">
+                    {scheduleInfo.schedule}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border">
+                    📍 {scheduleInfo.location_label}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {locationLabels[location] || location}
+                </p>
+              )}
+            </div>
           </motion.div>
 
           <motion.div
