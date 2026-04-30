@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -106,6 +106,10 @@ const EmployeeDashboard = () => {
             <span className="text-muted-foreground/30">|</span>
             <Link to="/" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
               <ArrowLeft className="w-3 h-3" /> Website
+            </Link>
+            <span className="text-muted-foreground/30">|</span>
+            <Link to="/install" className="text-xs text-accent hover:text-accent/80 flex items-center gap-1">
+              <Smartphone className="w-3 h-3" /> Install App
             </Link>
           </div>
         </div>
