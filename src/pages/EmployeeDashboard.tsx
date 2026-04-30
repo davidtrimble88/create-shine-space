@@ -109,10 +109,6 @@ const EmployeeDashboard = () => {
             <Link to="/" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
               <ArrowLeft className="w-3 h-3" /> Website
             </Link>
-            <span className="text-muted-foreground/30">|</span>
-            <Link to="/install" className="text-xs text-accent hover:text-accent/80 flex items-center gap-1">
-              <Smartphone className="w-3 h-3" /> Install App
-            </Link>
           </div>
         </div>
 
