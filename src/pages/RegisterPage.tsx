@@ -779,6 +779,7 @@ const RegisterPage = () => {
                       variant="outline"
                       size="sm"
                       disabled={submitting}
+                      onClick={() => { skipPaymentRef.current = true; }}
                       className="text-xs text-muted-foreground"
                     >
                       ⚠ Skip Payment (Testing Only)
