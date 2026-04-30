@@ -193,6 +193,7 @@ const RegisterPage = () => {
   const [paymentRegion, setPaymentRegion] = useState<SquareRegion>("ventura");
   const [paymentAmountCents, setPaymentAmountCents] = useState(0);
   const [paymentAmountLabel, setPaymentAmountLabel] = useState("");
+  const skipPaymentRef = useRef(false);
 
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
