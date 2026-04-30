@@ -113,6 +113,31 @@ const RegisterPage = () => {
   const location = searchParams.get("location") || "ventura-county";
   const schedule = searchParams.get("schedule") || sessionStorage.getItem("selectedScheduleId") || "";
   const [referralOptions, setReferralOptions] = useState<string[]>(FALLBACK_REFERRALS);
+  const [scheduleLabel, setScheduleLabel] = useState<string>("");
+
+  useEffect(() => {
+    if (!schedule) {
+      setScheduleLabel("");
+      return;
+    }
+    supabase
+      .from("schedules")
+      .select("date, schedule")
+      .eq("id", schedule)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        const dateStr = data.date
+          ? new Date(`${data.date}T00:00:00`).toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "";
+        setScheduleLabel([dateStr, data.schedule].filter(Boolean).join(" · "));
+      });
+  }, [schedule]);
 
   useEffect(() => {
     supabase
@@ -295,7 +320,7 @@ const RegisterPage = () => {
             </p>
             <p className="text-sm text-muted-foreground">
               {courseLabels[course] || course} · {locationLabels[location] || location}
-              {schedule && ` · ${schedule}`}
+              {scheduleLabel && ` · ${scheduleLabel}`}
             </p>
           </motion.div>
 
