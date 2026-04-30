@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import companyLogo from "@/assets/logo.png";
 
 declare global {
   interface Window {
@@ -140,13 +141,16 @@ export const SquarePaymentDialog = ({
 
         <div ref={cardContainerRef} className={initializing || initError ? "hidden" : "min-h-[90px]"} />
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex items-center justify-between gap-2 pt-2">
+          <img src={companyLogo} alt="Learn To Ride VC" className="h-8 w-auto opacity-90" />
+          <div className="flex gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
             Cancel
           </Button>
           <Button onClick={handlePay} disabled={submitting || initializing || !!initError}>
             {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing…</> : `Pay ${amountLabel}`}
           </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
