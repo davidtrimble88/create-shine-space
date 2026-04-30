@@ -19,6 +19,7 @@ import EarningsAnalytics from "@/components/admin/EarningsAnalytics";
 import ClassRosters from "@/components/admin/ClassRosters";
 import AdminReferralSources from "@/components/admin/AdminReferralSources";
 import AdminFiles from "@/components/admin/AdminFiles";
+import PaymentSettings from "@/components/admin/PaymentSettings";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
