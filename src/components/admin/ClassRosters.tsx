@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2 } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, AlertTriangle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { roleLabelMap } from "@/components/admin/InstructorAssignment";
+import IncidentReportDialog, { type IncidentReportContext } from "@/components/admin/IncidentReportDialog";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
@@ -123,6 +124,35 @@ const ClassRosters = () => {
   const [dropReason, setDropReason] = useState("");
   const [dropCanReschedule, setDropCanReschedule] = useState<"yes" | "no" | null>(null);
   const [savingDrop, setSavingDrop] = useState(false);
+
+  // Incident report dialog
+  const [incidentOpen, setIncidentOpen] = useState(false);
+  const [incidentContext, setIncidentContext] = useState<IncidentReportContext>({});
+
+  const openIncidentForStudent = (b: Booking) => {
+    setIncidentContext({
+      scheduleId: b.schedule_id ?? selectedSchedule?.id ?? null,
+      bookingId: b.id,
+      studentName: `${b.first_name ?? ""} ${b.last_name ?? ""}`.trim(),
+      classDate: selectedSchedule?.date ?? b.schedule_date ?? null,
+      classCourse: selectedSchedule?.course ?? b.course ?? null,
+      classLocationLabel: selectedSchedule?.location_label ?? b.location_label ?? null,
+    });
+    setIncidentOpen(true);
+  };
+
+  const openIncidentForClass = () => {
+    if (!selectedSchedule) return;
+    setIncidentContext({
+      scheduleId: selectedSchedule.id,
+      bookingId: null,
+      studentName: null,
+      classDate: selectedSchedule.date,
+      classCourse: selectedSchedule.course,
+      classLocationLabel: selectedSchedule.location_label,
+    });
+    setIncidentOpen(true);
+  };
 
   // Load schedules + employees + assignments based on view
   useEffect(() => {
