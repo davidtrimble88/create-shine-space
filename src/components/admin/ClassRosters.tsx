@@ -1694,6 +1694,7 @@ const ClassRosters = () => {
                             </button>
                           </div>
                         </td>
+                        <td className="p-3 text-muted-foreground">{b.phone}</td>
                         <td className="p-3 text-muted-foreground">{b.license_number || "—"}</td>
                         <td className="p-3 text-muted-foreground">{b.date_of_birth || "—"}</td>
                         <td className="p-3 text-center text-muted-foreground">☐</td>
