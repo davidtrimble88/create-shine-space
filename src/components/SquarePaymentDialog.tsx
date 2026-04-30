@@ -150,6 +150,7 @@ export const SquarePaymentDialog = ({
           <Button onClick={handlePay} disabled={submitting || initializing || !!initError}>
             {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing…</> : `Pay ${amountLabel}`}
           </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
