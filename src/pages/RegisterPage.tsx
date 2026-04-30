@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -193,6 +193,7 @@ const RegisterPage = () => {
   const [paymentRegion, setPaymentRegion] = useState<SquareRegion>("ventura");
   const [paymentAmountCents, setPaymentAmountCents] = useState(0);
   const [paymentAmountLabel, setPaymentAmountLabel] = useState("");
+  const skipPaymentRef = useRef(false);
 
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
@@ -259,6 +260,21 @@ const RegisterPage = () => {
         issuing_state: data.idType === "drivers_license" ? data.issuingState : null,
         license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
       };
+
+      if (skipPaymentRef.current) {
+        skipPaymentRef.current = false;
+        const { error: insertErr } = await supabase.from("bookings").insert({
+          ...bookingPayload,
+          payment_status: "skipped",
+          booking_status: "confirmed",
+        });
+        if (insertErr) throw insertErr;
+        toast({ title: "Test booking saved", description: "Payment skipped (testing only)." });
+        form.reset();
+        navigate("/registration-confirmation");
+        setSubmitting(false);
+        return;
+      }
 
       setPendingBooking(bookingPayload);
       setPaymentRegion(region);
@@ -763,6 +779,7 @@ const RegisterPage = () => {
                       variant="outline"
                       size="sm"
                       disabled={submitting}
+                      onClick={() => { skipPaymentRef.current = true; }}
                       className="text-xs text-muted-foreground"
                     >
                       ⚠ Skip Payment (Testing Only)
