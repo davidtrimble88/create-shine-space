@@ -31,6 +31,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
+import WaiverStep, { type WaiverPrefill } from "@/components/WaiverStep";
 
 const registrationSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(100),
@@ -194,6 +195,8 @@ const RegisterPage = () => {
   const [paymentAmountCents, setPaymentAmountCents] = useState(0);
   const [paymentAmountLabel, setPaymentAmountLabel] = useState("");
   const skipPaymentRef = useRef(false);
+  const [waiverOpen, setWaiverOpen] = useState(false);
+  const [waiverPrefill, setWaiverPrefill] = useState<WaiverPrefill | null>(null);
 
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
