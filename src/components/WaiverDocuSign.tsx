@@ -41,21 +41,23 @@ const TAGS: Tag[] = [
   { id: "s2", kind: "signature", xPdf: 360, yTopPdf: 666, wPdf: 212, hPdf: 18 },
 ];
 
-// Read-only prefilled fields (positions mirror supabase/functions/record-waiver/index.ts)
+// Read-only prefilled fields. Coordinates measured from the actual template
+// (underline y_top from pdfplumber). Text baselines are drawn just above each
+// underline to mirror what record-waiver/index.ts stamps onto the saved PDF.
 type PrefillField = { x: number; yTop: number; w: number };
 const PREFILL_POSITIONS: { name: PrefillField; license: PrefillField; date: PrefillField; phone?: PrefillField }[] = [
-  // Row 1
+  // Row 1 — top half
   {
-    name:    { x: 37,  yTop: 405, w: 195 },
-    license: { x: 238, yTop: 405, w: 118 },
-    date:    { x: 37,  yTop: 432, w: 95  },
+    name:    { x: 38,  yTop: 419.9, w: 196 },
+    license: { x: 238, yTop: 419.9, w: 104 },
+    date:    { x: 38,  yTop: 446.9, w: 90  },
   },
-  // Row 2
+  // Row 2 — bottom half
   {
-    name:    { x: 37,  yTop: 666, w: 195 },
-    license: { x: 238, yTop: 666, w: 118 },
-    date:    { x: 37,  yTop: 693, w: 95  },
-    phone:   { x: 467, yTop: 722, w: 105 },
+    name:    { x: 38,  yTop: 680.9, w: 196 },
+    license: { x: 238, yTop: 680.9, w: 104 },
+    date:    { x: 38,  yTop: 707.9, w: 90  },
+    phone:   { x: 467, yTop: 735.7, w: 105 },
   },
 ];
 
