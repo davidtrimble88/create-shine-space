@@ -488,7 +488,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
                     <img
                       src={img}
                       alt={tag.kind}
-                      style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                      style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center bottom" }}
                     />
                   ) : (
                     <span className="text-[10px] md:text-xs font-bold text-accent-foreground uppercase tracking-wide flex items-center gap-1 px-1">
