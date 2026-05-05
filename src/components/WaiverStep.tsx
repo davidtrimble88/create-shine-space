@@ -33,6 +33,9 @@ const ACKS = [
   { key: "esign", label: "I agree to sign this document electronically (ESIGN Act / UETA). My typed and drawn signature have the same legal effect as a handwritten signature." },
 ];
 
+const computeInitials = (first: string, last: string) =>
+  `${(first || "").trim().charAt(0)}${(last || "").trim().charAt(0)}`.toUpperCase();
+
 export interface WaiverPrefill {
   firstName: string;
   lastName: string;
