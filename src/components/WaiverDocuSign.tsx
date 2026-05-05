@@ -538,7 +538,9 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {adoptOpen === "signature" ? "Adopt your signature" : "Adopt your initials"}
+              {adoptOpen === "signature"
+                ? (isMinor ? "Adopt parent / guardian signature" : "Adopt your signature")
+                : (isMinor ? "Adopt parent / guardian initials" : "Adopt your initials")}
             </DialogTitle>
           </DialogHeader>
           {adoptOpen && (
@@ -546,8 +548,12 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
               mode={adoptOpen}
               prompt={
                 adoptOpen === "signature"
-                  ? "Draw or type your full legal signature. Once adopted it will be applied to all signature fields."
-                  : "Draw or type your initials. Once adopted they will be applied to all initial fields."
+                  ? (isMinor
+                      ? `Parent / legal guardian: draw or type your full legal signature. It will be stamped on every signature line on behalf of the minor (${studentFullName}).`
+                      : "Draw or type your full legal signature. Once adopted it will be applied to all signature fields.")
+                  : (isMinor
+                      ? "Parent / legal guardian: draw or type your initials. They will be applied to every initial field on behalf of the minor."
+                      : "Draw or type your initials. Once adopted they will be applied to all initial fields.")
               }
               defaultTyped={adoptOpen === "signature" ? fullName : defaultInitials}
               onCancel={() => { setAdoptOpen(null); setActiveTagId(null); }}
