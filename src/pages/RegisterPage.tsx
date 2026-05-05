@@ -303,6 +303,7 @@ const RegisterPage = () => {
         scheduleDate: scheduleDate,
       });
       setWaiverOpen(true);
+      requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
     } catch (err) {
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
     }
