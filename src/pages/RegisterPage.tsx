@@ -187,7 +187,9 @@ const RegisterPage = () => {
     mode: "onChange",
     defaultValues: {
       firstName: "",
+      middleName: "",
       lastName: "",
+      preferredName: "",
       dateOfBirth: "",
       phone: "",
       email: "",
