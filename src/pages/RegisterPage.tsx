@@ -287,6 +287,8 @@ const RegisterPage = () => {
         issuing_country: data.issuingCountry,
         issuing_state: data.idType === "drivers_license" ? data.issuingState : null,
         license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
+        id_photo_path: data.idPhotoPath || null,
+        guardian_id_photo_path: isUnder18 ? (data.guardianIdPhotoPath || null) : null,
       };
 
       if (skipPaymentRef.current) {
