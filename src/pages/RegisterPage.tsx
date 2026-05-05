@@ -31,7 +31,8 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
-import WaiverStep, { type WaiverPrefill } from "@/components/WaiverStep";
+import { type WaiverPrefill } from "@/components/WaiverStep";
+import WaiverDocuSign from "@/components/WaiverDocuSign";
 
 const registrationSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(100),
@@ -372,10 +373,10 @@ const RegisterPage = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="max-w-2xl mx-auto"
+            className={waiverOpen && waiverPrefill ? "max-w-5xl mx-auto" : "max-w-2xl mx-auto"}
           >
             {waiverOpen && waiverPrefill ? (
-              <WaiverStep
+              <WaiverDocuSign
                 prefill={waiverPrefill}
                 onBack={() => setWaiverOpen(false)}
                 onSigned={handleWaiverSigned}
