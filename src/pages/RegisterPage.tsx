@@ -96,6 +96,7 @@ const registrationSchema = z.object({
       ["guardianPhone", "Parent/guardian phone is required"],
       ["guardianLicenseNumber", "Parent/guardian ID number is required"],
       ["guardianLicenseState", "Parent/guardian ID issuing state is required"],
+      ["guardianIdPhotoPath", "Please upload a photo of the parent/guardian's ID"],
     ];
     for (const [key, msg] of required) {
       const v = (data as any)[key];
