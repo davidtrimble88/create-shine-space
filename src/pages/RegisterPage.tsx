@@ -373,10 +373,10 @@ const RegisterPage = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="max-w-2xl mx-auto"
+            className={waiverOpen && waiverPrefill ? "max-w-5xl mx-auto" : "max-w-2xl mx-auto"}
           >
             {waiverOpen && waiverPrefill ? (
-              <WaiverStep
+              <WaiverDocuSign
                 prefill={waiverPrefill}
                 onBack={() => setWaiverOpen(false)}
                 onSigned={handleWaiverSigned}
