@@ -280,15 +280,24 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Load the official template from private storage
-    const tpl = await supabase.storage.from("waiver-templates").download(TEMPLATE_PATH);
-    if (tpl.error || !tpl.data) {
-      console.error("template download failed", tpl.error);
-      return new Response(JSON.stringify({ error: "Waiver template unavailable" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Load the official template from private storage (with retry on transient 5xx)
+    let templateBytes: Uint8Array | null = null;
+    let lastTplErr: unknown = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const tpl = await supabase.storage.from("waiver-templates").download(TEMPLATE_PATH);
+      if (!tpl.error && tpl.data) {
+        templateBytes = new Uint8Array(await tpl.data.arrayBuffer());
+        break;
+      }
+      lastTplErr = tpl.error;
+      await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+    }
+    if (!templateBytes) {
+      console.error("template download failed after retries", lastTplErr);
+      return new Response(JSON.stringify({ error: "Waiver template unavailable, please try again" }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const templateBytes = new Uint8Array(await tpl.data.arrayBuffer());
 
     const pdfBytes = await fillTemplate(templateBytes, data, {
       ip, userAgent, signedAt, hash: docHash, waiverId,
