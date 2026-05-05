@@ -737,7 +737,7 @@ const ClassRosters = () => {
           <td>{startNum + i}</td>
           <td></td><td></td><td></td><td></td>
           <td></td><td></td><td></td><td></td>
-          <td></td><td></td><td></td>
+          <td></td><td></td><td></td><td></td>
         </tr>
       );
     }
