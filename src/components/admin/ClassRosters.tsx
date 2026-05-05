@@ -737,7 +737,7 @@ const ClassRosters = () => {
           <td>{startNum + i}</td>
           <td></td><td></td><td></td><td></td>
           <td></td><td></td><td></td><td></td>
-          <td></td><td></td><td></td>
+          <td></td><td></td><td></td><td></td>
         </tr>
       );
     }
@@ -1891,6 +1891,7 @@ const ClassRosters = () => {
                     <th>#</th>
                     <th>First</th>
                     <th>Last</th>
+                    <th className="check-col">Waiver</th>
                     <th>Phone No.</th>
                     <th>DL #</th>
                     <th>Birthdate</th>
@@ -1909,6 +1910,9 @@ const ClassRosters = () => {
                       <td>{i + 1}</td>
                       <td style={{ textTransform: "uppercase" }}>{b.first_name}</td>
                       <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
+                      <td className="center" style={{ fontWeight: 700 }}>
+                        {(b as any).waiver_id && waiverIds.has((b as any).waiver_id) ? "✓" : "✗"}
+                      </td>
                       <td>{b.phone}</td>
                       <td>{b.license_number || ""}</td>
                       <td>{b.date_of_birth || ""}</td>
