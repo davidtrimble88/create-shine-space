@@ -279,20 +279,45 @@ const RegisterPage = () => {
         return;
       }
 
+      // Show waiver step first; payment opens after signing
       setPendingBooking(bookingPayload);
       setPaymentRegion(region);
       setPaymentAmountCents(feeCents);
       setPaymentAmountLabel(feeLabel);
-      setPaymentOpen(true);
+      setWaiverPrefill({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        dateOfBirth: data.dateOfBirth,
+        licenseNumber: data.idType === "other"
+          ? `${data.otherIdType?.trim()}: ${data.licenseNumber}`
+          : data.licenseNumber,
+        licenseState: data.idType === "drivers_license" ? data.issuingState : "",
+        isMinor: isUnder18,
+        course,
+        location,
+        locationLabel: locationLabels[location] || location,
+        scheduleId: scheduleId,
+        scheduleDate: scheduleDate,
+      });
+      setWaiverOpen(true);
     } catch (err) {
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
     }
     setSubmitting(false);
   };
 
+  const handleWaiverSigned = (waiverId: string) => {
+    setPendingBooking(prev => prev ? { ...prev, waiver_id: waiverId } : prev);
+    setWaiverOpen(false);
+    setPaymentOpen(true);
+  };
+
   const handlePaymentSuccess = () => {
     form.reset();
     setPendingBooking(null);
+    setWaiverPrefill(null);
     navigate("/registration-confirmation");
   };
 
