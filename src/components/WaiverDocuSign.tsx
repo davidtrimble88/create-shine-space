@@ -41,6 +41,24 @@ const TAGS: Tag[] = [
   { id: "s2", kind: "signature", xPdf: 360, yTopPdf: 666, wPdf: 212, hPdf: 18 },
 ];
 
+// Read-only prefilled fields (positions mirror supabase/functions/record-waiver/index.ts)
+type PrefillField = { x: number; yTop: number; w: number };
+const PREFILL_POSITIONS: { name: PrefillField; license: PrefillField; date: PrefillField; phone?: PrefillField }[] = [
+  // Row 1
+  {
+    name:    { x: 37,  yTop: 405, w: 195 },
+    license: { x: 238, yTop: 405, w: 118 },
+    date:    { x: 37,  yTop: 432, w: 95  },
+  },
+  // Row 2
+  {
+    name:    { x: 37,  yTop: 666, w: 195 },
+    license: { x: 238, yTop: 666, w: 118 },
+    date:    { x: 37,  yTop: 693, w: 95  },
+    phone:   { x: 467, yTop: 722, w: 105 },
+  },
+];
+
 interface Props {
   prefill: WaiverPrefill;
   onBack: () => void;
@@ -399,6 +417,42 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
                 <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading document…
               </div>
             )}
+
+            {pdfReady && (() => {
+              const today = new Date();
+              const dateStr = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
+              const idDisplay = prefill.licenseNumber
+                ? `${prefill.licenseNumber}${prefill.licenseState ? " / " + prefill.licenseState : ""}`
+                : "";
+              const prefillText = (
+                f: PrefillField,
+                value: string,
+                key: string,
+              ) => value ? (
+                <div
+                  key={key}
+                  className="absolute text-black pointer-events-none"
+                  style={{
+                    left: f.x * renderScale,
+                    top: (f.yTop - 11) * renderScale,
+                    width: f.w * renderScale,
+                    fontSize: 9 * renderScale,
+                    fontFamily: "Helvetica, Arial, sans-serif",
+                    lineHeight: 1,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                  }}
+                >
+                  {value}
+                </div>
+              ) : null;
+              return PREFILL_POSITIONS.flatMap((row, idx) => [
+                prefillText(row.name, fullName, `name-${idx}`),
+                prefillText(row.license, idDisplay, `lic-${idx}`),
+                prefillText(row.date, dateStr, `date-${idx}`),
+                row.phone ? prefillText(row.phone, prefill.phone || "", `phone-${idx}`) : null,
+              ]);
+            })()}
 
             {pdfReady && TAGS.map(tag => {
               const done = !!stamped[tag.id];
