@@ -284,6 +284,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
               <Input value={guardianLicenseState} onChange={(e) => setGuardianLicenseState(e.target.value)} placeholder="CA" />
             </div>
           </div>
+          <div>
             <Label>Type guardian full legal name *</Label>
             <Input value={guardianTyped} onChange={(e) => setGuardianTyped(e.target.value)} />
           </div>
