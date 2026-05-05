@@ -62,6 +62,7 @@ export type Database = {
           schedule_id: string | null
           state: string | null
           updated_at: string
+          waiver_id: string | null
           zip: string | null
         }
         Insert: {
@@ -111,6 +112,7 @@ export type Database = {
           schedule_id?: string | null
           state?: string | null
           updated_at?: string
+          waiver_id?: string | null
           zip?: string | null
         }
         Update: {
@@ -160,6 +162,7 @@ export type Database = {
           schedule_id?: string | null
           state?: string | null
           updated_at?: string
+          waiver_id?: string | null
           zip?: string | null
         }
         Relationships: [
@@ -693,6 +696,108 @@ export type Database = {
           updated_at?: string
           uploaded_by?: string | null
           uploaded_by_name?: string | null
+        }
+        Relationships: []
+      }
+      signed_waivers: {
+        Row: {
+          consent_acknowledgments: Json
+          course: string | null
+          created_at: string
+          date_of_birth: string | null
+          document_hash: string
+          document_text: string
+          document_type: string
+          document_version: string
+          guardian_name: string | null
+          guardian_relationship: string | null
+          guardian_signature_drawn: string | null
+          guardian_signature_typed: string | null
+          id: string
+          ip_address: string | null
+          is_minor: boolean
+          license_number: string | null
+          license_state: string | null
+          location: string | null
+          location_label: string | null
+          pdf_path: string | null
+          schedule_date: string | null
+          schedule_id: string | null
+          signature_drawn: string
+          signature_typed: string
+          signed_at: string
+          signer_email: string
+          signer_first_name: string
+          signer_last_name: string
+          signer_middle_name: string | null
+          signer_phone: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          consent_acknowledgments?: Json
+          course?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          document_hash: string
+          document_text: string
+          document_type?: string
+          document_version: string
+          guardian_name?: string | null
+          guardian_relationship?: string | null
+          guardian_signature_drawn?: string | null
+          guardian_signature_typed?: string | null
+          id?: string
+          ip_address?: string | null
+          is_minor?: boolean
+          license_number?: string | null
+          license_state?: string | null
+          location?: string | null
+          location_label?: string | null
+          pdf_path?: string | null
+          schedule_date?: string | null
+          schedule_id?: string | null
+          signature_drawn: string
+          signature_typed: string
+          signed_at?: string
+          signer_email: string
+          signer_first_name: string
+          signer_last_name: string
+          signer_middle_name?: string | null
+          signer_phone?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          consent_acknowledgments?: Json
+          course?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          document_hash?: string
+          document_text?: string
+          document_type?: string
+          document_version?: string
+          guardian_name?: string | null
+          guardian_relationship?: string | null
+          guardian_signature_drawn?: string | null
+          guardian_signature_typed?: string | null
+          id?: string
+          ip_address?: string | null
+          is_minor?: boolean
+          license_number?: string | null
+          license_state?: string | null
+          location?: string | null
+          location_label?: string | null
+          pdf_path?: string | null
+          schedule_date?: string | null
+          schedule_id?: string | null
+          signature_drawn?: string
+          signature_typed?: string
+          signed_at?: string
+          signer_email?: string
+          signer_first_name?: string
+          signer_last_name?: string
+          signer_middle_name?: string | null
+          signer_phone?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }
