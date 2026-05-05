@@ -217,8 +217,18 @@ const SignaturePad = ({
 };
 
 const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
-  const fullName = `${prefill.firstName} ${prefill.lastName}`.trim();
-  const defaultInitials = `${(prefill.firstName[0] || "").toUpperCase()}${(prefill.lastName[0] || "").toUpperCase()}`;
+  const isMinor = !!prefill.isMinor;
+  const guardianFullName = isMinor
+    ? `${prefill.guardianFirstName || ""} ${prefill.guardianLastName || ""}`.trim()
+    : "";
+  const guardianInitials = isMinor
+    ? `${(prefill.guardianFirstName?.[0] || "").toUpperCase()}${(prefill.guardianLastName?.[0] || "").toUpperCase()}`
+    : "";
+  const studentFullName = `${prefill.firstName} ${prefill.lastName}`.trim();
+  const studentInitials = `${(prefill.firstName[0] || "").toUpperCase()}${(prefill.lastName[0] || "").toUpperCase()}`;
+  // For minors, the parent/guardian is the legal signer of the waiver.
+  const fullName = isMinor ? guardianFullName : studentFullName;
+  const defaultInitials = isMinor ? guardianInitials : studentInitials;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -316,13 +326,13 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           date_of_birth: prefill.dateOfBirth || null,
           license_number: prefill.licenseNumber || null,
           license_state: prefill.licenseState || null,
-          is_minor: prefill.isMinor,
-          guardian_name: null,
-          guardian_relationship: null,
-          guardian_signature_typed: null,
-          guardian_signature_drawn: null,
-          guardian_license_number: null,
-          guardian_license_state: null,
+          is_minor: isMinor,
+          guardian_name: isMinor ? guardianFullName : null,
+          guardian_relationship: isMinor ? (prefill.guardianRelationship || null) : null,
+          guardian_signature_typed: isMinor ? (signatureTyped || guardianFullName) : null,
+          guardian_signature_drawn: isMinor ? signatureImg : null,
+          guardian_license_number: isMinor ? (prefill.guardianLicenseNumber || null) : null,
+          guardian_license_state: isMinor ? (prefill.guardianLicenseState || null) : null,
           signature_typed: signatureTyped || fullName,
           signature_drawn: signatureImg,
           initials: initialsTyped,
@@ -363,8 +373,18 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
       <div className="bg-card border border-border rounded-2xl p-4 md:p-6">
         <div className="flex items-center gap-2 mb-2">
           <ShieldCheck className="w-5 h-5 text-accent" />
-          <h2 className="text-lg md:text-xl font-bold text-foreground">Sign Your CMSP Course Waiver</h2>
+          <h2 className="text-lg md:text-xl font-bold text-foreground">
+            {isMinor ? "Parent / Guardian: Sign the CMSP Course Waiver" : "Sign Your CMSP Course Waiver"}
+          </h2>
         </div>
+        {isMinor && (
+          <div className="mb-3 rounded-md border border-accent/40 bg-accent/10 px-3 py-2 text-xs">
+            Because <span className="font-semibold text-foreground">{studentFullName || "the student"}</span> is under 18,
+            this waiver must be signed by their parent or legal guardian
+            {guardianFullName ? <> — <span className="font-semibold text-foreground">{guardianFullName}</span> ({prefill.guardianRelationship})</> : null}.
+            Your initials and signature below are stamped on the minor's behalf.
+          </div>
+        )}
         <p className="text-sm text-muted-foreground">
           Click each highlighted <span className="font-semibold text-accent">Initial</span> or{" "}
           <span className="font-semibold text-accent">Sign</span> tag on the document. The first time you
@@ -459,7 +479,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
                   prefillText({ x: p.x, yTop: p.yTop, w: p.w }, "Learn To Ride VC", p.key)
                 ),
                 ...PREFILL_POSITIONS.flatMap((row, idx) => [
-                  prefillText(row.name, fullName, `name-${idx}`),
+                  prefillText(row.name, studentFullName, `name-${idx}`),
                   prefillText(row.license, idDisplay, `lic-${idx}`),
                   prefillText(row.date, dateStr, `date-${idx}`),
                   row.phone ? prefillText(row.phone, prefill.phone || "", `phone-${idx}`) : null,
@@ -518,7 +538,9 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {adoptOpen === "signature" ? "Adopt your signature" : "Adopt your initials"}
+              {adoptOpen === "signature"
+                ? (isMinor ? "Adopt parent / guardian signature" : "Adopt your signature")
+                : (isMinor ? "Adopt parent / guardian initials" : "Adopt your initials")}
             </DialogTitle>
           </DialogHeader>
           {adoptOpen && (
@@ -526,8 +548,12 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
               mode={adoptOpen}
               prompt={
                 adoptOpen === "signature"
-                  ? "Draw or type your full legal signature. Once adopted it will be applied to all signature fields."
-                  : "Draw or type your initials. Once adopted they will be applied to all initial fields."
+                  ? (isMinor
+                      ? `Parent / legal guardian: draw or type your full legal signature. It will be stamped on every signature line on behalf of the minor (${studentFullName}).`
+                      : "Draw or type your full legal signature. Once adopted it will be applied to all signature fields.")
+                  : (isMinor
+                      ? "Parent / legal guardian: draw or type your initials. They will be applied to every initial field on behalf of the minor."
+                      : "Draw or type your initials. Once adopted they will be applied to all initial fields.")
               }
               defaultTyped={adoptOpen === "signature" ? fullName : defaultInitials}
               onCancel={() => { setAdoptOpen(null); setActiveTagId(null); }}
