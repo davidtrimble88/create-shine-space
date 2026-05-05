@@ -806,27 +806,95 @@ const RegisterPage = () => {
                   />
 
                   {isUnder18 && (
-                    <FormField
-                      control={form.control}
-                      name="parentGuardianAck"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-accent/40 bg-accent/10 p-4">
+                    <div className="rounded-lg border border-accent/40 bg-accent/10 p-4 md:p-6 space-y-4">
+                      <div>
+                        <h3 className="text-base font-bold text-accent">Parent / Legal Guardian Information</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Required because the student is under 18. The parent or legal guardian must complete this section, sign the waiver electronically, and present a matching photo ID at check-in.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="guardianFirstName" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Guardian First Name *</FormLabel>
+                            <FormControl><Input placeholder="Jane" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="guardianLastName" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Guardian Last Name *</FormLabel>
+                            <FormControl><Input placeholder="Doe" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+
+                      <FormField control={form.control} name="guardianRelationship" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Relationship to Minor *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select one..." /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              <SelectItem value="Mother">Mother</SelectItem>
+                              <SelectItem value="Father">Father</SelectItem>
+                              <SelectItem value="Legal Guardian">Legal Guardian</SelectItem>
+                              <SelectItem value="Stepparent">Stepparent</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="guardianPhone" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Guardian Phone *</FormLabel>
+                            <FormControl><Input type="tel" placeholder="(555) 123-4567" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="guardianEmail" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Guardian Email</FormLabel>
+                            <FormControl><Input type="email" placeholder="parent@example.com" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="guardianLicenseNumber" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Guardian Driver's License / ID # *</FormLabel>
+                            <FormControl><Input placeholder="D1234567" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="guardianLicenseState" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Issuing State *</FormLabel>
+                            <FormControl><Input placeholder="CA" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+
+                      <FormField control={form.control} name="parentGuardianAck" render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-accent/40 bg-background/40 p-3">
                           <FormControl>
-                            <Checkbox
-                              checked={!!field.value}
-                              onCheckedChange={field.onChange}
-                            />
+                            <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel className="text-sm leading-relaxed">
-                              <span className="font-bold text-accent">Parent / Legal Guardian Acknowledgment (required for students under 18):</span>{" "}
-                              Because the student is under 18 years old, a parent or legal guardian must be the one making the payment for this course. By checking this box, the parent or legal guardian acknowledges and agrees to this requirement. *
+                            <FormLabel className="text-xs leading-relaxed">
+                              I certify that I am the parent or legal guardian of the minor named above. I will sign the CMSP waiver on the next step on the minor's behalf, will be the one making payment, and will present a matching photo ID at check-in. *
                             </FormLabel>
                             <FormMessage />
                           </div>
                         </FormItem>
-                      )}
-                    />
+                      )} />
+                    </div>
                   )}
                 </div>
 
