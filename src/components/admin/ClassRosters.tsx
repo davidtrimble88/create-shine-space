@@ -1693,7 +1693,10 @@ const ClassRosters = () => {
                     {regularBookings.map((b, i) => (
                       <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
                         <td className="p-3 text-muted-foreground">{i + 1}</td>
-                        <td className="p-3 font-medium text-foreground uppercase">{b.first_name}</td>
+                        <td className="p-3 font-medium text-foreground uppercase">
+                          {b.first_name}
+                          {(b as any).preferred_name ? <span className="ml-1 text-muted-foreground normal-case">("{(b as any).preferred_name}")</span> : null}
+                        </td>
                         <td className="p-3 font-medium text-foreground uppercase">
                           <div className="flex items-center gap-2">
                             <span>{b.last_name}</span>
@@ -1842,7 +1845,10 @@ const ClassRosters = () => {
                       {retestBookings.map((b, i) => (
                         <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
                           <td className="p-3 text-muted-foreground">{i + 1}</td>
-                          <td className="p-3 font-medium text-foreground uppercase">{b.first_name}</td>
+                          <td className="p-3 font-medium text-foreground uppercase">
+                            {b.first_name}
+                            {(b as any).preferred_name ? <span className="ml-1 text-muted-foreground normal-case">("{(b as any).preferred_name}")</span> : null}
+                          </td>
                           <td className="p-3 font-medium text-foreground uppercase">{b.last_name}</td>
                           <td className="p-3 text-muted-foreground">{b.phone}</td>
                           <td className="p-3 text-muted-foreground">{b.license_number || "—"}</td>
@@ -1908,7 +1914,10 @@ const ClassRosters = () => {
                   {regularBookings.map((b, i) => (
                     <tr key={b.id}>
                       <td>{i + 1}</td>
-                      <td style={{ textTransform: "uppercase" }}>{b.first_name}</td>
+                      <td style={{ textTransform: "uppercase" }}>
+                        {b.first_name}
+                        {(b as any).preferred_name ? <span style={{ textTransform: "none", marginLeft: 4, fontWeight: 400 }}>("{(b as any).preferred_name}")</span> : null}
+                      </td>
                       <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
                       <td className="center" style={{ fontWeight: 700 }}>
                         {(b as any).waiver_id && waiverIds.has((b as any).waiver_id) ? "✓" : "✗"}

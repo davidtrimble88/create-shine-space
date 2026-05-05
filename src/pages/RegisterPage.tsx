@@ -37,7 +37,9 @@ import IdPhotoUpload from "@/components/IdPhotoUpload";
 
 const registrationSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(100),
+  middleName: z.string().trim().max(100).optional(),
   lastName: z.string().trim().min(1, "Last name is required").max(100),
+  preferredName: z.string().trim().max(100).optional(),
   gender: z.enum(["male", "female", "other"], { required_error: "Please select your gender" }),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   phone: z.string().trim().min(7, "Valid phone number required").max(20),
@@ -185,7 +187,9 @@ const RegisterPage = () => {
     mode: "onChange",
     defaultValues: {
       firstName: "",
+      middleName: "",
       lastName: "",
+      preferredName: "",
       dateOfBirth: "",
       phone: "",
       email: "",
@@ -269,7 +273,9 @@ const RegisterPage = () => {
         location_label: locationLabels[location] || location,
         schedule_date: scheduleDate,
         first_name: data.firstName,
+        middle_name: data.middleName || null,
         last_name: data.lastName,
+        preferred_name: data.preferredName || null,
         email: data.email,
         phone: data.phone,
         gender: data.gender,
@@ -437,12 +443,38 @@ const RegisterPage = () => {
                     />
                     <FormField
                       control={form.control}
+                      name="middleName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Middle Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="(optional)" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Last Name *</FormLabel>
                           <FormControl>
                             <Input placeholder="Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="preferredName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Preferred Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="What should we call you?" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

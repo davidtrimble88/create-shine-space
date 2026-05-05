@@ -44,6 +44,7 @@ export type Database = {
           license_number: string | null
           location: string
           location_label: string
+          middle_name: string | null
           needs_reschedule: boolean
           original_course: string | null
           original_location_label: string | null
@@ -52,6 +53,7 @@ export type Database = {
           payment_provider: string | null
           payment_status: string
           phone: string
+          preferred_name: string | null
           referral_source: string | null
           reschedule_part: string | null
           reschedule_reason: string | null
@@ -96,6 +98,7 @@ export type Database = {
           license_number?: string | null
           location: string
           location_label: string
+          middle_name?: string | null
           needs_reschedule?: boolean
           original_course?: string | null
           original_location_label?: string | null
@@ -104,6 +107,7 @@ export type Database = {
           payment_provider?: string | null
           payment_status?: string
           phone: string
+          preferred_name?: string | null
           referral_source?: string | null
           reschedule_part?: string | null
           reschedule_reason?: string | null
@@ -148,6 +152,7 @@ export type Database = {
           license_number?: string | null
           location?: string
           location_label?: string
+          middle_name?: string | null
           needs_reschedule?: boolean
           original_course?: string | null
           original_location_label?: string | null
@@ -156,6 +161,7 @@ export type Database = {
           payment_provider?: string | null
           payment_status?: string
           phone?: string
+          preferred_name?: string | null
           referral_source?: string | null
           reschedule_part?: string | null
           reschedule_reason?: string | null
