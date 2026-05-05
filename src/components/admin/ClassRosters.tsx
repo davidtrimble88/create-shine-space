@@ -76,6 +76,7 @@ const ClassRosters = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [waiverIds, setWaiverIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [locationFilter, setLocationFilter] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("");
