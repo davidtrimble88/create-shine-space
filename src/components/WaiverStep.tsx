@@ -33,6 +33,9 @@ const ACKS = [
   { key: "esign", label: "I agree to sign this document electronically (ESIGN Act / UETA). My typed and drawn signature have the same legal effect as a handwritten signature." },
 ];
 
+const computeInitials = (first: string, last: string) =>
+  `${(first || "").trim().charAt(0)}${(last || "").trim().charAt(0)}`.toUpperCase();
+
 export interface WaiverPrefill {
   firstName: string;
   lastName: string;
@@ -134,7 +137,8 @@ interface Props {
 }
 
 const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
-  const [acks, setAcks] = useState<Record<string, boolean>>({});
+  const requiredInitials = computeInitials(prefill.firstName, prefill.lastName);
+  const [acks, setAcks] = useState<Record<string, string>>({});
   const [typedSig, setTypedSig] = useState("");
   const [drawnSig, setDrawnSig] = useState<string | null>(null);
   const [guardianName, setGuardianName] = useState("");
@@ -146,13 +150,13 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
   const [submitting, setSubmitting] = useState(false);
 
   const fullName = `${prefill.firstName} ${prefill.lastName}`.trim();
-  const allAcksAccepted = ACKS.every(a => acks[a.key]);
+  const allInitialed = ACKS.every(a => (acks[a.key] || "").trim().toUpperCase() === requiredInitials && requiredInitials.length === 2);
   const typedMatches = typedSig.trim().toLowerCase() === fullName.toLowerCase();
   const minorReady = !prefill.isMinor || (
     guardianName.trim().length > 1 && guardianRel.trim().length > 1 &&
     guardianTyped.trim().length > 1 && !!guardianDrawn
   );
-  const canSign = allAcksAccepted && typedMatches && !!drawnSig && minorReady;
+  const canSign = allInitialed && typedMatches && !!drawnSig && minorReady;
 
   const handleSign = async () => {
     if (!canSign) return;
@@ -178,7 +182,13 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
           guardian_license_state: prefill.isMinor ? guardianLicenseState : null,
           signature_typed: typedSig.trim(),
           signature_drawn: drawnSig,
-          consent_acknowledgments: ACKS.map(a => ({ key: a.key, label: a.label, accepted: true as const })),
+          initials: requiredInitials,
+          consent_acknowledgments: ACKS.map(a => ({
+            key: a.key,
+            label: a.label,
+            initials: (acks[a.key] || "").trim().toUpperCase(),
+            accepted: true as const,
+          })),
           course: prefill.course,
           location: prefill.location,
           location_label: prefill.locationLabel,
@@ -204,14 +214,30 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
           <h2 className="text-xl font-bold text-foreground">Sign Your CMSP Course Waiver</h2>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
-          Please read the waiver below carefully. Your registration information has been pre-filled.
+          Please review the official waiver below. Your registration information has been pre-filled.
           You will sign electronically — this carries the same legal weight as a handwritten signature
           under the federal ESIGN Act and California UETA.
         </p>
 
-        <div className="rounded-lg border border-border bg-muted/30 p-4 max-h-72 overflow-y-auto whitespace-pre-wrap text-xs leading-relaxed">
-          {CMSP_WAIVER_TEXT}
+        <div className="rounded-lg border border-border bg-white overflow-hidden" style={{ height: 600 }}>
+          <object
+            data="/cmsp-waiver-template.pdf#view=FitH"
+            type="application/pdf"
+            className="w-full h-full"
+            aria-label="CMSP Course Waiver"
+          >
+            <div className="p-4 text-sm">
+              Your browser cannot display PDFs inline.{" "}
+              <a href="/cmsp-waiver-template.pdf" target="_blank" rel="noopener noreferrer" className="text-accent underline">
+                Open the waiver in a new tab
+              </a>
+              .
+            </div>
+          </object>
         </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          This is the exact document you are signing. A signed copy will be saved to your file.
+        </p>
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
@@ -230,19 +256,34 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
-        <h3 className="font-semibold mb-4">Acknowledgments — check each to agree</h3>
+        <h3 className="font-semibold mb-1">Acknowledgments — initial each line to agree</h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          Type your initials <span className="font-semibold text-foreground">{requiredInitials || "—"}</span> in each box below to acknowledge that statement, just as you would on the paper form.
+        </p>
         <div className="space-y-3">
-          {ACKS.map(a => (
-            <label key={a.key} className="flex items-start gap-3 cursor-pointer text-sm">
-              <Checkbox
-                checked={!!acks[a.key]}
-                onCheckedChange={(v) => setAcks(p => ({ ...p, [a.key]: !!v }))}
-                className="mt-0.5"
-              />
-              <span className="leading-relaxed">{a.label}</span>
-            </label>
-          ))}
+          {ACKS.map(a => {
+            const val = (acks[a.key] || "").toUpperCase();
+            const ok = val === requiredInitials && requiredInitials.length === 2;
+            return (
+              <div key={a.key} className="flex items-start gap-3 text-sm">
+                <Input
+                  value={acks[a.key] || ""}
+                  onChange={(e) => setAcks(p => ({ ...p, [a.key]: e.target.value.toUpperCase().slice(0, 4) }))}
+                  placeholder={requiredInitials || "AB"}
+                  maxLength={4}
+                  className={`w-20 text-center font-semibold tracking-widest uppercase ${ok ? "border-accent" : ""}`}
+                  aria-label={`Initials for: ${a.label}`}
+                />
+                <span className="leading-relaxed pt-2">{a.label}</span>
+              </div>
+            );
+          })}
         </div>
+        {!allInitialed && Object.values(acks).some(v => v) && (
+          <p className="text-xs text-destructive mt-3">
+            Initials must match {requiredInitials} for every line.
+          </p>
+        )}
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
@@ -308,7 +349,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
       </div>
       {!canSign && !submitting && (
         <p className="text-xs text-muted-foreground text-center">
-          Complete all acknowledgments and signatures to continue.
+          Initial each acknowledgment and complete your signature to continue.
         </p>
       )}
     </div>
