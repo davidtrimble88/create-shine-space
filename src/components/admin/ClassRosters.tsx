@@ -1891,6 +1891,7 @@ const ClassRosters = () => {
                     <th>#</th>
                     <th>First</th>
                     <th>Last</th>
+                    <th className="check-col">Waiver</th>
                     <th>Phone No.</th>
                     <th>DL #</th>
                     <th>Birthdate</th>
