@@ -274,7 +274,16 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
               <Input value={guardianRel} onChange={(e) => setGuardianRel(e.target.value)} placeholder="Parent / Guardian" />
             </div>
           </div>
-          <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label>Guardian License or ID #</Label>
+              <Input value={guardianLicense} onChange={(e) => setGuardianLicense(e.target.value)} placeholder="D1234567" />
+            </div>
+            <div>
+              <Label>Issuing State</Label>
+              <Input value={guardianLicenseState} onChange={(e) => setGuardianLicenseState(e.target.value)} placeholder="CA" />
+            </div>
+          </div>
             <Label>Type guardian full legal name *</Label>
             <Input value={guardianTyped} onChange={(e) => setGuardianTyped(e.target.value)} />
           </div>
