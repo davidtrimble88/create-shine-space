@@ -479,7 +479,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
                   prefillText({ x: p.x, yTop: p.yTop, w: p.w }, "Learn To Ride VC", p.key)
                 ),
                 ...PREFILL_POSITIONS.flatMap((row, idx) => [
-                  prefillText(row.name, fullName, `name-${idx}`),
+                  prefillText(row.name, studentFullName, `name-${idx}`),
                   prefillText(row.license, idDisplay, `lic-${idx}`),
                   prefillText(row.date, dateStr, `date-${idx}`),
                   row.phone ? prefillText(row.phone, prefill.phone || "", `phone-${idx}`) : null,
