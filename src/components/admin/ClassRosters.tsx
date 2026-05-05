@@ -1697,6 +1697,15 @@ const ClassRosters = () => {
                         <td className="p-3 font-medium text-foreground uppercase">
                           <div className="flex items-center gap-2">
                             <span>{b.last_name}</span>
+                            {(b as any).waiver_id && waiverIds.has((b as any).waiver_id) ? (
+                              <span title="Waiver signed" aria-label="Waiver signed" className="inline-flex items-center text-emerald-500">
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                              </span>
+                            ) : (
+                              <span title="Waiver not signed" aria-label="Waiver not signed" className="inline-flex items-center text-amber-500/80">
+                                <ShieldAlert className="w-3.5 h-3.5" />
+                              </span>
+                            )}
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); openIncidentForStudent(b); }}
