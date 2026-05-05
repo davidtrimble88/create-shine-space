@@ -1693,7 +1693,10 @@ const ClassRosters = () => {
                     {regularBookings.map((b, i) => (
                       <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
                         <td className="p-3 text-muted-foreground">{i + 1}</td>
-                        <td className="p-3 font-medium text-foreground uppercase">{b.first_name}</td>
+                        <td className="p-3 font-medium text-foreground uppercase">
+                          {b.first_name}
+                          {(b as any).preferred_name ? <span className="ml-1 text-muted-foreground normal-case">("{(b as any).preferred_name}")</span> : null}
+                        </td>
                         <td className="p-3 font-medium text-foreground uppercase">
                           <div className="flex items-center gap-2">
                             <span>{b.last_name}</span>
