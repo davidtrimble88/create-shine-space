@@ -21,6 +21,7 @@ import AdminReferralSources from "@/components/admin/AdminReferralSources";
 import AdminFiles from "@/components/admin/AdminFiles";
 import PaymentSettings from "@/components/admin/PaymentSettings";
 import IncidentReports from "@/components/admin/IncidentReports";
+import SignedWaivers from "@/components/admin/SignedWaivers";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
@@ -33,6 +34,7 @@ const tabs = [
   { id: "rosters", label: "Class Rosters", icon: ListChecks, roles: ["owner", "admin", "manager", "employee"] },
   { id: "files", label: "Files", icon: FolderOpen, roles: ["owner", "admin", "manager", "employee"] },
   { id: "incident-reports", label: "Incident Reports", icon: AlertCircle, roles: ["owner", "admin"] },
+  { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
   { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
   { id: "payment-settings", label: "Payment Settings", icon: CreditCard, roles: ["owner"] },
   { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
@@ -191,6 +193,7 @@ const EmployeeDashboard = () => {
         {activeTab === "rosters" && <ClassRosters />}
         {activeTab === "files" && <AdminFiles />}
         {activeTab === "incident-reports" && <IncidentReports />}
+        {activeTab === "signed-waivers" && <SignedWaivers />}
         {activeTab === "analytics" && <WebsiteAnalytics />}
         {activeTab === "roles" && <RolePermissions />}
         {activeTab === "security-questions" && <SecurityQuestionsSetup />}
