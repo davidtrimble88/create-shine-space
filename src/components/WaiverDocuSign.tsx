@@ -41,6 +41,24 @@ const TAGS: Tag[] = [
   { id: "s2", kind: "signature", xPdf: 360, yTopPdf: 666, wPdf: 212, hPdf: 18 },
 ];
 
+// Read-only prefilled fields (positions mirror supabase/functions/record-waiver/index.ts)
+type PrefillField = { x: number; yTop: number; w: number };
+const PREFILL_POSITIONS: { name: PrefillField; license: PrefillField; date: PrefillField; phone?: PrefillField }[] = [
+  // Row 1
+  {
+    name:    { x: 37,  yTop: 405, w: 195 },
+    license: { x: 238, yTop: 405, w: 118 },
+    date:    { x: 37,  yTop: 432, w: 95  },
+  },
+  // Row 2
+  {
+    name:    { x: 37,  yTop: 666, w: 195 },
+    license: { x: 238, yTop: 666, w: 118 },
+    date:    { x: 37,  yTop: 693, w: 95  },
+    phone:   { x: 467, yTop: 722, w: 105 },
+  },
+];
+
 interface Props {
   prefill: WaiverPrefill;
   onBack: () => void;
