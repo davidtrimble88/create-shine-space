@@ -56,6 +56,7 @@ const registrationSchema = z.object({
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
   parentGuardianAck: z.boolean().optional(),
+  idPhotoPath: z.string().min(1, "Please upload a photo of your ID"),
   guardianFirstName: z.string().trim().max(100).optional(),
   guardianLastName: z.string().trim().max(100).optional(),
   guardianRelationship: z.string().trim().max(50).optional(),
@@ -63,6 +64,7 @@ const registrationSchema = z.object({
   guardianPhone: z.string().trim().max(20).optional(),
   guardianLicenseNumber: z.string().trim().max(50).optional(),
   guardianLicenseState: z.string().trim().max(50).optional(),
+  guardianIdPhotoPath: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (data.idType === "drivers_license") {
     if (!data.issuingState || data.issuingState.trim() === "") {
