@@ -38,6 +38,25 @@ const SignedWaivers = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<SignedWaiver | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selected?.pdf_path) {
+      setPdfUrl(null);
+      return;
+    }
+    setPdfLoading(true);
+    setPdfUrl(null);
+    supabase.storage.from("waivers").createSignedUrl(selected.pdf_path, 300).then(({ data, error }) => {
+      if (error || !data) {
+        toast({ title: "Failed to load PDF", description: error?.message, variant: "destructive" });
+      } else {
+        setPdfUrl(data.signedUrl);
+      }
+      setPdfLoading(false);
+    });
+  }, [selected]);
 
   useEffect(() => {
     (async () => {
