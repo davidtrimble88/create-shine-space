@@ -207,6 +207,8 @@ const RegisterPage = () => {
       guardianPhone: "",
       guardianLicenseNumber: "",
       guardianLicenseState: "",
+      idPhotoPath: "",
+      guardianIdPhotoPath: "",
     },
   });
 
