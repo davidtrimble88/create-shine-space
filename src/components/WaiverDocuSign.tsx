@@ -438,7 +438,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
                   className="absolute text-black pointer-events-none"
                   style={{
                     left: f.x * renderScale,
-                    top: (f.yTop - 11) * renderScale,
+                    top: (f.yTop - 8) * renderScale,
                     width: f.w * renderScale,
                     fontSize: 9 * renderScale,
                     fontFamily: "Helvetica, Arial, sans-serif",
