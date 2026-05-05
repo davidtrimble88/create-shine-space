@@ -354,13 +354,13 @@ const RegisterPage = () => {
             className="text-center mb-12"
           >
             <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
-              Step 4 of 4
+              {waiverOpen ? "Step 5 of 5 — Sign Waiver" : "Step 4 of 5"}
             </span>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Student <span className="text-accent">Registration</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-2">
-              Complete the form below to reserve your spot.
+              {waiverOpen ? "Review and electronically sign the CMSP waiver to continue." : "Complete the form below to reserve your spot."}
             </p>
             <p className="text-sm text-muted-foreground">
               {courseLabels[course] || course} · {locationLabels[location] || location}
@@ -374,7 +374,13 @@ const RegisterPage = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="max-w-2xl mx-auto"
           >
-
+            {waiverOpen && waiverPrefill ? (
+              <WaiverStep
+                prefill={waiverPrefill}
+                onBack={() => setWaiverOpen(false)}
+                onSigned={handleWaiverSigned}
+              />
+            ) : (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 {/* Personal Information */}
