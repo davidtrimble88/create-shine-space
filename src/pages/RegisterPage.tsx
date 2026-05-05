@@ -33,6 +33,7 @@ import PaymentDialog from "@/components/PaymentDialog";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
 import WaiverDocuSign from "@/components/WaiverDocuSign";
+import IdPhotoUpload from "@/components/IdPhotoUpload";
 
 const registrationSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(100),
@@ -56,6 +57,7 @@ const registrationSchema = z.object({
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
   parentGuardianAck: z.boolean().optional(),
+  idPhotoPath: z.string().min(1, "Please upload a photo of your ID"),
   guardianFirstName: z.string().trim().max(100).optional(),
   guardianLastName: z.string().trim().max(100).optional(),
   guardianRelationship: z.string().trim().max(50).optional(),
@@ -63,6 +65,7 @@ const registrationSchema = z.object({
   guardianPhone: z.string().trim().max(20).optional(),
   guardianLicenseNumber: z.string().trim().max(50).optional(),
   guardianLicenseState: z.string().trim().max(50).optional(),
+  guardianIdPhotoPath: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (data.idType === "drivers_license") {
     if (!data.issuingState || data.issuingState.trim() === "") {
@@ -94,6 +97,7 @@ const registrationSchema = z.object({
       ["guardianPhone", "Parent/guardian phone is required"],
       ["guardianLicenseNumber", "Parent/guardian ID number is required"],
       ["guardianLicenseState", "Parent/guardian ID issuing state is required"],
+      ["guardianIdPhotoPath", "Please upload a photo of the parent/guardian's ID"],
     ];
     for (const [key, msg] of required) {
       const v = (data as any)[key];
@@ -203,6 +207,8 @@ const RegisterPage = () => {
       guardianPhone: "",
       guardianLicenseNumber: "",
       guardianLicenseState: "",
+      idPhotoPath: "",
+      guardianIdPhotoPath: "",
     },
   });
 
@@ -281,6 +287,8 @@ const RegisterPage = () => {
         issuing_country: data.issuingCountry,
         issuing_state: data.idType === "drivers_license" ? data.issuingState : null,
         license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
+        id_photo_path: data.idPhotoPath || null,
+        guardian_id_photo_path: isUnder18 ? (data.guardianIdPhotoPath || null) : null,
       };
 
       if (skipPaymentRef.current) {
@@ -711,6 +719,26 @@ const RegisterPage = () => {
                       />
                     )}
                   </div>
+
+                  <div className="mt-6">
+                    <FormField
+                      control={form.control}
+                      name="idPhotoPath"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <IdPhotoUpload
+                              label="Photo of your ID"
+                              hint="Upload a clear photo of the front of the ID you entered above. We'll match it at check-in."
+                              value={field.value || null}
+                              onChange={(p) => field.onChange(p || "")}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
 
                 {/* Fee & Referral */}
@@ -880,6 +908,20 @@ const RegisterPage = () => {
                           </FormItem>
                         )} />
                       </div>
+
+                      <FormField control={form.control} name="guardianIdPhotoPath" render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <IdPhotoUpload
+                              label="Photo of Parent / Guardian ID"
+                              hint="Upload a clear photo of the front of the parent or legal guardian's ID. We'll match it at check-in."
+                              value={field.value || null}
+                              onChange={(p) => field.onChange(p || "")}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
 
                       <FormField control={form.control} name="parentGuardianAck" render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-accent/40 bg-background/40 p-3">

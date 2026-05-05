@@ -33,7 +33,9 @@ export type Database = {
           fee: string | null
           first_name: string
           gender: string | null
+          guardian_id_photo_path: string | null
           id: string
+          id_photo_path: string | null
           is_retest: boolean
           issuing_country: string | null
           issuing_state: string | null
@@ -83,7 +85,9 @@ export type Database = {
           fee?: string | null
           first_name: string
           gender?: string | null
+          guardian_id_photo_path?: string | null
           id?: string
+          id_photo_path?: string | null
           is_retest?: boolean
           issuing_country?: string | null
           issuing_state?: string | null
@@ -133,7 +137,9 @@ export type Database = {
           fee?: string | null
           first_name?: string
           gender?: string | null
+          guardian_id_photo_path?: string | null
           id?: string
+          id_photo_path?: string | null
           is_retest?: boolean
           issuing_country?: string | null
           issuing_state?: string | null
