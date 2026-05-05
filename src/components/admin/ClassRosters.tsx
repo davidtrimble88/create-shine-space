@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, AlertTriangle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2 } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, AlertTriangle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2, ShieldCheck, ShieldAlert } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -76,6 +76,7 @@ const ClassRosters = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [waiverIds, setWaiverIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [locationFilter, setLocationFilter] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("");
@@ -346,6 +347,19 @@ const ClassRosters = () => {
         .eq("schedule_id", selectedScheduleId)
         .order("last_name");
       if (data) setBookings(data as Booking[]);
+      // Look up which of these bookings actually have a signed waiver on file
+      const waiverIdList = (data ?? [])
+        .map((b: any) => b.waiver_id)
+        .filter((x: string | null): x is string => !!x);
+      if (waiverIdList.length > 0) {
+        const { data: w } = await (supabase as any)
+          .from("signed_waivers")
+          .select("id")
+          .in("id", waiverIdList);
+        setWaiverIds(new Set((w ?? []).map((row: { id: string }) => row.id)));
+      } else {
+        setWaiverIds(new Set());
+      }
       setLoading(false);
     };
     fetchBookings();
@@ -1683,6 +1697,15 @@ const ClassRosters = () => {
                         <td className="p-3 font-medium text-foreground uppercase">
                           <div className="flex items-center gap-2">
                             <span>{b.last_name}</span>
+                            {(b as any).waiver_id && waiverIds.has((b as any).waiver_id) ? (
+                              <span title="Waiver signed" aria-label="Waiver signed" className="inline-flex items-center text-emerald-500">
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                              </span>
+                            ) : (
+                              <span title="Waiver not signed" aria-label="Waiver not signed" className="inline-flex items-center text-amber-500/80">
+                                <ShieldAlert className="w-3.5 h-3.5" />
+                              </span>
+                            )}
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); openIncidentForStudent(b); }}
