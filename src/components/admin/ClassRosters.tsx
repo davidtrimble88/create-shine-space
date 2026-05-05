@@ -1914,7 +1914,10 @@ const ClassRosters = () => {
                   {regularBookings.map((b, i) => (
                     <tr key={b.id}>
                       <td>{i + 1}</td>
-                      <td style={{ textTransform: "uppercase" }}>{b.first_name}</td>
+                      <td style={{ textTransform: "uppercase" }}>
+                        {b.first_name}
+                        {(b as any).preferred_name ? <span style={{ textTransform: "none", marginLeft: 4, fontWeight: 400 }}>("{(b as any).preferred_name}")</span> : null}
+                      </td>
                       <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
                       <td className="center" style={{ fontWeight: 700 }}>
                         {(b as any).waiver_id && waiverIds.has((b as any).waiver_id) ? "✓" : "✗"}
