@@ -56,29 +56,24 @@ const registrationSchema = z.object({
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
   parentGuardianAck: z.boolean().optional(),
+  guardianFirstName: z.string().trim().max(100).optional(),
+  guardianLastName: z.string().trim().max(100).optional(),
+  guardianRelationship: z.string().trim().max(50).optional(),
+  guardianEmail: z.string().trim().max(255).optional().or(z.literal("")),
+  guardianPhone: z.string().trim().max(20).optional(),
+  guardianLicenseNumber: z.string().trim().max(50).optional(),
+  guardianLicenseState: z.string().trim().max(50).optional(),
 }).superRefine((data, ctx) => {
   if (data.idType === "drivers_license") {
     if (!data.issuingState || data.issuingState.trim() === "") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["issuingState"],
-        message: "Issuing state is required",
-      });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["issuingState"], message: "Issuing state is required" });
     }
     if (!data.licenseExpiration || data.licenseExpiration.trim() === "") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["licenseExpiration"],
-        message: "License expiration date is required",
-      });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["licenseExpiration"], message: "License expiration date is required" });
     }
   } else if (data.idType === "other") {
     if (!data.otherIdType || data.otherIdType.trim() === "") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["otherIdType"],
-        message: "Please specify the type of ID",
-      });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["otherIdType"], message: "Please specify the type of ID" });
     }
   }
 
@@ -88,12 +83,28 @@ const registrationSchema = z.object({
   let a = today.getFullYear() - birth.getFullYear();
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) a--;
-  if (a < 18 && data.parentGuardianAck !== true) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["parentGuardianAck"],
-      message: "A parent or legal guardian must acknowledge they will be making payment",
-    });
+  if (a < 18) {
+    if (data.parentGuardianAck !== true) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["parentGuardianAck"], message: "A parent or legal guardian must acknowledge and sign for the minor" });
+    }
+    const required: Array<[keyof typeof data, string]> = [
+      ["guardianFirstName", "Parent/guardian first name is required"],
+      ["guardianLastName", "Parent/guardian last name is required"],
+      ["guardianRelationship", "Relationship is required"],
+      ["guardianPhone", "Parent/guardian phone is required"],
+      ["guardianLicenseNumber", "Parent/guardian ID number is required"],
+      ["guardianLicenseState", "Parent/guardian ID issuing state is required"],
+    ];
+    for (const [key, msg] of required) {
+      const v = (data as any)[key];
+      if (!v || String(v).trim() === "") {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [key], message: msg });
+      }
+    }
+    const ge = (data.guardianEmail || "").trim();
+    if (ge && !/^\S+@\S+\.\S+$/.test(ge)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["guardianEmail"], message: "Valid email required" });
+    }
   }
 });
 
