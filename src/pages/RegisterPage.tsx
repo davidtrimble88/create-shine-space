@@ -31,7 +31,8 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
-import WaiverStep, { type WaiverPrefill } from "@/components/WaiverStep";
+import { type WaiverPrefill } from "@/components/WaiverStep";
+import WaiverDocuSign from "@/components/WaiverDocuSign";
 
 const registrationSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(100),
