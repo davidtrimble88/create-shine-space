@@ -45,6 +45,13 @@ export interface WaiverPrefill {
   licenseNumber?: string;
   licenseState?: string;
   isMinor: boolean;
+  guardianFirstName?: string;
+  guardianLastName?: string;
+  guardianRelationship?: string;
+  guardianEmail?: string;
+  guardianPhone?: string;
+  guardianLicenseNumber?: string;
+  guardianLicenseState?: string;
   course?: string;
   location?: string;
   locationLabel?: string;
