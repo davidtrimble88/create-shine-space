@@ -418,6 +418,42 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
               </div>
             )}
 
+            {pdfReady && (() => {
+              const today = new Date();
+              const dateStr = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
+              const idDisplay = prefill.licenseNumber
+                ? `${prefill.licenseNumber}${prefill.licenseState ? " / " + prefill.licenseState : ""}`
+                : "";
+              const prefillText = (
+                f: PrefillField,
+                value: string,
+                key: string,
+              ) => value ? (
+                <div
+                  key={key}
+                  className="absolute text-black pointer-events-none"
+                  style={{
+                    left: f.x * renderScale,
+                    top: (f.yTop - 11) * renderScale,
+                    width: f.w * renderScale,
+                    fontSize: 9 * renderScale,
+                    fontFamily: "Helvetica, Arial, sans-serif",
+                    lineHeight: 1,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                  }}
+                >
+                  {value}
+                </div>
+              ) : null;
+              return PREFILL_POSITIONS.flatMap((row, idx) => [
+                prefillText(row.name, fullName, `name-${idx}`),
+                prefillText(row.license, idDisplay, `lic-${idx}`),
+                prefillText(row.date, dateStr, `date-${idx}`),
+                row.phone ? prefillText(row.phone, prefill.phone || "", `phone-${idx}`) : null,
+              ]);
+            })()}
+
             {pdfReady && TAGS.map(tag => {
               const done = !!stamped[tag.id];
               const img = tag.kind === "initial" ? initialsImg : signatureImg;
