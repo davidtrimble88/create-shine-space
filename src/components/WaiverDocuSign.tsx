@@ -373,8 +373,18 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
       <div className="bg-card border border-border rounded-2xl p-4 md:p-6">
         <div className="flex items-center gap-2 mb-2">
           <ShieldCheck className="w-5 h-5 text-accent" />
-          <h2 className="text-lg md:text-xl font-bold text-foreground">Sign Your CMSP Course Waiver</h2>
+          <h2 className="text-lg md:text-xl font-bold text-foreground">
+            {isMinor ? "Parent / Guardian: Sign the CMSP Course Waiver" : "Sign Your CMSP Course Waiver"}
+          </h2>
         </div>
+        {isMinor && (
+          <div className="mb-3 rounded-md border border-accent/40 bg-accent/10 px-3 py-2 text-xs">
+            Because <span className="font-semibold text-foreground">{studentFullName || "the student"}</span> is under 18,
+            this waiver must be signed by their parent or legal guardian
+            {guardianFullName ? <> — <span className="font-semibold text-foreground">{guardianFullName}</span> ({prefill.guardianRelationship})</> : null}.
+            Your initials and signature below are stamped on the minor's behalf.
+          </div>
+        )}
         <p className="text-sm text-muted-foreground">
           Click each highlighted <span className="font-semibold text-accent">Initial</span> or{" "}
           <span className="font-semibold text-accent">Sign</span> tag on the document. The first time you
