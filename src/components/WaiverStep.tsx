@@ -141,6 +141,8 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
   const [guardianRel, setGuardianRel] = useState("");
   const [guardianTyped, setGuardianTyped] = useState("");
   const [guardianDrawn, setGuardianDrawn] = useState<string | null>(null);
+  const [guardianLicense, setGuardianLicense] = useState("");
+  const [guardianLicenseState, setGuardianLicenseState] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const fullName = `${prefill.firstName} ${prefill.lastName}`.trim();
@@ -172,6 +174,8 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
           guardian_relationship: prefill.isMinor ? guardianRel : null,
           guardian_signature_typed: prefill.isMinor ? guardianTyped : null,
           guardian_signature_drawn: prefill.isMinor ? guardianDrawn : null,
+          guardian_license_number: prefill.isMinor ? guardianLicense : null,
+          guardian_license_state: prefill.isMinor ? guardianLicenseState : null,
           signature_typed: typedSig.trim(),
           signature_drawn: drawnSig,
           consent_acknowledgments: ACKS.map(a => ({ key: a.key, label: a.label, accepted: true as const })),
@@ -268,6 +272,16 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
             <div>
               <Label>Relationship *</Label>
               <Input value={guardianRel} onChange={(e) => setGuardianRel(e.target.value)} placeholder="Parent / Guardian" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label>Guardian License or ID #</Label>
+              <Input value={guardianLicense} onChange={(e) => setGuardianLicense(e.target.value)} placeholder="D1234567" />
+            </div>
+            <div>
+              <Label>Issuing State</Label>
+              <Input value={guardianLicenseState} onChange={(e) => setGuardianLicenseState(e.target.value)} placeholder="CA" />
             </div>
           </div>
           <div>

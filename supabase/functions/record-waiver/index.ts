@@ -1,6 +1,7 @@
-// Records a signed waiver: hashes the document, captures IP/UA,
-// generates a signed PDF, stores it privately, and inserts an
-// append-only audit row. Returns the waiver_id used by the booking.
+// Records a signed waiver: hashes the doc, captures IP/UA, fills the OFFICIAL
+// CMSP waiver PDF template (loaded from storage) with the participant's data
+// + drawn signatures, stores the filled PDF privately, and inserts an
+// append-only audit row. Returns the waiver_id.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
@@ -9,6 +10,9 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const TEMPLATE_PATH = "cmsp_waiver_2026-02.pdf"; // in waiver-templates bucket
+const PROVIDER_NAME = "Learn To Ride VC";
 
 const BodySchema = z.object({
   document_version: z.string().min(1),
@@ -26,12 +30,12 @@ const BodySchema = z.object({
   guardian_relationship: z.string().optional().nullable(),
   guardian_signature_typed: z.string().optional().nullable(),
   guardian_signature_drawn: z.string().optional().nullable(),
+  guardian_license_number: z.string().optional().nullable(),
+  guardian_license_state: z.string().optional().nullable(),
   signature_typed: z.string().min(1),
-  signature_drawn: z.string().min(50), // data URL of drawn signature
+  signature_drawn: z.string().min(50),
   consent_acknowledgments: z.array(z.object({
-    key: z.string(),
-    label: z.string(),
-    accepted: z.literal(true),
+    key: z.string(), label: z.string(), accepted: z.literal(true),
   })),
   course: z.string().optional().nullable(),
   location: z.string().optional().nullable(),
@@ -46,140 +50,204 @@ async function sha256Hex(input: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-function dataUrlToBytes(dataUrl: string): Uint8Array | null {
+function dataUrlToBytes(dataUrl: string): { bytes: Uint8Array; mime: string } | null {
   const m = dataUrl.match(/^data:image\/(png|jpeg);base64,(.+)$/);
   if (!m) return null;
   const bin = atob(m[2]);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
+  return { bytes: out, mime: m[1] };
 }
 
-async function buildPdf(payload: z.infer<typeof BodySchema>, meta: {
-  ip: string; userAgent: string; signedAt: string; hash: string; waiverId: string;
-}): Promise<Uint8Array> {
-  const pdf = await PDFDocument.create();
+// Convert pdfplumber-style top-down y to pdf-lib bottom-up baseline,
+// sitting just above the underline.
+const PAGE_H = 792;
+const above = (yTop: number, lift = 2) => PAGE_H - yTop + lift;
+
+// Draw a participant signature (drawn image) anchored above an underline.
+async function drawSignatureImage(
+  pdf: PDFDocument, page: any, dataUrl: string,
+  x: number, yTop: number, maxW: number, maxH = 24,
+) {
+  const parsed = dataUrlToBytes(dataUrl);
+  if (!parsed) return;
+  const img = parsed.mime === "png" ? await pdf.embedPng(parsed.bytes) : await pdf.embedJpg(parsed.bytes);
+  let w = img.width, h = img.height;
+  const scale = Math.min(maxW / w, maxH / h);
+  w *= scale; h *= scale;
+  // Position so bottom of image sits just above underline
+  const y = PAGE_H - yTop + 1;
+  page.drawImage(img, { x, y, width: w, height: h });
+}
+
+async function fillTemplate(
+  templateBytes: Uint8Array,
+  data: z.infer<typeof BodySchema>,
+  meta: { ip: string; userAgent: string; signedAt: string; hash: string; waiverId: string },
+): Promise<Uint8Array> {
+  const pdf = await PDFDocument.load(templateBytes);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const page = pdf.getPages()[0];
 
-  const drawWrapped = (page: any, text: string, x: number, y: number, width: number, size = 10, f = font) => {
-    const words = text.split(/\s+/);
-    let line = "";
-    let cy = y;
-    for (const w of words) {
-      const test = line ? `${line} ${w}` : w;
-      if (f.widthOfTextAtSize(test, size) > width) {
-        page.drawText(line, { x, y: cy, size, font: f, color: rgb(0, 0, 0) });
-        cy -= size + 3;
-        line = w;
-        if (cy < 60) return cy;
-      } else {
-        line = test;
-      }
-    }
-    if (line) {
-      page.drawText(line, { x, y: cy, size, font: f, color: rgb(0, 0, 0) });
-      cy -= size + 3;
-    }
-    return cy;
+  const fullName = [
+    data.signer_first_name,
+    data.signer_middle_name || "",
+    data.signer_last_name,
+  ].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+
+  const initials = (
+    (data.signer_first_name[0] || "") +
+    (data.signer_middle_name?.[0] || "") +
+    (data.signer_last_name[0] || "")
+  ).toUpperCase();
+
+  const guardianInitials = data.is_minor && data.guardian_name
+    ? data.guardian_name.trim().split(/\s+/).map(p => p[0]).join("").toUpperCase().slice(0, 4)
+    : "";
+
+  const idDisplay = data.license_number
+    ? `${data.license_number}${data.license_state ? " / " + data.license_state : ""}`
+    : "";
+  const guardianIdDisplay = data.guardian_license_number
+    ? `${data.guardian_license_number}${data.guardian_license_state ? " / " + data.guardian_license_state : ""}`
+    : "";
+
+  const today = new Date(meta.signedAt);
+  const dateStr = `${String(today.getMonth()+1).padStart(2,"0")}/${String(today.getDate()).padStart(2,"0")}/${today.getFullYear()}`;
+
+  const drawText = (text: string, x: number, yTop: number, size = 9, f = font) => {
+    if (!text) return;
+    page.drawText(text, { x, y: above(yTop), size, font: f, color: rgb(0, 0, 0) });
   };
 
-  let page = pdf.addPage([612, 792]);
-  let y = 760;
-  page.drawText("CMSP COURSE WAIVER & INDEMNIFICATION", { x: 50, y, size: 14, font: bold });
-  y -= 24;
-  page.drawText(`Document Version: ${payload.document_version}`, { x: 50, y, size: 9, font });
-  y -= 14;
-
-  // Document body — paginate
-  const paragraphs = payload.document_text.split(/\n+/);
-  for (const p of paragraphs) {
-    if (y < 80) { page = pdf.addPage([612, 792]); y = 760; }
-    y = drawWrapped(page, p, 50, y, 512, 10);
-    y -= 6;
+  // ===== Top half — Waiver section =====
+  // 5 "Initials" blanks (above line, x ~37, line y_top ~158.9, 203.9, 284.9, 320.9, 347.9)
+  for (const yTop of [158.9, 203.9, 284.9, 320.9, 347.9]) {
+    drawText(initials, 37, yTop, 9, bold);
   }
+  // "In consideration of ___" — provider name (line at y_top 158.9, x 125.7–306.9)
+  drawText(PROVIDER_NAME, 128, 158.9, 9);
 
-  // Signature page
-  page = pdf.addPage([612, 792]);
-  y = 760;
-  page.drawText("ACKNOWLEDGMENTS & SIGNATURE", { x: 50, y, size: 14, font: bold });
+  // Signature row 1 (y_top 419.9)
+  drawText(fullName, 37, 419.9, 9);                    // Participant Name
+  drawText(idDisplay, 238, 419.9, 9);                  // License or ID# and State
+  // Drawn signature image (line x 360–572)
+  drawSignatureImage(pdf, page, data.signature_drawn, 362, 419.9, 208, 22);
+
+  // Date row 1 (y_top 446.9)
+  drawText(dateStr, 37, 446.9, 9);                     // Date
+  if (data.is_minor && data.guardian_signature_drawn) {
+    drawSignatureImage(pdf, page, data.guardian_signature_drawn, 137, 446.9, 174, 22);
+  }
+  drawText(guardianIdDisplay, 326, 446.9, 9);          // Guardian License/ID
+  drawText(data.is_minor ? (data.guardian_relationship || "") : "", 442, 446.9, 9);
+
+  // ===== Bottom half — Indemnification section =====
+  // 4 initials at y_top 500.9, 545.9, 581.9, 644.9
+  for (const yTop of [500.9, 545.9, 581.9, 644.9]) {
+    drawText(initials, 37, yTop, 9, bold);
+  }
+  // "In consideration of ___" line at y_top 500.9 (x 125.7–313.8)
+  drawText(PROVIDER_NAME, 128, 500.9, 9);
+
+  // Signature row 2 (y_top 680.9)
+  drawText(fullName, 37, 680.9, 9);
+  drawText(idDisplay, 238, 680.9, 9);
+  drawSignatureImage(pdf, page, data.signature_drawn, 362, 680.9, 208, 22);
+
+  // Date row 2 (y_top 707.9)
+  drawText(dateStr, 37, 707.9, 9);
+  if (data.is_minor && data.guardian_signature_drawn) {
+    drawSignatureImage(pdf, page, data.guardian_signature_drawn, 137, 707.9, 174, 22);
+  }
+  drawText(guardianIdDisplay, 326, 707.9, 9);
+  drawText(data.is_minor ? (data.guardian_relationship || "") : "", 442, 707.9, 9);
+
+  // Phone # bottom right (y_top 736.7, x 467–571)
+  drawText(data.signer_phone || "", 467, 736.7, 9);
+
+  // ===== Add audit-trail page (separate, does not alter the original form) =====
+  const auditPage = pdf.addPage([612, 792]);
+  let y = 760;
+  auditPage.drawText("Electronic Signature Audit Trail", { x: 50, y, size: 14, font: bold });
+  y -= 24;
+  auditPage.drawText(
+    "This record is attached to the signed CMSP Course Waiver. It documents the",
+    { x: 50, y, size: 10, font }
+  );
+  y -= 12;
+  auditPage.drawText(
+    "electronic signature pursuant to the federal ESIGN Act and California UETA.",
+    { x: 50, y, size: 10, font }
+  );
   y -= 22;
 
-  for (const a of payload.consent_acknowledgments) {
-    if (y < 100) { page = pdf.addPage([612, 792]); y = 760; }
-    y = drawWrapped(page, `[X] ${a.label}`, 50, y, 512, 10);
-    y -= 4;
-  }
-
-  y -= 10;
-  page.drawText("Participant:", { x: 50, y, size: 11, font: bold });
-  y -= 14;
-  const fullName = [payload.signer_first_name, payload.signer_middle_name, payload.signer_last_name]
-    .filter(Boolean).join(" ");
-  page.drawText(fullName, { x: 50, y, size: 11, font });
-  y -= 14;
-  page.drawText(`Email: ${payload.signer_email}`, { x: 50, y, size: 10, font });
-  y -= 12;
-  if (payload.signer_phone) { page.drawText(`Phone: ${payload.signer_phone}`, { x: 50, y, size: 10, font }); y -= 12; }
-  if (payload.date_of_birth) { page.drawText(`DOB: ${payload.date_of_birth}`, { x: 50, y, size: 10, font }); y -= 12; }
-  if (payload.license_number) {
-    page.drawText(`License/ID: ${payload.license_number}${payload.license_state ? " (" + payload.license_state + ")" : ""}`, { x: 50, y, size: 10, font });
-    y -= 12;
-  }
-
-  y -= 10;
-  page.drawText(`Typed signature: ${payload.signature_typed}`, { x: 50, y, size: 11, font: bold });
-  y -= 18;
-
-  // Embed drawn signature
-  const sigBytes = dataUrlToBytes(payload.signature_drawn);
-  if (sigBytes) {
-    const img = payload.signature_drawn.includes("image/png")
-      ? await pdf.embedPng(sigBytes)
-      : await pdf.embedJpg(sigBytes);
-    const dims = img.scale(0.35);
-    page.drawText("Drawn signature:", { x: 50, y, size: 10, font });
-    y -= dims.height + 4;
-    page.drawImage(img, { x: 50, y, width: dims.width, height: dims.height });
-    y -= 10;
-  }
-
-  if (payload.is_minor) {
-    y -= 16;
-    page.drawText("Parent / Legal Guardian:", { x: 50, y, size: 11, font: bold });
-    y -= 14;
-    page.drawText(`${payload.guardian_name ?? ""} (${payload.guardian_relationship ?? ""})`, { x: 50, y, size: 10, font });
-    y -= 14;
-    page.drawText(`Typed: ${payload.guardian_signature_typed ?? ""}`, { x: 50, y, size: 10, font });
-    y -= 14;
-    if (payload.guardian_signature_drawn) {
-      const gb = dataUrlToBytes(payload.guardian_signature_drawn);
-      if (gb) {
-        const img = payload.guardian_signature_drawn.includes("image/png")
-          ? await pdf.embedPng(gb) : await pdf.embedJpg(gb);
-        const dims = img.scale(0.35);
-        y -= dims.height + 2;
-        page.drawImage(img, { x: 50, y, width: dims.width, height: dims.height });
-      }
-    }
-  }
-
-  // Audit footer
-  if (y < 140) { page = pdf.addPage([612, 792]); y = 760; }
-  y -= 30;
-  page.drawText("Audit Trail (electronic signature record)", { x: 50, y, size: 10, font: bold });
-  y -= 14;
-  const audit = [
-    `Waiver ID: ${meta.waiverId}`,
-    `Signed at: ${meta.signedAt}`,
-    `IP address: ${meta.ip}`,
-    `User agent: ${meta.userAgent}`,
-    `Document SHA-256: ${meta.hash}`,
-    `Course: ${payload.course ?? ""} | Location: ${payload.location_label ?? ""} | Date: ${payload.schedule_date ?? ""}`,
-    `Consent: Signer agreed under ESIGN Act / UETA — typed name and drawn signature constitute legal signature.`,
+  const audit: Array<[string, string]> = [
+    ["Waiver ID", meta.waiverId],
+    ["Signed at", meta.signedAt],
+    ["Signer", `${fullName} <${data.signer_email}>`],
+    ["Phone", data.signer_phone || "—"],
+    ["Date of birth", data.date_of_birth || "—"],
+    ["License/ID", idDisplay || "—"],
+    ["Course", data.course || "—"],
+    ["Location", data.location_label || "—"],
+    ["Class date", data.schedule_date || "—"],
+    ["IP address", meta.ip],
+    ["User agent", meta.userAgent],
+    ["Document version", data.document_version],
+    ["Document SHA-256", meta.hash],
+    ["Typed signature", data.signature_typed],
+    ["Initials applied", initials],
   ];
-  for (const line of audit) {
-    y = drawWrapped(page, line, 50, y, 512, 9);
+  if (data.is_minor) {
+    audit.push(
+      ["Minor", "Yes — guardian signature required and provided"],
+      ["Guardian name", data.guardian_name || "—"],
+      ["Guardian relationship", data.guardian_relationship || "—"],
+      ["Guardian typed signature", data.guardian_signature_typed || "—"],
+      ["Guardian License/ID", guardianIdDisplay || "—"],
+    );
+  }
+
+  for (const [k, v] of audit) {
+    auditPage.drawText(`${k}:`, { x: 50, y, size: 10, font: bold });
+    // wrap long values
+    const text = String(v);
+    const maxW = 380;
+    let line = "";
+    let firstLine = true;
+    for (const word of text.split(" ")) {
+      const test = line ? `${line} ${word}` : word;
+      if (font.widthOfTextAtSize(test, 10) > maxW) {
+        auditPage.drawText(line, { x: 180, y, size: 10, font });
+        y -= 12; line = word; firstLine = false;
+      } else line = test;
+    }
+    if (line) {
+      auditPage.drawText(line, { x: 180, y, size: 10, font });
+    }
+    y -= 14;
+    if (y < 60) break;
+  }
+
+  y -= 10;
+  if (y > 80) {
+    auditPage.drawText("Acknowledgments accepted:", { x: 50, y, size: 10, font: bold });
+    y -= 14;
+    for (const a of data.consent_acknowledgments) {
+      const text = `[X] ${a.label}`;
+      let line = "";
+      for (const word of text.split(" ")) {
+        const test = line ? `${line} ${word}` : word;
+        if (font.widthOfTextAtSize(test, 9) > 510) {
+          auditPage.drawText(line, { x: 50, y, size: 9, font });
+          y -= 11; line = word;
+          if (y < 50) break;
+        } else line = test;
+      }
+      if (line && y >= 50) { auditPage.drawText(line, { x: 50, y, size: 9, font }); y -= 13; }
+    }
   }
 
   return await pdf.save();
@@ -204,17 +272,27 @@ Deno.serve(async (req) => {
       || req.headers.get("cf-connecting-ip") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
     const signedAt = new Date().toISOString();
-
-    const hashInput = `${data.document_version}::${data.document_text}`;
-    const docHash = await sha256Hex(hashInput);
-
+    const docHash = await sha256Hex(`${data.document_version}::${data.document_text}`);
     const waiverId = crypto.randomUUID();
-    const pdfBytes = await buildPdf(data, { ip, userAgent, signedAt, hash: docHash, waiverId });
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    // Load the official template from private storage
+    const tpl = await supabase.storage.from("waiver-templates").download(TEMPLATE_PATH);
+    if (tpl.error || !tpl.data) {
+      console.error("template download failed", tpl.error);
+      return new Response(JSON.stringify({ error: "Waiver template unavailable" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const templateBytes = new Uint8Array(await tpl.data.arrayBuffer());
+
+    const pdfBytes = await fillTemplate(templateBytes, data, {
+      ip, userAgent, signedAt, hash: docHash, waiverId,
+    });
 
     const safeName = `${data.signer_last_name}_${data.signer_first_name}`.replace(/[^a-z0-9_-]/gi, "");
     const pdfPath = `${signedAt.slice(0, 10)}/${waiverId}_${safeName}.pdf`;
