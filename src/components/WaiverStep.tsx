@@ -141,6 +141,8 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
   const [guardianRel, setGuardianRel] = useState("");
   const [guardianTyped, setGuardianTyped] = useState("");
   const [guardianDrawn, setGuardianDrawn] = useState<string | null>(null);
+  const [guardianLicense, setGuardianLicense] = useState("");
+  const [guardianLicenseState, setGuardianLicenseState] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const fullName = `${prefill.firstName} ${prefill.lastName}`.trim();
@@ -172,6 +174,8 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
           guardian_relationship: prefill.isMinor ? guardianRel : null,
           guardian_signature_typed: prefill.isMinor ? guardianTyped : null,
           guardian_signature_drawn: prefill.isMinor ? guardianDrawn : null,
+          guardian_license_number: prefill.isMinor ? guardianLicense : null,
+          guardian_license_state: prefill.isMinor ? guardianLicenseState : null,
           signature_typed: typedSig.trim(),
           signature_drawn: drawnSig,
           consent_acknowledgments: ACKS.map(a => ({ key: a.key, label: a.label, accepted: true as const })),
