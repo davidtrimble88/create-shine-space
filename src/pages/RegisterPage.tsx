@@ -443,12 +443,38 @@ const RegisterPage = () => {
                     />
                     <FormField
                       control={form.control}
+                      name="middleName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Middle Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="(optional)" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Last Name *</FormLabel>
                           <FormControl>
                             <Input placeholder="Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="preferredName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Preferred Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="What should we call you?" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
