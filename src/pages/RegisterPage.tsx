@@ -719,6 +719,26 @@ const RegisterPage = () => {
                       />
                     )}
                   </div>
+
+                  <div className="mt-6">
+                    <FormField
+                      control={form.control}
+                      name="idPhotoPath"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <IdPhotoUpload
+                              label="Photo of your ID"
+                              hint="Upload a clear photo of the front of the ID you entered above. We'll match it at check-in."
+                              value={field.value || null}
+                              onChange={(p) => field.onChange(p || "")}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
 
                 {/* Fee & Referral */}
