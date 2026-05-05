@@ -196,6 +196,13 @@ const RegisterPage = () => {
       issuingState: "",
       licenseExpiration: "",
       referralSource: "",
+      guardianFirstName: "",
+      guardianLastName: "",
+      guardianRelationship: "",
+      guardianEmail: "",
+      guardianPhone: "",
+      guardianLicenseNumber: "",
+      guardianLicenseState: "",
     },
   });
 
