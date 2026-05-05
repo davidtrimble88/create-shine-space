@@ -446,9 +446,9 @@ const RegisterPage = () => {
                       name="middleName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Middle Name</FormLabel>
+                          <FormLabel>Middle Name *</FormLabel>
                           <FormControl>
-                            <Input placeholder="(optional)" {...field} />
+                            <Input placeholder="Middle name" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
