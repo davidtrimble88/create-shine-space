@@ -23,22 +23,24 @@ type Tag =
   | { id: string; kind: "initial"; xPdf: number; yTopPdf: number; wPdf: number; hPdf: number }
   | { id: string; kind: "signature"; xPdf: number; yTopPdf: number; wPdf: number; hPdf: number };
 
+// Tag boxes are anchored so their bottom sits on each underline.
+// yTop here is the top edge of the clickable box.
 const TAGS: Tag[] = [
-  // Top section initials (5)
-  { id: "i1", kind: "initial", xPdf: 35, yTopPdf: 144, wPdf: 30, hPdf: 16 },
-  { id: "i2", kind: "initial", xPdf: 35, yTopPdf: 189, wPdf: 30, hPdf: 16 },
-  { id: "i3", kind: "initial", xPdf: 35, yTopPdf: 270, wPdf: 30, hPdf: 16 },
-  { id: "i4", kind: "initial", xPdf: 35, yTopPdf: 306, wPdf: 30, hPdf: 16 },
-  { id: "i5", kind: "initial", xPdf: 35, yTopPdf: 333, wPdf: 30, hPdf: 16 },
-  // Participant signature row 1
-  { id: "s1", kind: "signature", xPdf: 360, yTopPdf: 405, wPdf: 212, hPdf: 18 },
-  // Bottom section initials (4)
-  { id: "i6", kind: "initial", xPdf: 35, yTopPdf: 486, wPdf: 30, hPdf: 16 },
-  { id: "i7", kind: "initial", xPdf: 35, yTopPdf: 531, wPdf: 30, hPdf: 16 },
-  { id: "i8", kind: "initial", xPdf: 35, yTopPdf: 567, wPdf: 30, hPdf: 16 },
-  { id: "i9", kind: "initial", xPdf: 35, yTopPdf: 630, wPdf: 30, hPdf: 16 },
-  // Participant signature row 2
-  { id: "s2", kind: "signature", xPdf: 360, yTopPdf: 666, wPdf: 212, hPdf: 18 },
+  // Top section initials (5) — underline y=158.9, 203.9, 284.9, 320.9, 347.9
+  { id: "i1", kind: "initial", xPdf: 36, yTopPdf: 145, wPdf: 38, hPdf: 14 },
+  { id: "i2", kind: "initial", xPdf: 36, yTopPdf: 190, wPdf: 38, hPdf: 14 },
+  { id: "i3", kind: "initial", xPdf: 36, yTopPdf: 271, wPdf: 38, hPdf: 14 },
+  { id: "i4", kind: "initial", xPdf: 36, yTopPdf: 307, wPdf: 38, hPdf: 14 },
+  { id: "i5", kind: "initial", xPdf: 36, yTopPdf: 334, wPdf: 38, hPdf: 14 },
+  // Participant signature row 1 — underline y=419.9, x 360→572
+  { id: "s1", kind: "signature", xPdf: 360, yTopPdf: 402, wPdf: 212, hPdf: 18 },
+  // Bottom section initials (4) — underline y=500.9, 545.9, 581.9, 644.9
+  { id: "i6", kind: "initial", xPdf: 36, yTopPdf: 487, wPdf: 38, hPdf: 14 },
+  { id: "i7", kind: "initial", xPdf: 36, yTopPdf: 532, wPdf: 38, hPdf: 14 },
+  { id: "i8", kind: "initial", xPdf: 36, yTopPdf: 568, wPdf: 38, hPdf: 14 },
+  { id: "i9", kind: "initial", xPdf: 36, yTopPdf: 631, wPdf: 38, hPdf: 14 },
+  // Participant signature row 2 — underline y=680.9
+  { id: "s2", kind: "signature", xPdf: 360, yTopPdf: 663, wPdf: 212, hPdf: 18 },
 ];
 
 // Read-only prefilled fields. Coordinates measured from the actual template
