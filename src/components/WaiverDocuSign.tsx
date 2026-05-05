@@ -450,12 +450,21 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
                   {value}
                 </div>
               ) : null;
-              return PREFILL_POSITIONS.flatMap((row, idx) => [
-                prefillText(row.name, fullName, `name-${idx}`),
-                prefillText(row.license, idDisplay, `lic-${idx}`),
-                prefillText(row.date, dateStr, `date-${idx}`),
-                row.phone ? prefillText(row.phone, prefill.phone || "", `phone-${idx}`) : null,
-              ]);
+              const providerLines = [
+                { x: 128, yTop: 158.9, w: 180, key: "prov-top" },
+                { x: 128, yTop: 500.9, w: 185, key: "prov-bot" },
+              ];
+              return [
+                ...providerLines.map(p =>
+                  prefillText({ x: p.x, yTop: p.yTop, w: p.w }, "Learn To Ride VC", p.key)
+                ),
+                ...PREFILL_POSITIONS.flatMap((row, idx) => [
+                  prefillText(row.name, fullName, `name-${idx}`),
+                  prefillText(row.license, idDisplay, `lic-${idx}`),
+                  prefillText(row.date, dateStr, `date-${idx}`),
+                  row.phone ? prefillText(row.phone, prefill.phone || "", `phone-${idx}`) : null,
+                ]),
+              ];
             })()}
 
             {pdfReady && TAGS.map(tag => {
