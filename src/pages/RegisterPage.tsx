@@ -822,6 +822,7 @@ const RegisterPage = () => {
                 </div>
               </form>
             </Form>
+            )}
           </motion.div>
         </div>
       </section>
