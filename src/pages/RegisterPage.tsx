@@ -909,7 +909,20 @@ const RegisterPage = () => {
                         )} />
                       </div>
 
-                      <FormField control={form.control} name="parentGuardianAck" render={({ field }) => (
+                      <FormField control={form.control} name="guardianIdPhotoPath" render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <IdPhotoUpload
+                              label="Photo of Parent / Guardian ID"
+                              hint="Upload a clear photo of the front of the parent or legal guardian's ID. We'll match it at check-in."
+                              value={field.value || null}
+                              onChange={(p) => field.onChange(p || "")}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-accent/40 bg-background/40 p-3">
                           <FormControl>
                             <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
