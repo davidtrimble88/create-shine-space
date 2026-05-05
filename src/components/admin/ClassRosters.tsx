@@ -347,6 +347,19 @@ const ClassRosters = () => {
         .eq("schedule_id", selectedScheduleId)
         .order("last_name");
       if (data) setBookings(data as Booking[]);
+      // Look up which of these bookings actually have a signed waiver on file
+      const waiverIdList = (data ?? [])
+        .map((b: any) => b.waiver_id)
+        .filter((x: string | null): x is string => !!x);
+      if (waiverIdList.length > 0) {
+        const { data: w } = await (supabase as any)
+          .from("signed_waivers")
+          .select("id")
+          .in("id", waiverIdList);
+        setWaiverIds(new Set((w ?? []).map((row: { id: string }) => row.id)));
+      } else {
+        setWaiverIds(new Set());
+      }
       setLoading(false);
     };
     fetchBookings();
