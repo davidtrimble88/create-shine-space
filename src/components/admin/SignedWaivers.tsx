@@ -161,55 +161,34 @@ const SignedWaivers = () => {
       </div>
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
           {selected && (
             <>
               <DialogHeader>
                 <DialogTitle>Signed Waiver — {selected.signer_first_name} {selected.signer_last_name}</DialogTitle>
                 <DialogDescription>
-                  Electronically signed {new Date(selected.signed_at).toLocaleString()} (ESIGN Act / UETA)
+                  Electronically signed {new Date(selected.signed_at).toLocaleString()} (ESIGN Act / UETA) · IP {selected.ip_address || "—"} · SHA-256 {selected.document_hash?.slice(0, 16)}…
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                <Info label="Email" value={selected.signer_email} />
-                <Info label="Phone" value={selected.signer_phone || "—"} />
-                <Info label="DOB" value={selected.date_of_birth || "—"} />
-                <Info label="License/ID" value={`${selected.license_number || "—"}${selected.license_state ? " (" + selected.license_state + ")" : ""}`} />
-                <Info label="Course" value={selected.course || "—"} />
-                <Info label="Location" value={selected.location_label || "—"} />
-                <Info label="Class Date" value={selected.schedule_date || "—"} />
-                <Info label="Document Version" value={selected.document_version} />
+              <div className="flex-1 min-h-[60vh] rounded-lg border border-border bg-muted/30 overflow-hidden">
+                {pdfLoading && (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading signed PDF…
+                  </div>
+                )}
+                {!pdfLoading && pdfUrl && (
+                  <iframe src={pdfUrl} title="Signed waiver PDF" className="w-full h-full" />
+                )}
+                {!pdfLoading && !pdfUrl && (
+                  <div className="h-full flex items-center justify-center text-muted-foreground text-sm p-4 text-center">
+                    No signed PDF was saved for this waiver record.
+                  </div>
+                )}
               </div>
 
-              <div>
-                <div className="text-xs font-semibold text-muted-foreground mb-1">Typed signature</div>
-                <div className="text-lg font-serif italic">{selected.signature_typed}</div>
-              </div>
-
-              <div>
-                <div className="text-xs font-semibold text-muted-foreground mb-1">Drawn signature</div>
-                <img src={selected.signature_drawn} alt="signature" className="max-h-32 border border-border rounded bg-white" />
-              </div>
-
-              {selected.is_minor && (
-                <div className="rounded-lg border border-accent/40 bg-accent/10 p-3 space-y-2">
-                  <div className="text-sm font-semibold">Guardian: {selected.guardian_name} ({selected.guardian_relationship})</div>
-                  {selected.guardian_signature_drawn && (
-                    <img src={selected.guardian_signature_drawn} alt="guardian signature" className="max-h-32 border border-border rounded bg-white" />
-                  )}
-                </div>
-              )}
-
-              <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs space-y-1">
-                <div className="font-semibold mb-1">Audit trail</div>
-                <div>IP: {selected.ip_address}</div>
-                <div className="break-all">User agent: {selected.user_agent}</div>
-                <div className="break-all">Document SHA-256: {selected.document_hash}</div>
-                <div>Acknowledgments: {Array.isArray(selected.consent_acknowledgments) ? selected.consent_acknowledgments.length : 0} accepted</div>
-              </div>
-
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setSelected(null)}>Close</Button>
                 <Button onClick={() => downloadPdf(selected)} disabled={!selected.pdf_path}>
                   <Download className="w-4 h-4 mr-2" /> Download Signed PDF
                 </Button>
