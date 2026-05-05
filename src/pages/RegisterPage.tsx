@@ -37,7 +37,7 @@ import IdPhotoUpload from "@/components/IdPhotoUpload";
 
 const registrationSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(100),
-  middleName: z.string().trim().max(100).optional(),
+  middleName: z.string().trim().min(1, "Middle name is required").max(100),
   lastName: z.string().trim().min(1, "Last name is required").max(100),
   preferredName: z.string().trim().max(100).optional(),
   gender: z.enum(["male", "female", "other"], { required_error: "Please select your gender" }),
