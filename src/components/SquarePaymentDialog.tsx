@@ -152,6 +152,17 @@ export const SquarePaymentDialog = ({
           </Button>
           </div>
         </div>
+        <div className="pt-2 border-t border-border/40">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => onSuccess(`test-skip-${Date.now()}`)}
+            disabled={submitting}
+          >
+            Skip Payment (Testing Only)
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
