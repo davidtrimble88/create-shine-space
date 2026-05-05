@@ -923,6 +923,7 @@ const RegisterPage = () => {
                         </FormItem>
                       )} />
 
+                      <FormField control={form.control} name="parentGuardianAck" render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-accent/40 bg-background/40 p-3">
                           <FormControl>
                             <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
