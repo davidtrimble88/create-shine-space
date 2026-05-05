@@ -27,20 +27,20 @@ type Tag =
 // yTop here is the top edge of the clickable box.
 const TAGS: Tag[] = [
   // Top section initials (5) — underline y=158.9, 203.9, 284.9, 320.9, 347.9
-  { id: "i1", kind: "initial", xPdf: 36, yTopPdf: 145, wPdf: 38, hPdf: 14 },
-  { id: "i2", kind: "initial", xPdf: 36, yTopPdf: 190, wPdf: 38, hPdf: 14 },
-  { id: "i3", kind: "initial", xPdf: 36, yTopPdf: 271, wPdf: 38, hPdf: 14 },
-  { id: "i4", kind: "initial", xPdf: 36, yTopPdf: 307, wPdf: 38, hPdf: 14 },
-  { id: "i5", kind: "initial", xPdf: 36, yTopPdf: 334, wPdf: 38, hPdf: 14 },
+  { id: "i1", kind: "initial", xPdf: 36, yTopPdf: 137, wPdf: 42, hPdf: 22 },
+  { id: "i2", kind: "initial", xPdf: 36, yTopPdf: 182, wPdf: 42, hPdf: 22 },
+  { id: "i3", kind: "initial", xPdf: 36, yTopPdf: 263, wPdf: 42, hPdf: 22 },
+  { id: "i4", kind: "initial", xPdf: 36, yTopPdf: 299, wPdf: 42, hPdf: 22 },
+  { id: "i5", kind: "initial", xPdf: 36, yTopPdf: 326, wPdf: 42, hPdf: 22 },
   // Participant signature row 1 — underline y=419.9, x 360→572
-  { id: "s1", kind: "signature", xPdf: 360, yTopPdf: 402, wPdf: 212, hPdf: 18 },
+  { id: "s1", kind: "signature", xPdf: 360, yTopPdf: 390, wPdf: 212, hPdf: 30 },
   // Bottom section initials (4) — underline y=500.9, 545.9, 581.9, 644.9
-  { id: "i6", kind: "initial", xPdf: 36, yTopPdf: 487, wPdf: 38, hPdf: 14 },
-  { id: "i7", kind: "initial", xPdf: 36, yTopPdf: 532, wPdf: 38, hPdf: 14 },
-  { id: "i8", kind: "initial", xPdf: 36, yTopPdf: 568, wPdf: 38, hPdf: 14 },
-  { id: "i9", kind: "initial", xPdf: 36, yTopPdf: 631, wPdf: 38, hPdf: 14 },
+  { id: "i6", kind: "initial", xPdf: 36, yTopPdf: 479, wPdf: 42, hPdf: 22 },
+  { id: "i7", kind: "initial", xPdf: 36, yTopPdf: 524, wPdf: 42, hPdf: 22 },
+  { id: "i8", kind: "initial", xPdf: 36, yTopPdf: 560, wPdf: 42, hPdf: 22 },
+  { id: "i9", kind: "initial", xPdf: 36, yTopPdf: 623, wPdf: 42, hPdf: 22 },
   // Participant signature row 2 — underline y=680.9
-  { id: "s2", kind: "signature", xPdf: 360, yTopPdf: 663, wPdf: 212, hPdf: 18 },
+  { id: "s2", kind: "signature", xPdf: 360, yTopPdf: 651, wPdf: 212, hPdf: 30 },
 ];
 
 // Read-only prefilled fields. Coordinates measured from the actual template
