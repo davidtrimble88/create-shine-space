@@ -217,8 +217,18 @@ const SignaturePad = ({
 };
 
 const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
-  const fullName = `${prefill.firstName} ${prefill.lastName}`.trim();
-  const defaultInitials = `${(prefill.firstName[0] || "").toUpperCase()}${(prefill.lastName[0] || "").toUpperCase()}`;
+  const isMinor = !!prefill.isMinor;
+  const guardianFullName = isMinor
+    ? `${prefill.guardianFirstName || ""} ${prefill.guardianLastName || ""}`.trim()
+    : "";
+  const guardianInitials = isMinor
+    ? `${(prefill.guardianFirstName?.[0] || "").toUpperCase()}${(prefill.guardianLastName?.[0] || "").toUpperCase()}`
+    : "";
+  const studentFullName = `${prefill.firstName} ${prefill.lastName}`.trim();
+  const studentInitials = `${(prefill.firstName[0] || "").toUpperCase()}${(prefill.lastName[0] || "").toUpperCase()}`;
+  // For minors, the parent/guardian is the legal signer of the waiver.
+  const fullName = isMinor ? guardianFullName : studentFullName;
+  const defaultInitials = isMinor ? guardianInitials : studentInitials;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
