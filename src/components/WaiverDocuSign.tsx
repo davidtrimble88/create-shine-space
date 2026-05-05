@@ -232,7 +232,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
       canvas.style.width = `${viewport.width}px`;
       canvas.style.height = `${viewport.height}px`;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+      await page.render({ canvasContext: ctx, viewport } as any).promise;
       if (cancelled) return;
       setRenderScale(scale);
       setPdfReady(true);
