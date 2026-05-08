@@ -319,6 +319,7 @@ const RegisterPage = () => {
       setPaymentAmountLabel(feeLabel);
       setWaiverPrefill({
         firstName: data.firstName,
+        middleName: data.middleName,
         lastName: data.lastName,
         email: data.email,
         phone: data.phone,
