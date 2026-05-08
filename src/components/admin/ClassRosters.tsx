@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { roleLabelMap } from "@/components/admin/InstructorAssignment";
-import IncidentReportDialog, { type IncidentReportContext } from "@/components/admin/IncidentReportDialog";
+
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
