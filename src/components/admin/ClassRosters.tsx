@@ -126,34 +126,6 @@ const ClassRosters = () => {
   const [dropCanReschedule, setDropCanReschedule] = useState<"yes" | "no" | null>(null);
   const [savingDrop, setSavingDrop] = useState(false);
 
-  // Incident report dialog
-  const [incidentOpen, setIncidentOpen] = useState(false);
-  const [incidentContext, setIncidentContext] = useState<IncidentReportContext>({});
-
-  const openIncidentForStudent = (b: Booking) => {
-    setIncidentContext({
-      scheduleId: b.schedule_id ?? selectedSchedule?.id ?? null,
-      bookingId: b.id,
-      studentName: `${b.first_name ?? ""} ${b.last_name ?? ""}`.trim(),
-      classDate: selectedSchedule?.date ?? b.schedule_date ?? null,
-      classCourse: selectedSchedule?.course ?? b.course ?? null,
-      classLocationLabel: selectedSchedule?.location_label ?? b.location_label ?? null,
-    });
-    setIncidentOpen(true);
-  };
-
-  const openIncidentForClass = () => {
-    if (!selectedSchedule) return;
-    setIncidentContext({
-      scheduleId: selectedSchedule.id,
-      bookingId: null,
-      studentName: null,
-      classDate: selectedSchedule.date,
-      classCourse: selectedSchedule.course,
-      classLocationLabel: selectedSchedule.location_label,
-    });
-    setIncidentOpen(true);
-  };
 
   // Load schedules + employees + assignments based on view
   useEffect(() => {
