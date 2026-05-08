@@ -175,7 +175,6 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
           document_version: CMSP_WAIVER_VERSION,
           document_text: CMSP_WAIVER_TEXT,
           signer_first_name: prefill.firstName,
-          signer_first_name: prefill.firstName,
           signer_middle_name: prefill.middleName || null,
           signer_last_name: prefill.lastName,
           signer_email: prefill.email,
