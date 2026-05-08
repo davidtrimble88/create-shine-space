@@ -38,6 +38,7 @@ const computeInitials = (first: string, last: string) =>
 
 export interface WaiverPrefill {
   firstName: string;
+  middleName?: string;
   lastName: string;
   email: string;
   phone?: string;
@@ -156,7 +157,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
   const [guardianLicenseState, setGuardianLicenseState] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const fullName = `${prefill.firstName} ${prefill.lastName}`.trim();
+  const fullName = [prefill.firstName, prefill.middleName, prefill.lastName].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   const allInitialed = ACKS.every(a => (acks[a.key] || "").trim().toUpperCase() === requiredInitials && requiredInitials.length === 2);
   const typedMatches = typedSig.trim().toLowerCase() === fullName.toLowerCase();
   const minorReady = !prefill.isMinor || (
@@ -174,6 +175,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
           document_version: CMSP_WAIVER_VERSION,
           document_text: CMSP_WAIVER_TEXT,
           signer_first_name: prefill.firstName,
+          signer_middle_name: prefill.middleName || null,
           signer_last_name: prefill.lastName,
           signer_email: prefill.email,
           signer_phone: prefill.phone || null,
