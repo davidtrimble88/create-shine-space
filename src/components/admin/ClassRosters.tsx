@@ -1412,9 +1412,6 @@ const ClassRosters = () => {
                   </DialogContent>
                 </Dialog>
               )}
-              <Button variant="outline" onClick={openIncidentForClass}>
-                <AlertTriangle className="w-4 h-4 mr-2" /> Report Incident
-              </Button>
               <Button onClick={handlePrint}>
                 <Printer className="w-4 h-4 mr-2" /> Print Roster
               </Button>
