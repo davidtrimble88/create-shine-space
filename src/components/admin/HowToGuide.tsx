@@ -135,8 +135,10 @@ const guideSections: GuideSection[] = [
       "Filter bookings by location, course, or status to find specific entries.",
       "Update payment status and booking status as students complete their registration.",
       "Use the manual enrollment feature to register students over the phone or in person.",
+      "Registration captures First, Middle (required), Last, and an optional Preferred Name. The preferred name is shown in parentheses on rosters so instructors know what to call the student.",
       "When a minor (under 18) registers, the form requires a parent/legal guardian acknowledgment that they are making payment — this is enforced automatically.",
       "Students can register with a Driver's License OR another ID (Passport, School ID, Military ID, etc.). For 'Other' IDs, the type is stored alongside the ID number.",
+      "After registering, every student e-signs the official CMSP waiver before payment. A signed PDF copy is saved automatically and shown on the booking with a green shield icon on the roster.",
     ],
   },
   {
