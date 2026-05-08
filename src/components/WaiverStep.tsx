@@ -38,6 +38,7 @@ const computeInitials = (first: string, last: string) =>
 
 export interface WaiverPrefill {
   firstName: string;
+  middleName?: string;
   lastName: string;
   email: string;
   phone?: string;
