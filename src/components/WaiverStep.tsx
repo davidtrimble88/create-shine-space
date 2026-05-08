@@ -157,7 +157,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
   const [guardianLicenseState, setGuardianLicenseState] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const fullName = `${prefill.firstName} ${prefill.lastName}`.trim();
+  const fullName = [prefill.firstName, prefill.middleName, prefill.lastName].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   const allInitialed = ACKS.every(a => (acks[a.key] || "").trim().toUpperCase() === requiredInitials && requiredInitials.length === 2);
   const typedMatches = typedSig.trim().toLowerCase() === fullName.toLowerCase();
   const minorReady = !prefill.isMinor || (
