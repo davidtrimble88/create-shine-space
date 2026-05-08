@@ -2120,13 +2120,6 @@ const ClassRosters = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Incident Report dialog */}
-      <IncidentReportDialog
-        open={incidentOpen}
-        onOpenChange={setIncidentOpen}
-        context={incidentContext}
-      />
     </div>
   );
 };
