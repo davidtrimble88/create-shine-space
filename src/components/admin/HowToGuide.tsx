@@ -16,12 +16,14 @@ import {
   KeyRound,
   HelpCircle,
   Shield,
+  ShieldCheck,
   ListChecks,
   ListPlus,
   DollarSign,
-  ShieldCheck,
   Lock,
   FolderOpen,
+  CreditCard,
+  Smartphone,
 } from "lucide-react";
 
 interface GuideSection {
@@ -65,8 +67,9 @@ const guideSections: GuideSection[] = [
       "Navigate to the 'Schedule' tab to create and manage class schedules.",
       "Click 'Add Schedule' to create a new class — select the course, location, date, time, and price.",
       "You can edit existing schedules by clicking on them in the list.",
-      "To delete a schedule, click the delete icon next to the entry.",
-      "Assign instructors to classes using the instructor assignment panel within each schedule.",
+      "To delete a schedule, click the delete icon next to the entry. To cancel an already-published class, use the cancel option so it appears under 'Cancellations' for the team.",
+      "Assign instructors to classes using the instructor assignment panel within each schedule. Instructor availability (including weekend placeholders) is taken into account.",
+      "Empty weekend slots are auto-generated as placeholders so instructors can mark availability before classes are formally scheduled. Dismiss a weekend you don't plan to use to remove its placeholder.",
     ],
   },
   {
@@ -133,8 +136,10 @@ const guideSections: GuideSection[] = [
       "Filter bookings by location, course, or status to find specific entries.",
       "Update payment status and booking status as students complete their registration.",
       "Use the manual enrollment feature to register students over the phone or in person.",
+      "Registration captures First, Middle (required), Last, and an optional Preferred Name. The preferred name is shown in parentheses on rosters so instructors know what to call the student.",
       "When a minor (under 18) registers, the form requires a parent/legal guardian acknowledgment that they are making payment — this is enforced automatically.",
       "Students can register with a Driver's License OR another ID (Passport, School ID, Military ID, etc.). For 'Other' IDs, the type is stored alongside the ID number.",
+      "After registering, every student e-signs the official CMSP waiver before payment. A signed PDF copy is saved automatically and shown on the booking with a green shield icon on the roster.",
     ],
   },
   {
@@ -145,8 +150,9 @@ const guideSections: GuideSection[] = [
     steps: [
       "Open 'Class Rosters' to see all upcoming classes with their student lists.",
       "Each class card shows the number of regular students 'registered' and, separately, how many 'retest' students are signed up. Retests are NOT counted in the registered total.",
-      "Click a class to open its full roster with student details (name, phone, DL/ID, DOB).",
-      "Use the print button to generate a clean roster for class day.",
+      "Click a class to open its full roster with student details (name, preferred name, phone, DL/ID, DOB).",
+      "A green shield next to a student's name means their waiver is signed; an amber shield means it is still missing.",
+      "Use the print button to generate a clean printable roster for class day — waiver status icons are included on the printout.",
     ],
   },
   {
@@ -157,9 +163,12 @@ const guideSections: GuideSection[] = [
     steps: [
       "Open 'Class Rosters' to see all upcoming classes with their student lists.",
       "Each class card shows the number of regular students 'registered' and, separately, how many 'retest' students are signed up. Retests are NOT counted in the registered total.",
-      "Click a class to open its full roster with student details (name, phone, DL/ID, DOB, comments).",
+      "Click a class to open its full roster with student details (name, preferred name, phone, DL/ID, DOB, comments).",
+      "A green shield next to each name means the waiver is signed; an amber shield means the student still needs to sign before class day.",
       "Comments column: Add roster notes per student. Comments are visible on screen but never appear on printed rosters.",
       "Use 'Add Retest Student' inside a roster to register a returning student for a re-test in the Skill, Knowledge, or both portions.",
+      "Drop a student from a class using the drop button on their row — record a reason and whether they're eligible to be rescheduled.",
+      "Reschedule a dropped or affected student into another class directly from the roster; original class info is kept for reference.",
       "Result column: mark each student Pass or Fail after the class. Marking Fail opens a dialog to choose which retest portion they're eligible for.",
       "After the class date passes, classes with un-evaluated students appear under 'Evaluation Pending' until every student has a Pass/Fail recorded.",
       "Once all students are evaluated, classes with passed students move to the 'DL389' queue.",
@@ -210,6 +219,53 @@ const guideSections: GuideSection[] = [
       "Click 'Upload File' to add a new resource (max 50 MB), give it a display name and optional description.",
       "Use the edit and delete buttons to keep the library current.",
       "All signed-in staff can browse and download these files.",
+    ],
+  },
+  {
+    id: "signed-waivers",
+    title: "Signed Waivers",
+    icon: ShieldCheck,
+    roles: ["owner", "admin"],
+    steps: [
+      "The 'Signed Waivers' tab is the legal archive of every electronically signed CMSP waiver.",
+      "Each row links a signer to their booking, course, location, class date, signature timestamp, IP address, and document hash.",
+      "Click 'View' to preview the saved PDF (the official template plus an audit-trail page) and 'Download' to save a copy for records.",
+      "Search by name, email, course, or location to quickly find a specific waiver.",
+      "Waivers are append-only — they cannot be edited or deleted, which preserves their legal validity under ESIGN/UETA.",
+    ],
+  },
+  {
+    id: "cancellations",
+    title: "Cancellations",
+    icon: CalendarDays,
+    roles: ["owner", "admin"],
+    steps: [
+      "The 'Cancellations' view lists classes (or class parts) that have been cancelled, along with who cancelled them and why.",
+      "Use this list to follow up with affected students and reschedule them through the roster reschedule action.",
+    ],
+  },
+  {
+    id: "payment-settings",
+    title: "Payment Settings",
+    icon: CreditCard,
+    roles: ["owner"],
+    steps: [
+      "The 'Payment Settings' tab controls which payment provider is active for online checkout.",
+      "Square is the default and runs in live mode using the Web Payments SDK.",
+      "Toggle providers on/off and switch between sandbox and live modes when testing.",
+      "Only the Owner can change these settings.",
+    ],
+  },
+  {
+    id: "install-app",
+    title: "Install the App",
+    icon: Smartphone,
+    roles: ["owner", "admin", "manager", "employee"],
+    steps: [
+      "Open the 'Install App' page from the navbar to add the Employee Portal to your phone or desktop home screen.",
+      "On iPhone/iPad: open in Safari, tap Share, then 'Add to Home Screen'.",
+      "On Android/Chrome: tap the install prompt or use the menu's 'Install app' option.",
+      "The installed app launches full-screen and stays signed in for faster access on class day.",
     ],
   },
   {
