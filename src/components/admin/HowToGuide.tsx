@@ -16,12 +16,14 @@ import {
   KeyRound,
   HelpCircle,
   Shield,
+  ShieldCheck,
   ListChecks,
   ListPlus,
   DollarSign,
-  ShieldCheck,
   Lock,
   FolderOpen,
+  CreditCard,
+  Smartphone,
 } from "lucide-react";
 
 interface GuideSection {
