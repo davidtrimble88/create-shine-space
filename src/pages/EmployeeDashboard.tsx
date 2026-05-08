@@ -33,7 +33,7 @@ const tabs = [
   { id: "referrals", label: "Referral Sources", icon: ListPlus, roles: ["owner", "admin"] },
   { id: "rosters", label: "Class Rosters", icon: ListChecks, roles: ["owner", "admin", "manager", "employee"] },
   { id: "files", label: "Files", icon: FolderOpen, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "incident-reports", label: "Incident Reports", icon: AlertCircle, roles: ["owner", "admin"] },
+  
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
   { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
   { id: "payment-settings", label: "Payment Settings", icon: CreditCard, roles: ["owner"] },
