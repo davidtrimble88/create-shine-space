@@ -149,8 +149,9 @@ const guideSections: GuideSection[] = [
     steps: [
       "Open 'Class Rosters' to see all upcoming classes with their student lists.",
       "Each class card shows the number of regular students 'registered' and, separately, how many 'retest' students are signed up. Retests are NOT counted in the registered total.",
-      "Click a class to open its full roster with student details (name, phone, DL/ID, DOB).",
-      "Use the print button to generate a clean roster for class day.",
+      "Click a class to open its full roster with student details (name, preferred name, phone, DL/ID, DOB).",
+      "A green shield next to a student's name means their waiver is signed; an amber shield means it is still missing.",
+      "Use the print button to generate a clean printable roster for class day — waiver status icons are included on the printout.",
     ],
   },
   {
@@ -161,9 +162,12 @@ const guideSections: GuideSection[] = [
     steps: [
       "Open 'Class Rosters' to see all upcoming classes with their student lists.",
       "Each class card shows the number of regular students 'registered' and, separately, how many 'retest' students are signed up. Retests are NOT counted in the registered total.",
-      "Click a class to open its full roster with student details (name, phone, DL/ID, DOB, comments).",
+      "Click a class to open its full roster with student details (name, preferred name, phone, DL/ID, DOB, comments).",
+      "A green shield next to each name means the waiver is signed; an amber shield means the student still needs to sign before class day.",
       "Comments column: Add roster notes per student. Comments are visible on screen but never appear on printed rosters.",
       "Use 'Add Retest Student' inside a roster to register a returning student for a re-test in the Skill, Knowledge, or both portions.",
+      "Drop a student from a class using the drop button on their row — record a reason and whether they're eligible to be rescheduled.",
+      "Reschedule a dropped or affected student into another class directly from the roster; original class info is kept for reference.",
       "Result column: mark each student Pass or Fail after the class. Marking Fail opens a dialog to choose which retest portion they're eligible for.",
       "After the class date passes, classes with un-evaluated students appear under 'Evaluation Pending' until every student has a Pass/Fail recorded.",
       "Once all students are evaluated, classes with passed students move to the 'DL389' queue.",
