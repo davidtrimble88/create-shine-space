@@ -67,8 +67,9 @@ const guideSections: GuideSection[] = [
       "Navigate to the 'Schedule' tab to create and manage class schedules.",
       "Click 'Add Schedule' to create a new class — select the course, location, date, time, and price.",
       "You can edit existing schedules by clicking on them in the list.",
-      "To delete a schedule, click the delete icon next to the entry.",
-      "Assign instructors to classes using the instructor assignment panel within each schedule.",
+      "To delete a schedule, click the delete icon next to the entry. To cancel an already-published class, use the cancel option so it appears under 'Cancellations' for the team.",
+      "Assign instructors to classes using the instructor assignment panel within each schedule. Instructor availability (including weekend placeholders) is taken into account.",
+      "Empty weekend slots are auto-generated as placeholders so instructors can mark availability before classes are formally scheduled. Dismiss a weekend you don't plan to use to remove its placeholder.",
     ],
   },
   {
