@@ -224,8 +224,8 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const guardianInitials = isMinor
     ? `${(prefill.guardianFirstName?.[0] || "").toUpperCase()}${(prefill.guardianLastName?.[0] || "").toUpperCase()}`
     : "";
-  const studentFullName = `${prefill.firstName} ${prefill.lastName}`.trim();
-  const studentInitials = `${(prefill.firstName[0] || "").toUpperCase()}${(prefill.lastName[0] || "").toUpperCase()}`;
+  const studentFullName = [prefill.firstName, prefill.middleName, prefill.lastName].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+  const studentInitials = `${(prefill.firstName[0] || "").toUpperCase()}${(prefill.middleName?.[0] || "").toUpperCase()}${(prefill.lastName[0] || "").toUpperCase()}`;
   // For minors, the parent/guardian is the legal signer of the waiver.
   const fullName = isMinor ? guardianFullName : studentFullName;
   const defaultInitials = isMinor ? guardianInitials : studentInitials;
