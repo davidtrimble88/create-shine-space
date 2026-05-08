@@ -222,6 +222,53 @@ const guideSections: GuideSection[] = [
     ],
   },
   {
+    id: "signed-waivers",
+    title: "Signed Waivers",
+    icon: ShieldCheck,
+    roles: ["owner", "admin"],
+    steps: [
+      "The 'Signed Waivers' tab is the legal archive of every electronically signed CMSP waiver.",
+      "Each row links a signer to their booking, course, location, class date, signature timestamp, IP address, and document hash.",
+      "Click 'View' to preview the saved PDF (the official template plus an audit-trail page) and 'Download' to save a copy for records.",
+      "Search by name, email, course, or location to quickly find a specific waiver.",
+      "Waivers are append-only — they cannot be edited or deleted, which preserves their legal validity under ESIGN/UETA.",
+    ],
+  },
+  {
+    id: "cancellations",
+    title: "Cancellations",
+    icon: CalendarDays,
+    roles: ["owner", "admin"],
+    steps: [
+      "The 'Cancellations' view lists classes (or class parts) that have been cancelled, along with who cancelled them and why.",
+      "Use this list to follow up with affected students and reschedule them through the roster reschedule action.",
+    ],
+  },
+  {
+    id: "payment-settings",
+    title: "Payment Settings",
+    icon: CreditCard,
+    roles: ["owner"],
+    steps: [
+      "The 'Payment Settings' tab controls which payment provider is active for online checkout.",
+      "Square is the default and runs in live mode using the Web Payments SDK.",
+      "Toggle providers on/off and switch between sandbox and live modes when testing.",
+      "Only the Owner can change these settings.",
+    ],
+  },
+  {
+    id: "install-app",
+    title: "Install the App",
+    icon: Smartphone,
+    roles: ["owner", "admin", "manager", "employee"],
+    steps: [
+      "Open the 'Install App' page from the navbar to add the Employee Portal to your phone or desktop home screen.",
+      "On iPhone/iPad: open in Safari, tap Share, then 'Add to Home Screen'.",
+      "On Android/Chrome: tap the install prompt or use the menu's 'Install app' option.",
+      "The installed app launches full-screen and stays signed in for faster access on class day.",
+    ],
+  },
+  {
     id: "earnings",
     title: "Earnings Analytics",
     icon: DollarSign,
