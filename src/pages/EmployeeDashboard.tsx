@@ -20,7 +20,7 @@ import ClassRosters from "@/components/admin/ClassRosters";
 import AdminReferralSources from "@/components/admin/AdminReferralSources";
 import AdminFiles from "@/components/admin/AdminFiles";
 import PaymentSettings from "@/components/admin/PaymentSettings";
-import IncidentReports from "@/components/admin/IncidentReports";
+
 import SignedWaivers from "@/components/admin/SignedWaivers";
 
 const tabs = [
