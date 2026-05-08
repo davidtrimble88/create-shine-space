@@ -1678,15 +1678,6 @@ const ClassRosters = () => {
                                 <ShieldAlert className="w-3.5 h-3.5" />
                               </span>
                             )}
-                            <button
-                              type="button"
-                              onClick={(e) => { e.stopPropagation(); openIncidentForStudent(b); }}
-                              title="Submit incident report for this student"
-                              aria-label="Submit incident report"
-                              className="p-1 rounded text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors normal-case"
-                            >
-                              <AlertTriangle className="w-3.5 h-3.5" />
-                            </button>
                           </div>
                         </td>
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
