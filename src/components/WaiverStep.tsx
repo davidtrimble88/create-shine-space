@@ -363,6 +363,12 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
           Initial each acknowledgment and complete your signature to continue.
         </p>
       )}
+      <WaiverSignedDialog
+        open={!!signedResult}
+        pdfPath={signedResult?.pdfPath || null}
+        signerName={fullName}
+        onContinue={() => signedResult && onSigned(signedResult.waiverId)}
+      />
     </div>
   );
 };
