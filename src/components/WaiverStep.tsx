@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ShieldCheck, Eraser } from "lucide-react";
+import WaiverSignedDialog from "./WaiverSignedDialog";
 
 export const CMSP_WAIVER_VERSION = "2026-02";
 
