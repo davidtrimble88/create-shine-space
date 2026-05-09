@@ -157,7 +157,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
   const [guardianLicense, setGuardianLicense] = useState("");
   const [guardianLicenseState, setGuardianLicenseState] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [signedResult, setSignedResult] = useState<{ waiverId: string; pdfPath: string | null } | null>(null);
+  const [signedResult, setSignedResult] = useState<{ waiverId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
 
   const fullName = [prefill.firstName, prefill.middleName, prefill.lastName].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   const allInitialed = ACKS.every(a => (acks[a.key] || "").trim().toUpperCase() === requiredInitials && requiredInitials.length === 2);
@@ -209,7 +209,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
       });
       if (error) throw new Error(error.message);
       if ((data as any)?.error) throw new Error((data as any).error);
-      setSignedResult({ waiverId: (data as any).waiver_id, pdfPath: (data as any).pdf_path || null });
+      setSignedResult({ waiverId: (data as any).waiver_id, pdfPath: (data as any).pdf_path || null, downloadUrl: (data as any).download_url || null });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to record waiver";
       toast({ title: "Could not sign waiver", description: msg, variant: "destructive" });
@@ -366,6 +366,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
       <WaiverSignedDialog
         open={!!signedResult}
         pdfPath={signedResult?.pdfPath || null}
+        downloadUrl={signedResult?.downloadUrl || null}
         signerName={fullName}
         onContinue={() => signedResult && onSigned(signedResult.waiverId)}
       />
