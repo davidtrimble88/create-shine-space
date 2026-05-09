@@ -354,7 +354,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
       });
       if (error) throw new Error(error.message);
       if ((data as any)?.error) throw new Error((data as any).error);
-      onSigned((data as any).waiver_id);
+      setSignedResult({ waiverId: (data as any).waiver_id, pdfPath: (data as any).pdf_path || null });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to record waiver";
       toast({ title: "Could not sign waiver", description: msg, variant: "destructive" });
