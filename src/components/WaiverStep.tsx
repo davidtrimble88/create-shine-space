@@ -157,6 +157,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
   const [guardianLicense, setGuardianLicense] = useState("");
   const [guardianLicenseState, setGuardianLicenseState] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [signedResult, setSignedResult] = useState<{ waiverId: string; pdfPath: string | null } | null>(null);
 
   const fullName = [prefill.firstName, prefill.middleName, prefill.lastName].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   const allInitialed = ACKS.every(a => (acks[a.key] || "").trim().toUpperCase() === requiredInitials && requiredInitials.length === 2);
