@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ShieldCheck, Eraser, PenLine, CheckCircle2 } from "lucide-react";
 import type { WaiverPrefill } from "./WaiverStep";
 import { CMSP_WAIVER_TEXT, CMSP_WAIVER_VERSION } from "./WaiverStep";
+import WaiverSignedDialog from "./WaiverSignedDialog";
 
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -244,6 +245,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const [activeTagId, setActiveTagId] = useState<string | null>(null);
   const [adoptOpen, setAdoptOpen] = useState<null | "signature" | "initial">(null);
   const [submitting, setSubmitting] = useState(false);
+  const [signedResult, setSignedResult] = useState<{ waiverId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
 
   // Render the PDF page once
   useEffect(() => {
@@ -352,7 +354,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
       });
       if (error) throw new Error(error.message);
       if ((data as any)?.error) throw new Error((data as any).error);
-      onSigned((data as any).waiver_id);
+      setSignedResult({ waiverId: (data as any).waiver_id, pdfPath: (data as any).pdf_path || null, downloadUrl: (data as any).download_url || null });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to record waiver";
       toast({ title: "Could not sign waiver", description: msg, variant: "destructive" });
@@ -563,6 +565,13 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           )}
         </DialogContent>
       </Dialog>
+      <WaiverSignedDialog
+        open={!!signedResult}
+        pdfPath={signedResult?.pdfPath || null}
+        downloadUrl={signedResult?.downloadUrl || null}
+        signerName={fullName}
+        onContinue={() => signedResult && onSigned(signedResult.waiverId)}
+      />
     </div>
   );
 };

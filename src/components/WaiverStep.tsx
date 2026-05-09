@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ShieldCheck, Eraser } from "lucide-react";
+import WaiverSignedDialog from "./WaiverSignedDialog";
 
 export const CMSP_WAIVER_VERSION = "2026-02";
 
@@ -156,6 +157,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
   const [guardianLicense, setGuardianLicense] = useState("");
   const [guardianLicenseState, setGuardianLicenseState] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [signedResult, setSignedResult] = useState<{ waiverId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
 
   const fullName = [prefill.firstName, prefill.middleName, prefill.lastName].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   const allInitialed = ACKS.every(a => (acks[a.key] || "").trim().toUpperCase() === requiredInitials && requiredInitials.length === 2);
@@ -207,7 +209,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
       });
       if (error) throw new Error(error.message);
       if ((data as any)?.error) throw new Error((data as any).error);
-      onSigned((data as any).waiver_id);
+      setSignedResult({ waiverId: (data as any).waiver_id, pdfPath: (data as any).pdf_path || null, downloadUrl: (data as any).download_url || null });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to record waiver";
       toast({ title: "Could not sign waiver", description: msg, variant: "destructive" });
@@ -361,6 +363,13 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
           Initial each acknowledgment and complete your signature to continue.
         </p>
       )}
+      <WaiverSignedDialog
+        open={!!signedResult}
+        pdfPath={signedResult?.pdfPath || null}
+        downloadUrl={signedResult?.downloadUrl || null}
+        signerName={fullName}
+        onContinue={() => signedResult && onSigned(signedResult.waiverId)}
+      />
     </div>
   );
 };

@@ -354,7 +354,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ waiver_id: waiverId, pdf_path: pdfPath }), {
+    let downloadUrl: string | null = null;
+    if (!up.error) {
+      const { data: signed } = await admin.storage.from("waivers").createSignedUrl(pdfPath, 60 * 60);
+      downloadUrl = signed?.signedUrl || null;
+    }
+
+    return new Response(JSON.stringify({ waiver_id: waiverId, pdf_path: pdfPath, download_url: downloadUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
