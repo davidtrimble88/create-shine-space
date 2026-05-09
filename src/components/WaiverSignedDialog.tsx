@@ -8,19 +8,19 @@ import { toast } from "@/hooks/use-toast";
 interface Props {
   open: boolean;
   pdfPath: string | null;
+  downloadUrl?: string | null;
   signerName: string;
   onContinue: () => void;
 }
 
-const WaiverSignedDialog = ({ open, pdfPath, signerName, onContinue }: Props) => {
+const WaiverSignedDialog = ({ open, pdfPath, downloadUrl, signerName, onContinue }: Props) => {
   const [loading, setLoading] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open || !pdfPath) {
-      setSignedUrl(null);
-      return;
-    }
+    if (!open) { setSignedUrl(null); return; }
+    if (downloadUrl) { setSignedUrl(downloadUrl); return; }
+    if (!pdfPath) { setSignedUrl(null); return; }
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -37,7 +37,7 @@ const WaiverSignedDialog = ({ open, pdfPath, signerName, onContinue }: Props) =>
       }
     })();
     return () => { cancelled = true; };
-  }, [open, pdfPath]);
+  }, [open, pdfPath, downloadUrl]);
 
   const handleDownload = () => {
     if (!signedUrl) return;
