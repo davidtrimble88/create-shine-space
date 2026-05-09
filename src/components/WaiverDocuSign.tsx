@@ -565,6 +565,12 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           )}
         </DialogContent>
       </Dialog>
+      <WaiverSignedDialog
+        open={!!signedResult}
+        pdfPath={signedResult?.pdfPath || null}
+        signerName={fullName}
+        onContinue={() => signedResult && onSigned(signedResult.waiverId)}
+      />
     </div>
   );
 };
