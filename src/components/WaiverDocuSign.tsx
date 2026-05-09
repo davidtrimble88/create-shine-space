@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ShieldCheck, Eraser, PenLine, CheckCircle2 } from "lucide-react";
 import type { WaiverPrefill } from "./WaiverStep";
 import { CMSP_WAIVER_TEXT, CMSP_WAIVER_VERSION } from "./WaiverStep";
+import WaiverSignedDialog from "./WaiverSignedDialog";
 
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
