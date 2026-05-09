@@ -245,6 +245,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const [activeTagId, setActiveTagId] = useState<string | null>(null);
   const [adoptOpen, setAdoptOpen] = useState<null | "signature" | "initial">(null);
   const [submitting, setSubmitting] = useState(false);
+  const [signedResult, setSignedResult] = useState<{ waiverId: string; pdfPath: string | null } | null>(null);
 
   // Render the PDF page once
   useEffect(() => {
