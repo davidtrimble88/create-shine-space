@@ -23,6 +23,8 @@ export type Database = {
           description: string | null
           enabled: boolean
           id: string
+          match_group: string | null
+          match_location: string | null
           name: string
           subject: string
           trigger_event: string
@@ -37,6 +39,8 @@ export type Database = {
           description?: string | null
           enabled?: boolean
           id?: string
+          match_group?: string | null
+          match_location?: string | null
           name: string
           subject: string
           trigger_event: string
@@ -51,6 +55,8 @@ export type Database = {
           description?: string | null
           enabled?: boolean
           id?: string
+          match_group?: string | null
+          match_location?: string | null
           name?: string
           subject?: string
           trigger_event?: string
