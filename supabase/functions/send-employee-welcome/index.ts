@@ -1,5 +1,7 @@
 // Sends a welcome email to a newly created employee with login instructions
 // and their one-time temporary password. CCs Office@LearnToRidevc.com.
+// Loads subject/body from auto_email_templates (trigger_event='employee_welcome')
+// so admins can edit the copy from the Auto Emails admin page.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const cors = {
@@ -9,6 +11,36 @@ const cors = {
 
 const PORTAL_URL = "https://learntoridevc.com/employee-login";
 const CC_EMAIL = "Office@LearnToRidevc.com";
+const TRIGGER = "employee_welcome";
+
+const FALLBACK_SUBJECT = "Welcome to the Learn to Ride VC Employee Portal";
+const FALLBACK_BODY = `<p>Hi {{firstName}},</p>
+<p>Welcome to the <strong>Learn to Ride VC</strong> team! Your employee portal account has been created.</p>
+<p><strong>How to sign in for the first time:</strong></p>
+<ol>
+  <li>Go to <a href="{{portalUrl}}" style="color:#c2410c">{{portalUrl}}</a></li>
+  <li>Enter your email: <strong>{{email}}</strong></li>
+  <li>Enter your temporary password: <strong style="font-family:monospace;background:#f5f5f5;padding:2px 6px;border-radius:4px">{{tempPassword}}</strong></li>
+  <li>You'll be prompted to set your own password right after signing in.</li>
+  <li>After setting a new password, you'll be guided to set up security questions used for self-service password resets.</li>
+</ol>
+<p>— Learn to Ride VC</p>`;
+
+const substitute = (s: string, vars: Record<string, string>) =>
+  s.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? "");
+
+const htmlToText = (html: string) =>
+  html
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|li|h[1-6])>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "• ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
@@ -25,40 +57,34 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const greeting = fullName ? `Hi ${fullName.split(" ")[0]},` : "Hi,";
-    const subject = "Welcome to the Learn to Ride VC Employee Portal";
-    const body = `${greeting}
+    // Load editable template (falls back to hardcoded copy if missing/disabled)
+    let subjectTpl = FALLBACK_SUBJECT;
+    let bodyTpl = FALLBACK_BODY;
+    try {
+      const { data: tpl } = await supabase
+        .from("auto_email_templates")
+        .select("subject, body, enabled")
+        .eq("trigger_event", TRIGGER)
+        .eq("enabled", true)
+        .maybeSingle();
+      if (tpl?.subject) subjectTpl = tpl.subject;
+      if (tpl?.body) bodyTpl = tpl.body;
+    } catch (e) {
+      console.warn("[send-employee-welcome] template load failed, using fallback:", (e as Error).message);
+    }
 
-Welcome to the Learn to Ride VC team! Your employee portal account has been created.
+    const firstName = (fullName || "").split(" ")[0] || "there";
+    const vars: Record<string, string> = {
+      firstName,
+      fullName: fullName || "",
+      email: recipientEmail,
+      tempPassword,
+      portalUrl: PORTAL_URL,
+    };
 
-How to sign in for the first time:
-1. Go to ${PORTAL_URL}
-2. Enter your email: ${recipientEmail}
-3. Enter your temporary password: ${tempPassword}
-4. You'll be prompted to set your own password right after signing in.
-5. After setting a new password, you'll be guided to set up security questions used for self-service password resets.
-
-Once you're in, you'll have access to the schedule, rosters, and other tools based on your assigned role. If you ever forget your password, use the "Forgot your password?" link on the login page.
-
-If you have any questions, reply to this email or contact the office.
-
-— Learn to Ride VC`;
-
-    const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">
-      <p>${greeting}</p>
-      <p>Welcome to the <strong>Learn to Ride VC</strong> team! Your employee portal account has been created.</p>
-      <p><strong>How to sign in for the first time:</strong></p>
-      <ol>
-        <li>Go to <a href="${PORTAL_URL}" style="color:#c2410c">${PORTAL_URL}</a></li>
-        <li>Enter your email: <strong>${recipientEmail}</strong></li>
-        <li>Enter your temporary password: <strong style="font-family:monospace;background:#f5f5f5;padding:2px 6px;border-radius:4px">${tempPassword}</strong></li>
-        <li>You'll be prompted to set your own password right after signing in.</li>
-        <li>After setting a new password, you'll be guided to set up security questions used for self-service password resets.</li>
-      </ol>
-      <p>Once you're in, you'll have access to the schedule, rosters, and other tools based on your assigned role. If you ever forget your password, use the "Forgot your password?" link on the login page.</p>
-      <p>If you have any questions, reply to this email or contact the office.</p>
-      <p>— Learn to Ride VC</p>
-    </div>`;
+    const subject = substitute(subjectTpl, vars);
+    const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${substitute(bodyTpl, vars)}</div>`;
+    const body = htmlToText(substitute(bodyTpl, vars));
 
     const ensureToken = async (email: string) => {
       const { data: existing } = await supabase
@@ -109,11 +135,10 @@ If you have any questions, reply to this email or contact the office.
       const { data: bccCfg } = await supabase
         .from("email_bcc_settings")
         .select("*").eq("id", true).maybeSingle();
-      const trigger = "employee_welcome";
       if (
         bccCfg?.enabled &&
         bccCfg.bcc_email &&
-        !(bccCfg.excluded_triggers ?? []).includes(trigger) &&
+        !(bccCfg.excluded_triggers ?? []).includes(TRIGGER) &&
         bccCfg.bcc_email.toLowerCase() !== recipientEmail.toLowerCase() &&
         bccCfg.bcc_email.toLowerCase() !== CC_EMAIL.toLowerCase()
       ) {

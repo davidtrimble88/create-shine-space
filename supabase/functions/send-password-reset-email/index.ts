@@ -1,5 +1,7 @@
 // Sends an email to an employee whose password was reset by an admin,
 // containing their new temporary password and instructions to set their own.
+// Loads subject/body from auto_email_templates (trigger_event='password_reset')
+// so admins can edit the copy from the Auto Emails admin page.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const cors = {
@@ -9,6 +11,36 @@ const cors = {
 
 const PORTAL_URL = "https://learntoridevc.com/employee-login";
 const CC_EMAIL = "Office@LearnToRidevc.com";
+const TRIGGER = "password_reset";
+
+const FALLBACK_SUBJECT = "Your Learn to Ride VC password has been reset";
+const FALLBACK_BODY = `<p>Hi {{firstName}},</p>
+<p>An administrator has reset your <strong>Learn to Ride VC</strong> employee portal password. Below is your new temporary password and the steps to set your own.</p>
+<p><strong>How to sign in and choose a new password:</strong></p>
+<ol>
+  <li>Go to <a href="{{portalUrl}}" style="color:#c2410c">{{portalUrl}}</a></li>
+  <li>Enter your email: <strong>{{email}}</strong></li>
+  <li>Enter your temporary password: <strong style="font-family:monospace;background:#f5f5f5;padding:2px 6px;border-radius:4px">{{tempPassword}}</strong></li>
+  <li>You'll be prompted to set your own password immediately after signing in.</li>
+</ol>
+<p>If you did not expect this reset, please contact the office right away.</p>
+<p>— Learn to Ride VC</p>`;
+
+const substitute = (s: string, vars: Record<string, string>) =>
+  s.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? "");
+
+const htmlToText = (html: string) =>
+  html
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|li|h[1-6])>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "• ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
@@ -25,37 +57,33 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const greeting = fullName ? `Hi ${fullName.split(" ")[0]},` : "Hi,";
-    const subject = "Your Learn to Ride VC password has been reset";
-    const body = `${greeting}
+    let subjectTpl = FALLBACK_SUBJECT;
+    let bodyTpl = FALLBACK_BODY;
+    try {
+      const { data: tpl } = await supabase
+        .from("auto_email_templates")
+        .select("subject, body, enabled")
+        .eq("trigger_event", TRIGGER)
+        .eq("enabled", true)
+        .maybeSingle();
+      if (tpl?.subject) subjectTpl = tpl.subject;
+      if (tpl?.body) bodyTpl = tpl.body;
+    } catch (e) {
+      console.warn("[send-password-reset-email] template load failed, using fallback:", (e as Error).message);
+    }
 
-An administrator has reset your employee portal password. Below is your new temporary password and the steps to set your own.
+    const firstName = (fullName || "").split(" ")[0] || "there";
+    const vars: Record<string, string> = {
+      firstName,
+      fullName: fullName || "",
+      email: recipientEmail,
+      tempPassword,
+      portalUrl: PORTAL_URL,
+    };
 
-How to sign in and choose a new password:
-1. Go to ${PORTAL_URL}
-2. Enter your email: ${recipientEmail}
-3. Enter your temporary password: ${tempPassword}
-4. You'll be prompted to set your own password immediately after signing in.
-5. If you haven't set them up yet, you'll also be asked to choose security questions used for self-service password resets in the future.
-
-If you did not expect this reset, please contact the office right away.
-
-— Learn to Ride VC`;
-
-    const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">
-      <p>${greeting}</p>
-      <p>An administrator has reset your <strong>Learn to Ride VC</strong> employee portal password. Below is your new temporary password and the steps to set your own.</p>
-      <p><strong>How to sign in and choose a new password:</strong></p>
-      <ol>
-        <li>Go to <a href="${PORTAL_URL}" style="color:#c2410c">${PORTAL_URL}</a></li>
-        <li>Enter your email: <strong>${recipientEmail}</strong></li>
-        <li>Enter your temporary password: <strong style="font-family:monospace;background:#f5f5f5;padding:2px 6px;border-radius:4px">${tempPassword}</strong></li>
-        <li>You'll be prompted to set your own password immediately after signing in.</li>
-        <li>If you haven't set them up yet, you'll also be asked to choose security questions used for self-service password resets in the future.</li>
-      </ol>
-      <p>If you did not expect this reset, please contact the office right away.</p>
-      <p>— Learn to Ride VC</p>
-    </div>`;
+    const subject = substitute(subjectTpl, vars);
+    const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${substitute(bodyTpl, vars)}</div>`;
+    const body = htmlToText(substitute(bodyTpl, vars));
 
     const ensureToken = async (email: string) => {
       const { data: existing } = await supabase
@@ -101,16 +129,14 @@ If you did not expect this reset, please contact the office right away.
       }
     }
 
-    // Owner BCC — silent copy if enabled in email_bcc_settings.
     try {
       const { data: bccCfg } = await supabase
         .from("email_bcc_settings")
         .select("*").eq("id", true).maybeSingle();
-      const trigger = "password_reset";
       if (
         bccCfg?.enabled &&
         bccCfg.bcc_email &&
-        !(bccCfg.excluded_triggers ?? []).includes(trigger) &&
+        !(bccCfg.excluded_triggers ?? []).includes(TRIGGER) &&
         bccCfg.bcc_email.toLowerCase() !== recipientEmail.toLowerCase() &&
         bccCfg.bcc_email.toLowerCase() !== CC_EMAIL.toLowerCase()
       ) {
