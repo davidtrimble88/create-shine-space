@@ -39,7 +39,7 @@ const WaiverSignedDialog = ({
     (async () => {
       setLoading(true);
       const { data, error } = await supabase.storage
-        .from("waivers")
+        .from(bucket)
         .createSignedUrl(pdfPath, 60 * 30);
       if (!cancelled) {
         if (error || !data) {
@@ -51,14 +51,14 @@ const WaiverSignedDialog = ({
       }
     })();
     return () => { cancelled = true; };
-  }, [open, pdfPath, downloadUrl]);
+  }, [open, pdfPath, downloadUrl, bucket]);
 
   const handleDownload = () => {
     if (!signedUrl) return;
     const a = document.createElement("a");
     a.href = signedUrl;
-    const safeName = (signerName || "waiver").replace(/[^a-z0-9_-]+/gi, "_");
-    a.download = `Signed_CMSP_Waiver_${safeName}.pdf`;
+    const safeName = (signerName || "document").replace(/[^a-z0-9_-]+/gi, "_");
+    a.download = `${downloadPrefix}_${safeName}.pdf`;
     a.target = "_blank";
     a.rel = "noopener noreferrer";
     document.body.appendChild(a);
