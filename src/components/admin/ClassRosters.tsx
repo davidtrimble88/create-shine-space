@@ -1908,6 +1908,8 @@ const ClassRosters = () => {
                     <th>First</th>
                     <th>Last</th>
                     <th className="check-col">Waiver</th>
+                    <th className="check-col">Reg</th>
+                    <th className="check-col">Model</th>
                     <th>Phone No.</th>
                     <th>DL #</th>
                     <th>Birthdate</th>
