@@ -40,7 +40,7 @@ const ViewerSchedule = () => {
   const { user, effectiveRole } = useAuth();
   const { toast } = useToast();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [myAvailability, setMyAvailability] = useState<Set<string>>(new Set());
+  const [myAvailability, setMyAvailability] = useState<Map<string, string[] | null>>(new Map());
   const [myDateAvailability, setMyDateAvailability] = useState<Map<string, Set<string>>>(new Map());
   const [dismissedDates, setDismissedDates] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
