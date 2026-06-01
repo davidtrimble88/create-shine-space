@@ -17,6 +17,12 @@ const AdminOverview = () => {
   const [yesterdayEarnings, setYesterdayEarnings] = useState(0);
   const [todayByLocation, setTodayByLocation] = useState<LocationEarnings>({});
   const [yesterdayByLocation, setYesterdayByLocation] = useState<LocationEarnings>({});
+  const [todayViews, setTodayViews] = useState(0);
+  const [yesterdayViews, setYesterdayViews] = useState(0);
+  const [todayVisitors, setTodayVisitors] = useState(0);
+  const [yesterdayVisitors, setYesterdayVisitors] = useState(0);
+
+  const canSeeAnalytics = effectiveRole === "owner" || effectiveRole === "admin";
 
   const canSeeEarnings = effectiveRole === "owner" || effectiveRole === "admin";
 
