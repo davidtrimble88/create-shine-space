@@ -1704,6 +1704,30 @@ const ClassRosters = () => {
                                 <ShieldAlert className="w-3.5 h-3.5" />
                               </span>
                             )}
+                            {(() => {
+                              const em = (b.email || "").toLowerCase();
+                              const hasReg = regFormEmails.has(em);
+                              return (
+                                <span
+                                  title={hasReg ? "Registration form signed" : "Registration form not signed"}
+                                  className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${hasReg ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"}`}
+                                >
+                                  REG {hasReg ? "✓" : "✗"}
+                                </span>
+                              );
+                            })()}
+                            {(() => {
+                              const em = (b.email || "").toLowerCase();
+                              const mr = modelReleaseByEmail.get(em);
+                              const label = mr === "signed" ? "Model release: accepted" : mr === "declined" ? "Model release: declined" : "Model release: not completed";
+                              const cls = mr === "signed" ? "bg-emerald-500/15 text-emerald-500" : mr === "declined" ? "bg-rose-500/15 text-rose-500" : "bg-muted text-muted-foreground";
+                              const sym = mr === "signed" ? "✓" : mr === "declined" ? "✗" : "—";
+                              return (
+                                <span title={label} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
+                                  MR {sym}
+                                </span>
+                              );
+                            })()}
                           </div>
                         </td>
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
