@@ -93,7 +93,7 @@ const renderWithAttachments = (body: string, vars: Record<string, string>, atts:
 };
 
 const AutoEmails = () => {
-  const bodyRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
   const { userRole } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,27 +105,23 @@ const AutoEmails = () => {
   const [uploading, setUploading] = useState(false);
 
   // Normalize stored body to HTML for the WYSIWYG editor.
-  // If the body has no HTML tags, treat newlines as <br> so existing plain-text templates display correctly.
+  // Plain-text templates have their newlines converted to <br> so they display correctly.
   const toHtml = (body: string) => {
     if (!body) return "";
     const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(body);
     return looksLikeHtml ? body : body.replace(/\n/g, "<br>");
   };
 
-  // Load the initial HTML into the editor whenever a different template is opened,
-  // or when the editor is re-mounted (e.g. after closing and reopening the dialog).
-  const lastLoadedKey = useRef<string | null>(null);
-  useEffect(() => {
-    if (!editing) {
-      lastLoadedKey.current = null;
-      return;
+  // Callback ref: fires synchronously the moment the contentEditable mounts in the dialog,
+  // guaranteeing we populate it with the saved body every time the editor is opened.
+  const initialBodyRef = useRef<string>("");
+  const setBodyRef = (el: HTMLDivElement | null) => {
+    bodyRef.current = el;
+    if (el) {
+      el.innerHTML = toHtml(initialBodyRef.current);
     }
-    if (!bodyRef.current) return;
-    const key = `${editing.id}:${bodyRef.current ? "1" : "0"}`;
-    if (lastLoadedKey.current === editing.id) return;
-    bodyRef.current.innerHTML = toHtml(editing.body);
-    lastLoadedKey.current = editing.id;
-  }, [editing, editing?.id]);
+  };
+
 
 
   const exec = (command: string, value?: string) => {
