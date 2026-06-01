@@ -32,11 +32,9 @@ export const PaymentDialog = (props: Props) => {
     if (!open) return;
     setLoading(true);
     supabase
-      .from("payment_settings")
-      .select("active_provider")
-      .maybeSingle()
+      .rpc("get_active_payment_provider")
       .then(({ data }) => {
-        setProvider((data?.active_provider as PaymentProvider) ?? "square");
+        setProvider(((data as PaymentProvider | null) ?? "square"));
         setLoading(false);
       });
   }, [open]);
