@@ -233,6 +233,37 @@ const RegisterPage = () => {
   const [modelReleaseOpen, setModelReleaseOpen] = useState(false);
   const [modelReleasePrefill, setModelReleasePrefill] = useState<ModelReleasePrefill | null>(null);
 
+  const fireRegistrationEmail = async (payload: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    course: string;
+    locationLabel: string;
+    scheduleDate: string | null;
+    fee: string;
+  }) => {
+    try {
+      await supabase.functions.invoke("send-auto-email", {
+        body: {
+          trigger_event: "registration_confirmation",
+          recipientEmail: payload.email,
+          variables: {
+            firstName: payload.firstName,
+            lastName: payload.lastName,
+            course: payload.course,
+            locationLabel: payload.locationLabel,
+            scheduleDate: payload.scheduleDate || "",
+            schedule: "",
+            fee: payload.fee,
+            email: payload.email,
+          },
+        },
+      });
+    } catch (e) {
+      console.warn("Auto email failed to dispatch:", e);
+    }
+  };
+
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
     try {
@@ -312,6 +343,15 @@ const RegisterPage = () => {
         });
         if (insertErr) throw insertErr;
         toast({ title: "Test booking saved", description: "Payment skipped (testing only)." });
+        fireRegistrationEmail({
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          course: courseLabels[course] || course,
+          locationLabel: locationLabels[location] || location,
+          scheduleDate,
+          fee: feeLabel,
+        });
         form.reset();
         navigate("/registration-confirmation");
         setSubmitting(false);
@@ -428,6 +468,18 @@ const RegisterPage = () => {
 
   const handlePaymentSuccess = () => {
     paymentCompletedRef.current = true;
+    if (pendingBooking) {
+      const p = pendingBooking as any;
+      fireRegistrationEmail({
+        email: p.email,
+        firstName: p.first_name,
+        lastName: p.last_name,
+        course: courseLabels[p.course] || p.course,
+        locationLabel: p.location_label,
+        scheduleDate: p.schedule_date,
+        fee: p.fee,
+      });
+    }
     form.reset();
     setPendingBooking(null);
     setWaiverPrefill(null);
@@ -459,6 +511,16 @@ const RegisterPage = () => {
       toast({
         title: "You're booked!",
         description: "Payment was skipped — staff will collect it from you.",
+      });
+      const p = pendingBooking as any;
+      fireRegistrationEmail({
+        email: p.email,
+        firstName: p.first_name,
+        lastName: p.last_name,
+        course: courseLabels[p.course] || p.course,
+        locationLabel: p.location_label,
+        scheduleDate: p.schedule_date,
+        fee: p.fee,
       });
       form.reset();
       setPendingBooking(null);

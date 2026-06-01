@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      auto_email_templates: {
+        Row: {
+          available_variables: string[]
+          body: string
+          created_at: string
+          description: string | null
+          enabled: boolean
+          id: string
+          name: string
+          subject: string
+          trigger_event: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          available_variables?: string[]
+          body: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          name: string
+          subject: string
+          trigger_event: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          available_variables?: string[]
+          body?: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          name?: string
+          subject?: string
+          trigger_event?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           address: string | null
