@@ -271,6 +271,10 @@ const AutoEmails = () => {
         </Button>
       </div>
 
+      <BccSettings />
+
+
+
       {loading ? (
         <p className="text-muted-foreground">Loading templates…</p>
       ) : templates.length === 0 ? (
