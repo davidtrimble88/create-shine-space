@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, FileSignature, Eraser } from "lucide-react";
 import WaiverSignedDialog from "./WaiverSignedDialog";
+import PdfPreview from "./PdfPreview";
 
 export const CMSP_REGISTRATION_FORM_VERSION = "3.15-2026-02";
 

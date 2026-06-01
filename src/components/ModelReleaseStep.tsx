@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Camera, CameraOff, Eraser, ShieldCheck } from "lucide-react";
 import WaiverSignedDialog from "./WaiverSignedDialog";
+import PdfPreview from "./PdfPreview";
 
 export const CMSP_MODEL_RELEASE_VERSION = "2015-2026-02";
 
