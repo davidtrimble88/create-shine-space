@@ -706,8 +706,9 @@ const CoursesPage = () => {
             viewport={{ once: true }}
             className="text-center mb-10"
           >
-            <h2 className="text-3xl font-bold">Frequently Asked Questions</h2>
-          </motion.div>
+            <h2 className="text-3xl font-bold">
+              <EditableText contentKey="coursespage.faq.title" fallback="Frequently Asked Questions" />
+            </h2>
 
           <div className="space-y-3">
             {faqs.map((faq, i) => (
