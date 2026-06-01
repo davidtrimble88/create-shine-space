@@ -11,9 +11,23 @@ interface Props {
   downloadUrl?: string | null;
   signerName: string;
   onContinue: () => void;
+  bucket?: string;
+  title?: string;
+  description?: string;
+  continueLabel?: string;
+  downloadPrefix?: string;
+  missingPdfMessage?: string;
 }
 
-const WaiverSignedDialog = ({ open, pdfPath, downloadUrl, signerName, onContinue }: Props) => {
+const WaiverSignedDialog = ({
+  open, pdfPath, downloadUrl, signerName, onContinue,
+  bucket = "waivers",
+  title = "Waiver Signed",
+  description = "Your signed CMSP waiver has been securely saved to your file. You can download or print a copy for your records below.",
+  continueLabel = "Continue to Payment →",
+  downloadPrefix = "Signed_CMSP_Waiver",
+  missingPdfMessage = "A PDF copy was not saved for this waiver. You can request a copy from the office.",
+}: Props) => {
   const [loading, setLoading] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
 
