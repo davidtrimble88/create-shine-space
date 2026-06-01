@@ -90,6 +90,8 @@ Deno.serve(async (req) => {
         queue_name: "transactional_emails",
         payload: {
           to: recipientEmail,
+          from: "Learn to Ride VC <notify@learntoridevc.com>",
+          sender_domain: "notify.learntoridevc.com",
           subject,
           text: body,
           html: textToHtml(body),
