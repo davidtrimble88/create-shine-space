@@ -233,10 +233,11 @@ const About = () => {
                   </span>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">Ambassador of the Year</h3>
+              <h3 className="text-xl font-bold text-foreground mb-2">
+                <EditableText contentKey="about.award2.title" fallback="Ambassador of the Year" />
+              </h3>
               <p className="text-muted-foreground">
-                Awarded for Service Excellence to Larry Missman, recognizing outstanding
-                dedication to motorcycle safety education.
+                <EditableText contentKey="about.award2.desc" fallback="Awarded for Service Excellence to Larry Missman, recognizing outstanding dedication to motorcycle safety education." multiline />
               </p>
             </motion.div>
           </div>
