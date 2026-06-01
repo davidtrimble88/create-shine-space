@@ -70,7 +70,7 @@ const ViewerSchedule = () => {
 
     if (user) {
       const [availRes, dateAvailRes] = await Promise.all([
-        supabase.from("instructor_availability").select("schedule_id").eq("user_id", user.id),
+        (supabase as any).from("instructor_availability").select("schedule_id, parts").eq("user_id", user.id),
         (supabase as any).from("instructor_date_availability").select("date, location").eq("user_id", user.id).gte("date", today),
       ]);
       availData = availRes.data ?? [];
@@ -79,7 +79,9 @@ const ViewerSchedule = () => {
 
     setSchedules(schedRes.data ?? []);
     setDismissedDates(new Set((dismissedRes.data ?? []).map((d: any) => d.date)));
-    setMyAvailability(new Set(availData.map((a: any) => a.schedule_id)));
+    const availMap = new Map<string, string[] | null>();
+    availData.forEach((a: any) => availMap.set(a.schedule_id, a.parts ?? null));
+    setMyAvailability(availMap);
 
     const dateMap = new Map<string, Set<string>>();
     dateAvailData.forEach((a: any) => {
@@ -92,40 +94,58 @@ const ViewerSchedule = () => {
 
   useEffect(() => { fetchData(); }, [user, view]);
 
-  const toggleAvailability = async (scheduleId: string) => {
+  const setAvailability = async (scheduleId: string, parts: string[] | null) => {
     if (!user) return;
     setToggling(scheduleId);
 
-    if (myAvailability.has(scheduleId)) {
-      const { error } = await supabase
-        .from("instructor_availability")
-        .delete()
-        .eq("schedule_id", scheduleId)
-        .eq("user_id", user.id);
+    // Remove any existing row, then insert fresh (simplest upsert without unique constraint assumptions)
+    const { error: delErr } = await supabase
+      .from("instructor_availability")
+      .delete()
+      .eq("schedule_id", scheduleId)
+      .eq("user_id", user.id);
 
-      if (error) {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
-      } else {
-        setMyAvailability(prev => {
-          const next = new Set(prev);
-          next.delete(scheduleId);
-          return next;
-        });
-        toast({ title: "Removed", description: "You've removed your availability for this class." });
-      }
-    } else {
-      const { error } = await supabase
-        .from("instructor_availability")
-        .insert({ schedule_id: scheduleId, user_id: user.id });
-
-      if (error) {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
-      } else {
-        setMyAvailability(prev => new Set(prev).add(scheduleId));
-        toast({ title: "Submitted!", description: "Your availability has been noted." });
-      }
+    if (delErr) {
+      toast({ title: "Error", description: delErr.message, variant: "destructive" });
+      setToggling(null);
+      return;
     }
 
+    const { error } = await (supabase as any)
+      .from("instructor_availability")
+      .insert({ schedule_id: scheduleId, user_id: user.id, parts });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setMyAvailability(prev => {
+        const next = new Map(prev);
+        next.set(scheduleId, parts);
+        return next;
+      });
+      toast({ title: "Submitted!", description: parts === null ? "Marked available for full class." : `Marked available for ${parts.length} part(s).` });
+    }
+    setToggling(null);
+  };
+
+  const clearAvailability = async (scheduleId: string) => {
+    if (!user) return;
+    setToggling(scheduleId);
+    const { error } = await supabase
+      .from("instructor_availability")
+      .delete()
+      .eq("schedule_id", scheduleId)
+      .eq("user_id", user.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setMyAvailability(prev => {
+        const next = new Map(prev);
+        next.delete(scheduleId);
+        return next;
+      });
+      toast({ title: "Removed", description: "Availability cleared for this class." });
+    }
     setToggling(null);
   };
 
