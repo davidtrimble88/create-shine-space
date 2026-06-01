@@ -120,7 +120,7 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 />
               ))}
-              <Link to="/choose-course"><Button variant="hero" className="w-full mt-4">Book Now</Button></Link>
+              <Link to="/choose-course"><Button variant="hero" className="w-full mt-4"><EditableText contentKey="nav.booknow" fallback="Book Now" /></Button></Link>
             </div>
           </motion.div>
         )}
