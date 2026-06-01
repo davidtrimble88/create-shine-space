@@ -239,6 +239,8 @@ const RegisterPage = () => {
     lastName: string;
     course: string;
     locationLabel: string;
+    location: string;
+    groupName: string | null;
     scheduleDate: string | null;
     fee: string;
   }) => {
@@ -247,11 +249,14 @@ const RegisterPage = () => {
         body: {
           trigger_event: "registration_confirmation",
           recipientEmail: payload.email,
+          location: payload.location,
+          groupName: payload.groupName,
           variables: {
             firstName: payload.firstName,
             lastName: payload.lastName,
             course: payload.course,
             locationLabel: payload.locationLabel,
+            groupName: payload.groupName || "",
             scheduleDate: payload.scheduleDate || "",
             schedule: "",
             fee: payload.fee,
@@ -263,6 +268,7 @@ const RegisterPage = () => {
       console.warn("Auto email failed to dispatch:", e);
     }
   };
+
 
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
