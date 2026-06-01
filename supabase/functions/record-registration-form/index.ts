@@ -210,8 +210,6 @@ async function buildPdf(
   row("9. Called for Motorcyclist Training Course information?", data.q10_called_for_info || "—");
   row("10. Taken this course before?", data.q11_taken_before || "—");
   row("11. May CMSP contact you in the future?", data.q12_cmsp_contact_future || "—");
-  row("11. Taken this course before?", data.q11_taken_before || "—");
-  row("12. May CMSP contact you in the future?", data.q12_cmsp_contact_future || "—");
 
   heading("Course Enrollment");
   row("Course", data.course || "—");
