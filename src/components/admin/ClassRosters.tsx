@@ -77,6 +77,8 @@ const ClassRosters = () => {
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [waiverIds, setWaiverIds] = useState<Set<string>>(new Set());
+  const [regFormEmails, setRegFormEmails] = useState<Set<string>>(new Set());
+  const [modelReleaseByEmail, setModelReleaseByEmail] = useState<Map<string, "signed" | "declined">>(new Map());
   const [loading, setLoading] = useState(false);
   const [locationFilter, setLocationFilter] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("");
@@ -331,6 +333,29 @@ const ClassRosters = () => {
         setWaiverIds(new Set((w ?? []).map((row: { id: string }) => row.id)));
       } else {
         setWaiverIds(new Set());
+      }
+      // Look up registration form + model release signings for these students
+      const emails = Array.from(new Set((data ?? []).map((b: any) => (b.email || "").toLowerCase()).filter(Boolean)));
+      if (emails.length > 0) {
+        const { data: extras } = await (supabase as any)
+          .from("signed_waivers")
+          .select("signer_email, document_type, schedule_id")
+          .in("signer_email", emails)
+          .eq("schedule_id", selectedScheduleId)
+          .in("document_type", ["cmsp_registration_form", "cmsp_model_release", "cmsp_model_release_decline"]);
+        const regSet = new Set<string>();
+        const mrMap = new Map<string, "signed" | "declined">();
+        (extras ?? []).forEach((r: any) => {
+          const em = (r.signer_email || "").toLowerCase();
+          if (r.document_type === "cmsp_registration_form") regSet.add(em);
+          else if (r.document_type === "cmsp_model_release") mrMap.set(em, "signed");
+          else if (r.document_type === "cmsp_model_release_decline" && !mrMap.has(em)) mrMap.set(em, "declined");
+        });
+        setRegFormEmails(regSet);
+        setModelReleaseByEmail(mrMap);
+      } else {
+        setRegFormEmails(new Set());
+        setModelReleaseByEmail(new Map());
       }
       setLoading(false);
     };
@@ -707,9 +732,11 @@ const ClassRosters = () => {
       rows.push(
         <tr key={`empty-${i}`} className="empty-rows">
           <td>{startNum + i}</td>
-          <td></td><td></td><td className="center"></td><td></td>
-          <td></td><td></td><td className="center"></td><td className="center"></td>
-          <td className="center"></td><td className="center"></td><td></td>
+          <td></td><td></td>
+          <td className="center"></td><td className="center"></td><td className="center"></td>
+          <td></td><td></td><td></td>
+          <td className="center"></td><td className="center"></td><td className="center"></td><td className="center"></td>
+          <td></td>
           <td className="center"></td><td className="center"></td>
         </tr>
       );
@@ -1679,6 +1706,30 @@ const ClassRosters = () => {
                                 <ShieldAlert className="w-3.5 h-3.5" />
                               </span>
                             )}
+                            {(() => {
+                              const em = (b.email || "").toLowerCase();
+                              const hasReg = regFormEmails.has(em);
+                              return (
+                                <span
+                                  title={hasReg ? "Registration form signed" : "Registration form not signed"}
+                                  className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${hasReg ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"}`}
+                                >
+                                  REG {hasReg ? "✓" : "✗"}
+                                </span>
+                              );
+                            })()}
+                            {(() => {
+                              const em = (b.email || "").toLowerCase();
+                              const mr = modelReleaseByEmail.get(em);
+                              const label = mr === "signed" ? "Model release: accepted" : mr === "declined" ? "Model release: declined" : "Model release: not completed";
+                              const cls = mr === "signed" ? "bg-emerald-500/15 text-emerald-500" : mr === "declined" ? "bg-rose-500/15 text-rose-500" : "bg-muted text-muted-foreground";
+                              const sym = mr === "signed" ? "✓" : mr === "declined" ? "✗" : "—";
+                              return (
+                                <span title={label} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
+                                  MR {sym}
+                                </span>
+                              );
+                            })()}
                           </div>
                         </td>
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
@@ -1859,6 +1910,8 @@ const ClassRosters = () => {
                     <th>First</th>
                     <th>Last</th>
                     <th className="check-col">Waiver</th>
+                    <th className="check-col">Reg</th>
+                    <th className="check-col">Model</th>
                     <th>Phone No.</th>
                     <th>DL #</th>
                     <th>Birthdate</th>
@@ -1882,6 +1935,15 @@ const ClassRosters = () => {
                       <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
                       <td className="center" style={{ fontWeight: 700 }}>
                         {(b as any).waiver_id && waiverIds.has((b as any).waiver_id) ? "✓" : "✗"}
+                      </td>
+                      <td className="center" style={{ fontWeight: 700 }}>
+                        {regFormEmails.has((b.email || "").toLowerCase()) ? "✓" : "✗"}
+                      </td>
+                      <td className="center" style={{ fontWeight: 700 }}>
+                        {(() => {
+                          const mr = modelReleaseByEmail.get((b.email || "").toLowerCase());
+                          return mr === "signed" ? "✓" : mr === "declined" ? "D" : "—";
+                        })()}
                       </td>
                       <td>{b.phone}</td>
                       <td>{b.license_number || ""}</td>
