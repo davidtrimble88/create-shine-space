@@ -84,14 +84,13 @@ const Courses = () => {
           className="text-center mb-16"
         >
           <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-            Our Courses
+            <EditableText contentKey="courses.label" fallback="Our Courses" />
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-            Choose Your <span className="text-accent">Path</span>
+            <EditableText contentKey="courses.title.a" fallback="Choose Your" /> <span className="text-accent"><EditableText contentKey="courses.title.b" fallback="Path" /></span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Whether you're a complete beginner or looking to sharpen your skills, 
-            we have the perfect course for you
+            <EditableText contentKey="courses.subtitle" fallback="Whether you're a complete beginner or looking to sharpen your skills, we have the perfect course for you" multiline />
           </p>
         </motion.div>
 
