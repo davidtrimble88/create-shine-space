@@ -113,7 +113,7 @@ const AutoEmails = () => {
           attachments: Array.isArray(t.attachments) ? t.attachments : [],
           match_location: t.match_location ?? null,
           match_group: t.match_group ?? null,
-        })) as Template[],
+          match_course: t.match_course ?? null,
       );
     }
     setLoading(false);
