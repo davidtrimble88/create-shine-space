@@ -275,24 +275,19 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
           and California UETA.
         </p>
 
-        <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm text-foreground leading-relaxed space-y-2">
-          <p className="font-semibold">California Motorcyclist Safety Program — Student Registration Form</p>
-          <p>
-            This is the official CMSP Student Registration Form. Please review the official PDF and then
-            complete the questions and signature below. Your responses and signature will be appended to
-            the official form and saved to your student file.
-          </p>
-          <a
-            href="/cmsp-registration-form.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center text-accent underline hover:no-underline"
-          >
-            Open the official CMSP Student Registration Form PDF in a new tab →
-          </a>
+        <div className="rounded-lg border border-border bg-white overflow-hidden" style={{ height: 700 }}>
+          <iframe
+            src="/cmsp-registration-form.pdf#view=FitH&toolbar=1"
+            title="CMSP Student Registration Form"
+            className="w-full h-full"
+          />
         </div>
         <p className="text-xs text-muted-foreground mt-2">
-          A signed copy of this form will be saved to your file and made available to download.
+          This is the exact document you are signing.{" "}
+          <a href="/cmsp-registration-form.pdf" target="_blank" rel="noopener noreferrer" className="text-accent underline">
+            Open in a new tab
+          </a>{" "}
+          if you have trouble viewing it. A signed copy will be saved to your file.
         </p>
       </div>
 
