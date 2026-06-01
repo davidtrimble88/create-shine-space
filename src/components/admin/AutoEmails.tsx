@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -112,15 +112,17 @@ const AutoEmails = () => {
     return looksLikeHtml ? body : body.replace(/\n/g, "<br>");
   };
 
-  // Callback ref: fires synchronously the moment the contentEditable mounts in the dialog,
-  // guaranteeing we populate it with the saved body every time the editor is opened.
+  // Callback ref: populate the contentEditable exactly once per mount with the saved body.
+  // Using useCallback ensures React doesn't re-invoke this on every keystroke (which would
+  // reset innerHTML and send the cursor back to the top).
   const initialBodyRef = useRef<string>("");
-  const setBodyRef = (el: HTMLDivElement | null) => {
+  const setBodyRef = useCallback((el: HTMLDivElement | null) => {
     bodyRef.current = el;
     if (el) {
       el.innerHTML = toHtml(initialBodyRef.current);
     }
-  };
+  }, []);
+
 
 
 
