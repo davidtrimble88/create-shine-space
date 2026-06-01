@@ -540,7 +540,7 @@ const AutoEmails = () => {
 
       {/* Preview dialog */}
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Preview (with sample data)</DialogTitle>
           </DialogHeader>
