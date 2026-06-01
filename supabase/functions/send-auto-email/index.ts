@@ -50,7 +50,12 @@ Deno.serve(async (req) => {
     }
 
     const subject = render(tpl.subject, variables);
-    const body = render(tpl.body, variables);
+    let body = render(tpl.body, variables);
+    const attachments = Array.isArray((tpl as any).attachments) ? (tpl as any).attachments : [];
+    if (attachments.length) {
+      const list = attachments.map((a: any) => `📎 ${a.name}: ${a.url}`).join("\n");
+      body = `${body}\n\n— Attachments —\n${list}`;
+    }
 
     // Try queue-based send if email infrastructure exists.
     try {
