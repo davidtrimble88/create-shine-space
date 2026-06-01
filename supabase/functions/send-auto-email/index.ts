@@ -141,44 +141,62 @@ Deno.serve(async (req) => {
 
       // CC the office on every auto-generated email by enqueuing a copy.
       const ccEmail = "Office@LearnToRidevc.com";
-      if (recipientEmail.toLowerCase() !== ccEmail.toLowerCase()) {
-        const ccSubject = `[CC: ${recipientEmail}] ${subject}`;
-        const ccIdempotencyKey = `auto-${trigger_event}-cc-${recipientEmail}-${Date.now()}`;
-        let ccUnsubToken: string | null = null;
-        const { data: ccTok } = await supabase
+      const enqueueExtra = async (toAddr: string, subj: string, suffix: string) => {
+        const key = `auto-${trigger_event}-${suffix}-${toAddr}-${Date.now()}`;
+        let tok: string | null = null;
+        const { data: existing } = await supabase
           .from("email_unsubscribe_tokens")
-          .select("token")
-          .eq("email", ccEmail)
-          .maybeSingle();
-        if (ccTok?.token) {
-          ccUnsubToken = ccTok.token;
+          .select("token").eq("email", toAddr).maybeSingle();
+        if (existing?.token) {
+          tok = existing.token;
         } else {
-          const newTok = crypto.randomUUID();
+          const nt = crypto.randomUUID();
           const { data: ins } = await supabase
             .from("email_unsubscribe_tokens")
-            .insert({ email: ccEmail, token: newTok })
-            .select("token")
-            .maybeSingle();
-          ccUnsubToken = ins?.token || newTok;
+            .insert({ email: toAddr, token: nt }).select("token").maybeSingle();
+          tok = ins?.token || nt;
         }
-        const { error: ccErr } = await supabase.rpc("enqueue_email" as any, {
+        return supabase.rpc("enqueue_email" as any, {
           queue_name: "transactional_emails",
           payload: {
-            to: ccEmail,
+            to: toAddr,
             from: "Learn to Ride VC <notify@learntoridevc.com>",
             sender_domain: "notify.learntoridevc.com",
-            subject: ccSubject,
+            subject: subj,
             text: body,
             html: textToHtml(body),
-            template_name: `auto_${trigger_event}_cc`,
-            label: `auto_${trigger_event}_cc`,
+            template_name: `auto_${trigger_event}_${suffix}`,
+            label: `auto_${trigger_event}_${suffix}`,
             purpose: "transactional",
-            idempotency_key: ccIdempotencyKey,
-            message_id: ccIdempotencyKey,
-            unsubscribe_token: ccUnsubToken,
+            idempotency_key: key,
+            message_id: key,
+            unsubscribe_token: tok,
           },
         });
+      };
+
+      if (recipientEmail.toLowerCase() !== ccEmail.toLowerCase()) {
+        const { error: ccErr } = await enqueueExtra(ccEmail, `[CC: ${recipientEmail}] ${subject}`, "cc");
         if (ccErr) console.warn("[send-auto-email] CC enqueue failed:", ccErr.message);
+      }
+
+      // Owner BCC — silent copy based on email_bcc_settings.
+      try {
+        const { data: bccCfg } = await supabase
+          .from("email_bcc_settings")
+          .select("*").eq("id", true).maybeSingle();
+        if (
+          bccCfg?.enabled &&
+          bccCfg.bcc_email &&
+          !(bccCfg.excluded_triggers ?? []).includes(trigger_event) &&
+          bccCfg.bcc_email.toLowerCase() !== recipientEmail.toLowerCase() &&
+          bccCfg.bcc_email.toLowerCase() !== ccEmail.toLowerCase()
+        ) {
+          const { error: bccErr } = await enqueueExtra(bccCfg.bcc_email, subject, "bcc");
+          if (bccErr) console.warn("[send-auto-email] BCC enqueue failed:", bccErr.message);
+        }
+      } catch (e) {
+        console.warn("[send-auto-email] BCC settings lookup failed:", (e as Error).message);
       }
 
       return new Response(JSON.stringify({ queued: true, cc: ccEmail }), {
