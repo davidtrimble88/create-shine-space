@@ -220,9 +220,17 @@ const AdminEmployees = () => {
 
       setTempPasswordInfo({ name: form.full_name, email: form.email, password: tempPassword });
 
+      // Auto-send welcome email with login instructions + temp password
+      const welcomeRes = await supabase.functions.invoke("send-employee-welcome", {
+        body: { recipientEmail: form.email, fullName: form.full_name, tempPassword },
+      });
+      const emailSent = !welcomeRes.error && (welcomeRes.data as any)?.queued;
+
       toast({
         title: "Employee Added",
-        description: `${form.full_name} has been added. Share the temporary password with them.`,
+        description: emailSent
+          ? `${form.full_name} has been added. A welcome email with login instructions and a temporary password has been sent to ${form.email}.`
+          : `${form.full_name} has been added, but the welcome email couldn't be sent. Share the temporary password with them manually.`,
       });
     }
 
