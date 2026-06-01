@@ -153,10 +153,6 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
   const [q7, setQ7] = useState<"" | "commuting" | "recreation" | "other">("");
   const [q7Other, setQ7Other] = useState("");
   const [q8, setQ8] = useState<"" | "yes" | "no">("");
-  const [q9, setQ9] = useState<string[]>(() =>
-    prefill.referralSource && REFERRAL_OPTIONS.includes(prefill.referralSource) ? [prefill.referralSource] : []
-  );
-  const [q9Other, setQ9Other] = useState("");
   const [q10, setQ10] = useState<"" | "yes" | "no">("");
   const [q11, setQ11] = useState<"" | "yes" | "no">("");
   const [q12, setQ12] = useState<"" | "yes" | "no">("");
@@ -180,10 +176,6 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
     if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--;
     return a;
   })() : null;
-
-  const toggleQ9 = (opt: string, on: boolean) => {
-    setQ9(prev => on ? [...prev, opt] : prev.filter(x => x !== opt));
-  };
 
   const handleSign = async () => {
     if (!canSign) return;
@@ -220,8 +212,7 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
           q7_primary_reason: q7,
           q7_other: q7 === "other" ? q7Other : null,
           q8_prior_accident: q8,
-          q9_referral_sources: q9,
-          q9_other: q9Other || null,
+          q9_referral_sources: prefill.referralSource ? [prefill.referralSource] : [],
           q10_called_for_info: q10,
           q11_taken_before: q11,
           q12_cmsp_contact_future: q12,
@@ -365,19 +356,6 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
         <div>
           <Label className="text-sm">8. Ever been involved in an on-street motorcycle/scooter accident? *</Label>
           <div className="mt-2"><Yn value={q8} onChange={setQ8} name="q8" /></div>
-        </div>
-
-        <div>
-          <Label className="text-sm">9. How did you hear about this course? (check all that apply)</Label>
-          <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
-            {REFERRAL_OPTIONS.map(opt => (
-              <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer">
-                <Checkbox checked={q9.includes(opt)} onCheckedChange={(c) => toggleQ9(opt, !!c)} />
-                {opt}
-              </label>
-            ))}
-          </div>
-          <Input className="mt-2" value={q9Other} onChange={(e) => setQ9Other(e.target.value)} placeholder="Other (please explain)" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
