@@ -50,8 +50,6 @@ const ResponseSchema = z.object({
   q7_primary_reason: z.enum(["commuting", "recreation", "other", ""]).optional().nullable(),
   q7_other: z.string().optional().nullable(),
   q8_prior_accident: z.enum(["yes", "no", ""]).optional().nullable(),
-  q9_referral_sources: z.array(z.string()),
-  q9_other: z.string().optional().nullable(),
   q10_called_for_info: z.enum(["yes", "no", ""]).optional().nullable(),
   q11_taken_before: z.enum(["yes", "no", ""]).optional().nullable(),
   q12_cmsp_contact_future: z.enum(["yes", "no", ""]).optional().nullable(),
@@ -209,12 +207,9 @@ async function buildPdf(
         ? `Other: ${data.q7_other || ""}`.trim()
         : (Q7_LABELS[data.q7_primary_reason || ""] || "—"));
   row("8. Prior on-street motorcycle/scooter accident?", data.q8_prior_accident || "—");
-  row("9. How heard about course",
-      (data.q9_referral_sources.length ? data.q9_referral_sources.join(", ") : "—")
-      + (data.q9_other ? ` (Other: ${data.q9_other})` : ""));
-  row("10. Called for Motorcyclist Training Course information?", data.q10_called_for_info || "—");
-  row("11. Taken this course before?", data.q11_taken_before || "—");
-  row("12. May CMSP contact you in the future?", data.q12_cmsp_contact_future || "—");
+  row("9. Called for Motorcyclist Training Course information?", data.q10_called_for_info || "—");
+  row("10. Taken this course before?", data.q11_taken_before || "—");
+  row("11. May CMSP contact you in the future?", data.q12_cmsp_contact_future || "—");
 
   heading("Course Enrollment");
   row("Course", data.course || "—");
