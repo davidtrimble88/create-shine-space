@@ -310,14 +310,13 @@ const About = () => {
             className="text-center mb-16"
           >
             <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-              Our Team
+              <EditableText contentKey="about.team.label" fallback="Our Team" />
             </span>
             <h2 className="text-3xl md:text-4xl font-bold mt-4">
-              Meet the <span className="text-accent">Team</span>
+              <EditableText contentKey="about.team.title.a" fallback="Meet the" /> <span className="text-accent"><EditableText contentKey="about.team.title.b" fallback="Team" /></span>
             </h2>
             <p className="text-muted-foreground text-lg mt-4 max-w-2xl mx-auto">
-              Our CMSP-certified team brings years of riding experience and a
-              passion for safety to every class.
+              <EditableText contentKey="about.team.subtitle" fallback="Our CMSP-certified team brings years of riding experience and a passion for safety to every class." multiline />
             </p>
           </motion.div>
 
