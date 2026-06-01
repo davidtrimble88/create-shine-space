@@ -381,19 +381,18 @@ const About = () => {
             className="max-w-2xl mx-auto"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to <span className="text-accent">Ride?</span>
+              <EditableText contentKey="about.cta.title.a" fallback="Ready to" /> <span className="text-accent"><EditableText contentKey="about.cta.title.b" fallback="Ride?" /></span>
             </h2>
             <p className="text-muted-foreground text-lg mb-8">
-              Join over 1,500 students who train with us every year. Your journey
-              starts here.
+              <EditableText contentKey="about.cta.desc" fallback="Join over 1,500 students who train with us every year. Your journey starts here." multiline />
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="lg">
-                Book a Course
+                <EditableText contentKey="about.cta.btn.primary" fallback="Book a Course" />
               </Button>
               <Button variant="heroOutline" size="lg" asChild>
                 <Link to="/">
-                  Back to Home
+                  <EditableText contentKey="about.cta.btn.secondary" fallback="Back to Home" />
                 </Link>
               </Button>
             </div>
