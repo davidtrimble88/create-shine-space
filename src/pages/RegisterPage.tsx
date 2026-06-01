@@ -1132,7 +1132,7 @@ const RegisterPage = () => {
       {pendingBooking && (
         <PaymentDialog
           open={paymentOpen}
-          onOpenChange={setPaymentOpen}
+          onOpenChange={handlePaymentDialogChange}
           region={paymentRegion}
           amountCents={paymentAmountCents}
           amountLabel={paymentAmountLabel}
