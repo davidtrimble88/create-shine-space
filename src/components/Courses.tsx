@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Clock, Users, Award } from "lucide-react";
 import { Link } from "react-router-dom";
+import EditableText from "@/components/EditableText";
 
 const courses = [
   {
