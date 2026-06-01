@@ -85,6 +85,7 @@ Deno.serve(async (req) => {
 
     // Try queue-based send if email infrastructure exists.
     try {
+      const idempotencyKey = `auto-${trigger_event}-${recipientEmail}-${Date.now()}`;
       const { error: enqErr } = await supabase.rpc("enqueue_email" as any, {
         queue_name: "transactional_emails",
         payload: {
@@ -93,6 +94,10 @@ Deno.serve(async (req) => {
           text: body,
           html: textToHtml(body),
           template_name: `auto_${trigger_event}`,
+          label: `auto_${trigger_event}`,
+          purpose: "transactional",
+          idempotency_key: idempotencyKey,
+          message_id: idempotencyKey,
         },
       });
       if (enqErr) throw enqErr;
