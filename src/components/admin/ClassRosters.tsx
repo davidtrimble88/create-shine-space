@@ -1934,6 +1934,15 @@ const ClassRosters = () => {
                       <td className="center" style={{ fontWeight: 700 }}>
                         {(b as any).waiver_id && waiverIds.has((b as any).waiver_id) ? "✓" : "✗"}
                       </td>
+                      <td className="center" style={{ fontWeight: 700 }}>
+                        {regFormEmails.has((b.email || "").toLowerCase()) ? "✓" : "✗"}
+                      </td>
+                      <td className="center" style={{ fontWeight: 700 }}>
+                        {(() => {
+                          const mr = modelReleaseByEmail.get((b.email || "").toLowerCase());
+                          return mr === "signed" ? "✓" : mr === "declined" ? "D" : "—";
+                        })()}
+                      </td>
                       <td>{b.phone}</td>
                       <td>{b.license_number || ""}</td>
                       <td>{b.date_of_birth || ""}</td>
