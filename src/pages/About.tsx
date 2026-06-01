@@ -264,7 +264,7 @@ const About = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
               </div>
               <div className="absolute -bottom-4 -right-4 bg-accent text-accent-foreground px-6 py-3 rounded-xl font-bold text-lg shadow-glow">
-                Owner & Lead Instructor
+                <EditableText contentKey="about.larry.badge" fallback="Owner & Lead Instructor" />
               </div>
             </motion.div>
 
@@ -275,10 +275,10 @@ const About = () => {
               viewport={{ once: true }}
             >
               <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-                Meet the Owner
+                <EditableText contentKey="about.larry.label" fallback="Meet the Owner" />
               </span>
               <h2 className="text-3xl md:text-4xl font-bold mt-4 mb-6">
-                Larry <span className="text-accent">Missman</span>
+                <EditableText contentKey="about.larry.name.a" fallback="Larry" /> <span className="text-accent"><EditableText contentKey="about.larry.name.b" fallback="Missman" /></span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                 <EditableText contentKey="about.larry.p1" fallback="Larry Missman has been a motorcycle enthusiast since the age of ten. From a 50cc Honda to sport bikes to Harleys, he has ridden them all throughout his life." multiline />
@@ -291,7 +291,7 @@ const About = () => {
               </p>
               <Button variant="hero" size="lg" asChild>
                 <Link to="/contact">
-                  Get in Touch <ChevronRight className="w-4 h-4" />
+                  <EditableText contentKey="about.larry.cta" fallback="Get in Touch" /> <ChevronRight className="w-4 h-4" />
                 </Link>
               </Button>
             </motion.div>
