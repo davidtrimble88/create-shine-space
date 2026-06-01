@@ -24,6 +24,7 @@ import ChangePassword from "./pages/ChangePassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import RegistrationConfirmation from "./pages/RegistrationConfirmation";
 import InstallApp from "./pages/InstallApp";
+import HiddenDuck from "./components/HiddenDuck";
 
 const queryClient = new QueryClient();
 
