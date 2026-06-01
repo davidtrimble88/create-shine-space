@@ -84,11 +84,9 @@ const WaiverSignedDialog = ({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-6 h-6 text-accent" />
-            <DialogTitle>Waiver Signed</DialogTitle>
+            <DialogTitle>{title}</DialogTitle>
           </div>
-          <DialogDescription>
-            Your signed CMSP waiver has been securely saved to your file. You can download or print a copy for your records below.
-          </DialogDescription>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-2">
@@ -103,13 +101,11 @@ const WaiverSignedDialog = ({
         </div>
 
         {!pdfPath && (
-          <p className="text-xs text-muted-foreground">
-            A PDF copy was not saved for this waiver. You can request a copy from the office.
-          </p>
+          <p className="text-xs text-muted-foreground">{missingPdfMessage}</p>
         )}
 
         <div className="flex justify-end pt-2">
-          <Button variant="hero" onClick={onContinue}>Continue to Payment →</Button>
+          <Button variant="hero" onClick={onContinue}>{continueLabel}</Button>
         </div>
       </DialogContent>
     </Dialog>
