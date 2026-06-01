@@ -11,9 +11,23 @@ interface Props {
   downloadUrl?: string | null;
   signerName: string;
   onContinue: () => void;
+  bucket?: string;
+  title?: string;
+  description?: string;
+  continueLabel?: string;
+  downloadPrefix?: string;
+  missingPdfMessage?: string;
 }
 
-const WaiverSignedDialog = ({ open, pdfPath, downloadUrl, signerName, onContinue }: Props) => {
+const WaiverSignedDialog = ({
+  open, pdfPath, downloadUrl, signerName, onContinue,
+  bucket = "waivers",
+  title = "Waiver Signed",
+  description = "Your signed CMSP waiver has been securely saved to your file. You can download or print a copy for your records below.",
+  continueLabel = "Continue to Payment →",
+  downloadPrefix = "Signed_CMSP_Waiver",
+  missingPdfMessage = "A PDF copy was not saved for this waiver. You can request a copy from the office.",
+}: Props) => {
   const [loading, setLoading] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
 
@@ -25,7 +39,7 @@ const WaiverSignedDialog = ({ open, pdfPath, downloadUrl, signerName, onContinue
     (async () => {
       setLoading(true);
       const { data, error } = await supabase.storage
-        .from("waivers")
+        .from(bucket)
         .createSignedUrl(pdfPath, 60 * 30);
       if (!cancelled) {
         if (error || !data) {
@@ -37,14 +51,14 @@ const WaiverSignedDialog = ({ open, pdfPath, downloadUrl, signerName, onContinue
       }
     })();
     return () => { cancelled = true; };
-  }, [open, pdfPath, downloadUrl]);
+  }, [open, pdfPath, downloadUrl, bucket]);
 
   const handleDownload = () => {
     if (!signedUrl) return;
     const a = document.createElement("a");
     a.href = signedUrl;
-    const safeName = (signerName || "waiver").replace(/[^a-z0-9_-]+/gi, "_");
-    a.download = `Signed_CMSP_Waiver_${safeName}.pdf`;
+    const safeName = (signerName || "document").replace(/[^a-z0-9_-]+/gi, "_");
+    a.download = `${downloadPrefix}_${safeName}.pdf`;
     a.target = "_blank";
     a.rel = "noopener noreferrer";
     document.body.appendChild(a);
@@ -70,11 +84,9 @@ const WaiverSignedDialog = ({ open, pdfPath, downloadUrl, signerName, onContinue
         <DialogHeader>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-6 h-6 text-accent" />
-            <DialogTitle>Waiver Signed</DialogTitle>
+            <DialogTitle>{title}</DialogTitle>
           </div>
-          <DialogDescription>
-            Your signed CMSP waiver has been securely saved to your file. You can download or print a copy for your records below.
-          </DialogDescription>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-2">
@@ -89,13 +101,11 @@ const WaiverSignedDialog = ({ open, pdfPath, downloadUrl, signerName, onContinue
         </div>
 
         {!pdfPath && (
-          <p className="text-xs text-muted-foreground">
-            A PDF copy was not saved for this waiver. You can request a copy from the office.
-          </p>
+          <p className="text-xs text-muted-foreground">{missingPdfMessage}</p>
         )}
 
         <div className="flex justify-end pt-2">
-          <Button variant="hero" onClick={onContinue}>Continue to Payment →</Button>
+          <Button variant="hero" onClick={onContinue}>{continueLabel}</Button>
         </div>
       </DialogContent>
     </Dialog>

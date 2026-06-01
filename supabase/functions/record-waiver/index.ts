@@ -356,7 +356,7 @@ Deno.serve(async (req) => {
 
     let downloadUrl: string | null = null;
     if (!up.error) {
-      const { data: signed } = await admin.storage.from("waivers").createSignedUrl(pdfPath, 60 * 60);
+      const { data: signed } = await supabase.storage.from("waivers").createSignedUrl(pdfPath, 60 * 60);
       downloadUrl = signed?.signedUrl || null;
     }
 

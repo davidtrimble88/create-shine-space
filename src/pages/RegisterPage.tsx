@@ -32,6 +32,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
+import RegistrationFormStep, { type RegistrationFormPrefill } from "@/components/RegistrationFormStep";
 import WaiverDocuSign from "@/components/WaiverDocuSign";
 import IdPhotoUpload from "@/components/IdPhotoUpload";
 
@@ -226,6 +227,8 @@ const RegisterPage = () => {
   const skipPaymentRef = useRef(false);
   const [waiverOpen, setWaiverOpen] = useState(false);
   const [waiverPrefill, setWaiverPrefill] = useState<WaiverPrefill | null>(null);
+  const [regFormOpen, setRegFormOpen] = useState(false);
+  const [regFormPrefill, setRegFormPrefill] = useState<RegistrationFormPrefill | null>(null);
 
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
@@ -312,7 +315,7 @@ const RegisterPage = () => {
         return;
       }
 
-      // Show waiver step first; payment opens after signing
+      // Show CMSP Student Registration Form step first, then waiver, then payment.
       setPendingBooking(bookingPayload);
       setPaymentRegion(region);
       setPaymentAmountCents(feeCents);
@@ -342,12 +345,44 @@ const RegisterPage = () => {
         scheduleId: scheduleId,
         scheduleDate: scheduleDate,
       });
-      setWaiverOpen(true);
+      setRegFormPrefill({
+        firstName: data.firstName,
+        middleName: data.middleName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        dateOfBirth: data.dateOfBirth,
+        sex: data.gender === "male" ? "M" : data.gender === "female" ? "F" : "",
+        addressStreet: data.address,
+        addressCity: data.city,
+        addressState: data.state,
+        addressZip: data.zip,
+        idType: data.idType === "other" ? "other" : "drivers_license",
+        idNumber: data.idType === "other"
+          ? `${data.otherIdType?.trim() || "ID"}: ${data.licenseNumber}`
+          : data.licenseNumber,
+        idState: data.idType === "drivers_license" ? data.issuingState : "",
+        idCountry: data.issuingCountry,
+        idExpiration: data.idType === "drivers_license" ? data.licenseExpiration : "",
+        referralSource: data.referralSource,
+        course,
+        location,
+        locationLabel: locationLabels[location] || location,
+        scheduleId: scheduleId,
+        scheduleDate: scheduleDate,
+      });
+      setRegFormOpen(true);
       requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
     } catch (err) {
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
     }
     setSubmitting(false);
+  };
+
+  const handleRegistrationFormSigned = (_recordId: string) => {
+    setRegFormOpen(false);
+    setWaiverOpen(true);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   };
 
   const handleWaiverSigned = (waiverId: string) => {
@@ -360,6 +395,7 @@ const RegisterPage = () => {
     form.reset();
     setPendingBooking(null);
     setWaiverPrefill(null);
+    setRegFormPrefill(null);
     navigate("/registration-confirmation");
   };
 
@@ -396,13 +432,17 @@ const RegisterPage = () => {
             className="text-center mb-12"
           >
             <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
-              {waiverOpen ? "Step 5 of 5 — Sign Waiver" : "Step 4 of 5"}
+              {waiverOpen ? "Step 6 of 6 — Sign Waiver"
+                : regFormOpen ? "Step 5 of 6 — Sign Registration Form"
+                : "Step 4 of 6"}
             </span>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Student <span className="text-accent">Registration</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-2">
-              {waiverOpen ? "Review and electronically sign the CMSP waiver to continue." : "Complete the form below to reserve your spot."}
+              {waiverOpen ? "Review and electronically sign the CMSP waiver to continue."
+                : regFormOpen ? "Review and electronically sign the CMSP Student Registration Form."
+                : "Complete the form below to reserve your spot."}
             </p>
             <p className="text-sm text-muted-foreground">
               {courseLabels[course] || course} · {locationLabels[location] || location}
@@ -414,9 +454,15 @@ const RegisterPage = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className={waiverOpen && waiverPrefill ? "max-w-5xl mx-auto" : "max-w-2xl mx-auto"}
+            className={(waiverOpen && waiverPrefill) || (regFormOpen && regFormPrefill) ? "max-w-5xl mx-auto" : "max-w-2xl mx-auto"}
           >
-            {waiverOpen && waiverPrefill ? (
+            {regFormOpen && regFormPrefill ? (
+              <RegistrationFormStep
+                prefill={regFormPrefill}
+                onBack={() => setRegFormOpen(false)}
+                onSigned={handleRegistrationFormSigned}
+              />
+            ) : waiverOpen && waiverPrefill ? (
               <WaiverDocuSign
                 prefill={waiverPrefill}
                 onBack={() => setWaiverOpen(false)}
