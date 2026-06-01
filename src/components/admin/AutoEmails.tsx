@@ -35,6 +35,8 @@ type Template = {
   enabled: boolean;
   available_variables: string[];
   attachments: Attachment[];
+  match_location: string | null;
+  match_group: string | null;
   updated_at: string;
 };
 
