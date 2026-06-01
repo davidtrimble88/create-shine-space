@@ -66,7 +66,7 @@ const Footer = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <h4 className="font-semibold text-foreground mb-4">Our Courses</h4>
+            <h4 className="font-semibold text-foreground mb-4"><EditableText contentKey="footer.courses.title" fallback="Our Courses" /></h4>
             <ul className="space-y-3">
               {[
                 { name: "Motorcycle Training Course", link: "/courses?tab=basic" },
