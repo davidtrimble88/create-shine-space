@@ -50,9 +50,9 @@ const ResponseSchema = z.object({
   q7_primary_reason: z.enum(["commuting", "recreation", "other", ""]).optional().nullable(),
   q7_other: z.string().optional().nullable(),
   q8_prior_accident: z.enum(["yes", "no", ""]).optional().nullable(),
-  q10_called_for_info: z.enum(["yes", "no", ""]).optional().nullable(),
-  q11_taken_before: z.enum(["yes", "no", ""]).optional().nullable(),
-  q12_cmsp_contact_future: z.enum(["yes", "no", ""]).optional().nullable(),
+  q9_called_for_info: z.enum(["yes", "no", ""]).optional().nullable(),
+  q10_taken_before: z.enum(["yes", "no", ""]).optional().nullable(),
+  q11_cmsp_contact_future: z.enum(["yes", "no", ""]).optional().nullable(),
   // Signature + acknowledgments
   signature_typed: z.string().min(1),
   signature_drawn: z.string().min(50),
