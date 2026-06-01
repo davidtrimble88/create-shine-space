@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Facebook, Instagram, MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import EditableText from "@/components/EditableText";
 import cmspLogo from "@/assets/cmsp-logo.png";
 import logo from "@/assets/logo.png";
 
