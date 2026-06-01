@@ -1,0 +1,1 @@
+UPDATE public.auto_email_templates SET attachments = (SELECT attachments FROM public.auto_email_templates WHERE id='04668e38-ba33-4814-beb1-ec01fc330d4e') WHERE id IN ('7c7a4086-6a8a-43aa-b4c4-1e8a823a66e8','c3ddd203-cd85-4e89-99d8-416ce08bc669','97ef9e45-4770-4996-b99d-50d437924a0f');
