@@ -1206,19 +1206,8 @@ const RegisterPage = () => {
                   <Button type="submit" variant="hero" size="lg" className="px-12" disabled={submitting}>
                     {submitting ? "Submitting..." : "Sign Waivers"}
                   </Button>
-                  <div>
-                    <Button
-                      type="submit"
-                      variant="outline"
-                      size="sm"
-                      disabled={submitting}
-                      onClick={() => { skipPaymentRef.current = true; }}
-                      className="text-xs text-muted-foreground"
-                    >
-                      ⚠ Skip Payment (Testing Only)
-                    </Button>
-                  </div>
                 </div>
+
               </form>
             </Form>
             )}
