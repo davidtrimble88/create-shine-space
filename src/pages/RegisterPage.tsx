@@ -428,6 +428,7 @@ const RegisterPage = () => {
     setPendingBooking(null);
     setWaiverPrefill(null);
     setRegFormPrefill(null);
+    setModelReleasePrefill(null);
     navigate("/registration-confirmation");
   };
 
