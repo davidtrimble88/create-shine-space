@@ -444,10 +444,10 @@ const RegisterPage = () => {
     if (open || paymentCompletedRef.current || !pendingBooking) return;
     try {
       const { error } = await supabase.from("bookings").insert({
-        ...pendingBooking,
+        ...(pendingBooking as any),
         payment_status: "unpaid",
         booking_status: "confirmed",
-      });
+      } as any);
       if (error) {
         toast({
           title: "Could not save booking",
