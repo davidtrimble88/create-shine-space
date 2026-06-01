@@ -77,6 +77,8 @@ const ClassRosters = () => {
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [waiverIds, setWaiverIds] = useState<Set<string>>(new Set());
+  const [regFormEmails, setRegFormEmails] = useState<Set<string>>(new Set());
+  const [modelReleaseByEmail, setModelReleaseByEmail] = useState<Map<string, "signed" | "declined">>(new Map());
   const [loading, setLoading] = useState(false);
   const [locationFilter, setLocationFilter] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("");
