@@ -95,9 +95,17 @@ const AdminOverview = () => {
       const today = new Date();
       const todayStr = today.toISOString().split("T")[0];
 
-      // Find employee record for this user, then count upcoming classes they are assigned to
+      // Count upcoming classes:
+      // - admins/owners see all upcoming schedules
+      // - other users see only schedules they're assigned to as instructor
       let upcomingCount = 0;
-      if (user) {
+      if (canSeeAnalytics) {
+        const { count } = await supabase
+          .from("schedules")
+          .select("id", { count: "exact", head: true })
+          .gte("date", todayStr);
+        upcomingCount = count ?? 0;
+      } else if (user) {
         const { data: empRow } = await supabase
           .from("employees")
           .select("id")
@@ -122,6 +130,7 @@ const AdminOverview = () => {
       setScheduleCount(schedRes.count ?? 0);
       setEmployeeCount(empRes.count ?? 0);
       setUpcomingClasses(upcomingCount);
+
 
       await fetchEarnings();
       await fetchAnalytics();
