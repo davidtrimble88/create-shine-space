@@ -153,9 +153,9 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
   const [q7, setQ7] = useState<"" | "commuting" | "recreation" | "other">("");
   const [q7Other, setQ7Other] = useState("");
   const [q8, setQ8] = useState<"" | "yes" | "no">("");
+  const [q9, setQ9] = useState<"" | "yes" | "no">("");
   const [q10, setQ10] = useState<"" | "yes" | "no">("");
   const [q11, setQ11] = useState<"" | "yes" | "no">("");
-  const [q12, setQ12] = useState<"" | "yes" | "no">("");
 
   const [acks, setAcks] = useState<Record<string, boolean>>({});
   const [typedSig, setTypedSig] = useState("");
@@ -165,7 +165,7 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
 
   const allAcked = ACKS.every(a => acks[a.key]);
   const typedMatches = typedSig.trim().toLowerCase() === fullName.toLowerCase();
-  const requiredAnswered = !!q1 && !!q2 && !!q4 && !!q6 && !!q7 && !!q8 && !!q10 && !!q11 && !!q12
+  const requiredAnswered = !!q1 && !!q2 && !!q4 && !!q6 && !!q7 && !!q8 && !!q9 && !!q10 && !!q11
     && (q7 !== "other" || q7Other.trim().length > 0);
   const canSign = allAcked && typedMatches && !!drawnSig && requiredAnswered;
 
@@ -213,9 +213,9 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
           q7_other: q7 === "other" ? q7Other : null,
           q8_prior_accident: q8,
           q9_referral_sources: prefill.referralSource ? [prefill.referralSource] : [],
-          q10_called_for_info: q10,
-          q11_taken_before: q11,
-          q12_cmsp_contact_future: q12,
+          q9_called_for_info: q9,
+          q10_taken_before: q10,
+          q11_cmsp_contact_future: q11,
           signature_typed: typedSig.trim(),
           signature_drawn: drawnSig,
           consent_acknowledgments: ACKS.map(a => ({ key: a.key, label: a.label, accepted: true as const })),
@@ -360,16 +360,16 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label className="text-sm">10. Did you call for Motorcyclist Training Course information? *</Label>
+            <Label className="text-sm">9. Did you call for Motorcyclist Training Course information? *</Label>
+            <div className="mt-2"><Yn value={q9} onChange={setQ9} name="q9" /></div>
+          </div>
+          <div>
+            <Label className="text-sm">10. Have you ever taken this course before? *</Label>
             <div className="mt-2"><Yn value={q10} onChange={setQ10} name="q10" /></div>
           </div>
           <div>
-            <Label className="text-sm">11. Have you ever taken this course before? *</Label>
+            <Label className="text-sm">11. May CMSP contact you in the future? *</Label>
             <div className="mt-2"><Yn value={q11} onChange={setQ11} name="q11" /></div>
-          </div>
-          <div>
-            <Label className="text-sm">12. May CMSP contact you in the future? *</Label>
-            <div className="mt-2"><Yn value={q12} onChange={setQ12} name="q12" /></div>
           </div>
         </div>
       </div>
