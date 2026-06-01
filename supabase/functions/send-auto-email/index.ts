@@ -138,7 +138,50 @@ Deno.serve(async (req) => {
         },
       });
       if (enqErr) throw enqErr;
-      return new Response(JSON.stringify({ queued: true }), {
+
+      // CC the office on every auto-generated email by enqueuing a copy.
+      const ccEmail = "Office@LearnToRidevc.com";
+      if (recipientEmail.toLowerCase() !== ccEmail.toLowerCase()) {
+        const ccSubject = `[CC: ${recipientEmail}] ${subject}`;
+        const ccIdempotencyKey = `auto-${trigger_event}-cc-${recipientEmail}-${Date.now()}`;
+        let ccUnsubToken: string | null = null;
+        const { data: ccTok } = await supabase
+          .from("email_unsubscribe_tokens")
+          .select("token")
+          .eq("email", ccEmail)
+          .maybeSingle();
+        if (ccTok?.token) {
+          ccUnsubToken = ccTok.token;
+        } else {
+          const newTok = crypto.randomUUID();
+          const { data: ins } = await supabase
+            .from("email_unsubscribe_tokens")
+            .insert({ email: ccEmail, token: newTok })
+            .select("token")
+            .maybeSingle();
+          ccUnsubToken = ins?.token || newTok;
+        }
+        const { error: ccErr } = await supabase.rpc("enqueue_email" as any, {
+          queue_name: "transactional_emails",
+          payload: {
+            to: ccEmail,
+            from: "Learn to Ride VC <notify@learntoridevc.com>",
+            sender_domain: "notify.learntoridevc.com",
+            subject: ccSubject,
+            text: body,
+            html: textToHtml(body),
+            template_name: `auto_${trigger_event}_cc`,
+            label: `auto_${trigger_event}_cc`,
+            purpose: "transactional",
+            idempotency_key: ccIdempotencyKey,
+            message_id: ccIdempotencyKey,
+            unsubscribe_token: ccUnsubToken,
+          },
+        });
+        if (ccErr) console.warn("[send-auto-email] CC enqueue failed:", ccErr.message);
+      }
+
+      return new Response(JSON.stringify({ queued: true, cc: ccEmail }), {
         headers: { ...cors, "Content-Type": "application/json" },
       });
     } catch (e) {
