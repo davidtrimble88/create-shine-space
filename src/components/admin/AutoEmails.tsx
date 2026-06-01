@@ -354,6 +354,36 @@ const AutoEmails = () => {
                   ))}
                 </select>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Target Location</Label>
+                  <select
+                    className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    value={editing.match_location || ""}
+                    onChange={(e) => setEditing({ ...editing, match_location: e.target.value || null })}
+                  >
+                    {LOCATION_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <Label>Target Group</Label>
+                  <select
+                    className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    value={editing.match_group || ""}
+                    onChange={(e) => setEditing({ ...editing, match_group: e.target.value || null })}
+                  >
+                    {GROUP_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-2">
+                The most specific match wins. Use "Any" to act as a fallback.
+              </p>
+
               <div>
                 <Label>Name</Label>
                 <Input
