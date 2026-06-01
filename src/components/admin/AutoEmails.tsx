@@ -294,25 +294,27 @@ const AutoEmails = () => {
           </p>
         </div>
         <Button
-          onClick={() =>
+          onClick={() => {
+            const body =
+              "Hi {{firstName}},\n\n" +
+              "Here are the details for your upcoming class:\n\n" +
+              "Course: {{course}}\n" +
+              "Date: {{scheduleDate}}\n" +
+              "Time: {{classTime}}\n" +
+              "Location: {{locationLabel}}\n" +
+              "Address: {{locationAddress}}\n" +
+              "Map: {{mapLink}}\n\n" +
+              "Bike and helmet are provided. Please arrive 15 minutes early.\n\n" +
+              "Questions? Call us at {{contactPhone}}.\n\n" +
+              "See you soon,\nLearn To Ride VC";
+            initialBodyRef.current = body;
             setEditing({
               id: "",
               trigger_event: "class_location_time",
               name: "Class Location & Time",
               description: "Sent ahead of class with location, time, and any attachments.",
               subject: "Your {{course}} on {{scheduleDate}} — Location & Time",
-              body:
-                "Hi {{firstName}},\n\n" +
-                "Here are the details for your upcoming class:\n\n" +
-                "Course: {{course}}\n" +
-                "Date: {{scheduleDate}}\n" +
-                "Time: {{classTime}}\n" +
-                "Location: {{locationLabel}}\n" +
-                "Address: {{locationAddress}}\n" +
-                "Map: {{mapLink}}\n\n" +
-                "Bike and helmet are provided. Please arrive 15 minutes early.\n\n" +
-                "Questions? Call us at {{contactPhone}}.\n\n" +
-                "See you soon,\nLearn To Ride VC",
+              body,
               enabled: true,
               available_variables: triggerVars("class_location_time"),
               attachments: [],
@@ -320,8 +322,8 @@ const AutoEmails = () => {
               match_group: null,
               match_course: null,
               updated_at: "",
-            })
-          }
+            });
+          }}
         >
           <Plus className="w-4 h-4 mr-2" /> New Template
         </Button>
