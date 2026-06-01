@@ -331,7 +331,7 @@ const AutoEmails = () => {
         </Button>
       </div>
 
-      {userRole === "owner" && <BccSettings />}
+      {effectiveRole === "owner" && <BccSettings />}
 
 
 
