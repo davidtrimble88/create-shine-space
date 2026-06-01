@@ -417,19 +417,62 @@ const RegisterPage = () => {
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   };
 
+  const paymentCompletedRef = useRef(false);
+
   const handleWaiverSigned = (waiverId: string) => {
     setPendingBooking(prev => prev ? { ...prev, waiver_id: waiverId } : prev);
     setWaiverOpen(false);
+    paymentCompletedRef.current = false;
     setPaymentOpen(true);
   };
 
   const handlePaymentSuccess = () => {
+    paymentCompletedRef.current = true;
     form.reset();
     setPendingBooking(null);
     setWaiverPrefill(null);
     setRegFormPrefill(null);
     setModelReleasePrefill(null);
     navigate("/registration-confirmation");
+  };
+
+  // If the payment dialog is closed without paying, still create the booking
+  // so the student lands on the class roster. Marked as unpaid so staff can
+  // collect payment later.
+  const handlePaymentDialogChange = async (open: boolean) => {
+    setPaymentOpen(open);
+    if (open || paymentCompletedRef.current || !pendingBooking) return;
+    try {
+      const { error } = await supabase.from("bookings").insert({
+        ...(pendingBooking as any),
+        payment_status: "unpaid",
+        booking_status: "confirmed",
+      } as any);
+      if (error) {
+        toast({
+          title: "Could not save booking",
+          description: "Please contact us to confirm your spot.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "You're booked!",
+        description: "Payment was skipped — staff will collect it from you.",
+      });
+      form.reset();
+      setPendingBooking(null);
+      setWaiverPrefill(null);
+      setRegFormPrefill(null);
+      setModelReleasePrefill(null);
+      navigate("/registration-confirmation");
+    } catch {
+      toast({
+        title: "Could not save booking",
+        description: "Please contact us to confirm your spot.",
+        variant: "destructive",
+      });
+    }
   };
 
   const dateOfBirth = useWatch({ control: form.control, name: "dateOfBirth" });
@@ -1089,7 +1132,7 @@ const RegisterPage = () => {
       {pendingBooking && (
         <PaymentDialog
           open={paymentOpen}
-          onOpenChange={setPaymentOpen}
+          onOpenChange={handlePaymentDialogChange}
           region={paymentRegion}
           amountCents={paymentAmountCents}
           amountLabel={paymentAmountLabel}
