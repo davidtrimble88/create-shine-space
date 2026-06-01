@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       auto_email_templates: {
         Row: {
+          attachments: Json
           available_variables: string[]
           body: string
           created_at: string
@@ -29,6 +30,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          attachments?: Json
           available_variables?: string[]
           body: string
           created_at?: string
@@ -42,6 +44,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          attachments?: Json
           available_variables?: string[]
           body?: string
           created_at?: string
