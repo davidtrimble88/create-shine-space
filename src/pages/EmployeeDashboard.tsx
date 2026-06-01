@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -20,6 +20,7 @@ import ClassRosters from "@/components/admin/ClassRosters";
 import AdminReferralSources from "@/components/admin/AdminReferralSources";
 import AdminFiles from "@/components/admin/AdminFiles";
 import PaymentSettings from "@/components/admin/PaymentSettings";
+import AutoEmails from "@/components/admin/AutoEmails";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
 
@@ -35,6 +36,7 @@ const tabs = [
   { id: "files", label: "Files", icon: FolderOpen, roles: ["owner", "admin", "manager", "employee"] },
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
+  { id: "auto-emails", label: "Auto Emails", icon: Mail, roles: ["owner", "admin"] },
   { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
   { id: "payment-settings", label: "Payment Settings", icon: CreditCard, roles: ["owner"] },
   { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
@@ -194,6 +196,7 @@ const EmployeeDashboard = () => {
         {activeTab === "files" && <AdminFiles />}
         
         {activeTab === "signed-waivers" && <SignedWaivers />}
+        {activeTab === "auto-emails" && <AutoEmails />}
         {activeTab === "analytics" && <WebsiteAnalytics />}
         {activeTab === "roles" && <RolePermissions />}
         {activeTab === "security-questions" && <SecurityQuestionsSetup />}
