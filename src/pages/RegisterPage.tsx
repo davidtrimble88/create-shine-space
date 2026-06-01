@@ -465,15 +465,17 @@ const RegisterPage = () => {
             className="text-center mb-12"
           >
             <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
-              {waiverOpen ? "Step 6 of 6 — Sign Waiver"
-                : regFormOpen ? "Step 5 of 6 — Sign Registration Form"
-                : "Step 4 of 6"}
+              {waiverOpen ? "Step 7 of 7 — Sign Waiver"
+                : modelReleaseOpen ? "Step 6 of 7 — Model Release"
+                : regFormOpen ? "Step 5 of 7 — Sign Registration Form"
+                : "Step 4 of 7"}
             </span>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Student <span className="text-accent">Registration</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-2">
               {waiverOpen ? "Review and electronically sign the CMSP waiver to continue."
+                : modelReleaseOpen ? "Choose whether to allow photo / video of you during the course — or decline."
                 : regFormOpen ? "Review and electronically sign the CMSP Student Registration Form."
                 : "Complete the form below to reserve your spot."}
             </p>
@@ -487,13 +489,19 @@ const RegisterPage = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className={(waiverOpen && waiverPrefill) || (regFormOpen && regFormPrefill) ? "max-w-5xl mx-auto" : "max-w-2xl mx-auto"}
+            className={(waiverOpen && waiverPrefill) || (regFormOpen && regFormPrefill) || (modelReleaseOpen && modelReleasePrefill) ? "max-w-5xl mx-auto" : "max-w-2xl mx-auto"}
           >
             {regFormOpen && regFormPrefill ? (
               <RegistrationFormStep
                 prefill={regFormPrefill}
                 onBack={() => setRegFormOpen(false)}
                 onSigned={handleRegistrationFormSigned}
+              />
+            ) : modelReleaseOpen && modelReleasePrefill ? (
+              <ModelReleaseStep
+                prefill={modelReleasePrefill}
+                onBack={() => setModelReleaseOpen(false)}
+                onComplete={handleModelReleaseComplete}
               />
             ) : waiverOpen && waiverPrefill ? (
               <WaiverDocuSign
