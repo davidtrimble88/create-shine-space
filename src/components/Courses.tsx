@@ -188,12 +188,12 @@ const Courses = () => {
             <div className="flex items-center gap-3 text-center sm:text-left">
               <Users className="w-6 h-6 text-accent flex-shrink-0" />
               <p className="text-foreground font-medium">
-                Looking for group rates? Contact us for special pricing on group bookings.
+                <EditableText contentKey="courses.group.text" fallback="Looking for group rates? Contact us for special pricing on group bookings." multiline />
               </p>
             </div>
             <Link to="/contact">
               <Button variant="hero" className="group whitespace-nowrap">
-                Contact Us
+                <EditableText contentKey="courses.group.cta" fallback="Contact Us" />
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
