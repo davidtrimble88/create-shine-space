@@ -468,6 +468,18 @@ const RegisterPage = () => {
 
   const handlePaymentSuccess = () => {
     paymentCompletedRef.current = true;
+    if (pendingBooking) {
+      const p = pendingBooking as any;
+      fireRegistrationEmail({
+        email: p.email,
+        firstName: p.first_name,
+        lastName: p.last_name,
+        course: courseLabels[p.course] || p.course,
+        locationLabel: p.location_label,
+        scheduleDate: p.schedule_date,
+        fee: p.fee,
+      });
+    }
     form.reset();
     setPendingBooking(null);
     setWaiverPrefill(null);
