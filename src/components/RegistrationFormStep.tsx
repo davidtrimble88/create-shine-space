@@ -360,16 +360,16 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label className="text-sm">10. Did you call for Motorcyclist Training Course information? *</Label>
+            <Label className="text-sm">9. Did you call for Motorcyclist Training Course information? *</Label>
+            <div className="mt-2"><Yn value={q9} onChange={setQ9} name="q9" /></div>
+          </div>
+          <div>
+            <Label className="text-sm">10. Have you ever taken this course before? *</Label>
             <div className="mt-2"><Yn value={q10} onChange={setQ10} name="q10" /></div>
           </div>
           <div>
-            <Label className="text-sm">11. Have you ever taken this course before? *</Label>
+            <Label className="text-sm">11. May CMSP contact you in the future? *</Label>
             <div className="mt-2"><Yn value={q11} onChange={setQ11} name="q11" /></div>
-          </div>
-          <div>
-            <Label className="text-sm">12. May CMSP contact you in the future? *</Label>
-            <div className="mt-2"><Yn value={q12} onChange={setQ12} name="q12" /></div>
           </div>
         </div>
       </div>
