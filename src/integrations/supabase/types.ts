@@ -461,6 +461,7 @@ export type Database = {
           created_at: string
           employee_id: string
           id: string
+          part: string | null
           schedule_id: string
         }
         Insert: {
@@ -469,6 +470,7 @@ export type Database = {
           created_at?: string
           employee_id: string
           id?: string
+          part?: string | null
           schedule_id: string
         }
         Update: {
@@ -477,6 +479,7 @@ export type Database = {
           created_at?: string
           employee_id?: string
           id?: string
+          part?: string | null
           schedule_id?: string
         }
         Relationships: [
