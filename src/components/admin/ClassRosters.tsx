@@ -707,9 +707,10 @@ const ClassRosters = () => {
       rows.push(
         <tr key={`empty-${i}`} className="empty-rows">
           <td>{startNum + i}</td>
-          <td></td><td></td><td></td><td></td>
-          <td></td><td></td><td></td><td></td>
-          <td></td><td></td><td></td><td></td>
+          <td></td><td></td><td className="center"></td><td></td>
+          <td></td><td></td><td className="center"></td><td className="center"></td>
+          <td className="center"></td><td className="center"></td><td></td>
+          <td className="center"></td><td className="center"></td>
         </tr>
       );
     }
