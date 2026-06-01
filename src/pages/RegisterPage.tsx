@@ -878,14 +878,14 @@ const RegisterPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField control={form.control} name="guardianFirstName" render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Guardian First Name *</FormLabel>
+                            <FormLabel>Guardian Legal First Name *</FormLabel>
                             <FormControl><Input placeholder="Jane" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={form.control} name="guardianLastName" render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Guardian Last Name *</FormLabel>
+                            <FormLabel>Guardian Legal Last Name *</FormLabel>
                             <FormControl><Input placeholder="Doe" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>

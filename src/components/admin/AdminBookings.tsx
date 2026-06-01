@@ -290,11 +290,11 @@ const AdminBookings = () => {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>First Name *</Label>
+                  <Label>Legal First Name *</Label>
                   <Input value={retestForm.first_name} onChange={e => setRetestForm(f => ({ ...f, first_name: e.target.value }))} />
                 </div>
                 <div>
-                  <Label>Last Name *</Label>
+                  <Label>Legal Last Name *</Label>
                   <Input value={retestForm.last_name} onChange={e => setRetestForm(f => ({ ...f, last_name: e.target.value }))} />
                 </div>
               </div>
@@ -384,11 +384,11 @@ const AdminBookings = () => {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>First Name *</Label>
+                  <Label>Legal First Name *</Label>
                   <Input value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))} />
                 </div>
                 <div>
-                  <Label>Last Name *</Label>
+                  <Label>Legal Last Name *</Label>
                   <Input value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))} />
                 </div>
               </div>
