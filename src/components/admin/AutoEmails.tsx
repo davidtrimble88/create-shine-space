@@ -136,6 +136,7 @@ const AutoEmails = () => {
       attachments: editing.attachments as any,
       match_location: editing.match_location || null,
       match_group: editing.match_group || null,
+      match_course: editing.match_course || null,
     };
     let error;
     if (editing.id) {
