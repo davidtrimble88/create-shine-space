@@ -51,7 +51,7 @@ const TRIGGER_OPTIONS: { value: string; label: string; vars: string[] }[] = [
   {
     value: "registration_confirmation",
     label: "After Registration (Student)",
-    vars: ["firstName", "lastName", "course", "locationLabel", "scheduleDate", "schedule", "fee", "email"],
+    vars: ["firstName", "lastName", "course", "locationLabel", "scheduleDate", "schedule", "fee", "email", "groupName"],
   },
   {
     value: "class_location_time",
