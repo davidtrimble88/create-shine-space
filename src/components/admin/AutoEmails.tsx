@@ -93,7 +93,7 @@ const renderWithAttachments = (body: string, vars: Record<string, string>, atts:
 };
 
 const AutoEmails = () => {
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { userRole } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -104,21 +104,54 @@ const AutoEmails = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const wrapSelection = (before: string, after: string, fallback = "text") => {
-    const ta = bodyRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart ?? 0;
-    const end = ta.selectionEnd ?? 0;
-    const value = ta.value;
-    const selected = value.slice(start, end) || fallback;
-    const next = value.slice(0, start) + before + selected + after + value.slice(end);
-    setEditing((prev) => (prev ? { ...prev, body: next } : prev));
-    requestAnimationFrame(() => {
-      ta.focus();
-      const pos = start + before.length;
-      ta.setSelectionRange(pos, pos + selected.length);
-    });
+  // Normalize stored body to HTML for the WYSIWYG editor.
+  // If the body has no HTML tags, treat newlines as <br> so existing plain-text templates display correctly.
+  const toHtml = (body: string) => {
+    if (!body) return "";
+    const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(body);
+    return looksLikeHtml ? body : body.replace(/\n/g, "<br>");
   };
+
+  // Load the initial HTML into the editor when opening a template. We don't sync on every keystroke
+  // because that would reset the caret position.
+  const lastLoadedId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!editing || !bodyRef.current) return;
+    if (lastLoadedId.current === editing.id) return;
+    bodyRef.current.innerHTML = toHtml(editing.body);
+    lastLoadedId.current = editing.id;
+  }, [editing]);
+
+  const exec = (command: string, value?: string) => {
+    bodyRef.current?.focus();
+    document.execCommand(command, false, value);
+    if (bodyRef.current) {
+      setEditing((prev) => (prev ? { ...prev, body: bodyRef.current!.innerHTML } : prev));
+    }
+  };
+
+  const applyHighlight = () => exec("hiliteColor", "#fff59d");
+  const applyFontSize = (px: string) => {
+    // execCommand fontSize accepts 1-7; wrap selection in a span for exact px instead.
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !bodyRef.current) return;
+    if (!bodyRef.current.contains(sel.anchorNode)) return;
+    const range = sel.getRangeAt(0);
+    if (range.collapsed) return;
+    const span = document.createElement("span");
+    span.style.fontSize = px;
+    try {
+      range.surroundContents(span);
+    } catch {
+      // Selection spans multiple block elements — fall back to extract/insert.
+      const frag = range.extractContents();
+      span.appendChild(frag);
+      range.insertNode(span);
+    }
+    sel.removeAllRanges();
+    setEditing((prev) => (prev ? { ...prev, body: bodyRef.current!.innerHTML } : prev));
+  };
+
 
 
   const load = async () => {
@@ -481,21 +514,21 @@ const AutoEmails = () => {
               <div>
                 <Label>Body</Label>
                 <div className="flex flex-wrap items-center gap-1 border border-b-0 rounded-t-md bg-muted/40 p-1">
-                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Bold" onClick={() => wrapSelection("<b>", "</b>", "bold text")}>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Bold" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("bold")}>
                     <Bold className="w-4 h-4" />
                   </Button>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Italic" onClick={() => wrapSelection("<i>", "</i>", "italic text")}>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Italic" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("italic")}>
                     <Italic className="w-4 h-4" />
                   </Button>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Underline" onClick={() => wrapSelection("<u>", "</u>", "underlined text")}>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Underline" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("underline")}>
                     <Underline className="w-4 h-4" />
                   </Button>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Highlight" onClick={() => wrapSelection('<mark style="background:#fff59d;padding:0 2px;">', "</mark>", "highlighted text")}>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Highlight" onMouseDown={(e) => e.preventDefault()} onClick={applyHighlight}>
                     <Highlighter className="w-4 h-4" />
                   </Button>
-                  <div className="flex items-center gap-1 ml-1">
+                  <div className="flex items-center gap-1 ml-1" onMouseDown={(e) => e.preventDefault()}>
                     <Type className="w-4 h-4 text-muted-foreground" />
-                    <Select onValueChange={(v) => wrapSelection(`<span style="font-size:${v};">`, "</span>", "resized text")}>
+                    <Select onValueChange={applyFontSize}>
                       <SelectTrigger className="h-8 w-[110px] text-xs">
                         <SelectValue placeholder="Size" />
                       </SelectTrigger>
@@ -511,24 +544,29 @@ const AutoEmails = () => {
                   </div>
                   <span className="text-xs text-muted-foreground ml-auto pr-2">Select text, then click a format</span>
                 </div>
-                <Textarea
+                <div
                   ref={bodyRef}
-                  rows={12}
-                  value={editing.body}
-                  onChange={(e) => setEditing({ ...editing, body: e.target.value })}
-                  placeholder={"Hi {{firstName}},\n\n..."}
-                  className="font-mono text-sm rounded-t-none"
+                  contentEditable
+                  suppressContentEditableWarning
+                  onInput={(e) =>
+                    setEditing({ ...editing, body: (e.target as HTMLDivElement).innerHTML })
+                  }
+                  className="min-h-[280px] border rounded-b-md p-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring whitespace-pre-wrap break-words"
+                  data-placeholder="Hi {{firstName}}, ..."
                 />
                 <p className="text-xs text-muted-foreground mt-2">
-                  Available variables:{" "}
+                  Available variables (click to insert):{" "}
                   {editing.available_variables.map((v) => (
-                    <code key={v} className="bg-muted px-1 rounded mr-1">{`{{${v}}}`}</code>
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => exec("insertText", `{{${v}}}`)}
+                      className="bg-muted hover:bg-muted/70 px-1.5 py-0.5 rounded mr-1 font-mono text-xs"
+                    >{`{{${v}}}`}</button>
                   ))}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Formatting uses HTML tags (e.g. <code>&lt;b&gt;</code>, <code>&lt;mark&gt;</code>). The preview renders them as they'll appear in the email.
-                </p>
               </div>
+
 
 
               {/* Attachments */}
