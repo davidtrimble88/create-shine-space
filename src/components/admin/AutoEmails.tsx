@@ -24,6 +24,12 @@ const GROUP_OPTIONS: { value: string; label: string }[] = [
   { value: "Group A", label: "Group A" },
   { value: "Group B", label: "Group B" },
 ];
+const COURSE_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Any course" },
+  { value: "basic", label: "Motorcycle Training Course (Basic)" },
+  { value: "intermediate", label: "Intermediate Course" },
+  { value: "advanced", label: "Advanced Course" },
+];
 
 type Template = {
   id: string;
@@ -37,6 +43,7 @@ type Template = {
   attachments: Attachment[];
   match_location: string | null;
   match_group: string | null;
+  match_course: string | null;
   updated_at: string;
 };
 
@@ -106,6 +113,7 @@ const AutoEmails = () => {
           attachments: Array.isArray(t.attachments) ? t.attachments : [],
           match_location: t.match_location ?? null,
           match_group: t.match_group ?? null,
+          match_course: t.match_course ?? null,
         })) as Template[],
       );
     }
@@ -128,6 +136,7 @@ const AutoEmails = () => {
       attachments: editing.attachments as any,
       match_location: editing.match_location || null,
       match_group: editing.match_group || null,
+      match_course: editing.match_course || null,
     };
     let error;
     if (editing.id) {
@@ -241,6 +250,7 @@ const AutoEmails = () => {
               attachments: [],
               match_location: null,
               match_group: null,
+              match_course: null,
               updated_at: "",
             })
           }
@@ -278,8 +288,13 @@ const AutoEmails = () => {
                     <CardDescription className="mt-1">
                       Trigger:{" "}
                       <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{t.trigger_event}</code>
-                      {t.match_location ? (
+                      {t.match_course ? (
                         <Badge variant="outline" className="ml-2">
+                          {COURSE_OPTIONS.find((o) => o.value === t.match_course)?.label || t.match_course}
+                        </Badge>
+                      ) : null}
+                      {t.match_location ? (
+                        <Badge variant="outline" className="ml-1">
                           {LOCATION_OPTIONS.find((o) => o.value === t.match_location)?.label || t.match_location}
                         </Badge>
                       ) : null}
@@ -359,6 +374,18 @@ const AutoEmails = () => {
                     <option key={o.value} value={o.value}>
                       {o.label} ({o.value})
                     </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label>Target Course</Label>
+                <select
+                  className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={editing.match_course || ""}
+                  onChange={(e) => setEditing({ ...editing, match_course: e.target.value || null })}
+                >
+                  {COURSE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
               </div>

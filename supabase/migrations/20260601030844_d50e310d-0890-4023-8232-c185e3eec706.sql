@@ -1,0 +1,2 @@
+ALTER TABLE public.auto_email_templates ADD COLUMN IF NOT EXISTS match_course text;
+CREATE INDEX IF NOT EXISTS idx_auto_email_templates_targeting ON public.auto_email_templates (trigger_event, match_course, match_location, match_group);

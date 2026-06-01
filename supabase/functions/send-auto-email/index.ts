@@ -19,7 +19,7 @@ const render = (tpl: string, vars: Record<string, string>) =>
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
-    const { trigger_event, recipientEmail, variables = {}, location = null, groupName = null } = await req.json();
+    const { trigger_event, recipientEmail, variables = {}, location = null, groupName = null, course = null } = await req.json();
     if (!trigger_event || !recipientEmail) {
       return new Response(JSON.stringify({ error: "trigger_event and recipientEmail are required" }), {
         status: 400, headers: { ...cors, "Content-Type": "application/json" },
@@ -48,8 +48,9 @@ Deno.serve(async (req) => {
     const score = (t: any) => {
       const locOk = !t.match_location || t.match_location === location;
       const grpOk = !t.match_group || t.match_group === groupName;
-      if (!locOk || !grpOk) return -1;
-      return (t.match_location ? 2 : 0) + (t.match_group ? 1 : 0);
+      const crsOk = !t.match_course || t.match_course === course;
+      if (!locOk || !grpOk || !crsOk) return -1;
+      return (t.match_course ? 4 : 0) + (t.match_location ? 2 : 0) + (t.match_group ? 1 : 0);
     };
     const tpl = candidates
       .map((t) => ({ t, s: score(t) }))
