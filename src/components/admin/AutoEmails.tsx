@@ -478,12 +478,44 @@ const AutoEmails = () => {
               </div>
               <div>
                 <Label>Body</Label>
+                <div className="flex flex-wrap items-center gap-1 border border-b-0 rounded-t-md bg-muted/40 p-1">
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Bold" onClick={() => wrapSelection("<b>", "</b>", "bold text")}>
+                    <Bold className="w-4 h-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Italic" onClick={() => wrapSelection("<i>", "</i>", "italic text")}>
+                    <Italic className="w-4 h-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Underline" onClick={() => wrapSelection("<u>", "</u>", "underlined text")}>
+                    <Underline className="w-4 h-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Highlight" onClick={() => wrapSelection('<mark style="background:#fff59d;padding:0 2px;">', "</mark>", "highlighted text")}>
+                    <Highlighter className="w-4 h-4" />
+                  </Button>
+                  <div className="flex items-center gap-1 ml-1">
+                    <Type className="w-4 h-4 text-muted-foreground" />
+                    <Select onValueChange={(v) => wrapSelection(`<span style="font-size:${v};">`, "</span>", "resized text")}>
+                      <SelectTrigger className="h-8 w-[110px] text-xs">
+                        <SelectValue placeholder="Size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10px">Small (10px)</SelectItem>
+                        <SelectItem value="12px">Normal (12px)</SelectItem>
+                        <SelectItem value="14px">Medium (14px)</SelectItem>
+                        <SelectItem value="18px">Large (18px)</SelectItem>
+                        <SelectItem value="24px">X-Large (24px)</SelectItem>
+                        <SelectItem value="32px">Huge (32px)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <span className="text-xs text-muted-foreground ml-auto pr-2">Select text, then click a format</span>
+                </div>
                 <Textarea
+                  ref={bodyRef}
                   rows={12}
                   value={editing.body}
                   onChange={(e) => setEditing({ ...editing, body: e.target.value })}
                   placeholder={"Hi {{firstName}},\n\n..."}
-                  className="font-mono text-sm"
+                  className="font-mono text-sm rounded-t-none"
                 />
                 <p className="text-xs text-muted-foreground mt-2">
                   Available variables:{" "}
@@ -491,7 +523,11 @@ const AutoEmails = () => {
                     <code key={v} className="bg-muted px-1 rounded mr-1">{`{{${v}}}`}</code>
                   ))}
                 </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Formatting uses HTML tags (e.g. <code>&lt;b&gt;</code>, <code>&lt;mark&gt;</code>). The preview renders them as they'll appear in the email.
+                </p>
               </div>
+
 
               {/* Attachments */}
               <div>
