@@ -374,6 +374,29 @@ const RegisterPage = () => {
         scheduleId: scheduleId,
         scheduleDate: scheduleDate,
       });
+      setModelReleasePrefill({
+        firstName: data.firstName,
+        middleName: data.middleName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        dateOfBirth: data.dateOfBirth,
+        addressStreet: data.address,
+        addressCity: data.city,
+        addressState: data.state,
+        addressZip: data.zip,
+        isMinor: isUnder18,
+        guardianFirstName: isUnder18 ? data.guardianFirstName : undefined,
+        guardianLastName: isUnder18 ? data.guardianLastName : undefined,
+        guardianRelationship: isUnder18 ? data.guardianRelationship : undefined,
+        guardianPhone: isUnder18 ? data.guardianPhone : undefined,
+        guardianEmail: isUnder18 ? data.guardianEmail : undefined,
+        course,
+        location,
+        locationLabel: locationLabels[location] || location,
+        scheduleId: scheduleId,
+        scheduleDate: scheduleDate,
+      });
       setRegFormOpen(true);
       requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
     } catch (err) {
@@ -384,6 +407,12 @@ const RegisterPage = () => {
 
   const handleRegistrationFormSigned = (_recordId: string) => {
     setRegFormOpen(false);
+    setModelReleaseOpen(true);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+  };
+
+  const handleModelReleaseComplete = (_recordId: string, _decision: "sign" | "decline") => {
+    setModelReleaseOpen(false);
     setWaiverOpen(true);
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   };
