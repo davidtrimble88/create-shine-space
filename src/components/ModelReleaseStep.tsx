@@ -257,19 +257,20 @@ const ModelReleaseStep = ({ prefill, onBack, onComplete }: Props) => {
           photo or video taken. Declining will not affect your registration.
         </p>
 
-        <div className="rounded-lg border border-border bg-muted/20 p-4 max-h-96 overflow-y-auto whitespace-pre-wrap text-sm text-foreground leading-relaxed">
-          {CMSP_MODEL_RELEASE_TEXT}
+        <div className="rounded-lg border border-border bg-white overflow-hidden" style={{ height: 700 }}>
+          <iframe
+            src="/cmsp-model-release.pdf#view=FitH&toolbar=1"
+            title="CMSP Model Release"
+            className="w-full h-full"
+          />
         </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <a
-            href="/cmsp-model-release.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center text-sm text-accent underline hover:no-underline"
-          >
-            Open the official CMSP Model Release PDF in a new tab →
-          </a>
-        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          This is the exact document.{" "}
+          <a href="/cmsp-model-release.pdf" target="_blank" rel="noopener noreferrer" className="text-accent underline">
+            Open in a new tab
+          </a>{" "}
+          if you have trouble viewing it.
+        </p>
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
