@@ -549,7 +549,8 @@ const AutoEmails = () => {
                   <span className="text-xs text-muted-foreground ml-auto pr-2">Select text, then click a format</span>
                 </div>
                 <div
-                  ref={bodyRef}
+                  key={editing.id || "new"}
+                  ref={setBodyRef}
                   contentEditable
                   suppressContentEditableWarning
                   onInput={(e) =>
