@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Phone } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import EditableText from "@/components/EditableText";
 import logo from "@/assets/logo.png";
 
 const navLinks = [
