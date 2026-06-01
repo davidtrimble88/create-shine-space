@@ -13,6 +13,18 @@ import { Mail, Plus, Pencil, Trash2, Eye, Save, Paperclip, Upload, X } from "luc
 
 type Attachment = { name: string; path: string; url: string; size?: number };
 
+const LOCATION_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Any location" },
+  { value: "high-desert-hesperia", label: "High Desert — Hesperia" },
+  { value: "high-desert-wrightwood", label: "High Desert — Wrightwood" },
+  { value: "ventura-county", label: "Ventura County — Somis" },
+];
+const GROUP_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Any group" },
+  { value: "Group A", label: "Group A" },
+  { value: "Group B", label: "Group B" },
+];
+
 type Template = {
   id: string;
   trigger_event: string;
@@ -23,6 +35,8 @@ type Template = {
   enabled: boolean;
   available_variables: string[];
   attachments: Attachment[];
+  match_location: string | null;
+  match_group: string | null;
   updated_at: string;
 };
 
@@ -90,6 +104,8 @@ const AutoEmails = () => {
         ((data as any[]) || []).map((t) => ({
           ...t,
           attachments: Array.isArray(t.attachments) ? t.attachments : [],
+          match_location: t.match_location ?? null,
+          match_group: t.match_group ?? null,
         })) as Template[],
       );
     }
@@ -110,6 +126,8 @@ const AutoEmails = () => {
       enabled: editing.enabled,
       available_variables: editing.available_variables,
       attachments: editing.attachments as any,
+      match_location: editing.match_location || null,
+      match_group: editing.match_group || null,
     };
     let error;
     if (editing.id) {
@@ -221,6 +239,8 @@ const AutoEmails = () => {
               enabled: true,
               available_variables: triggerVars("class_location_time"),
               attachments: [],
+              match_location: null,
+              match_group: null,
               updated_at: "",
             })
           }
@@ -258,6 +278,14 @@ const AutoEmails = () => {
                     <CardDescription className="mt-1">
                       Trigger:{" "}
                       <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{t.trigger_event}</code>
+                      {t.match_location ? (
+                        <Badge variant="outline" className="ml-2">
+                          {LOCATION_OPTIONS.find((o) => o.value === t.match_location)?.label || t.match_location}
+                        </Badge>
+                      ) : null}
+                      {t.match_group ? (
+                        <Badge variant="outline" className="ml-1">{t.match_group}</Badge>
+                      ) : null}
                       {t.description ? <span className="block mt-1">{t.description}</span> : null}
                     </CardDescription>
                   </div>
@@ -334,6 +362,36 @@ const AutoEmails = () => {
                   ))}
                 </select>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Target Location</Label>
+                  <select
+                    className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    value={editing.match_location || ""}
+                    onChange={(e) => setEditing({ ...editing, match_location: e.target.value || null })}
+                  >
+                    {LOCATION_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <Label>Target Group</Label>
+                  <select
+                    className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    value={editing.match_group || ""}
+                    onChange={(e) => setEditing({ ...editing, match_group: e.target.value || null })}
+                  >
+                    {GROUP_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-2">
+                The most specific match wins. Use "Any" to act as a fallback.
+              </p>
+
               <div>
                 <Label>Name</Label>
                 <Input

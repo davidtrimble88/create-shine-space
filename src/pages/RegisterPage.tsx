@@ -222,6 +222,7 @@ const RegisterPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [pendingBooking, setPendingBooking] = useState<Record<string, unknown> | null>(null);
+  const [pendingGroupName, setPendingGroupName] = useState<string | null>(null);
   const [paymentRegion, setPaymentRegion] = useState<SquareRegion>("ventura");
   const [paymentAmountCents, setPaymentAmountCents] = useState(0);
   const [paymentAmountLabel, setPaymentAmountLabel] = useState("");
@@ -239,6 +240,8 @@ const RegisterPage = () => {
     lastName: string;
     course: string;
     locationLabel: string;
+    location: string;
+    groupName: string | null;
     scheduleDate: string | null;
     fee: string;
   }) => {
@@ -247,11 +250,14 @@ const RegisterPage = () => {
         body: {
           trigger_event: "registration_confirmation",
           recipientEmail: payload.email,
+          location: payload.location,
+          groupName: payload.groupName,
           variables: {
             firstName: payload.firstName,
             lastName: payload.lastName,
             course: payload.course,
             locationLabel: payload.locationLabel,
+            groupName: payload.groupName || "",
             scheduleDate: payload.scheduleDate || "",
             schedule: "",
             fee: payload.fee,
@@ -264,6 +270,7 @@ const RegisterPage = () => {
     }
   };
 
+
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
     try {
@@ -271,10 +278,11 @@ const RegisterPage = () => {
       let scheduleId: string | null = null;
       let scheduleDate: string | null = null;
       let schedulePrice: string | null = null;
+      let scheduleGroup: string | null = null;
       if (schedule) {
         const { data: schedData } = await supabase
           .from("schedules")
-          .select("id, date, price")
+          .select("id, date, price, group_name")
           .eq("id", schedule)
           .is("cancelled_at", null)
           .maybeSingle();
@@ -282,6 +290,7 @@ const RegisterPage = () => {
           scheduleId = schedData.id;
           scheduleDate = schedData.date;
           schedulePrice = schedData.price;
+          scheduleGroup = (schedData as any).group_name ?? null;
         }
       }
 
@@ -349,6 +358,8 @@ const RegisterPage = () => {
           lastName: data.lastName,
           course: courseLabels[course] || course,
           locationLabel: locationLabels[location] || location,
+          location,
+          groupName: scheduleGroup,
           scheduleDate,
           fee: feeLabel,
         });
@@ -360,6 +371,7 @@ const RegisterPage = () => {
 
       // Show CMSP Student Registration Form step first, then waiver, then payment.
       setPendingBooking(bookingPayload);
+      setPendingGroupName(scheduleGroup);
       setPaymentRegion(region);
       setPaymentAmountCents(feeCents);
       setPaymentAmountLabel(feeLabel);
@@ -476,12 +488,14 @@ const RegisterPage = () => {
         lastName: p.last_name,
         course: courseLabels[p.course] || p.course,
         locationLabel: p.location_label,
+        location: p.location,
+        groupName: pendingGroupName,
         scheduleDate: p.schedule_date,
         fee: p.fee,
       });
     }
     form.reset();
-    setPendingBooking(null);
+    setPendingBooking(null); setPendingGroupName(null);
     setWaiverPrefill(null);
     setRegFormPrefill(null);
     setModelReleasePrefill(null);
@@ -519,11 +533,13 @@ const RegisterPage = () => {
         lastName: p.last_name,
         course: courseLabels[p.course] || p.course,
         locationLabel: p.location_label,
+        location: p.location,
+        groupName: pendingGroupName,
         scheduleDate: p.schedule_date,
         fee: p.fee,
       });
       form.reset();
-      setPendingBooking(null);
+      setPendingBooking(null); setPendingGroupName(null);
       setWaiverPrefill(null);
       setRegFormPrefill(null);
       setModelReleasePrefill(null);

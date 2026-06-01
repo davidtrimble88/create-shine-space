@@ -19,7 +19,7 @@ const render = (tpl: string, vars: Record<string, string>) =>
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
-    const { trigger_event, recipientEmail, variables = {} } = await req.json();
+    const { trigger_event, recipientEmail, variables = {}, location = null, groupName = null } = await req.json();
     if (!trigger_event || !recipientEmail) {
       return new Response(JSON.stringify({ error: "trigger_event and recipientEmail are required" }), {
         status: 400, headers: { ...cors, "Content-Type": "application/json" },
@@ -31,20 +31,33 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: tpl, error } = await supabase
+    // Fetch all enabled templates for this trigger, pick the most specific match.
+    const { data: candidates, error } = await supabase
       .from("auto_email_templates")
       .select("*")
       .eq("trigger_event", trigger_event)
-      .maybeSingle();
+      .eq("enabled", true);
 
     if (error) throw error;
-    if (!tpl) {
+    if (!candidates || candidates.length === 0) {
       return new Response(JSON.stringify({ skipped: true, reason: "no_template" }), {
         headers: { ...cors, "Content-Type": "application/json" },
       });
     }
-    if (!tpl.enabled) {
-      return new Response(JSON.stringify({ skipped: true, reason: "disabled" }), {
+
+    const score = (t: any) => {
+      const locOk = !t.match_location || t.match_location === location;
+      const grpOk = !t.match_group || t.match_group === groupName;
+      if (!locOk || !grpOk) return -1;
+      return (t.match_location ? 2 : 0) + (t.match_group ? 1 : 0);
+    };
+    const tpl = candidates
+      .map((t) => ({ t, s: score(t) }))
+      .filter((x) => x.s >= 0)
+      .sort((a, b) => b.s - a.s)[0]?.t;
+
+    if (!tpl) {
+      return new Response(JSON.stringify({ skipped: true, reason: "no_matching_template" }), {
         headers: { ...cors, "Content-Type": "application/json" },
       });
     }
