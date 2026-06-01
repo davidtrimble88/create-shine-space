@@ -73,8 +73,12 @@ const About = () => {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <p className="text-3xl md:text-4xl font-bold text-accent">{stat.value}</p>
-                <p className="text-muted-foreground text-sm mt-1">{stat.label}</p>
+                <p className="text-3xl md:text-4xl font-bold text-accent">
+                  <EditableText contentKey={`about.stat.${i}.value`} fallback={stat.value} />
+                </p>
+                <p className="text-muted-foreground text-sm mt-1">
+                  <EditableText contentKey={`about.stat.${i}.label`} fallback={stat.label} />
+                </p>
               </motion.div>
             ))}
           </div>
