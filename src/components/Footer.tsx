@@ -22,8 +22,7 @@ const Footer = () => {
           >
             <img src={logo} alt="Learn to Ride VC" className="h-28 mb-4" />
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-              California's premier motorcycle training school. CMSP certified instruction 
-              for riders of all skill levels.
+              <EditableText contentKey="footer.brand.desc" fallback="California's premier motorcycle training school. CMSP certified instruction for riders of all skill levels." multiline />
             </p>
             <div className="flex gap-4">
               <a href="https://www.facebook.com/people/Learn-to-Ride-VC/100063684781788/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center hover:bg-accent/20 hover:text-accent transition-colors">
