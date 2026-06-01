@@ -377,6 +377,18 @@ const AutoEmails = () => {
                   ))}
                 </select>
               </div>
+              <div>
+                <Label>Target Course</Label>
+                <select
+                  className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={editing.match_course || ""}
+                  onChange={(e) => setEditing({ ...editing, match_course: e.target.value || null })}
+                >
+                  {COURSE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Target Location</Label>
