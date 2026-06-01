@@ -184,7 +184,17 @@ const AutoEmails = () => {
     try {
       const newAtts: Attachment[] = [...editing.attachments];
       for (const file of Array.from(files)) {
-        const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`;
+        // Supabase Storage rejects keys with non-ASCII chars (e.g. en-dash "–"),
+        // spaces, and various punctuation. Sanitize while keeping the original
+        // display name intact for the email attachment list.
+        const safeName = file.name
+          .normalize("NFKD")
+          .replace(/[^\x00-\x7F]/g, "")        // drop non-ASCII (en-dash, smart quotes, etc.)
+          .replace(/[^a-zA-Z0-9._-]+/g, "_")    // collapse anything else to underscore
+          .replace(/_+/g, "_")
+          .replace(/^_+|_+$/g, "")
+          || "file";
+        const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`;
         const { error: upErr } = await supabase.storage
           .from("email-attachments")
           .upload(path, file, { upsert: false, contentType: file.type });
