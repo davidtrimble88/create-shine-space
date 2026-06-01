@@ -340,12 +340,18 @@ const RegisterPage = () => {
         license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
         id_photo_path: data.idPhotoPath || null,
         guardian_id_photo_path: isUnder18 ? (data.guardianIdPhotoPath || null) : null,
+        __group_name: scheduleGroup, // non-DB; stripped before insert
+      };
+
+      const stripExtras = (p: any) => {
+        const { __group_name, ...rest } = p;
+        return rest;
       };
 
       if (skipPaymentRef.current) {
         skipPaymentRef.current = false;
         const { error: insertErr } = await supabase.from("bookings").insert({
-          ...bookingPayload,
+          ...stripExtras(bookingPayload),
           payment_status: "skipped",
           booking_status: "confirmed",
         });
