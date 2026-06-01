@@ -642,15 +642,14 @@ const CoursesPage = () => {
           >
             {activeTab === "basic" && (
               <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
-                CMSP Certified Training
+                <EditableText contentKey="coursespage.badge" fallback="CMSP Certified Training" />
               </span>
             )}
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Find Your Perfect <span className="text-accent">Riding Course</span>
+              <EditableText contentKey="coursespage.title.a" fallback="Find Your Perfect" /> <span className="text-accent"><EditableText contentKey="coursespage.title.b" fallback="Riding Course" /></span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              From first-time riders to seasoned veterans — our CMSP certified programs
-              build real-world skills at every level.
+              <EditableText contentKey="coursespage.subtitle" fallback="From first-time riders to seasoned veterans — our CMSP certified programs build real-world skills at every level." multiline />
             </p>
           </motion.div>
         </div>
