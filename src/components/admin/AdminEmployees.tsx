@@ -297,7 +297,18 @@ const AdminEmployees = () => {
     }
 
     setTempPasswordInfo({ name: emp.full_name, email: emp.email, password: data.temp_password });
-    toast({ title: "Password Reset", description: `Temporary password created for ${emp.full_name}.` });
+
+    // Auto-send email with new temp password + instructions for the employee
+    const { error: mailErr } = await supabase.functions.invoke("send-password-reset-email", {
+      body: { recipientEmail: emp.email, fullName: emp.full_name, tempPassword: data.temp_password },
+    });
+    toast({
+      title: "Password Reset",
+      description: mailErr
+        ? `Temporary password created for ${emp.full_name}, but the email couldn't be sent. Share it with them manually.`
+        : `Temporary password created for ${emp.full_name} and emailed to ${emp.email}.`,
+      variant: mailErr ? "destructive" : "default",
+    });
   };
 
   const openNew = () => {
