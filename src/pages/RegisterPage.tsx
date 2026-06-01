@@ -929,20 +929,23 @@ const RegisterPage = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>How did you find us? *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select one..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
+                        <FormControl>
+                          <select
+                            name={field.name}
+                            ref={field.ref}
+                            value={field.value}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="">Select one...</option>
                             {referralOptions.map((option) => (
-                              <SelectItem key={option} value={option}>
+                              <option key={option} value={option}>
                                 {option}
-                              </SelectItem>
+                              </option>
                             ))}
-                          </SelectContent>
-                        </Select>
+                          </select>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1025,15 +1028,22 @@ const RegisterPage = () => {
                       <FormField control={form.control} name="guardianRelationship" render={({ field }) => (
                         <FormItem>
                           <FormLabel>Relationship to Minor *</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select one..." /></SelectTrigger></FormControl>
-                            <SelectContent>
-                              <SelectItem value="Mother">Mother</SelectItem>
-                              <SelectItem value="Father">Father</SelectItem>
-                              <SelectItem value="Legal Guardian">Legal Guardian</SelectItem>
-                              <SelectItem value="Stepparent">Stepparent</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <select
+                              name={field.name}
+                              ref={field.ref}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <option value="">Select one...</option>
+                              <option value="Mother">Mother</option>
+                              <option value="Father">Father</option>
+                              <option value="Legal Guardian">Legal Guardian</option>
+                              <option value="Stepparent">Stepparent</option>
+                            </select>
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
