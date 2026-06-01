@@ -41,7 +41,7 @@ const Footer = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
           >
-            <h4 className="font-semibold text-foreground mb-4">Quick Links</h4>
+            <h4 className="font-semibold text-foreground mb-4"><EditableText contentKey="footer.quicklinks.title" fallback="Quick Links" /></h4>
             <ul className="space-y-3">
               {[
                 { name: "Home", href: "/" },
