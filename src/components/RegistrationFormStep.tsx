@@ -153,9 +153,9 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
   const [q7, setQ7] = useState<"" | "commuting" | "recreation" | "other">("");
   const [q7Other, setQ7Other] = useState("");
   const [q8, setQ8] = useState<"" | "yes" | "no">("");
+  const [q9, setQ9] = useState<"" | "yes" | "no">("");
   const [q10, setQ10] = useState<"" | "yes" | "no">("");
   const [q11, setQ11] = useState<"" | "yes" | "no">("");
-  const [q12, setQ12] = useState<"" | "yes" | "no">("");
 
   const [acks, setAcks] = useState<Record<string, boolean>>({});
   const [typedSig, setTypedSig] = useState("");
