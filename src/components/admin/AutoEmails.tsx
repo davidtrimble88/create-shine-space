@@ -114,6 +114,7 @@ const AutoEmails = () => {
           match_location: t.match_location ?? null,
           match_group: t.match_group ?? null,
           match_course: t.match_course ?? null,
+        })) as Template[],
       );
     }
     setLoading(false);
