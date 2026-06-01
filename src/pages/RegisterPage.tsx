@@ -395,6 +395,7 @@ const RegisterPage = () => {
     form.reset();
     setPendingBooking(null);
     setWaiverPrefill(null);
+    setRegFormPrefill(null);
     navigate("/registration-confirmation");
   };
 
