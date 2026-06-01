@@ -17,10 +17,10 @@ const AdminOverview = () => {
   const [yesterdayEarnings, setYesterdayEarnings] = useState(0);
   const [todayByLocation, setTodayByLocation] = useState<LocationEarnings>({});
   const [yesterdayByLocation, setYesterdayByLocation] = useState<LocationEarnings>({});
-  const [todayViews, setTodayViews] = useState(0);
-  const [yesterdayViews, setYesterdayViews] = useState(0);
-  const [todayVisitors, setTodayVisitors] = useState(0);
-  const [yesterdayVisitors, setYesterdayVisitors] = useState(0);
+  const [todayRegistrations, setTodayRegistrations] = useState(0);
+  const [yesterdayRegistrations, setYesterdayRegistrations] = useState(0);
+  const [todayRegByLocation, setTodayRegByLocation] = useState<LocationEarnings>({});
+  const [yesterdayRegByLocation, setYesterdayRegByLocation] = useState<LocationEarnings>({});
 
   const canSeeEarnings = effectiveRole === "owner" || effectiveRole === "admin";
   const canSeeAnalytics = canSeeEarnings;
@@ -31,15 +31,24 @@ const AdminOverview = () => {
     const yesterdayStart = new Date(todayStart); yesterdayStart.setDate(yesterdayStart.getDate() - 1);
 
     const [todayRes, yesterdayRes] = await Promise.all([
-      supabase.from("page_views").select("visitor_id").gte("created_at", todayStart.toISOString()),
-      supabase.from("page_views").select("visitor_id").gte("created_at", yesterdayStart.toISOString()).lt("created_at", todayStart.toISOString()),
+      supabase.from("bookings").select("location_label").gte("created_at", todayStart.toISOString()),
+      supabase.from("bookings").select("location_label").gte("created_at", yesterdayStart.toISOString()).lt("created_at", todayStart.toISOString()),
     ]);
     const tRows = todayRes.data || [];
     const yRows = yesterdayRes.data || [];
-    setTodayViews(tRows.length);
-    setYesterdayViews(yRows.length);
-    setTodayVisitors(new Set(tRows.map(r => r.visitor_id).filter(Boolean)).size);
-    setYesterdayVisitors(new Set(yRows.map(r => r.visitor_id).filter(Boolean)).size);
+    setTodayRegistrations(tRows.length);
+    setYesterdayRegistrations(yRows.length);
+
+    const groupByLoc = (rows: { location_label: string | null }[]) => {
+      const byLoc: LocationEarnings = {};
+      rows.forEach((r) => {
+        const loc = r.location_label || "Unknown";
+        byLoc[loc] = (byLoc[loc] || 0) + 1;
+      });
+      return byLoc;
+    };
+    setTodayRegByLocation(groupByLoc(tRows));
+    setYesterdayRegByLocation(groupByLoc(yRows));
   }, [canSeeAnalytics]);
 
   const fetchEarnings = useCallback(async () => {
