@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import EditableText from "@/components/EditableText";
 import {
   Check, ArrowRight, Clock, Users, Award, Shield, BookOpen,
   Gauge, Eye, Route, AlertTriangle, Bike, ChevronDown, Star,
