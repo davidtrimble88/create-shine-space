@@ -115,10 +115,11 @@ const AdminOverview = () => {
       setUpcomingClasses(upcomingCount);
 
       await fetchEarnings();
+      await fetchAnalytics();
     };
 
     fetchStats();
-  }, [canSeeEarnings, user, fetchEarnings]);
+  }, [canSeeEarnings, canSeeAnalytics, user, fetchEarnings, fetchAnalytics]);
 
   // Realtime: refresh earnings when bookings change
   useEffect(() => {
