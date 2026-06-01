@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Clock, Users, Award } from "lucide-react";
 import { Link } from "react-router-dom";
+import EditableText from "@/components/EditableText";
 
 const courses = [
   {
@@ -83,14 +84,13 @@ const Courses = () => {
           className="text-center mb-16"
         >
           <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-            Our Courses
+            <EditableText contentKey="courses.label" fallback="Our Courses" />
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-            Choose Your <span className="text-accent">Path</span>
+            <EditableText contentKey="courses.title.a" fallback="Choose Your" /> <span className="text-accent"><EditableText contentKey="courses.title.b" fallback="Path" /></span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Whether you're a complete beginner or looking to sharpen your skills, 
-            we have the perfect course for you
+            <EditableText contentKey="courses.subtitle" fallback="Whether you're a complete beginner or looking to sharpen your skills, we have the perfect course for you" multiline />
           </p>
         </motion.div>
 
@@ -188,12 +188,12 @@ const Courses = () => {
             <div className="flex items-center gap-3 text-center sm:text-left">
               <Users className="w-6 h-6 text-accent flex-shrink-0" />
               <p className="text-foreground font-medium">
-                Looking for group rates? Contact us for special pricing on group bookings.
+                <EditableText contentKey="courses.group.text" fallback="Looking for group rates? Contact us for special pricing on group bookings." multiline />
               </p>
             </div>
             <Link to="/contact">
               <Button variant="hero" className="group whitespace-nowrap">
-                Contact Us
+                <EditableText contentKey="courses.group.cta" fallback="Contact Us" />
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>

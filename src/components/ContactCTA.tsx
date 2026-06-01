@@ -36,14 +36,14 @@ const ContactCTA = () => {
             <Link to="/choose-course">
               <Button size="lg" className="hero group text-lg px-8">
                 <Calendar className="w-5 h-5 mr-2" />
-                Book Your Course
+                <EditableText contentKey="cta.btn.book" fallback="Book Your Course" />
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link to="/contact">
               <Button size="lg" variant="heroOutline" className="text-lg px-8">
                 <Phone className="w-5 h-5 mr-2" />
-                Contact Us
+                <EditableText contentKey="cta.btn.contact" fallback="Contact Us" />
               </Button>
             </Link>
           </div>
@@ -61,8 +61,12 @@ const ContactCTA = () => {
                 <Phone className="w-6 h-6 text-accent" />
               </div>
               <div className="text-left">
-                <p className="text-sm text-muted-foreground">Ventura County</p>
-                <p className="text-lg font-semibold text-foreground">(805) 827-0075</p>
+                <p className="text-sm text-muted-foreground">
+                  <EditableText contentKey="cta.vc.label" fallback="Ventura County" />
+                </p>
+                <p className="text-lg font-semibold text-foreground">
+                  <EditableText contentKey="cta.vc.phone" fallback="(805) 827-0075" />
+                </p>
               </div>
             </motion.a>
 
@@ -78,8 +82,12 @@ const ContactCTA = () => {
                 <Phone className="w-6 h-6 text-accent" />
               </div>
               <div className="text-left">
-                <p className="text-sm text-muted-foreground">High Desert</p>
-                <p className="text-lg font-semibold text-foreground">(760) 987-6652</p>
+                <p className="text-sm text-muted-foreground">
+                  <EditableText contentKey="cta.hd.label" fallback="High Desert" />
+                </p>
+                <p className="text-lg font-semibold text-foreground">
+                  <EditableText contentKey="cta.hd.phone" fallback="(760) 987-6652" />
+                </p>
               </div>
             </motion.a>
 

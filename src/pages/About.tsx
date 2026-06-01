@@ -48,7 +48,7 @@ const About = () => {
             className="text-center max-w-3xl mx-auto"
           >
             <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-              About Us
+              <EditableText contentKey="about.hero.label" fallback="About Us" />
             </span>
             <h1 className="text-5xl md:text-6xl font-bold mt-4 mb-6">
               <EditableText contentKey="about.hero.title" fallback="Your Safety Is Our Business" />
@@ -73,8 +73,12 @@ const About = () => {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <p className="text-3xl md:text-4xl font-bold text-accent">{stat.value}</p>
-                <p className="text-muted-foreground text-sm mt-1">{stat.label}</p>
+                <p className="text-3xl md:text-4xl font-bold text-accent">
+                  <EditableText contentKey={`about.stat.${i}.value`} fallback={stat.value} />
+                </p>
+                <p className="text-muted-foreground text-sm mt-1">
+                  <EditableText contentKey={`about.stat.${i}.label`} fallback={stat.label} />
+                </p>
               </motion.div>
             ))}
           </div>
@@ -92,11 +96,11 @@ const About = () => {
               viewport={{ once: true }}
             >
               <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-                Our Mission
+                <EditableText contentKey="about.mission.label" fallback="Our Mission" />
               </span>
               <h2 className="text-3xl md:text-4xl font-bold mt-4 mb-6">
-                More Than a School —{" "}
-                <span className="text-accent">Your Lifelong Riding Partner</span>
+                <EditableText contentKey="about.mission.title.a" fallback="More Than a School —" />{" "}
+                <span className="text-accent"><EditableText contentKey="about.mission.title.b" fallback="Your Lifelong Riding Partner" /></span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                 <EditableText contentKey="about.mission.p1" fallback="Whether you're a new motorcyclist looking to get your license, or an experienced rider brushing up on skills or getting comfortable on a new bike — we have a course for you." multiline />
@@ -152,8 +156,12 @@ const About = () => {
                     <item.icon className="w-6 h-6 text-accent" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground mb-1">{item.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+                    <h3 className="font-semibold text-foreground mb-1">
+                      <EditableText contentKey={`about.feature.${i}.title`} fallback={item.title} />
+                    </h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      <EditableText contentKey={`about.feature.${i}.desc`} fallback={item.desc} multiline />
+                    </p>
                   </div>
                 </div>
               ))}
@@ -173,10 +181,10 @@ const About = () => {
             className="text-center mb-16"
           >
             <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-              Recognition
+              <EditableText contentKey="about.awards.label" fallback="Recognition" />
             </span>
             <h2 className="text-3xl md:text-4xl font-bold mt-4">
-              Award-Winning <span className="text-accent">Excellence</span>
+              <EditableText contentKey="about.awards.title.a" fallback="Award-Winning" /> <span className="text-accent"><EditableText contentKey="about.awards.title.b" fallback="Excellence" /></span>
             </h2>
           </motion.div>
 
@@ -201,10 +209,11 @@ const About = () => {
                   </span>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">Best Outreach Award</h3>
+              <h3 className="text-xl font-bold text-foreground mb-2">
+                <EditableText contentKey="about.award1.title" fallback="Best Outreach Award" />
+              </h3>
               <p className="text-muted-foreground">
-                Awarded for Service Excellence to Learn To Ride VC by the California
-                Motorcyclist Safety Program.
+                <EditableText contentKey="about.award1.desc" fallback="Awarded for Service Excellence to Learn To Ride VC by the California Motorcyclist Safety Program." multiline />
               </p>
             </motion.div>
 
@@ -228,10 +237,11 @@ const About = () => {
                   </span>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">Ambassador of the Year</h3>
+              <h3 className="text-xl font-bold text-foreground mb-2">
+                <EditableText contentKey="about.award2.title" fallback="Ambassador of the Year" />
+              </h3>
               <p className="text-muted-foreground">
-                Awarded for Service Excellence to Larry Missman, recognizing outstanding
-                dedication to motorcycle safety education.
+                <EditableText contentKey="about.award2.desc" fallback="Awarded for Service Excellence to Larry Missman, recognizing outstanding dedication to motorcycle safety education." multiline />
               </p>
             </motion.div>
           </div>
@@ -258,7 +268,7 @@ const About = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
               </div>
               <div className="absolute -bottom-4 -right-4 bg-accent text-accent-foreground px-6 py-3 rounded-xl font-bold text-lg shadow-glow">
-                Owner & Lead Instructor
+                <EditableText contentKey="about.larry.badge" fallback="Owner & Lead Instructor" />
               </div>
             </motion.div>
 
@@ -269,10 +279,10 @@ const About = () => {
               viewport={{ once: true }}
             >
               <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-                Meet the Owner
+                <EditableText contentKey="about.larry.label" fallback="Meet the Owner" />
               </span>
               <h2 className="text-3xl md:text-4xl font-bold mt-4 mb-6">
-                Larry <span className="text-accent">Missman</span>
+                <EditableText contentKey="about.larry.name.a" fallback="Larry" /> <span className="text-accent"><EditableText contentKey="about.larry.name.b" fallback="Missman" /></span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                 <EditableText contentKey="about.larry.p1" fallback="Larry Missman has been a motorcycle enthusiast since the age of ten. From a 50cc Honda to sport bikes to Harleys, he has ridden them all throughout his life." multiline />
@@ -285,7 +295,7 @@ const About = () => {
               </p>
               <Button variant="hero" size="lg" asChild>
                 <Link to="/contact">
-                  Get in Touch <ChevronRight className="w-4 h-4" />
+                  <EditableText contentKey="about.larry.cta" fallback="Get in Touch" /> <ChevronRight className="w-4 h-4" />
                 </Link>
               </Button>
             </motion.div>
@@ -304,14 +314,13 @@ const About = () => {
             className="text-center mb-16"
           >
             <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-              Our Team
+              <EditableText contentKey="about.team.label" fallback="Our Team" />
             </span>
             <h2 className="text-3xl md:text-4xl font-bold mt-4">
-              Meet the <span className="text-accent">Team</span>
+              <EditableText contentKey="about.team.title.a" fallback="Meet the" /> <span className="text-accent"><EditableText contentKey="about.team.title.b" fallback="Team" /></span>
             </h2>
             <p className="text-muted-foreground text-lg mt-4 max-w-2xl mx-auto">
-              Our CMSP-certified team brings years of riding experience and a
-              passion for safety to every class.
+              <EditableText contentKey="about.team.subtitle" fallback="Our CMSP-certified team brings years of riding experience and a passion for safety to every class." multiline />
             </p>
           </motion.div>
 
@@ -376,19 +385,18 @@ const About = () => {
             className="max-w-2xl mx-auto"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to <span className="text-accent">Ride?</span>
+              <EditableText contentKey="about.cta.title.a" fallback="Ready to" /> <span className="text-accent"><EditableText contentKey="about.cta.title.b" fallback="Ride?" /></span>
             </h2>
             <p className="text-muted-foreground text-lg mb-8">
-              Join over 1,500 students who train with us every year. Your journey
-              starts here.
+              <EditableText contentKey="about.cta.desc" fallback="Join over 1,500 students who train with us every year. Your journey starts here." multiline />
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="lg">
-                Book a Course
+                <EditableText contentKey="about.cta.btn.primary" fallback="Book a Course" />
               </Button>
               <Button variant="heroOutline" size="lg" asChild>
                 <Link to="/">
-                  Back to Home
+                  <EditableText contentKey="about.cta.btn.secondary" fallback="Back to Home" />
                 </Link>
               </Button>
             </div>

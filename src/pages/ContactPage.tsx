@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import EditableText from "@/components/EditableText";
 import { Phone, Mail, MapPin, Clock, Instagram, Facebook } from "lucide-react";
 
 const contactMethods = [
   {
     icon: Phone,
+    keyPrefix: "contact.method.vc",
     label: "Ventura County",
     value: "(805) 827-0075",
     href: "tel:+18058270075",
@@ -13,6 +15,7 @@ const contactMethods = [
   },
   {
     icon: Phone,
+    keyPrefix: "contact.method.hd",
     label: "High Desert",
     value: "(760) 987-6652",
     href: "tel:+17609876652",
@@ -20,6 +23,7 @@ const contactMethods = [
   },
   {
     icon: Mail,
+    keyPrefix: "contact.method.email",
     label: "Email",
     value: "office@learntoridevc.com",
     href: "mailto:office@learntoridevc.com",
@@ -29,12 +33,14 @@ const contactMethods = [
 
 const locations = [
   {
+    keyPrefix: "contact.loc.hd",
     name: "High Desert",
     area: "Hesperia & Wrightwood, CA",
     hours: "Sat-Sun: 7:00 AM - 5:00 PM",
     note: "Training site rotates based on seasonal weather conditions.",
   },
   {
+    keyPrefix: "contact.loc.vc",
     name: "Ventura County",
     area: "Somis, CA",
     hours: "Sat-Sun: 7:00 AM - 5:00 PM",
@@ -45,12 +51,14 @@ const locations = [
 const socialLinks = [
   {
     icon: Instagram,
+    keyPrefix: "contact.social.ig",
     name: "Instagram",
     href: "https://www.instagram.com/learntoridevc/",
     handle: "@learntoridevc",
   },
   {
     icon: Facebook,
+    keyPrefix: "contact.social.fb",
     name: "Facebook",
     href: "https://www.facebook.com/people/Learn-to-Ride-VC/100063684781788/",
     handle: "Learn to Ride VC",
@@ -72,13 +80,13 @@ const ContactPage = () => {
             className="text-center mb-16"
           >
             <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-              Get In Touch
+              <EditableText contentKey="contact.hero.label" fallback="Get In Touch" />
             </span>
             <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-4">
-              Contact <span className="text-accent">Us</span>
+              <EditableText contentKey="contact.hero.title.a" fallback="Contact" /> <span className="text-accent"><EditableText contentKey="contact.hero.title.b" fallback="Us" /></span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-              Have questions? We're here to help you start your riding journey.
+              <EditableText contentKey="contact.hero.subtitle" fallback="Have questions? We're here to help you start your riding journey." multiline />
             </p>
           </motion.div>
 
@@ -98,9 +106,15 @@ const ContactPage = () => {
                   <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-accent/20 transition-colors">
                     <Icon className="w-7 h-7 text-accent" />
                   </div>
-                  <p className="text-sm text-muted-foreground mb-1">{method.label}</p>
-                  <p className="text-xl font-bold text-foreground mb-2">{method.value}</p>
-                  <p className="text-sm text-muted-foreground">{method.description}</p>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    <EditableText contentKey={`${method.keyPrefix}.label`} fallback={method.label} />
+                  </p>
+                  <p className="text-xl font-bold text-foreground mb-2">
+                    <EditableText contentKey={`${method.keyPrefix}.value`} fallback={method.value} />
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    <EditableText contentKey={`${method.keyPrefix}.desc`} fallback={method.description} multiline />
+                  </p>
                 </motion.a>
               );
             })}
@@ -114,26 +128,34 @@ const ContactPage = () => {
             className="max-w-4xl mx-auto mb-16"
           >
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
-              Training <span className="text-accent">Locations</span>
+              <EditableText contentKey="contact.locations.title.a" fallback="Training" /> <span className="text-accent"><EditableText contentKey="contact.locations.title.b" fallback="Locations" /></span>
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
-              {locations.map((loc, i) => (
+              {locations.map((loc) => (
                 <div
                   key={loc.name}
                   className="bg-card border border-border rounded-2xl p-8"
                 >
-                  <h3 className="text-lg font-bold text-foreground mb-3">{loc.name}</h3>
+                  <h3 className="text-lg font-bold text-foreground mb-3">
+                    <EditableText contentKey={`${loc.keyPrefix}.name`} fallback={loc.name} />
+                  </h3>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
-                      <span className="text-foreground text-sm">{loc.area}</span>
+                      <span className="text-foreground text-sm">
+                        <EditableText contentKey={`${loc.keyPrefix}.area`} fallback={loc.area} />
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Clock className="w-5 h-5 text-accent flex-shrink-0" />
-                      <span className="text-foreground text-sm">{loc.hours}</span>
+                      <span className="text-foreground text-sm">
+                        <EditableText contentKey={`${loc.keyPrefix}.hours`} fallback={loc.hours} />
+                      </span>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-3">{loc.note}</p>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    <EditableText contentKey={`${loc.keyPrefix}.note`} fallback={loc.note} multiline />
+                  </p>
                 </div>
               ))}
             </div>
@@ -147,10 +169,10 @@ const ContactPage = () => {
             className="max-w-4xl mx-auto"
           >
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
-              Follow <span className="text-accent">Us</span>
+              <EditableText contentKey="contact.social.title.a" fallback="Follow" /> <span className="text-accent"><EditableText contentKey="contact.social.title.b" fallback="Us" /></span>
             </h2>
             <div className="flex flex-wrap justify-center gap-6">
-              {socialLinks.map((social, i) => {
+              {socialLinks.map((social) => {
                 const Icon = social.icon;
                 return (
                   <a
@@ -164,8 +186,12 @@ const ContactPage = () => {
                       <Icon className="w-6 h-6 text-accent" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">{social.name}</p>
-                      <p className="text-sm text-muted-foreground">{social.handle}</p>
+                      <p className="font-semibold text-foreground">
+                        <EditableText contentKey={`${social.keyPrefix}.name`} fallback={social.name} />
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        <EditableText contentKey={`${social.keyPrefix}.handle`} fallback={social.handle} />
+                      </p>
                     </div>
                   </a>
                 );

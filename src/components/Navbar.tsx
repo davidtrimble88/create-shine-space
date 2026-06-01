@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Phone } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import EditableText from "@/components/EditableText";
 import logo from "@/assets/logo.png";
 
 const navLinks = [
@@ -72,20 +73,28 @@ const Navbar = () => {
               <a href="tel:+17609876652" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
                 <Phone className="w-3.5 h-3.5" />
                 <span className="flex flex-col leading-tight">
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">High Desert</span>
-                  <span>(760) 987-6652</span>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                    <EditableText contentKey="nav.hd.label" fallback="High Desert" />
+                  </span>
+                  <span>
+                    <EditableText contentKey="nav.hd.phone" fallback="(760) 987-6652" />
+                  </span>
                 </span>
               </a>
               <span className="w-px h-8 bg-border" />
               <a href="tel:+18058270075" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
                 <Phone className="w-3.5 h-3.5" />
                 <span className="flex flex-col leading-tight">
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">Ventura</span>
-                  <span>(805) 827-0075</span>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                    <EditableText contentKey="nav.vc.label" fallback="Ventura" />
+                  </span>
+                  <span>
+                    <EditableText contentKey="nav.vc.phone" fallback="(805) 827-0075" />
+                  </span>
                 </span>
               </a>
             </div>
-            <Link to="/choose-course"><Button variant="hero">Book Now</Button></Link>
+            <Link to="/choose-course"><Button variant="hero"><EditableText contentKey="nav.booknow" fallback="Book Now" /></Button></Link>
           </div>
 
           <button className="md:hidden p-2" onClick={() => setIsOpen(!isOpen)}>
@@ -111,7 +120,7 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 />
               ))}
-              <Link to="/choose-course"><Button variant="hero" className="w-full mt-4">Book Now</Button></Link>
+              <Link to="/choose-course"><Button variant="hero" className="w-full mt-4"><EditableText contentKey="nav.booknow" fallback="Book Now" /></Button></Link>
             </div>
           </motion.div>
         )}

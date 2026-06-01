@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Facebook, Instagram, MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import EditableText from "@/components/EditableText";
 import cmspLogo from "@/assets/cmsp-logo.png";
 import logo from "@/assets/logo.png";
 
@@ -21,8 +22,7 @@ const Footer = () => {
           >
             <img src={logo} alt="Learn to Ride VC" className="h-28 mb-4" />
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-              California's premier motorcycle training school. CMSP certified instruction 
-              for riders of all skill levels.
+              <EditableText contentKey="footer.brand.desc" fallback="California's premier motorcycle training school. CMSP certified instruction for riders of all skill levels." multiline />
             </p>
             <div className="flex gap-4">
               <a href="https://www.facebook.com/people/Learn-to-Ride-VC/100063684781788/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center hover:bg-accent/20 hover:text-accent transition-colors">
@@ -41,7 +41,7 @@ const Footer = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
           >
-            <h4 className="font-semibold text-foreground mb-4">Quick Links</h4>
+            <h4 className="font-semibold text-foreground mb-4"><EditableText contentKey="footer.quicklinks.title" fallback="Quick Links" /></h4>
             <ul className="space-y-3">
               {[
                 { name: "Home", href: "/" },
@@ -66,7 +66,7 @@ const Footer = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <h4 className="font-semibold text-foreground mb-4">Our Courses</h4>
+            <h4 className="font-semibold text-foreground mb-4"><EditableText contentKey="footer.courses.title" fallback="Our Courses" /></h4>
             <ul className="space-y-3">
               {[
                 { name: "Motorcycle Training Course", link: "/courses?tab=basic" },
@@ -90,40 +90,40 @@ const Footer = () => {
             transition={{ duration: 0.5, delay: 0.3 }}
             viewport={{ once: true }}
           >
-            <h4 className="font-semibold text-foreground mb-4">Contact Us</h4>
+            <h4 className="font-semibold text-foreground mb-4"><EditableText contentKey="footer.contact.title" fallback="Contact Us" /></h4>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-accent mt-0.5" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Ventura County</p>
+                  <p className="text-sm text-muted-foreground"><EditableText contentKey="footer.vc.label" fallback="Ventura County" /></p>
                   <a href="tel:+18058270075" className="text-foreground hover:text-accent transition-colors">
-                    (805) 827-0075
+                    <EditableText contentKey="footer.vc.phone" fallback="(805) 827-0075" />
                   </a>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-accent mt-0.5" />
                 <div>
-                  <p className="text-sm text-muted-foreground">High Desert</p>
+                  <p className="text-sm text-muted-foreground"><EditableText contentKey="footer.hd.label" fallback="High Desert" /></p>
                   <a href="tel:+17609876652" className="text-foreground hover:text-accent transition-colors">
-                    (760) 987-6652
+                    <EditableText contentKey="footer.hd.phone" fallback="(760) 987-6652" />
                   </a>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <Mail className="w-5 h-5 text-accent mt-0.5" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="text-sm text-muted-foreground"><EditableText contentKey="footer.email.label" fallback="Email" /></p>
                   <a href="mailto:office@learntoridevc.com" className="text-foreground hover:text-accent transition-colors">
-                    office@learntoridevc.com
+                    <EditableText contentKey="footer.email.value" fallback="office@learntoridevc.com" />
                   </a>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-accent mt-0.5" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Locations</p>
-                  <p className="text-foreground">High Desert & Ventura County</p>
+                  <p className="text-sm text-muted-foreground"><EditableText contentKey="footer.locations.label" fallback="Locations" /></p>
+                  <p className="text-foreground"><EditableText contentKey="footer.locations.value" fallback="High Desert & Ventura County" /></p>
                 </div>
               </li>
             </ul>
@@ -134,21 +134,21 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              © {currentYear} Learn to Ride VC. All rights reserved.
+              © {currentYear} <EditableText contentKey="footer.copyright" fallback="Learn to Ride VC. All rights reserved." />
             </p>
             <div className="flex gap-6">
               <Link to="/privacy-policy" className="text-sm text-muted-foreground hover:text-accent transition-colors">
-                Privacy Policy
+                <EditableText contentKey="footer.privacy" fallback="Privacy Policy" />
               </Link>
               <Link to="/terms-of-service" className="text-sm text-muted-foreground hover:text-accent transition-colors">
-                Terms of Service
+                <EditableText contentKey="footer.terms" fallback="Terms of Service" />
               </Link>
               <Link to="/employee-login" className="text-sm text-muted-foreground hover:text-accent transition-colors">
-                Employee Login
+                <EditableText contentKey="footer.employeelogin" fallback="Employee Login" />
               </Link>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <span className="text-accent font-bold text-base tracking-wide uppercase">CMSP Certified</span>
+              <span className="text-accent font-bold text-base tracking-wide uppercase"><EditableText contentKey="footer.cmsp.label" fallback="CMSP Certified" /></span>
               <img 
                 src={cmspLogo}
                 alt="California Motorcyclist Safety Program" 

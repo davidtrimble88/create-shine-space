@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import EditableText from "@/components/EditableText";
 import {
   Check, ArrowRight, Clock, Users, Award, Shield, BookOpen,
   Gauge, Eye, Route, AlertTriangle, Bike, ChevronDown, Star,
@@ -641,15 +642,14 @@ const CoursesPage = () => {
           >
             {activeTab === "basic" && (
               <span className="inline-block bg-accent/20 text-accent font-bold px-4 py-2 rounded-full text-sm mb-6 border border-accent/30">
-                CMSP Certified Training
+                <EditableText contentKey="coursespage.badge" fallback="CMSP Certified Training" />
               </span>
             )}
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Find Your Perfect <span className="text-accent">Riding Course</span>
+              <EditableText contentKey="coursespage.title.a" fallback="Find Your Perfect" /> <span className="text-accent"><EditableText contentKey="coursespage.title.b" fallback="Riding Course" /></span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              From first-time riders to seasoned veterans — our CMSP certified programs
-              build real-world skills at every level.
+              <EditableText contentKey="coursespage.subtitle" fallback="From first-time riders to seasoned veterans — our CMSP certified programs build real-world skills at every level." multiline />
             </p>
           </motion.div>
         </div>
@@ -706,8 +706,11 @@ const CoursesPage = () => {
             viewport={{ once: true }}
             className="text-center mb-10"
           >
-            <h2 className="text-3xl font-bold">Frequently Asked Questions</h2>
+            <h2 className="text-3xl font-bold">
+              <EditableText contentKey="coursespage.faq.title" fallback="Frequently Asked Questions" />
+            </h2>
           </motion.div>
+
 
           <div className="space-y-3">
             {faqs.map((faq, i) => (
@@ -750,20 +753,22 @@ const CoursesPage = () => {
             viewport={{ once: true }}
             className="bg-gradient-to-br from-accent/15 via-accent/5 to-transparent border border-accent/20 rounded-3xl p-12 text-center max-w-3xl mx-auto"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Ride?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <EditableText contentKey="coursespage.cta.title" fallback="Ready to Ride?" />
+            </h2>
             <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-              Choose your course and take the first step toward confident, skilled riding.
+              <EditableText contentKey="coursespage.cta.desc" fallback="Choose your course and take the first step toward confident, skilled riding." multiline />
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to={`/choose-location?course=${activeTab}`}>
                 <Button variant="hero" size="lg" className="group w-full sm:w-auto">
-                  Enroll Now
+                  <EditableText contentKey="coursespage.cta.btn.primary" fallback="Enroll Now" />
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link to="/contact">
                 <Button variant="heroOutline" size="lg" className="w-full sm:w-auto">
-                  Contact Us
+                  <EditableText contentKey="coursespage.cta.btn.secondary" fallback="Contact Us" />
                 </Button>
               </Link>
             </div>
