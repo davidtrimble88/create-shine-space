@@ -434,7 +434,7 @@ const RegisterPage = () => {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>First Name *</FormLabel>
+                          <FormLabel>Legal First Name *</FormLabel>
                           <FormControl>
                             <Input placeholder="John" {...field} />
                           </FormControl>
