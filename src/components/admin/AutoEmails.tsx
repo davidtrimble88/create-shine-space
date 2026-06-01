@@ -9,7 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Plus, Pencil, Trash2, Eye, Save, Paperclip, Upload, X } from "lucide-react";
+import { Mail, Plus, Pencil, Trash2, Eye, Save, Paperclip, Upload, X, Bold, Italic, Underline, Highlighter, Type } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BccSettings from "./BccSettings";
 
 type Attachment = { name: string; path: string; url: string; size?: number };
@@ -91,6 +92,7 @@ const renderWithAttachments = (body: string, vars: Record<string, string>, atts:
 };
 
 const AutoEmails = () => {
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -99,6 +101,23 @@ const AutoEmails = () => {
   const [preview, setPreview] = useState<Template | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  const wrapSelection = (before: string, after: string, fallback = "text") => {
+    const ta = bodyRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart ?? 0;
+    const end = ta.selectionEnd ?? 0;
+    const value = ta.value;
+    const selected = value.slice(start, end) || fallback;
+    const next = value.slice(0, start) + before + selected + after + value.slice(end);
+    setEditing((prev) => (prev ? { ...prev, body: next } : prev));
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = start + before.length;
+      ta.setSelectionRange(pos, pos + selected.length);
+    });
+  };
+
 
   const load = async () => {
     setLoading(true);
@@ -459,12 +478,44 @@ const AutoEmails = () => {
               </div>
               <div>
                 <Label>Body</Label>
+                <div className="flex flex-wrap items-center gap-1 border border-b-0 rounded-t-md bg-muted/40 p-1">
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Bold" onClick={() => wrapSelection("<b>", "</b>", "bold text")}>
+                    <Bold className="w-4 h-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Italic" onClick={() => wrapSelection("<i>", "</i>", "italic text")}>
+                    <Italic className="w-4 h-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Underline" onClick={() => wrapSelection("<u>", "</u>", "underlined text")}>
+                    <Underline className="w-4 h-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Highlight" onClick={() => wrapSelection('<mark style="background:#fff59d;padding:0 2px;">', "</mark>", "highlighted text")}>
+                    <Highlighter className="w-4 h-4" />
+                  </Button>
+                  <div className="flex items-center gap-1 ml-1">
+                    <Type className="w-4 h-4 text-muted-foreground" />
+                    <Select onValueChange={(v) => wrapSelection(`<span style="font-size:${v};">`, "</span>", "resized text")}>
+                      <SelectTrigger className="h-8 w-[110px] text-xs">
+                        <SelectValue placeholder="Size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10px">Small (10px)</SelectItem>
+                        <SelectItem value="12px">Normal (12px)</SelectItem>
+                        <SelectItem value="14px">Medium (14px)</SelectItem>
+                        <SelectItem value="18px">Large (18px)</SelectItem>
+                        <SelectItem value="24px">X-Large (24px)</SelectItem>
+                        <SelectItem value="32px">Huge (32px)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <span className="text-xs text-muted-foreground ml-auto pr-2">Select text, then click a format</span>
+                </div>
                 <Textarea
+                  ref={bodyRef}
                   rows={12}
                   value={editing.body}
                   onChange={(e) => setEditing({ ...editing, body: e.target.value })}
                   placeholder={"Hi {{firstName}},\n\n..."}
-                  className="font-mono text-sm"
+                  className="font-mono text-sm rounded-t-none"
                 />
                 <p className="text-xs text-muted-foreground mt-2">
                   Available variables:{" "}
@@ -472,7 +523,11 @@ const AutoEmails = () => {
                     <code key={v} className="bg-muted px-1 rounded mr-1">{`{{${v}}}`}</code>
                   ))}
                 </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Formatting uses HTML tags (e.g. <code>&lt;b&gt;</code>, <code>&lt;mark&gt;</code>). The preview renders them as they'll appear in the email.
+                </p>
               </div>
+
 
               {/* Attachments */}
               <div>
@@ -552,9 +607,13 @@ const AutoEmails = () => {
               </div>
               <div>
                 <div className="text-xs uppercase text-muted-foreground mb-1">Body</div>
-                <pre className="bg-muted p-4 rounded text-sm whitespace-pre-wrap">
-                  {renderWithAttachments(preview.body, SAMPLE_VARS, preview.attachments || [])}
-                </pre>
+                <div
+                  className="bg-muted p-4 rounded text-sm whitespace-pre-wrap break-words"
+                  dangerouslySetInnerHTML={{
+                    __html: renderWithAttachments(preview.body, SAMPLE_VARS, preview.attachments || []),
+                  }}
+                />
+
               </div>
             </div>
           )}
