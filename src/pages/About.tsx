@@ -177,10 +177,10 @@ const About = () => {
             className="text-center mb-16"
           >
             <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-              Recognition
+              <EditableText contentKey="about.awards.label" fallback="Recognition" />
             </span>
             <h2 className="text-3xl md:text-4xl font-bold mt-4">
-              Award-Winning <span className="text-accent">Excellence</span>
+              <EditableText contentKey="about.awards.title.a" fallback="Award-Winning" /> <span className="text-accent"><EditableText contentKey="about.awards.title.b" fallback="Excellence" /></span>
             </h2>
           </motion.div>
 
