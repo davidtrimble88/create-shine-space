@@ -93,28 +93,6 @@ const renderWithAttachments = (body: string, vars: Record<string, string>, atts:
 
 const AutoEmails = () => {
   const bodyRef = useRef<HTMLTextAreaElement>(null);
-
-  const wrapSelection = (
-    before: string,
-    after: string,
-    fallback = "text",
-    setEditing?: (updater: (prev: any) => any) => void,
-  ) => {
-    const ta = bodyRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart ?? 0;
-    const end = ta.selectionEnd ?? 0;
-    const value = ta.value;
-    const selected = value.slice(start, end) || fallback;
-    const next = value.slice(0, start) + before + selected + after + value.slice(end);
-    setEditing?.((prev) => prev && { ...prev, body: next });
-    requestAnimationFrame(() => {
-      ta.focus();
-      const pos = start + before.length;
-      ta.setSelectionRange(pos, pos + selected.length);
-    });
-  };
-
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -123,6 +101,23 @@ const AutoEmails = () => {
   const [preview, setPreview] = useState<Template | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  const wrapSelection = (before: string, after: string, fallback = "text") => {
+    const ta = bodyRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart ?? 0;
+    const end = ta.selectionEnd ?? 0;
+    const value = ta.value;
+    const selected = value.slice(start, end) || fallback;
+    const next = value.slice(0, start) + before + selected + after + value.slice(end);
+    setEditing((prev) => (prev ? { ...prev, body: next } : prev));
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = start + before.length;
+      ta.setSelectionRange(pos, pos + selected.length);
+    });
+  };
+
 
   const load = async () => {
     setLoading(true);
