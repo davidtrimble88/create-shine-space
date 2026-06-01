@@ -238,7 +238,8 @@ const RegisterPage = () => {
     email: string;
     firstName: string;
     lastName: string;
-    course: string;
+    courseKey: string;
+    courseLabel: string;
     locationLabel: string;
     location: string;
     groupName: string | null;
@@ -246,17 +247,17 @@ const RegisterPage = () => {
     fee: string;
   }) => {
     try {
-      await supabase.functions.invoke("send-auto-email", {
+      const { data, error } = await supabase.functions.invoke("send-auto-email", {
         body: {
           trigger_event: "registration_confirmation",
           recipientEmail: payload.email,
           location: payload.location,
           groupName: payload.groupName,
-          course: payload.course,
+          course: payload.courseKey,
           variables: {
             firstName: payload.firstName,
             lastName: payload.lastName,
-            course: payload.course,
+            course: payload.courseLabel,
             locationLabel: payload.locationLabel,
             groupName: payload.groupName || "",
             scheduleDate: payload.scheduleDate || "",
@@ -266,6 +267,12 @@ const RegisterPage = () => {
           },
         },
       });
+
+      if (error) throw error;
+
+      if (data && typeof data === "object" && "skipped" in data && data.skipped) {
+        console.warn("Auto email was skipped:", data);
+      }
     } catch (e) {
       console.warn("Auto email failed to dispatch:", e);
     }
@@ -357,7 +364,8 @@ const RegisterPage = () => {
           email: data.email,
           firstName: data.firstName,
           lastName: data.lastName,
-          course: courseLabels[course] || course,
+          courseKey: course,
+          courseLabel: courseLabels[course] || course,
           locationLabel: locationLabels[location] || location,
           location,
           groupName: scheduleGroup,
@@ -487,7 +495,8 @@ const RegisterPage = () => {
         email: p.email,
         firstName: p.first_name,
         lastName: p.last_name,
-        course: courseLabels[p.course] || p.course,
+        courseKey: p.course,
+        courseLabel: courseLabels[p.course] || p.course,
         locationLabel: p.location_label,
         location: p.location,
         groupName: pendingGroupName,
@@ -532,7 +541,8 @@ const RegisterPage = () => {
         email: p.email,
         firstName: p.first_name,
         lastName: p.last_name,
-        course: courseLabels[p.course] || p.course,
+        courseKey: p.course,
+        courseLabel: courseLabels[p.course] || p.course,
         locationLabel: p.location_label,
         location: p.location,
         groupName: pendingGroupName,
