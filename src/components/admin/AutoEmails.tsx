@@ -239,6 +239,8 @@ const AutoEmails = () => {
               enabled: true,
               available_variables: triggerVars("class_location_time"),
               attachments: [],
+              match_location: null,
+              match_group: null,
               updated_at: "",
             })
           }
