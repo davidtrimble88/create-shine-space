@@ -495,7 +495,7 @@ const RegisterPage = () => {
       });
     }
     form.reset();
-    setPendingBooking(null);
+    setPendingBooking(null); setPendingGroupName(null);
     setWaiverPrefill(null);
     setRegFormPrefill(null);
     setModelReleasePrefill(null);
@@ -539,7 +539,7 @@ const RegisterPage = () => {
         fee: p.fee,
       });
       form.reset();
-      setPendingBooking(null);
+      setPendingBooking(null); setPendingGroupName(null);
       setWaiverPrefill(null);
       setRegFormPrefill(null);
       setModelReleasePrefill(null);
