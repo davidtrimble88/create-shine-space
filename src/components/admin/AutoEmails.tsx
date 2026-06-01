@@ -24,6 +24,12 @@ const GROUP_OPTIONS: { value: string; label: string }[] = [
   { value: "Group A", label: "Group A" },
   { value: "Group B", label: "Group B" },
 ];
+const COURSE_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Any course" },
+  { value: "basic", label: "Motorcycle Training Course (Basic)" },
+  { value: "intermediate", label: "Intermediate Course" },
+  { value: "advanced", label: "Advanced Course" },
+];
 
 type Template = {
   id: string;
@@ -37,6 +43,7 @@ type Template = {
   attachments: Attachment[];
   match_location: string | null;
   match_group: string | null;
+  match_course: string | null;
   updated_at: string;
 };
 
