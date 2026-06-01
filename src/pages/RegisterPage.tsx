@@ -233,6 +233,37 @@ const RegisterPage = () => {
   const [modelReleaseOpen, setModelReleaseOpen] = useState(false);
   const [modelReleasePrefill, setModelReleasePrefill] = useState<ModelReleasePrefill | null>(null);
 
+  const fireRegistrationEmail = async (payload: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    course: string;
+    locationLabel: string;
+    scheduleDate: string | null;
+    fee: string;
+  }) => {
+    try {
+      await supabase.functions.invoke("send-auto-email", {
+        body: {
+          trigger_event: "registration_confirmation",
+          recipientEmail: payload.email,
+          variables: {
+            firstName: payload.firstName,
+            lastName: payload.lastName,
+            course: payload.course,
+            locationLabel: payload.locationLabel,
+            scheduleDate: payload.scheduleDate || "",
+            schedule: "",
+            fee: payload.fee,
+            email: payload.email,
+          },
+        },
+      });
+    } catch (e) {
+      console.warn("Auto email failed to dispatch:", e);
+    }
+  };
+
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
     try {
