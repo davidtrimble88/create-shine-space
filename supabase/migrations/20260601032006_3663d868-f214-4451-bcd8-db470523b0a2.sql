@@ -1,0 +1,1 @@
+ALTER TABLE public.auto_email_templates DROP CONSTRAINT auto_email_templates_trigger_event_key;
