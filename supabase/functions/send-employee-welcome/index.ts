@@ -104,6 +104,25 @@ If you have any questions, reply to this email or contact the office.
       }
     }
 
+    // Owner BCC — silent copy if enabled in email_bcc_settings.
+    try {
+      const { data: bccCfg } = await supabase
+        .from("email_bcc_settings")
+        .select("*").eq("id", true).maybeSingle();
+      const trigger = "employee_welcome";
+      if (
+        bccCfg?.enabled &&
+        bccCfg.bcc_email &&
+        !(bccCfg.excluded_triggers ?? []).includes(trigger) &&
+        bccCfg.bcc_email.toLowerCase() !== recipientEmail.toLowerCase() &&
+        bccCfg.bcc_email.toLowerCase() !== CC_EMAIL.toLowerCase()
+      ) {
+        await enqueue(bccCfg.bcc_email, subject, "_bcc");
+      }
+    } catch (e) {
+      console.warn("[send-employee-welcome] BCC failed:", (e as Error).message);
+    }
+
     return new Response(JSON.stringify({ queued: true }), {
       headers: { ...cors, "Content-Type": "application/json" },
     });

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Plus, Pencil, Trash2, Eye, Save, Paperclip, Upload, X } from "lucide-react";
+import BccSettings from "./BccSettings";
 
 type Attachment = { name: string; path: string; url: string; size?: number };
 
@@ -269,6 +270,10 @@ const AutoEmails = () => {
           <Plus className="w-4 h-4 mr-2" /> New Template
         </Button>
       </div>
+
+      <BccSettings />
+
+
 
       {loading ? (
         <p className="text-muted-foreground">Loading templates…</p>

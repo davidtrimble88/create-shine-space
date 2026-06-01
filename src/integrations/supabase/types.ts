@@ -262,6 +262,33 @@ export type Database = {
         }
         Relationships: []
       }
+      email_bcc_settings: {
+        Row: {
+          bcc_email: string
+          enabled: boolean
+          excluded_triggers: string[]
+          id: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          bcc_email?: string
+          enabled?: boolean
+          excluded_triggers?: string[]
+          id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          bcc_email?: string
+          enabled?: boolean
+          excluded_triggers?: string[]
+          id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
