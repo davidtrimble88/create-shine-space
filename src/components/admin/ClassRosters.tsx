@@ -334,6 +334,29 @@ const ClassRosters = () => {
       } else {
         setWaiverIds(new Set());
       }
+      // Look up registration form + model release signings for these students
+      const emails = Array.from(new Set((data ?? []).map((b: any) => (b.email || "").toLowerCase()).filter(Boolean)));
+      if (emails.length > 0) {
+        const { data: extras } = await (supabase as any)
+          .from("signed_waivers")
+          .select("signer_email, document_type, schedule_id")
+          .in("signer_email", emails)
+          .eq("schedule_id", selectedScheduleId)
+          .in("document_type", ["cmsp_registration_form", "cmsp_model_release", "cmsp_model_release_decline"]);
+        const regSet = new Set<string>();
+        const mrMap = new Map<string, "signed" | "declined">();
+        (extras ?? []).forEach((r: any) => {
+          const em = (r.signer_email || "").toLowerCase();
+          if (r.document_type === "cmsp_registration_form") regSet.add(em);
+          else if (r.document_type === "cmsp_model_release") mrMap.set(em, "signed");
+          else if (r.document_type === "cmsp_model_release_decline" && !mrMap.has(em)) mrMap.set(em, "declined");
+        });
+        setRegFormEmails(regSet);
+        setModelReleaseByEmail(mrMap);
+      } else {
+        setRegFormEmails(new Set());
+        setModelReleaseByEmail(new Map());
+      }
       setLoading(false);
     };
     fetchBookings();
