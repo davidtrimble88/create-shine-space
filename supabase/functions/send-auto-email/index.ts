@@ -85,14 +85,41 @@ Deno.serve(async (req) => {
 
     // Try queue-based send if email infrastructure exists.
     try {
+      // Get or create unsubscribe token for this recipient
+      let unsubscribeToken: string | null = null;
+      const { data: existingTok } = await supabase
+        .from("email_unsubscribe_tokens")
+        .select("token")
+        .eq("email", recipientEmail)
+        .maybeSingle();
+      if (existingTok?.token) {
+        unsubscribeToken = existingTok.token;
+      } else {
+        const newToken = crypto.randomUUID();
+        const { data: inserted } = await supabase
+          .from("email_unsubscribe_tokens")
+          .insert({ email: recipientEmail, token: newToken })
+          .select("token")
+          .maybeSingle();
+        unsubscribeToken = inserted?.token || newToken;
+      }
+
+      const idempotencyKey = `auto-${trigger_event}-${recipientEmail}-${Date.now()}`;
       const { error: enqErr } = await supabase.rpc("enqueue_email" as any, {
         queue_name: "transactional_emails",
         payload: {
           to: recipientEmail,
+          from: "Learn to Ride VC <notify@learntoridevc.com>",
+          sender_domain: "notify.learntoridevc.com",
           subject,
           text: body,
           html: textToHtml(body),
           template_name: `auto_${trigger_event}`,
+          label: `auto_${trigger_event}`,
+          purpose: "transactional",
+          idempotency_key: idempotencyKey,
+          message_id: idempotencyKey,
+          unsubscribe_token: unsubscribeToken,
         },
       });
       if (enqErr) throw enqErr;
