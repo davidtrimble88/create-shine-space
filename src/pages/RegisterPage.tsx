@@ -252,6 +252,7 @@ const RegisterPage = () => {
           recipientEmail: payload.email,
           location: payload.location,
           groupName: payload.groupName,
+          course: payload.course,
           variables: {
             firstName: payload.firstName,
             lastName: payload.lastName,
