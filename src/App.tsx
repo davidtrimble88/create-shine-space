@@ -24,6 +24,7 @@ import ChangePassword from "./pages/ChangePassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import RegistrationConfirmation from "./pages/RegistrationConfirmation";
 import InstallApp from "./pages/InstallApp";
+import HiddenDuck from "./components/HiddenDuck";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <HiddenDuck />
         </SiteContentProvider>
         </AuthProvider>
       </BrowserRouter>
