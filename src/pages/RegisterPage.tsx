@@ -489,7 +489,7 @@ const RegisterPage = () => {
         course: courseLabels[p.course] || p.course,
         locationLabel: p.location_label,
         location: p.location,
-        groupName: p.__group_name ?? null,
+        groupName: pendingGroupName,
         scheduleDate: p.schedule_date,
         fee: p.fee,
       });
@@ -509,9 +509,8 @@ const RegisterPage = () => {
     setPaymentOpen(open);
     if (open || paymentCompletedRef.current || !pendingBooking) return;
     try {
-      const { __group_name, ...toInsert } = pendingBooking as any;
       const { error } = await supabase.from("bookings").insert({
-        ...toInsert,
+        ...(pendingBooking as any),
         payment_status: "unpaid",
         booking_status: "confirmed",
       } as any);
@@ -535,7 +534,7 @@ const RegisterPage = () => {
         course: courseLabels[p.course] || p.course,
         locationLabel: p.location_label,
         location: p.location,
-        groupName: p.__group_name ?? null,
+        groupName: pendingGroupName,
         scheduleDate: p.schedule_date,
         fee: p.fee,
       });
