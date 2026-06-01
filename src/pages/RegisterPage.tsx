@@ -277,10 +277,11 @@ const RegisterPage = () => {
       let scheduleId: string | null = null;
       let scheduleDate: string | null = null;
       let schedulePrice: string | null = null;
+      let scheduleGroup: string | null = null;
       if (schedule) {
         const { data: schedData } = await supabase
           .from("schedules")
-          .select("id, date, price")
+          .select("id, date, price, group_name")
           .eq("id", schedule)
           .is("cancelled_at", null)
           .maybeSingle();
@@ -288,6 +289,7 @@ const RegisterPage = () => {
           scheduleId = schedData.id;
           scheduleDate = schedData.date;
           schedulePrice = schedData.price;
+          scheduleGroup = (schedData as any).group_name ?? null;
         }
       }
 
