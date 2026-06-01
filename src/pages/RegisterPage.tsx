@@ -315,7 +315,7 @@ const RegisterPage = () => {
         return;
       }
 
-      // Show waiver step first; payment opens after signing
+      // Show CMSP Student Registration Form step first, then waiver, then payment.
       setPendingBooking(bookingPayload);
       setPaymentRegion(region);
       setPaymentAmountCents(feeCents);
@@ -345,12 +345,44 @@ const RegisterPage = () => {
         scheduleId: scheduleId,
         scheduleDate: scheduleDate,
       });
-      setWaiverOpen(true);
+      setRegFormPrefill({
+        firstName: data.firstName,
+        middleName: data.middleName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        dateOfBirth: data.dateOfBirth,
+        sex: data.gender === "male" ? "M" : data.gender === "female" ? "F" : "",
+        addressStreet: data.address,
+        addressCity: data.city,
+        addressState: data.state,
+        addressZip: data.zip,
+        idType: data.idType === "other" ? "other" : "drivers_license",
+        idNumber: data.idType === "other"
+          ? `${data.otherIdType?.trim() || "ID"}: ${data.licenseNumber}`
+          : data.licenseNumber,
+        idState: data.idType === "drivers_license" ? data.issuingState : "",
+        idCountry: data.issuingCountry,
+        idExpiration: data.idType === "drivers_license" ? data.licenseExpiration : "",
+        referralSource: data.referralSource,
+        course,
+        location,
+        locationLabel: locationLabels[location] || location,
+        scheduleId: scheduleId,
+        scheduleDate: scheduleDate,
+      });
+      setRegFormOpen(true);
       requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
     } catch (err) {
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
     }
     setSubmitting(false);
+  };
+
+  const handleRegistrationFormSigned = (_recordId: string) => {
+    setRegFormOpen(false);
+    setWaiverOpen(true);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   };
 
   const handleWaiverSigned = (waiverId: string) => {
