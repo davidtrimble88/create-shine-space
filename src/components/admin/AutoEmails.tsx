@@ -514,21 +514,21 @@ const AutoEmails = () => {
               <div>
                 <Label>Body</Label>
                 <div className="flex flex-wrap items-center gap-1 border border-b-0 rounded-t-md bg-muted/40 p-1">
-                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Bold" onClick={() => wrapSelection("<b>", "</b>", "bold text")}>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Bold" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("bold")}>
                     <Bold className="w-4 h-4" />
                   </Button>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Italic" onClick={() => wrapSelection("<i>", "</i>", "italic text")}>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Italic" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("italic")}>
                     <Italic className="w-4 h-4" />
                   </Button>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Underline" onClick={() => wrapSelection("<u>", "</u>", "underlined text")}>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Underline" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("underline")}>
                     <Underline className="w-4 h-4" />
                   </Button>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Highlight" onClick={() => wrapSelection('<mark style="background:#fff59d;padding:0 2px;">', "</mark>", "highlighted text")}>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2" title="Highlight" onMouseDown={(e) => e.preventDefault()} onClick={applyHighlight}>
                     <Highlighter className="w-4 h-4" />
                   </Button>
-                  <div className="flex items-center gap-1 ml-1">
+                  <div className="flex items-center gap-1 ml-1" onMouseDown={(e) => e.preventDefault()}>
                     <Type className="w-4 h-4 text-muted-foreground" />
-                    <Select onValueChange={(v) => wrapSelection(`<span style="font-size:${v};">`, "</span>", "resized text")}>
+                    <Select onValueChange={applyFontSize}>
                       <SelectTrigger className="h-8 w-[110px] text-xs">
                         <SelectValue placeholder="Size" />
                       </SelectTrigger>
@@ -544,24 +544,29 @@ const AutoEmails = () => {
                   </div>
                   <span className="text-xs text-muted-foreground ml-auto pr-2">Select text, then click a format</span>
                 </div>
-                <Textarea
+                <div
                   ref={bodyRef}
-                  rows={12}
-                  value={editing.body}
-                  onChange={(e) => setEditing({ ...editing, body: e.target.value })}
-                  placeholder={"Hi {{firstName}},\n\n..."}
-                  className="font-mono text-sm rounded-t-none"
+                  contentEditable
+                  suppressContentEditableWarning
+                  onInput={(e) =>
+                    setEditing({ ...editing, body: (e.target as HTMLDivElement).innerHTML })
+                  }
+                  className="min-h-[280px] border rounded-b-md p-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring whitespace-pre-wrap break-words"
+                  data-placeholder="Hi {{firstName}}, ..."
                 />
                 <p className="text-xs text-muted-foreground mt-2">
-                  Available variables:{" "}
+                  Available variables (click to insert):{" "}
                   {editing.available_variables.map((v) => (
-                    <code key={v} className="bg-muted px-1 rounded mr-1">{`{{${v}}}`}</code>
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => exec("insertText", `{{${v}}}`)}
+                      className="bg-muted hover:bg-muted/70 px-1.5 py-0.5 rounded mr-1 font-mono text-xs"
+                    >{`{{${v}}}`}</button>
                   ))}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Formatting uses HTML tags (e.g. <code>&lt;b&gt;</code>, <code>&lt;mark&gt;</code>). The preview renders them as they'll appear in the email.
-                </p>
               </div>
+
 
 
               {/* Attachments */}
