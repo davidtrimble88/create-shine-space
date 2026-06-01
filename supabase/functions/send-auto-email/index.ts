@@ -71,6 +71,12 @@ Deno.serve(async (req) => {
       body = `${body}\n\n— Attachments —\n${list}`;
     }
 
+    const linkify = (escapedText: string) =>
+      escapedText.replace(
+        /(https?:\/\/[^\s<]+[^\s<.,;:!?)\]}'"])/g,
+        '<a href="$1" style="color:#c2410c;text-decoration:underline" target="_blank" rel="noopener">$1</a>'
+      );
+
     const textToHtml = (text: string) => {
       const esc = text
         .replace(/&/g, "&amp;")
@@ -78,10 +84,19 @@ Deno.serve(async (req) => {
         .replace(/>/g, "&gt;");
       const paras = esc.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
       const htmlBody = paras
-        .map((p) => `<p style="margin:0 0 16px 0;line-height:1.6">${p.replace(/\n/g, "<br>")}</p>`)
+        .map((p) => `<p style="margin:0 0 16px 0;line-height:1.6">${linkify(p).replace(/\n/g, "<br>")}</p>`)
         .join("");
-      return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${htmlBody}</div>`;
+      const attachmentBlock = attachments.length
+        ? `<div style="margin-top:24px;padding:16px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa"><div style="font-weight:bold;margin-bottom:8px">Attachments</div>${attachments
+            .map(
+              (a: any) =>
+                `<div style="margin:6px 0">📎 <a href="${a.url}" style="color:#c2410c;text-decoration:underline" target="_blank" rel="noopener">${a.name}</a></div>`
+            )
+            .join("")}</div>`
+        : "";
+      return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${htmlBody}${attachmentBlock}</div>`;
     };
+
 
     // Try queue-based send if email infrastructure exists.
     try {
