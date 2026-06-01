@@ -250,6 +250,7 @@ const AutoEmails = () => {
               attachments: [],
               match_location: null,
               match_group: null,
+              match_course: null,
               updated_at: "",
             })
           }
