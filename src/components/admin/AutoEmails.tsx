@@ -13,6 +13,18 @@ import { Mail, Plus, Pencil, Trash2, Eye, Save, Paperclip, Upload, X } from "luc
 
 type Attachment = { name: string; path: string; url: string; size?: number };
 
+const LOCATION_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Any location" },
+  { value: "high-desert-hesperia", label: "High Desert — Hesperia" },
+  { value: "high-desert-wrightwood", label: "High Desert — Wrightwood" },
+  { value: "ventura-county", label: "Ventura County — Somis" },
+];
+const GROUP_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Any group" },
+  { value: "Group A", label: "Group A" },
+  { value: "Group B", label: "Group B" },
+];
+
 type Template = {
   id: string;
   trigger_event: string;
