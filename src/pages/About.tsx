@@ -48,7 +48,7 @@ const About = () => {
             className="text-center max-w-3xl mx-auto"
           >
             <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-              About Us
+              <EditableText contentKey="about.hero.label" fallback="About Us" />
             </span>
             <h1 className="text-5xl md:text-6xl font-bold mt-4 mb-6">
               <EditableText contentKey="about.hero.title" fallback="Your Safety Is Our Business" />
