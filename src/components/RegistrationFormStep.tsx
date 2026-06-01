@@ -165,7 +165,7 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
 
   const allAcked = ACKS.every(a => acks[a.key]);
   const typedMatches = typedSig.trim().toLowerCase() === fullName.toLowerCase();
-  const requiredAnswered = !!q1 && !!q2 && !!q4 && !!q6 && !!q7 && !!q8 && !!q10 && !!q11 && !!q12
+  const requiredAnswered = !!q1 && !!q2 && !!q4 && !!q6 && !!q7 && !!q8 && !!q9 && !!q10 && !!q11
     && (q7 !== "other" || q7Other.trim().length > 0);
   const canSign = allAcked && typedMatches && !!drawnSig && requiredAnswered;
 
