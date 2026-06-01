@@ -104,6 +104,8 @@ const AutoEmails = () => {
         ((data as any[]) || []).map((t) => ({
           ...t,
           attachments: Array.isArray(t.attachments) ? t.attachments : [],
+          match_location: t.match_location ?? null,
+          match_group: t.match_group ?? null,
         })) as Template[],
       );
     }
@@ -124,6 +126,8 @@ const AutoEmails = () => {
       enabled: editing.enabled,
       available_variables: editing.available_variables,
       attachments: editing.attachments as any,
+      match_location: editing.match_location || null,
+      match_group: editing.match_group || null,
     };
     let error;
     if (editing.id) {
