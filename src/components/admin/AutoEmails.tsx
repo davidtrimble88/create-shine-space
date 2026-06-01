@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Mail, Plus, Pencil, Trash2, Eye, Save, Paperclip, Upload, X, Bold, Italic, Underline, Highlighter, Type } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BccSettings from "./BccSettings";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Attachment = { name: string; path: string; url: string; size?: number };
 
