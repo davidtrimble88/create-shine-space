@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Mail, Plus, Pencil, Trash2, Eye, Save, Paperclip, Upload, X, Bold, Italic, Underline, Highlighter, Type } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BccSettings from "./BccSettings";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Attachment = { name: string; path: string; url: string; size?: number };
 
@@ -94,6 +95,7 @@ const renderWithAttachments = (body: string, vars: Record<string, string>, atts:
 const AutoEmails = () => {
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
+  const { userRole } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
@@ -290,7 +292,7 @@ const AutoEmails = () => {
         </Button>
       </div>
 
-      <BccSettings />
+      {userRole === "owner" && <BccSettings />}
 
 
 
