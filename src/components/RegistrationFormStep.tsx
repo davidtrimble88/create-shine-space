@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, FileSignature, Eraser } from "lucide-react";
 import WaiverSignedDialog from "./WaiverSignedDialog";
+import PdfPreview from "./PdfPreview";
 
 export const CMSP_REGISTRATION_FORM_VERSION = "3.15-2026-02";
 
@@ -266,13 +267,7 @@ const RegistrationFormStep = ({ prefill, onBack, onSigned }: Props) => {
           and California UETA.
         </p>
 
-        <div className="rounded-lg border border-border bg-white overflow-hidden" style={{ height: 700 }}>
-          <iframe
-            src="/cmsp-registration-form.pdf#view=FitH&toolbar=1"
-            title="CMSP Student Registration Form"
-            className="w-full h-full"
-          />
-        </div>
+        <PdfPreview url="/cmsp-registration-form.pdf" title="CMSP Student Registration Form" maxHeight={700} />
         <p className="text-xs text-muted-foreground mt-2">
           This is the exact document you are signing.{" "}
           <a href="/cmsp-registration-form.pdf" target="_blank" rel="noopener noreferrer" className="text-accent underline">
