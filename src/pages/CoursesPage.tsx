@@ -753,20 +753,22 @@ const CoursesPage = () => {
             viewport={{ once: true }}
             className="bg-gradient-to-br from-accent/15 via-accent/5 to-transparent border border-accent/20 rounded-3xl p-12 text-center max-w-3xl mx-auto"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Ride?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <EditableText contentKey="coursespage.cta.title" fallback="Ready to Ride?" />
+            </h2>
             <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-              Choose your course and take the first step toward confident, skilled riding.
+              <EditableText contentKey="coursespage.cta.desc" fallback="Choose your course and take the first step toward confident, skilled riding." multiline />
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to={`/choose-location?course=${activeTab}`}>
                 <Button variant="hero" size="lg" className="group w-full sm:w-auto">
-                  Enroll Now
+                  <EditableText contentKey="coursespage.cta.btn.primary" fallback="Enroll Now" />
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link to="/contact">
                 <Button variant="heroOutline" size="lg" className="w-full sm:w-auto">
-                  Contact Us
+                  <EditableText contentKey="coursespage.cta.btn.secondary" fallback="Contact Us" />
                 </Button>
               </Link>
             </div>
