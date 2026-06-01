@@ -382,34 +382,66 @@ const ViewerSchedule = () => {
   );
 };
 
+const parsePartsFromSchedule = (scheduleText: string): string[] => {
+  return scheduleText
+    .split(/[,;]|\s\|\s/)
+    .map(s => s.trim())
+    .filter(Boolean);
+};
+
 const ScheduleCard = ({
   schedule: s,
-  isAvailable,
+  hasAvailability,
+  selectedParts,
   isToggling,
-  onToggle,
+  onSetAvailability,
+  onClear,
 }: {
   schedule: Schedule;
-  isAvailable: boolean;
+  hasAvailability: boolean;
+  selectedParts: string[] | null;
   isToggling: boolean;
-  onToggle: () => void;
+  onSetAvailability: (parts: string[] | null) => void;
+  onClear: () => void;
 }) => {
   const dateObj = parseISO(s.date);
+  const parts = parsePartsFromSchedule(s.schedule);
+  const hasMultipleParts = parts.length > 1;
+  const isFullAvailable = hasAvailability && selectedParts === null;
+  const isPartialAvailable = hasAvailability && Array.isArray(selectedParts);
+
+  const [showPartialPicker, setShowPartialPicker] = useState(false);
+  const [draftParts, setDraftParts] = useState<string[]>(selectedParts ?? []);
+
+  useEffect(() => {
+    setDraftParts(selectedParts ?? []);
+  }, [selectedParts]);
+
+  const togglePart = (p: string) => {
+    setDraftParts(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
+  };
+
+  const savePartial = () => {
+    if (draftParts.length === 0) return;
+    onSetAvailability(draftParts);
+    setShowPartialPicker(false);
+  };
 
   return (
     <div
       className={`border rounded-xl p-5 transition-all ${
-        isAvailable
+        hasAvailability
           ? "border-green-500/40 bg-green-500/5"
           : "border-border bg-card"
       }`}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-              isAvailable ? "bg-green-500/15" : "bg-accent/15"
+              hasAvailability ? "bg-green-500/15" : "bg-accent/15"
             }`}>
-              <CalendarDays className={`w-5 h-5 ${isAvailable ? "text-green-400" : "text-accent"}`} />
+              <CalendarDays className={`w-5 h-5 ${hasAvailability ? "text-green-400" : "text-accent"}`} />
             </div>
             <div>
               <h3 className="font-bold text-foreground">
@@ -440,30 +472,129 @@ const ScheduleCard = ({
               {s.location_label}
             </span>
           </div>
+
+          {isPartialAvailable && selectedParts && selectedParts.length > 0 && (
+            <div className="ml-13 mt-2 flex flex-wrap gap-1.5">
+              <span className="text-xs text-muted-foreground">Available for:</span>
+              {selectedParts.map(p => (
+                <span key={p} className="text-xs bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full">
+                  {p}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="flex-shrink-0">
+        <div className="flex flex-col gap-2 flex-shrink-0 min-w-[200px]">
           <Button
-            variant={isAvailable ? "default" : "outline"}
+            variant={isFullAvailable ? "default" : "outline"}
             size="sm"
-            onClick={onToggle}
+            onClick={() => {
+              if (isFullAvailable) onClear();
+              else onSetAvailability(null);
+              setShowPartialPicker(false);
+            }}
             disabled={isToggling}
-            className={isAvailable
-              ? "bg-green-600 hover:bg-green-700 text-white"
-              : ""
-            }
+            className={isFullAvailable ? "bg-green-600 hover:bg-green-700 text-white" : ""}
           >
-            {isToggling ? (
+            {isToggling && isFullAvailable ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : isAvailable ? (
+            ) : isFullAvailable ? (
               <Check className="w-4 h-4 mr-2" />
             ) : (
               <Hand className="w-4 h-4 mr-2" />
             )}
-            {isAvailable ? "I'm Available" : "Mark Available"}
+            {isFullAvailable ? "Available — Full Class" : "Available for Full Class"}
           </Button>
+
+          {hasMultipleParts && (
+            <Button
+              variant={isPartialAvailable ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                if (isPartialAvailable && !showPartialPicker) {
+                  setShowPartialPicker(true);
+                } else if (showPartialPicker) {
+                  setShowPartialPicker(false);
+                } else {
+                  setShowPartialPicker(true);
+                }
+              }}
+              disabled={isToggling}
+              className={isPartialAvailable ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+            >
+              {isPartialAvailable ? (
+                <Check className="w-4 h-4 mr-2" />
+              ) : (
+                <Hand className="w-4 h-4 mr-2" />
+              )}
+              {isPartialAvailable ? "Available — Partial" : "Available for Partial"}
+            </Button>
+          )}
         </div>
       </div>
+
+      {showPartialPicker && hasMultipleParts && (
+        <div className="mt-4 ml-13 p-4 bg-background/50 border border-border rounded-lg">
+          <p className="text-sm font-medium text-foreground mb-3">Select the parts you're available for:</p>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {parts.map(p => {
+              const checked = draftParts.includes(p);
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => togglePart(p)}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                    checked
+                      ? "bg-green-600 text-white border-green-600"
+                      : "bg-card text-foreground border-border hover:border-accent/50"
+                  }`}
+                >
+                  {checked && <Check className="w-3 h-3 inline mr-1" />}
+                  {p}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={savePartial}
+              disabled={isToggling || draftParts.length === 0}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isToggling ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
+              Save Selection
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setShowPartialPicker(false);
+                setDraftParts(selectedParts ?? []);
+              }}
+              disabled={isToggling}
+            >
+              Cancel
+            </Button>
+            {isPartialAvailable && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  onClear();
+                  setShowPartialPicker(false);
+                }}
+                disabled={isToggling}
+                className="text-destructive hover:text-destructive"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
