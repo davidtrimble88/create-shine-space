@@ -82,7 +82,7 @@ const Locations = () => {
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-accent" />
                   <a href={`tel:${location.phone.replace(/[^0-9]/g, '')}`} className="text-foreground hover:text-accent transition-colors">
-                    {location.phone}
+                    <EditableText contentKey={`locations.${index}.phone`} fallback={location.phone} />
                   </a>
                 </div>
                 <div className="flex items-center gap-3">
@@ -96,7 +96,7 @@ const Locations = () => {
               <Button variant="heroOutline" className="w-full group" asChild>
                 <a href="/choose-course">
                   <ArrowRight className="w-4 h-4 mr-2" />
-                  Start Your Journey
+                  <EditableText contentKey="locations.cta" fallback="Start Your Journey" />
                 </a>
               </Button>
             </motion.div>
