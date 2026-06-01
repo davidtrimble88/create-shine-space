@@ -93,7 +93,7 @@ const renderWithAttachments = (body: string, vars: Record<string, string>, atts:
 };
 
 const AutoEmails = () => {
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { userRole } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -104,21 +104,54 @@ const AutoEmails = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const wrapSelection = (before: string, after: string, fallback = "text") => {
-    const ta = bodyRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart ?? 0;
-    const end = ta.selectionEnd ?? 0;
-    const value = ta.value;
-    const selected = value.slice(start, end) || fallback;
-    const next = value.slice(0, start) + before + selected + after + value.slice(end);
-    setEditing((prev) => (prev ? { ...prev, body: next } : prev));
-    requestAnimationFrame(() => {
-      ta.focus();
-      const pos = start + before.length;
-      ta.setSelectionRange(pos, pos + selected.length);
-    });
+  // Normalize stored body to HTML for the WYSIWYG editor.
+  // If the body has no HTML tags, treat newlines as <br> so existing plain-text templates display correctly.
+  const toHtml = (body: string) => {
+    if (!body) return "";
+    const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(body);
+    return looksLikeHtml ? body : body.replace(/\n/g, "<br>");
   };
+
+  // Load the initial HTML into the editor when opening a template. We don't sync on every keystroke
+  // because that would reset the caret position.
+  const lastLoadedId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!editing || !bodyRef.current) return;
+    if (lastLoadedId.current === editing.id) return;
+    bodyRef.current.innerHTML = toHtml(editing.body);
+    lastLoadedId.current = editing.id;
+  }, [editing]);
+
+  const exec = (command: string, value?: string) => {
+    bodyRef.current?.focus();
+    document.execCommand(command, false, value);
+    if (bodyRef.current) {
+      setEditing((prev) => (prev ? { ...prev, body: bodyRef.current!.innerHTML } : prev));
+    }
+  };
+
+  const applyHighlight = () => exec("hiliteColor", "#fff59d");
+  const applyFontSize = (px: string) => {
+    // execCommand fontSize accepts 1-7; wrap selection in a span for exact px instead.
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !bodyRef.current) return;
+    if (!bodyRef.current.contains(sel.anchorNode)) return;
+    const range = sel.getRangeAt(0);
+    if (range.collapsed) return;
+    const span = document.createElement("span");
+    span.style.fontSize = px;
+    try {
+      range.surroundContents(span);
+    } catch {
+      // Selection spans multiple block elements — fall back to extract/insert.
+      const frag = range.extractContents();
+      span.appendChild(frag);
+      range.insertNode(span);
+    }
+    sel.removeAllRanges();
+    setEditing((prev) => (prev ? { ...prev, body: bodyRef.current!.innerHTML } : prev));
+  };
+
 
 
   const load = async () => {
