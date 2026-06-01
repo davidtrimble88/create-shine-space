@@ -112,15 +112,21 @@ const AutoEmails = () => {
     return looksLikeHtml ? body : body.replace(/\n/g, "<br>");
   };
 
-  // Load the initial HTML into the editor when opening a template. We don't sync on every keystroke
-  // because that would reset the caret position.
-  const lastLoadedId = useRef<string | null>(null);
+  // Load the initial HTML into the editor whenever a different template is opened,
+  // or when the editor is re-mounted (e.g. after closing and reopening the dialog).
+  const lastLoadedKey = useRef<string | null>(null);
   useEffect(() => {
-    if (!editing || !bodyRef.current) return;
-    if (lastLoadedId.current === editing.id) return;
+    if (!editing) {
+      lastLoadedKey.current = null;
+      return;
+    }
+    if (!bodyRef.current) return;
+    const key = `${editing.id}:${bodyRef.current ? "1" : "0"}`;
+    if (lastLoadedKey.current === editing.id) return;
     bodyRef.current.innerHTML = toHtml(editing.body);
-    lastLoadedId.current = editing.id;
-  }, [editing]);
+    lastLoadedKey.current = editing.id;
+  }, [editing, editing?.id]);
+
 
   const exec = (command: string, value?: string) => {
     bodyRef.current?.focus();
