@@ -46,7 +46,11 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl text-foreground mb-8 max-w-2xl leading-relaxed"
           >
-            <span className="text-accent font-semibold">CMSP certified</span> courses designed to transform beginners into confident riders. Skip the DMV test and ride with skill, safety, and freedom.
+            <EditableText
+              contentKey="hero.description"
+              fallback="CMSP certified courses designed to transform beginners into confident riders. Skip the DMV test and ride with skill, safety, and freedom."
+              multiline
+            />
           </motion.p>
 
           <motion.div
@@ -57,13 +61,13 @@ const Hero = () => {
           >
             <Link to="/choose-course">
               <Button size="lg" variant="hero" className="group text-lg px-8">
-                Start Your Journey
+                <EditableText contentKey="hero.cta.primary" fallback="Start Your Journey" />
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link to="/courses">
               <Button size="lg" variant="heroOutline" className="text-lg px-8">
-                View Courses
+                <EditableText contentKey="hero.cta.secondary" fallback="View Courses" />
               </Button>
             </Link>
           </motion.div>
