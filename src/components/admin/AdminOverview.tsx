@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { CalendarDays, Users, BookOpen, DollarSign, MapPin, Smartphone, Eye, UserCheck } from "lucide-react";
+import { CalendarDays, Users, BookOpen, DollarSign, MapPin, Smartphone, ClipboardList } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface LocationEarnings {
@@ -17,10 +17,10 @@ const AdminOverview = () => {
   const [yesterdayEarnings, setYesterdayEarnings] = useState(0);
   const [todayByLocation, setTodayByLocation] = useState<LocationEarnings>({});
   const [yesterdayByLocation, setYesterdayByLocation] = useState<LocationEarnings>({});
-  const [todayViews, setTodayViews] = useState(0);
-  const [yesterdayViews, setYesterdayViews] = useState(0);
-  const [todayVisitors, setTodayVisitors] = useState(0);
-  const [yesterdayVisitors, setYesterdayVisitors] = useState(0);
+  const [todayRegistrations, setTodayRegistrations] = useState(0);
+  const [yesterdayRegistrations, setYesterdayRegistrations] = useState(0);
+  const [todayRegByLocation, setTodayRegByLocation] = useState<LocationEarnings>({});
+  const [yesterdayRegByLocation, setYesterdayRegByLocation] = useState<LocationEarnings>({});
 
   const canSeeEarnings = effectiveRole === "owner" || effectiveRole === "admin";
   const canSeeAnalytics = canSeeEarnings;
@@ -31,15 +31,24 @@ const AdminOverview = () => {
     const yesterdayStart = new Date(todayStart); yesterdayStart.setDate(yesterdayStart.getDate() - 1);
 
     const [todayRes, yesterdayRes] = await Promise.all([
-      supabase.from("page_views").select("visitor_id").gte("created_at", todayStart.toISOString()),
-      supabase.from("page_views").select("visitor_id").gte("created_at", yesterdayStart.toISOString()).lt("created_at", todayStart.toISOString()),
+      supabase.from("bookings").select("location_label").gte("created_at", todayStart.toISOString()),
+      supabase.from("bookings").select("location_label").gte("created_at", yesterdayStart.toISOString()).lt("created_at", todayStart.toISOString()),
     ]);
     const tRows = todayRes.data || [];
     const yRows = yesterdayRes.data || [];
-    setTodayViews(tRows.length);
-    setYesterdayViews(yRows.length);
-    setTodayVisitors(new Set(tRows.map(r => r.visitor_id).filter(Boolean)).size);
-    setYesterdayVisitors(new Set(yRows.map(r => r.visitor_id).filter(Boolean)).size);
+    setTodayRegistrations(tRows.length);
+    setYesterdayRegistrations(yRows.length);
+
+    const groupByLoc = (rows: { location_label: string | null }[]) => {
+      const byLoc: LocationEarnings = {};
+      rows.forEach((r) => {
+        const loc = r.location_label || "Unknown";
+        byLoc[loc] = (byLoc[loc] || 0) + 1;
+      });
+      return byLoc;
+    };
+    setTodayRegByLocation(groupByLoc(tRows));
+    setYesterdayRegByLocation(groupByLoc(yRows));
   }, [canSeeAnalytics]);
 
   const fetchEarnings = useCallback(async () => {
@@ -180,31 +189,43 @@ const AdminOverview = () => {
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <div className="bg-card border border-border rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <Eye className="w-8 h-8 text-blue-400" />
+              <ClipboardList className="w-8 h-8 text-blue-400" />
               <span className="text-xs text-muted-foreground font-medium bg-blue-400/10 px-2 py-1 rounded-full">Today</span>
             </div>
-            <p className="text-3xl font-bold text-foreground">{todayViews}</p>
-            <p className="text-sm text-muted-foreground mt-1 mb-4">Page Views Today</p>
-            <div className="border-t border-border pt-3 flex items-center justify-between text-sm">
-              <span className="flex items-center gap-1.5 text-muted-foreground">
-                <UserCheck className="w-3.5 h-3.5" /> Unique Visitors
-              </span>
-              <span className="font-medium text-foreground">{todayVisitors}</span>
-            </div>
+            <p className="text-3xl font-bold text-foreground">{todayRegistrations}</p>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">Registrations Today</p>
+            {Object.keys(todayRegByLocation).length > 0 && (
+              <div className="border-t border-border pt-3 space-y-2">
+                {Object.keys(todayRegByLocation).sort().map((loc) => (
+                  <div key={loc} className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 text-muted-foreground">
+                      <MapPin className="w-3.5 h-3.5" /> {loc}
+                    </span>
+                    <span className="font-medium text-foreground">{todayRegByLocation[loc]}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className="bg-card border border-border rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <Eye className="w-8 h-8 text-accent" />
+              <ClipboardList className="w-8 h-8 text-accent" />
               <span className="text-xs text-muted-foreground font-medium bg-accent/10 px-2 py-1 rounded-full">Yesterday</span>
             </div>
-            <p className="text-3xl font-bold text-foreground">{yesterdayViews}</p>
-            <p className="text-sm text-muted-foreground mt-1 mb-4">Page Views Yesterday</p>
-            <div className="border-t border-border pt-3 flex items-center justify-between text-sm">
-              <span className="flex items-center gap-1.5 text-muted-foreground">
-                <UserCheck className="w-3.5 h-3.5" /> Unique Visitors
-              </span>
-              <span className="font-medium text-foreground">{yesterdayVisitors}</span>
-            </div>
+            <p className="text-3xl font-bold text-foreground">{yesterdayRegistrations}</p>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">Registrations Yesterday</p>
+            {Object.keys(yesterdayRegByLocation).length > 0 && (
+              <div className="border-t border-border pt-3 space-y-2">
+                {Object.keys(yesterdayRegByLocation).sort().map((loc) => (
+                  <div key={loc} className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 text-muted-foreground">
+                      <MapPin className="w-3.5 h-3.5" /> {loc}
+                    </span>
+                    <span className="font-medium text-foreground">{yesterdayRegByLocation[loc]}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
