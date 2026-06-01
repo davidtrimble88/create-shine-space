@@ -71,6 +71,18 @@ Deno.serve(async (req) => {
       body = `${body}\n\n— Attachments —\n${list}`;
     }
 
+    const textToHtml = (text: string) => {
+      const esc = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      const paras = esc.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+      const htmlBody = paras
+        .map((p) => `<p style="margin:0 0 16px 0;line-height:1.6">${p.replace(/\n/g, "<br>")}</p>`)
+        .join("");
+      return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${htmlBody}</div>`;
+    };
+
     // Try queue-based send if email infrastructure exists.
     try {
       const { error: enqErr } = await supabase.rpc("enqueue_email" as any, {
@@ -79,8 +91,7 @@ Deno.serve(async (req) => {
           to: recipientEmail,
           subject,
           text: body,
-          html: `<pre style="font-family:Arial,sans-serif;white-space:pre-wrap;font-size:14px;color:#222">${body
-            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`,
+          html: textToHtml(body),
           template_name: `auto_${trigger_event}`,
         },
       });

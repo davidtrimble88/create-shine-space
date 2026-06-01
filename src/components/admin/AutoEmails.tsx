@@ -51,7 +51,7 @@ const TRIGGER_OPTIONS: { value: string; label: string; vars: string[] }[] = [
   {
     value: "registration_confirmation",
     label: "After Registration (Student)",
-    vars: ["firstName", "lastName", "course", "locationLabel", "scheduleDate", "schedule", "fee", "email"],
+    vars: ["firstName", "lastName", "course", "locationLabel", "scheduleDate", "schedule", "fee", "email", "groupName"],
   },
   {
     value: "class_location_time",
@@ -73,9 +73,10 @@ const SAMPLE_VARS: Record<string, string> = {
   classTime: "8:00 AM – 5:00 PM",
   schedule: "Sat 8am–5pm & Sun 8am–5pm",
   mapLink: "https://maps.google.com/?q=5500+Somis+Rd",
-  contactPhone: "(805) 555-0123",
+  contactPhone: "(805) 827-0075",
   fee: "$425",
   email: "alex@example.com",
+  groupName: "Group A",
 };
 
 const render = (tpl: string, vars: Record<string, string>) =>
