@@ -500,18 +500,21 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          parts: string[] | null
           schedule_id: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          parts?: string[] | null
           schedule_id: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          parts?: string[] | null
           schedule_id?: string
           user_id?: string
         }
