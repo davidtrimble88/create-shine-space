@@ -92,11 +92,11 @@ const About = () => {
               viewport={{ once: true }}
             >
               <span className="text-accent font-semibold tracking-wider uppercase text-sm">
-                Our Mission
+                <EditableText contentKey="about.mission.label" fallback="Our Mission" />
               </span>
               <h2 className="text-3xl md:text-4xl font-bold mt-4 mb-6">
-                More Than a School —{" "}
-                <span className="text-accent">Your Lifelong Riding Partner</span>
+                <EditableText contentKey="about.mission.title.a" fallback="More Than a School —" />{" "}
+                <span className="text-accent"><EditableText contentKey="about.mission.title.b" fallback="Your Lifelong Riding Partner" /></span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                 <EditableText contentKey="about.mission.p1" fallback="Whether you're a new motorcyclist looking to get your license, or an experienced rider brushing up on skills or getting comfortable on a new bike — we have a course for you." multiline />
