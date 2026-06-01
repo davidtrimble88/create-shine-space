@@ -95,6 +95,7 @@ const renderWithAttachments = (body: string, vars: Record<string, string>, atts:
 const AutoEmails = () => {
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
+  const { userRole } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
