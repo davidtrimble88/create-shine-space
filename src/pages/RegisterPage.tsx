@@ -363,6 +363,8 @@ const RegisterPage = () => {
           lastName: data.lastName,
           course: courseLabels[course] || course,
           locationLabel: locationLabels[location] || location,
+          location,
+          groupName: scheduleGroup,
           scheduleDate,
           fee: feeLabel,
         });
