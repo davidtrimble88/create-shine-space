@@ -347,12 +347,16 @@ const ViewerSchedule = () => {
         <div className="space-y-3">
           {filtered.map((entry) => {
             if (entry.type === "schedule") {
+              const hasEntry = myAvailability.has(entry.data.id);
+              const parts = myAvailability.get(entry.data.id) ?? null;
               return <ScheduleCard
                 key={entry.data.id}
                 schedule={entry.data}
-                isAvailable={myAvailability.has(entry.data.id)}
+                hasAvailability={hasEntry}
+                selectedParts={parts}
                 isToggling={toggling === entry.data.id}
-                onToggle={() => toggleAvailability(entry.data.id)}
+                onSetAvailability={(p) => setAvailability(entry.data.id, p)}
+                onClear={() => clearAvailability(entry.data.id)}
               />;
             } else {
               const locationsToShow = filterLocation === "all"
