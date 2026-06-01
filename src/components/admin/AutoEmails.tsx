@@ -9,7 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Plus, Pencil, Trash2, Eye, Save, Paperclip, Upload, X } from "lucide-react";
+import { Mail, Plus, Pencil, Trash2, Eye, Save, Paperclip, Upload, X, Bold, Italic, Underline, Highlighter, Type } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BccSettings from "./BccSettings";
 
 type Attachment = { name: string; path: string; url: string; size?: number };
