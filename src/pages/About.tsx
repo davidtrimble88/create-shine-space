@@ -205,10 +205,11 @@ const About = () => {
                   </span>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">Best Outreach Award</h3>
+              <h3 className="text-xl font-bold text-foreground mb-2">
+                <EditableText contentKey="about.award1.title" fallback="Best Outreach Award" />
+              </h3>
               <p className="text-muted-foreground">
-                Awarded for Service Excellence to Learn To Ride VC by the California
-                Motorcyclist Safety Program.
+                <EditableText contentKey="about.award1.desc" fallback="Awarded for Service Excellence to Learn To Ride VC by the California Motorcyclist Safety Program." multiline />
               </p>
             </motion.div>
 
