@@ -230,6 +230,8 @@ const RegisterPage = () => {
   const [waiverPrefill, setWaiverPrefill] = useState<WaiverPrefill | null>(null);
   const [regFormOpen, setRegFormOpen] = useState(false);
   const [regFormPrefill, setRegFormPrefill] = useState<RegistrationFormPrefill | null>(null);
+  const [modelReleaseOpen, setModelReleaseOpen] = useState(false);
+  const [modelReleasePrefill, setModelReleasePrefill] = useState<ModelReleasePrefill | null>(null);
 
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
