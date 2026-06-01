@@ -227,6 +227,8 @@ const RegisterPage = () => {
   const skipPaymentRef = useRef(false);
   const [waiverOpen, setWaiverOpen] = useState(false);
   const [waiverPrefill, setWaiverPrefill] = useState<WaiverPrefill | null>(null);
+  const [regFormOpen, setRegFormOpen] = useState(false);
+  const [regFormPrefill, setRegFormPrefill] = useState<RegistrationFormPrefill | null>(null);
 
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
