@@ -41,10 +41,10 @@ const RegistrationConfirmation = () => {
             <p className="text-muted-foreground">
               You will receive an email from{" "}
               <a
-                href="mailto:office@learntoridevc.com"
+                href="mailto:notify@learntoridevc.com"
                 className="text-accent font-semibold hover:underline"
               >
-                office@learntoridevc.com
+                notify@learntoridevc.com
               </a>{" "}
               within 24 hours with more class information, including details about your schedule, what to bring, and what to expect.
             </p>
