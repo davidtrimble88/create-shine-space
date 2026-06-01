@@ -381,7 +381,7 @@ const AutoEmails = () => {
                     <Button size="sm" variant="outline" onClick={() => setPreview(t)}>
                       <Eye className="w-4 h-4" />
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => setEditing(t)}>
+                    <Button size="sm" variant="outline" onClick={() => { initialBodyRef.current = t.body || ""; setEditing(t); }}>
                       <Pencil className="w-4 h-4" />
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => remove(t.id)}>
