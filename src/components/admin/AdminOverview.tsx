@@ -22,9 +22,25 @@ const AdminOverview = () => {
   const [todayVisitors, setTodayVisitors] = useState(0);
   const [yesterdayVisitors, setYesterdayVisitors] = useState(0);
 
-  const canSeeAnalytics = effectiveRole === "owner" || effectiveRole === "admin";
-
   const canSeeEarnings = effectiveRole === "owner" || effectiveRole === "admin";
+  const canSeeAnalytics = canSeeEarnings;
+
+  const fetchAnalytics = useCallback(async () => {
+    if (!canSeeAnalytics) return;
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const yesterdayStart = new Date(todayStart); yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+    const [todayRes, yesterdayRes] = await Promise.all([
+      supabase.from("page_views").select("visitor_id").gte("created_at", todayStart.toISOString()),
+      supabase.from("page_views").select("visitor_id").gte("created_at", yesterdayStart.toISOString()).lt("created_at", todayStart.toISOString()),
+    ]);
+    const tRows = todayRes.data || [];
+    const yRows = yesterdayRes.data || [];
+    setTodayViews(tRows.length);
+    setYesterdayViews(yRows.length);
+    setTodayVisitors(new Set(tRows.map(r => r.visitor_id).filter(Boolean)).size);
+    setYesterdayVisitors(new Set(yRows.map(r => r.visitor_id).filter(Boolean)).size);
+  }, [canSeeAnalytics]);
 
   const fetchEarnings = useCallback(async () => {
     if (!canSeeEarnings) return;
