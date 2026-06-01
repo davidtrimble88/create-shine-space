@@ -288,8 +288,13 @@ const AutoEmails = () => {
                     <CardDescription className="mt-1">
                       Trigger:{" "}
                       <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{t.trigger_event}</code>
-                      {t.match_location ? (
+                      {t.match_course ? (
                         <Badge variant="outline" className="ml-2">
+                          {COURSE_OPTIONS.find((o) => o.value === t.match_course)?.label || t.match_course}
+                        </Badge>
+                      ) : null}
+                      {t.match_location ? (
+                        <Badge variant="outline" className="ml-1">
                           {LOCATION_OPTIONS.find((o) => o.value === t.match_location)?.label || t.match_location}
                         </Badge>
                       ) : null}
