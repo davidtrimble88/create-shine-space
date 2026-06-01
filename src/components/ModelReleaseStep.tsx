@@ -257,13 +257,7 @@ const ModelReleaseStep = ({ prefill, onBack, onComplete }: Props) => {
           photo or video taken. Declining will not affect your registration.
         </p>
 
-        <div className="rounded-lg border border-border bg-white overflow-hidden" style={{ height: 700 }}>
-          <iframe
-            src="/cmsp-model-release.pdf#view=FitH&toolbar=1"
-            title="CMSP Model Release"
-            className="w-full h-full"
-          />
-        </div>
+        <PdfPreview url="/cmsp-model-release.pdf" title="CMSP Model Release" maxHeight={700} />
         <p className="text-xs text-muted-foreground mt-2">
           This is the exact document.{" "}
           <a href="/cmsp-model-release.pdf" target="_blank" rel="noopener noreferrer" className="text-accent underline">
