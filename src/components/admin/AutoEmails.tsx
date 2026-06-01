@@ -93,7 +93,7 @@ const renderWithAttachments = (body: string, vars: Record<string, string>, atts:
 };
 
 const AutoEmails = () => {
-  const bodyRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
   const { userRole } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,27 +105,23 @@ const AutoEmails = () => {
   const [uploading, setUploading] = useState(false);
 
   // Normalize stored body to HTML for the WYSIWYG editor.
-  // If the body has no HTML tags, treat newlines as <br> so existing plain-text templates display correctly.
+  // Plain-text templates have their newlines converted to <br> so they display correctly.
   const toHtml = (body: string) => {
     if (!body) return "";
     const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(body);
     return looksLikeHtml ? body : body.replace(/\n/g, "<br>");
   };
 
-  // Load the initial HTML into the editor whenever a different template is opened,
-  // or when the editor is re-mounted (e.g. after closing and reopening the dialog).
-  const lastLoadedKey = useRef<string | null>(null);
-  useEffect(() => {
-    if (!editing) {
-      lastLoadedKey.current = null;
-      return;
+  // Callback ref: fires synchronously the moment the contentEditable mounts in the dialog,
+  // guaranteeing we populate it with the saved body every time the editor is opened.
+  const initialBodyRef = useRef<string>("");
+  const setBodyRef = (el: HTMLDivElement | null) => {
+    bodyRef.current = el;
+    if (el) {
+      el.innerHTML = toHtml(initialBodyRef.current);
     }
-    if (!bodyRef.current) return;
-    const key = `${editing.id}:${bodyRef.current ? "1" : "0"}`;
-    if (lastLoadedKey.current === editing.id) return;
-    bodyRef.current.innerHTML = toHtml(editing.body);
-    lastLoadedKey.current = editing.id;
-  }, [editing, editing?.id]);
+  };
+
 
 
   const exec = (command: string, value?: string) => {
@@ -298,25 +294,27 @@ const AutoEmails = () => {
           </p>
         </div>
         <Button
-          onClick={() =>
+          onClick={() => {
+            const body =
+              "Hi {{firstName}},\n\n" +
+              "Here are the details for your upcoming class:\n\n" +
+              "Course: {{course}}\n" +
+              "Date: {{scheduleDate}}\n" +
+              "Time: {{classTime}}\n" +
+              "Location: {{locationLabel}}\n" +
+              "Address: {{locationAddress}}\n" +
+              "Map: {{mapLink}}\n\n" +
+              "Bike and helmet are provided. Please arrive 15 minutes early.\n\n" +
+              "Questions? Call us at {{contactPhone}}.\n\n" +
+              "See you soon,\nLearn To Ride VC";
+            initialBodyRef.current = body;
             setEditing({
               id: "",
               trigger_event: "class_location_time",
               name: "Class Location & Time",
               description: "Sent ahead of class with location, time, and any attachments.",
               subject: "Your {{course}} on {{scheduleDate}} — Location & Time",
-              body:
-                "Hi {{firstName}},\n\n" +
-                "Here are the details for your upcoming class:\n\n" +
-                "Course: {{course}}\n" +
-                "Date: {{scheduleDate}}\n" +
-                "Time: {{classTime}}\n" +
-                "Location: {{locationLabel}}\n" +
-                "Address: {{locationAddress}}\n" +
-                "Map: {{mapLink}}\n\n" +
-                "Bike and helmet are provided. Please arrive 15 minutes early.\n\n" +
-                "Questions? Call us at {{contactPhone}}.\n\n" +
-                "See you soon,\nLearn To Ride VC",
+              body,
               enabled: true,
               available_variables: triggerVars("class_location_time"),
               attachments: [],
@@ -324,8 +322,8 @@ const AutoEmails = () => {
               match_group: null,
               match_course: null,
               updated_at: "",
-            })
-          }
+            });
+          }}
         >
           <Plus className="w-4 h-4 mr-2" /> New Template
         </Button>
@@ -385,7 +383,7 @@ const AutoEmails = () => {
                     <Button size="sm" variant="outline" onClick={() => setPreview(t)}>
                       <Eye className="w-4 h-4" />
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => setEditing(t)}>
+                    <Button size="sm" variant="outline" onClick={() => { initialBodyRef.current = t.body || ""; setEditing(t); }}>
                       <Pencil className="w-4 h-4" />
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => remove(t.id)}>
@@ -551,7 +549,8 @@ const AutoEmails = () => {
                   <span className="text-xs text-muted-foreground ml-auto pr-2">Select text, then click a format</span>
                 </div>
                 <div
-                  ref={bodyRef}
+                  key={editing.id || "new"}
+                  ref={setBodyRef}
                   contentEditable
                   suppressContentEditableWarning
                   onInput={(e) =>
