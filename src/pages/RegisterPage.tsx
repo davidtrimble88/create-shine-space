@@ -343,6 +343,15 @@ const RegisterPage = () => {
         });
         if (insertErr) throw insertErr;
         toast({ title: "Test booking saved", description: "Payment skipped (testing only)." });
+        fireRegistrationEmail({
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          course: courseLabels[course] || course,
+          locationLabel: locationLabels[location] || location,
+          scheduleDate,
+          fee: feeLabel,
+        });
         form.reset();
         navigate("/registration-confirmation");
         setSubmitting(false);
