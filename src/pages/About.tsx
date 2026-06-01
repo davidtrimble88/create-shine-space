@@ -152,8 +152,12 @@ const About = () => {
                     <item.icon className="w-6 h-6 text-accent" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground mb-1">{item.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+                    <h3 className="font-semibold text-foreground mb-1">
+                      <EditableText contentKey={`about.feature.${i}.title`} fallback={item.title} />
+                    </h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      <EditableText contentKey={`about.feature.${i}.desc`} fallback={item.desc} multiline />
+                    </p>
                   </div>
                 </div>
               ))}
