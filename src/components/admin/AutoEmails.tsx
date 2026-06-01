@@ -607,9 +607,13 @@ const AutoEmails = () => {
               </div>
               <div>
                 <div className="text-xs uppercase text-muted-foreground mb-1">Body</div>
-                <pre className="bg-muted p-4 rounded text-sm whitespace-pre-wrap">
-                  {renderWithAttachments(preview.body, SAMPLE_VARS, preview.attachments || [])}
-                </pre>
+                <div
+                  className="bg-muted p-4 rounded text-sm whitespace-pre-wrap break-words"
+                  dangerouslySetInnerHTML={{
+                    __html: renderWithAttachments(preview.body, SAMPLE_VARS, preview.attachments || []),
+                  }}
+                />
+
               </div>
             </div>
           )}
