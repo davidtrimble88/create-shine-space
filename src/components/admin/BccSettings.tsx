@@ -15,6 +15,7 @@ const TRIGGERS: { value: string; label: string }[] = [
   { value: "registration_confirmation", label: "After Registration (Student)" },
   { value: "class_location_time", label: "Class Location & Time (Pre-Class)" },
   { value: "employee_welcome", label: "New Employee Welcome (with temp password)" },
+  { value: "password_reset", label: "Admin Password Reset (with temp password)" },
 ];
 
 const BccSettings = () => {
