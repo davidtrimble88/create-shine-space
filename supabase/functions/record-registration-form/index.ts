@@ -207,9 +207,9 @@ async function buildPdf(
         ? `Other: ${data.q7_other || ""}`.trim()
         : (Q7_LABELS[data.q7_primary_reason || ""] || "—"));
   row("8. Prior on-street motorcycle/scooter accident?", data.q8_prior_accident || "—");
-  row("9. Called for Motorcyclist Training Course information?", data.q10_called_for_info || "—");
-  row("10. Taken this course before?", data.q11_taken_before || "—");
-  row("11. May CMSP contact you in the future?", data.q12_cmsp_contact_future || "—");
+  row("9. Called for Motorcyclist Training Course information?", data.q9_called_for_info || "—");
+  row("10. Taken this course before?", data.q10_taken_before || "—");
+  row("11. May CMSP contact you in the future?", data.q11_cmsp_contact_future || "—");
 
   heading("Course Enrollment");
   row("Course", data.course || "—");
