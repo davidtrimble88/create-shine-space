@@ -55,7 +55,27 @@ interface SharedFile {
   uploaded_by: string | null;
   uploaded_by_name: string | null;
   created_at: string;
+  min_role: "owner" | "admin" | "manager" | "employee";
 }
+
+type MinRole = "owner" | "admin" | "manager" | "employee";
+
+const ROLE_OPTIONS: { value: MinRole; label: string; description: string }[] = [
+  { value: "employee", label: "All staff (Viewers and up)", description: "Everyone signed in can see this file" },
+  { value: "manager", label: "Managers and up", description: "Hidden from Viewers" },
+  { value: "admin", label: "Admins and Owners only", description: "Hidden from Viewers and Managers" },
+  { value: "owner", label: "Owners only", description: "Hidden from everyone except Owners" },
+];
+
+const roleBadge = (role: MinRole) => {
+  switch (role) {
+    case "owner": return "Owners only";
+    case "admin": return "Admins+";
+    case "manager": return "Managers+";
+    default: return null;
+  }
+};
+
 
 const formatBytes = (bytes: number) => {
   if (!bytes) return "0 B";
