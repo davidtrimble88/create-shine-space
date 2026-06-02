@@ -107,15 +107,36 @@ const AdminEmployees = () => {
     
     const fileExt = photoFile.name.split(".").pop();
     const filePath = `${employeeId}.${fileExt}`;
-    
-    // Delete existing photo if any
-    await supabase.storage.from("employee-photos").remove([filePath]);
-    
+
     const { error } = await supabase.storage
       .from("employee-photos")
-      .upload(filePath, photoFile, { upsert: true });
-    
-    if (error) {
+      .upload(filePath, photoFile, {
+        upsert: false,
+        contentType: photoFile.type || "application/octet-stream",
+      });
+
+    if (error && error.message.toLowerCase().includes("duplicate")) {
+      const { error: deleteError } = await supabase.storage
+        .from("employee-photos")
+        .remove([filePath]);
+
+      if (deleteError) {
+        toast({ title: "Photo upload failed", description: deleteError.message, variant: "destructive" });
+        return null;
+      }
+
+      const { error: retryError } = await supabase.storage
+        .from("employee-photos")
+        .upload(filePath, photoFile, {
+          upsert: false,
+          contentType: photoFile.type || "application/octet-stream",
+        });
+
+      if (retryError) {
+        toast({ title: "Photo upload failed", description: retryError.message, variant: "destructive" });
+        return null;
+      }
+    } else if (error) {
       toast({ title: "Photo upload failed", description: error.message, variant: "destructive" });
       return null;
     }
