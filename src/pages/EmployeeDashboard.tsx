@@ -95,7 +95,6 @@ const EmployeeDashboard = () => {
   const isImpersonating = isOwner && !!viewAsRole && viewAsRole !== "owner";
 
   return (
-  return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       <aside
