@@ -108,6 +108,37 @@ export default function ITTickets() {
     "I hope this question comes with screenshots. I LOVE screenshots. 📸",
     "Ask away. I've already emotionally prepared myself for 'I deleted the internet.' 🌐",
     "If this is 'how do I rotate a PDF?' I'm going to need a minute. 📄",
+    "Have you tried sacrificing a USB drive to the tech gods? Works 60% of the time. 🔮",
+    "Is your Caps Lock on? Because your email reads like you're yelling at me. 📢",
+    "Before I answer, what's your favorite color? Just kidding, that won't help either. 🌈",
+    "I'm going to need you to submit this in triplicate. One for each of my personalities. 👥",
+    "Is this question covered under warranty? Because my patience isn't. 📝",
+    "Have you considered the problem might be between the keyboard and chair? 🪑",
+    "My crystal ball says... 'Have you tried updating Chrome?' Balls are basically IT now. 🔮",
+    "Did you know IT stands for 'I Tried'? Because that's what I'm about to do. 😅",
+    "If I had a dollar for every time someone asked this, I'd fix the printer myself. 🖨️",
+    "Is this about the email chain you accidentally replied-all to? We've all been there. 📬",
+    "Have you tried whispering sweet nothings to your hard drive? They need love too. 💕",
+    "I'm consulting the ancient scrolls... ah yes, 'Did you restart it?' Always restart. 📜",
+    "Is your computer running? Then you better go catch it! ...Sorry, I had to. 🏃",
+    "Before we begin, rate your panic: 1 to 'I deleted everything.' Be honest. 😰",
+    "Are you calling from the bathroom again? We know the wifi is strongest there. 🚻",
+    "Have you tried the classic unplug-plug-back-in dance? Very technical stuff. 💃",
+    "My sources say the answer involves a sacrifice of one caramel macchiato. ☕",
+    "Is this the same issue from yesterday? Because I left my time machine at home. ⏰",
+    "Did you try Googling 'Google isn't working'? It's a real thing people do. 🔍",
+    "I was about to take lunch, but sure, your PDF crisis is clearly more urgent. 🍔",
+    "Have you checked if Mercury is in retrograde? Explains 90% of tech issues. 🪐",
+    "Is this a 'the mouse is on the wrong side of the keyboard' situation? We've seen it. 🖱️",
+    "My flowchart says: 1) Panic 2) Call IT 3) Realize it's unplugged. You're at step 2. 📊",
+    "Are you sure you want the answer? Because once you know, you can't unknow it. 🧠",
+    "Did you try threatening your computer? Sometimes fear is the best motivator. 😤",
+    "Is this about the pop-up saying you won a free iPad? Spoiler: you didn't. 🍎",
+    "I'm going to transfer you to advanced support... just kidding, that's also me. 🤡",
+    "Have you tried the 'anger shake'? Like the salt shaker but for electronics. 🧂",
+    "My diagnostic tool says you're experiencing what we call 'PEBKAC.' Look it up. 🛠️",
+    "Is this urgent? Because my coffee is getting cold and that's pretty urgent too. ☕",
+    "Did you try asking your teenager? They know more about tech than all of us combined. 🧑‍🎤",
   ];
 
   const shuffle = (arr: string[]) => {
@@ -121,7 +152,8 @@ export default function ITTickets() {
 
   const openFun = () => {
     setShuffledSuggestions(shuffle(suggestionResponses));
-    setShuffledQuestions(shuffle(questionResponses));
+    const qCount = Math.floor(Math.random() * 2) + 2; // 2 or 3
+    setShuffledQuestions(shuffle(questionResponses).slice(0, qCount));
     setFunStep("start");
     setFunTrail(0);
     setFunOpen(true);
