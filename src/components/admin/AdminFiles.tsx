@@ -189,6 +189,7 @@ const AdminFiles = () => {
       file_path: path,
       file_size: selectedFile.size,
       mime_type: selectedFile.type || null,
+      min_role: minRole,
       uploaded_by: user?.id ?? null,
       uploaded_by_name: user?.email ?? null,
     });
