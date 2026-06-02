@@ -65,6 +65,8 @@ export default function ITTickets() {
 
   const [shuffledSuggestions, setShuffledSuggestions] = useState<string[]>([]);
   const [shuffledQuestions, setShuffledQuestions] = useState<string[]>([]);
+  const [shuffledComplaining, setShuffledComplaining] = useState<string[]>([]);
+  const [shuffledRealIssue, setShuffledRealIssue] = useState<string[]>([]);
 
   const suggestionResponses = [
     "Oh, a suggestion? Bold of you to assume we take those. 😏",
@@ -223,6 +225,50 @@ export default function ITTickets() {
     "Blacksmiths heat before hammering. You heat up over jokes. Time to hammer out this ticket. 🔨",
     "Park rangers observe wildlife. You observe the exit. Rare species: the unbothered reporter. 🐻",
   ];
+  const complainingJokes = [
+    "Complaining is like a rocking chair — it gives you something to do, but gets you nowhere. 🪑",
+    "You know what they say: every complaint is just a solution wearing a grumpy disguise. 😤",
+    "If complaining burned calories, you'd be an Olympic athlete by now. 🏅",
+    "Complaints are like free pizza — everyone wants to offer them, no one wants to hear them. 🍕",
+    "You have 99 problems and apparently all of them need to be voiced immediately. 📢",
+    "Complaining is an art form, and you just submitted your masterpiece to the wrong gallery. 🎨",
+    "Somewhere out there, a genie is crying because you wasted your wish on complaining. 🧞",
+    "They say the squeaky wheel gets the grease. But they don't mention the other wheels laughing. 🤭",
+    "Your complaint has been logged, filed, and ceremonially placed on the desk of someone who cares deeply. That's not me. 😴",
+    "If I had a nickel for every complaint, I'd have enough to build a soundproof office. 🏢",
+    "Complaining is the only exercise some people get, and you're absolutely shredded. 💪",
+    "You complain so well, you should start a podcast. Call it 'Whine & Dine.' 🍷",
+    "Your complaint has been forwarded to the Department of Vibes. They're currently out of office. 🏝️",
+    "Studies show that 100% of complaints are annoying. You just contributed to science. 🥼",
+    "Complaints are like boomerangs — they come back to you, usually in the form of side-eye. 👀",
+    "You know who else complained a lot? The person who invented the mute button. You're welcome. 🔇",
+    "Your complaint is important to us. Please hold while we pretend to care for 3-5 business days. 📞",
+    "If life gives you lemons, you're supposed to make lemonade — not file a ticket about the lemons. 🍋",
+    "Complaining: the cardio of the chronically dissatisfied. Your heart rate must be through the roof. ❤️",
+    "You could win gold in Complaining. Too bad it's not an Olympic sport... yet. 🥇",
+  ];
+  const realIssueJokes = [
+    "Descartes said 'I think, therefore I am.' You said 'I complain, therefore it is real.' Deep. 🧠",
+    "If this issue is real, does that make me imaginary? Asking for a friend. 👻",
+    "Reality is just a consensus hallucination, and apparently yours is buggy. 🐛",
+    "Schrodinger's issue: it's both real and not real until IT opens the ticket. 📦",
+    "If nothing is real, then neither is your deadline. Problem solved! ⏰",
+    "You asked how we know anything is real. I ask: how do we know YOU'RE real? Plot twist. 🌀",
+    "Buddha said desire is the root of suffering. Your desire to skip this is literally that. 🧘",
+    "If reality is a simulation, this issue is just a glitch in your personal Matrix. Take the blue pill. 💊",
+    "Kant would call this a categorical imperative... to complain. Very philosophical of you. 🏛️",
+    "In an infinite multiverse, there's a version of you who didn't report this. Lucky them. 🌌",
+    "If the universe is expanding, so is my patience... wait, no it's not. 🪐",
+    "They say reality is stranger than fiction. Your issue is... well, it's definitely something. 📖",
+    "What if the real issue was the friends we made along the way? No? Just me? 🫂",
+    "Quantum mechanics says observing changes the outcome. So by reporting this, you made it real. Thanks. 🔬",
+    "If time is an illusion, does this issue even need to be fixed? Lunchtime doubly so. 🕰️",
+    "The meaning of life is 42. The meaning of this issue is... still loading. Please wait. 💻",
+    "Nietzsche said God is dead. You said the printer is dead. Same energy. ⚡",
+    "What if this issue is just a shared delusion and we're all in it together? Group therapy session? 🛋️",
+    "If I close my eyes, the issue disappears. If you close yours, it still exists. Unfair advantage. 👁️",
+    "The only true wisdom is knowing you know nothing. You clearly skipped that class. 🎓",
+  ];
 
   const shuffle = (arr: string[]) => {
     const copy = [...arr];
@@ -237,6 +283,10 @@ export default function ITTickets() {
     setShuffledSuggestions(shuffle(suggestionResponses));
     const qCount = Math.floor(Math.random() * 2) + 2; // 2 or 3
     setShuffledQuestions(shuffle(questionResponses).slice(0, qCount));
+    const cCount = Math.floor(Math.random() * 2) + 1; // 1 or 2
+    setShuffledComplaining(shuffle(complainingJokes).slice(0, cCount));
+    const rCount = Math.floor(Math.random() * 2) + 1; // 1 or 2
+    setShuffledRealIssue(shuffle(realIssueJokes).slice(0, rCount));
     setFunStep("start");
     setFunTrail(0);
     setFunOpen(true);
@@ -404,7 +454,24 @@ export default function ITTickets() {
                   </blockquote>
                   <div className="grid gap-2 pt-2">
                     <Button variant="outline" onClick={() => setFunStep("start")}>Take me back 🙃</Button>
-                    <Button onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
+                    <Button onClick={() => { setFunTrail(0); setFunStep("complainingTrail"); }}>Continue... 😏</Button>
+                  </div>
+                </>
+              )}
+
+              {funStep === "complainingTrail" && (
+                <>
+                  <DialogHeader><DialogTitle>Since you're complaining... 😤</DialogTitle></DialogHeader>
+                  <p className="text-sm py-2">{shuffledComplaining[funTrail]}</p>
+                  <div className="grid gap-2">
+                    {funTrail + 1 < shuffledComplaining.length ? (
+                      <>
+                        <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
+                        <Button variant="ghost" onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
+                      </>
+                    ) : (
+                      <Button onClick={goToForm}>Okay, I get it 📝</Button>
+                    )}
                   </div>
                 </>
               )}
@@ -417,7 +484,24 @@ export default function ITTickets() {
                   </p>
                   <div className="grid gap-2">
                     <Button variant="outline" onClick={() => setFunStep("start")}>I need a moment 🤯</Button>
-                    <Button onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
+                    <Button onClick={() => { setFunTrail(0); setFunStep("realIssueTrail"); }}>Continue... 🌀</Button>
+                  </div>
+                </>
+              )}
+
+              {funStep === "realIssueTrail" && (
+                <>
+                  <DialogHeader><DialogTitle>Pondering reality... 🧠</DialogTitle></DialogHeader>
+                  <p className="text-sm py-2">{shuffledRealIssue[funTrail]}</p>
+                  <div className="grid gap-2">
+                    {funTrail + 1 < shuffledRealIssue.length ? (
+                      <>
+                        <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
+                        <Button variant="ghost" onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
+                      </>
+                    ) : (
+                      <Button onClick={goToForm}>I accept my reality 📝</Button>
+                    )}
                   </div>
                 </>
               )}
