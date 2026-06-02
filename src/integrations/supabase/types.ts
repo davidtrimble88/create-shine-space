@@ -531,6 +531,42 @@ export type Database = {
           },
         ]
       }
+      instructor_certifications: {
+        Row: {
+          arc_expires: string | null
+          cmsp_expires: string | null
+          cpr_expires: string | null
+          created_at: string
+          id: string
+          irc_expires: string | null
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arc_expires?: string | null
+          cmsp_expires?: string | null
+          cpr_expires?: string | null
+          created_at?: string
+          id?: string
+          irc_expires?: string | null
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arc_expires?: string | null
+          cmsp_expires?: string | null
+          cpr_expires?: string | null
+          created_at?: string
+          id?: string
+          irc_expires?: string | null
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       instructor_date_availability: {
         Row: {
           created_at: string
