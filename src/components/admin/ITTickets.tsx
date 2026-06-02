@@ -62,20 +62,66 @@ export default function ITTickets() {
   const [funStep, setFunStep] = useState<string>("start");
   const [funTrail, setFunTrail] = useState(0);
 
+  const [shuffledSuggestions, setShuffledSuggestions] = useState<string[]>([]);
+  const [shuffledQuestions, setShuffledQuestions] = useState<string[]>([]);
+
   const suggestionResponses = [
     "Oh, a suggestion? Bold of you to assume we take those. 😏",
     "Hmm... is this the kind of suggestion that creates more work for IT?",
     "Fine. But if this is 'we should get standing desks shaped like motorcycles' again...",
     "Okay okay, the suspense is killing me. Spill it. 🎤",
+    "A suggestion! Quick, someone write this down in the Book of Ideas We Ignored. 📕",
+    "Let me guess — 'free lunch on Fridays'? Classic. 🍕",
+    "Before you say it... no, we are not switching to Linux. 🐧",
+    "Ooh, a suggestion. Is it about the printer? It's always about the printer. 🖨️",
+    "We literally have a suggestion box. It's called /dev/null. 📦",
+    "I hope this suggestion involves less work for me personally. 🤞",
+    "Oh good, another idea from the 'Why Hasn't Anyone Thought of This Before' department. 🏢",
+    "Is this suggestion approved by the Committee of Things That Will Never Happen? ✅",
+    "Your suggestion has been noted and filed under 'S' for 'Sure, Jan.' 📁",
+    "We love suggestions! We also love ignoring them. It's a balanced diet. 🥗",
+    "If this suggestion is about nap pods, I'm way ahead of you. 😴",
+    "Ooh! Is it about changing the company font to Comic Sans? Please say yes. 🎨",
+    "Suggestions are like opinions. Everyone has one, and most are about the AC. 🥶",
+    "Are you about to pitch a startup idea? Because I will pretend to listen. 🦄",
+    "Did you know we have a process for suggestions? Step 1: You suggest. Step 2: We forget. It's very efficient. ⚡",
+    "Suggestion received! Our team of highly trained pigeons will review it shortly. 🐦",
   ];
   const questionResponses = [
     "A question? Have you tried turning it off and on again first? 🔌",
     "Are you SURE Google can't answer this? Like, really sure?",
     "Okay, but if this is 'what's the wifi password' I will riot. 📶",
     "Alright, hit me with it. I'm bracing myself. 🧠",
+    "Questions are just answers that haven't given up yet. Or whatever. 🤷",
+    "Is this a 'how do I do my job' question or a real tech thing? 👀",
+    "Go ahead. My PhD in Figuring Out Basic Stuff is ready. 🎓",
+    "Did you try asking the Magic 8-Ball first? It's cheaper than IT. 🎱",
+    "A question! My favorite. Unless it's about the copier. Then it's my least favorite. 📠",
+    "Fire away. But if it's about resetting a password, I'm billing you. 💸",
+    "Questions are like viruses. One leads to ten more. Please vaccinate me. 💉",
+    "I have 99 problems and 98 of them are questions about Outlook. 📧",
+    "Go on... but know that I can see your search history. Not really, but imagine the fear. 👻",
+    "Is this about the weird noise your computer makes? It's called 'fans.' 🌬️",
+    "Did you try blowing on it like an old Nintendo cartridge? 🎮",
+    "Questions welcome! Answers... those cost extra. 💰",
+    "Ah yes, the daily 'Is the server down?' ritual. No, Dave. It's just you. 🙃",
+    "I hope this question comes with screenshots. I LOVE screenshots. 📸",
+    "Ask away. I've already emotionally prepared myself for 'I deleted the internet.' 🌐",
+    "If this is 'how do I rotate a PDF?' I'm going to need a minute. 📄",
   ];
 
+  const shuffle = (arr: string[]) => {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  };
+
   const openFun = () => {
+    setShuffledSuggestions(shuffle(suggestionResponses));
+    setShuffledQuestions(shuffle(questionResponses));
     setFunStep("start");
     setFunTrail(0);
     setFunOpen(true);
