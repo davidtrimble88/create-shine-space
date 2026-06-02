@@ -454,7 +454,24 @@ export default function ITTickets() {
                   </blockquote>
                   <div className="grid gap-2 pt-2">
                     <Button variant="outline" onClick={() => setFunStep("start")}>Take me back 🙃</Button>
-                    <Button onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
+                    <Button onClick={() => { setFunTrail(0); setFunStep("complainingTrail"); }}>Continue... 😏</Button>
+                  </div>
+                </>
+              )}
+
+              {funStep === "complainingTrail" && (
+                <>
+                  <DialogHeader><DialogTitle>Since you're complaining... 😤</DialogTitle></DialogHeader>
+                  <p className="text-sm py-2">{shuffledComplaining[funTrail]}</p>
+                  <div className="grid gap-2">
+                    {funTrail + 1 < shuffledComplaining.length ? (
+                      <>
+                        <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
+                        <Button variant="ghost" onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
+                      </>
+                    ) : (
+                      <Button onClick={goToForm}>Okay, I get it 📝</Button>
+                    )}
                   </div>
                 </>
               )}
@@ -467,7 +484,24 @@ export default function ITTickets() {
                   </p>
                   <div className="grid gap-2">
                     <Button variant="outline" onClick={() => setFunStep("start")}>I need a moment 🤯</Button>
-                    <Button onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
+                    <Button onClick={() => { setFunTrail(0); setFunStep("realIssueTrail"); }}>Continue... 🌀</Button>
+                  </div>
+                </>
+              )}
+
+              {funStep === "realIssueTrail" && (
+                <>
+                  <DialogHeader><DialogTitle>Pondering reality... 🧠</DialogTitle></DialogHeader>
+                  <p className="text-sm py-2">{shuffledRealIssue[funTrail]}</p>
+                  <div className="grid gap-2">
+                    {funTrail + 1 < shuffledRealIssue.length ? (
+                      <>
+                        <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
+                        <Button variant="ghost" onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
+                      </>
+                    ) : (
+                      <Button onClick={goToForm}>I accept my reality 📝</Button>
+                    )}
                   </div>
                 </>
               )}
