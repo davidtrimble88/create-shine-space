@@ -455,6 +455,16 @@ export default function ITTickets() {
                   </div>
                 </>
               )}
+
+              {funStep === "rude" && (
+                <>
+                  <DialogHeader><DialogTitle>Well, aren't we impatient? 😒</DialogTitle></DialogHeader>
+                  <p className="text-sm py-3 italic">{rudeJoke}</p>
+                  <div className="grid gap-2">
+                    <Button onClick={goToForm}>Fine, here's your form 📝</Button>
+                  </div>
+                </>
+              )}
             </DialogContent>
           </Dialog>
         </div>
