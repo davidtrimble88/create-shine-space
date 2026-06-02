@@ -67,7 +67,7 @@ const htmlToText = (html: string) =>
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
-    const { recipientEmail, fullName, tempPassword } = await req.json();
+    const { recipientEmail, fullName, tempPassword, role } = await req.json();
     if (!recipientEmail || !tempPassword) {
       return new Response(JSON.stringify({ error: "recipientEmail and tempPassword required" }), {
         status: 400, headers: { ...cors, "Content-Type": "application/json" },
@@ -96,13 +96,17 @@ Deno.serve(async (req) => {
     }
 
     const firstName = (fullName || "").split(" ")[0] || "there";
+    const deck = deckUrlFor(role || "employee");
     const vars: Record<string, string> = {
       firstName,
       fullName: fullName || "",
       email: recipientEmail,
       tempPassword,
       portalUrl: PORTAL_URL,
+      deckName: deck.name,
+      deckUrl: deck.url,
     };
+
 
     const subject = substitute(subjectTpl, vars);
     const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${substitute(bodyTpl, vars)}</div>`;
