@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -58,6 +58,7 @@ const roleLabels: Record<string, { label: string; icon: typeof Shield }> = {
 const EmployeeDashboard = () => {
   const { user, isAdmin, userRole, effectiveRole, viewAsRole, setViewAsRole, loading, mustChangePassword, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const handler = () => setActiveTab("rosters");
@@ -96,47 +97,68 @@ const EmployeeDashboard = () => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-card border-r border-border flex flex-col min-h-screen">
-        <div className="p-6 border-b border-border">
-          <Link to="/" className="text-accent font-bold text-lg">
-            Learn to Ride VC
-          </Link>
-          <p className="text-xs text-muted-foreground mt-1">Employee Portal</p>
-          <div className="flex gap-2 mt-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto"
-              onClick={() => setActiveTab("overview")}
-            >
-              <LayoutDashboard className="w-3 h-3 mr-1" /> Dashboard
-            </Button>
-            <span className="text-muted-foreground/30">|</span>
-            <Link to="/" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-              <ArrowLeft className="w-3 h-3" /> Website
-            </Link>
-          </div>
+      <aside
+        className={`bg-card border-r border-border flex flex-col min-h-screen transition-all duration-300 ${
+          sidebarCollapsed ? "w-16" : "w-64"
+        }`}
+      >
+        {/* Header */}
+        <div className={`border-b border-border flex items-center ${sidebarCollapsed ? "p-3 justify-center" : "p-6"}`}>
+          {!sidebarCollapsed && (
+            <div className="flex-1 min-w-0">
+              <Link to="/" className="text-accent font-bold text-lg">
+                Learn to Ride VC
+              </Link>
+              <p className="text-xs text-muted-foreground mt-1">Employee Portal</p>
+              <div className="flex gap-2 mt-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto"
+                  onClick={() => setActiveTab("overview")}
+                >
+                  <LayoutDashboard className="w-3 h-3 mr-1" /> Dashboard
+                </Button>
+                <span className="text-muted-foreground/30">|</span>
+                <Link to="/" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  <ArrowLeft className="w-3 h-3" /> Website
+                </Link>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        {/* Nav items */}
+        <nav className="flex-1 p-2 space-y-1">
           {visibleTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              className={`w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
+                sidebarCollapsed ? "justify-center px-2 py-3" : "px-4 py-3"
+              } ${
                 activeTab === tab.id
                   ? "bg-accent/10 text-accent"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary"
               }`}
+              title={sidebarCollapsed ? tab.label : undefined}
             >
-              <tab.icon className="w-5 h-5" />
-              {tab.label}
+              <tab.icon className="w-5 h-5 flex-shrink-0" />
+              {!sidebarCollapsed && <span>{tab.label}</span>}
             </button>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-border space-y-3">
-          {isOwner && (
+        {/* Footer */}
+        <div className={`border-t border-border space-y-3 ${sidebarCollapsed ? "p-2" : "p-4"}`}>
+          {isOwner && !sidebarCollapsed && (
             <div>
               <label className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium flex items-center gap-1 mb-1.5">
                 <Eye className="w-3 h-3" /> View as
@@ -166,17 +188,27 @@ const EmployeeDashboard = () => {
               )}
             </div>
           )}
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1 text-xs font-medium bg-accent/10 text-accent px-2 py-1 rounded-full">
-              <RoleIcon className="w-3 h-3" />
-              {roleInfo.label}
-              {isImpersonating && <span className="text-[10px] opacity-70">(preview)</span>}
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-          <Button variant="outline" size="sm" onClick={signOut} className="w-full">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
+          {!sidebarCollapsed && (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 text-xs font-medium bg-accent/10 text-accent px-2 py-1 rounded-full">
+                  <RoleIcon className="w-3 h-3" />
+                  {roleInfo.label}
+                  {isImpersonating && <span className="text-[10px] opacity-70">(preview)</span>}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            </>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={signOut}
+            className={`${sidebarCollapsed ? "w-full px-1" : "w-full"}`}
+            title="Sign Out"
+          >
+            <LogOut className="w-4 h-4" />
+            {!sidebarCollapsed && <span className="ml-2">Sign Out</span>}
           </Button>
         </div>
       </aside>
