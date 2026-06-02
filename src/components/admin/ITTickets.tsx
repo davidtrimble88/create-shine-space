@@ -493,7 +493,11 @@ export default function ITTickets() {
                     But like... how do you know <em>anything</em> is real? Are we even here right now? 🌀
                   </p>
                   <div className="grid gap-2">
-                    <Button variant="outline" onClick={() => setFunStep("start")}>I need a moment 🤯</Button>
+                    <Button variant="outline" onClick={() => {
+                      setMomentCount(10);
+                      setMomentJoke(realIssueJokes[Math.floor(Math.random() * realIssueJokes.length)]);
+                      setFunStep("moment");
+                    }}>I need a moment 🤯</Button>
                     <Button onClick={() => { setFunTrail(0); setFunStep("realIssueTrail"); }}>Continue... 🌀</Button>
                   </div>
                 </>
