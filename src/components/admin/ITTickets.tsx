@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Loader2, MessageSquare, Send } from "lucide-react";
 
@@ -59,6 +59,7 @@ export default function ITTickets() {
   const [form, setForm] = useState({ title: "", description: "", priority: "medium" });
   const [filter, setFilter] = useState<"all" | "mine">(isAdmin ? "all" : "mine");
   const [view, setView] = useState<"active" | "closed">("active");
+  const [sortBy, setSortBy] = useState<"alpha" | "newest">("alpha");
   const [funOpen, setFunOpen] = useState(false);
   const [funStep, setFunStep] = useState<string>("start");
   const [funTrail, setFunTrail] = useState(0);
@@ -316,11 +317,13 @@ export default function ITTickets() {
 
   const load = async () => {
     setLoading(true);
-    let query = supabase.from("it_tickets").select("*").order("created_at", { ascending: false });
+    let query = supabase.from("it_tickets").select("*");
     // Non-admins can only ever see tickets they created
     if ((!isAdmin || filter === "mine") && user) query = query.eq("user_id", user.id);
     if (view === "closed") query = query.eq("status", "closed");
     else query = query.neq("status", "closed");
+    if (sortBy === "alpha") query = query.order("title", { ascending: true });
+    else query = query.order("created_at", { ascending: false });
     const { data, error } = await query;
     if (error) toast({ title: "Failed to load tickets", description: error.message, variant: "destructive" });
     else setTickets((data || []) as Ticket[]);
@@ -329,7 +332,7 @@ export default function ITTickets() {
 
   useEffect(() => {
     load();
-  }, [filter, view]);
+  }, [filter, view, sortBy]);
 
   // Countdown for "I need a moment" — stops halfway (at 5) and reveals a joke
   useEffect(() => {
@@ -389,296 +392,312 @@ export default function ITTickets() {
           <h1 className="text-2xl font-bold">IT Tickets</h1>
           <p className="text-sm text-muted-foreground">Report a problem or request IT help.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="inline-flex rounded-md border border-border overflow-hidden">
+        <Button onClick={openFun}><Plus className="w-4 h-4 mr-2" /> New Ticket</Button>
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Submit IT Ticket</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Brief summary" />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Describe the issue or request in detail" />
+            </div>
+            <div>
+              <Label>Priority</Label>
+              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={submitting || !form.title.trim() || !form.description.trim()}>
+              {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Submit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={funOpen} onOpenChange={setFunOpen}>
+        <DialogContent>
+          {funStep === "start" && (
+            <>
+              <DialogHeader><DialogTitle>Before we begin... what brings you here? 👀</DialogTitle></DialogHeader>
+              <div className="grid gap-2 py-2">
+                <Button variant="outline" onClick={() => setFunStep("reporting")}>🐛 Issue Reporting</Button>
+                <Button variant="outline" onClick={() => { setFunTrail(0); setFunStep("suggestion"); }}>💡 Suggestion</Button>
+                <Button variant="outline" onClick={() => { setFunTrail(0); setFunStep("question"); }}>❓ Question</Button>
+              </div>
+            </>
+          )}
+
+          {funStep === "reporting" && (
+            <>
+              <DialogHeader><DialogTitle>Hold up. 🤨</DialogTitle></DialogHeader>
+              <p className="text-sm text-muted-foreground py-2">Is this really an issue... or are you just complaining?</p>
+              <div className="grid gap-2">
+                <Button variant="outline" onClick={() => setFunStep("complaining")}>😤 Just complaining</Button>
+                <Button variant="outline" onClick={() => setFunStep("realIssue")}>🔥 It's a REAL issue</Button>
+                <Button variant="ghost" onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
+              </div>
+            </>
+          )}
+
+          {funStep === "complaining" && (
+            <>
+              <DialogHeader><DialogTitle>A word from Teddy 🇺🇸</DialogTitle></DialogHeader>
+              <blockquote className="border-l-4 border-primary pl-4 py-2 italic text-sm">
+                "Complaining about a problem without posing a solution is called whining."
+                <footer className="text-xs text-muted-foreground mt-2">— Theodore Roosevelt</footer>
+              </blockquote>
+              <div className="grid gap-2 pt-2">
+                <Button variant="outline" onClick={() => setFunStep("start")}>Take me back 🙃</Button>
+                <Button onClick={() => { setFunTrail(0); setFunStep("complainingTrail"); }}>Continue... 😏</Button>
+              </div>
+            </>
+          )}
+
+          {funStep === "complainingTrail" && (
+            <>
+              <DialogHeader><DialogTitle>Since you're complaining... 😤</DialogTitle></DialogHeader>
+              <p className="text-sm py-2">{shuffledComplaining[funTrail]}</p>
+              <div className="grid gap-2">
+                {funTrail + 1 < shuffledComplaining.length ? (
+                  <>
+                    <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
+                    <Button variant="ghost" onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
+                  </>
+                ) : (
+                  <Button onClick={goToForm}>Okay, I get it 📝</Button>
+                )}
+              </div>
+            </>
+          )}
+
+          {funStep === "realIssue" && (
+            <>
+              <DialogHeader><DialogTitle>Deep question time 🧘</DialogTitle></DialogHeader>
+              <p className="text-sm text-muted-foreground py-2">
+                But like... how do you know <em>anything</em> is real? Are we even here right now? 🌀
+              </p>
+              <div className="grid gap-2">
+                <Button variant="outline" onClick={() => {
+                  setMomentCount(10);
+                  setMomentJoke(realIssueJokes[Math.floor(Math.random() * realIssueJokes.length)]);
+                  setFunStep("moment");
+                }}>I need a moment 🤯</Button>
+                <Button onClick={() => { setFunTrail(0); setFunStep("realIssueTrail"); }}>Continue... 🌀</Button>
+              </div>
+            </>
+          )}
+
+          {funStep === "realIssueTrail" && (
+            <>
+              <DialogHeader><DialogTitle>Pondering reality... 🧠</DialogTitle></DialogHeader>
+              <p className="text-sm py-2">{shuffledRealIssue[funTrail]}</p>
+              <div className="grid gap-2">
+                {funTrail + 1 < shuffledRealIssue.length ? (
+                  <>
+                    <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
+                    <Button variant="ghost" onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
+                  </>
+                ) : (
+                  <Button onClick={goToForm}>I accept my reality 📝</Button>
+                )}
+              </div>
+            </>
+          )}
+
+          {funStep === "suggestion" && (
+            <>
+              <DialogHeader><DialogTitle>Suggestion incoming 💡</DialogTitle></DialogHeader>
+              <p className="text-sm py-2">{shuffledSuggestions[funTrail]}</p>
+              <div className="grid gap-2">
+                {funTrail + 1 < Math.min(3, shuffledSuggestions.length) ? (
+                  <>
+                    <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
+                    <Button variant="ghost" onClick={() => skipToForm(rudeSuggestionJokes)}>😠 Just let me suggest</Button>
+                  </>
+                ) : (
+                  <Button onClick={goToForm}>Okay, here it goes ✨</Button>
+                )}
+              </div>
+            </>
+          )}
+
+          {funStep === "question" && (
+            <>
+              <DialogHeader><DialogTitle>You have a question? 🤔</DialogTitle></DialogHeader>
+              <p className="text-sm py-2">{shuffledQuestions[funTrail]}</p>
+              <div className="grid gap-2">
+                {funTrail + 1 < shuffledQuestions.length ? (
+                  <>
+                    <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
+                    <Button variant="ghost" onClick={() => skipToForm(rudeQuestionJokes)}>😠 Just let me ask</Button>
+                  </>
+                ) : (
+                  <Button onClick={goToForm}>Fine, ask away 🎤</Button>
+                )}
+              </div>
+            </>
+          )}
+
+          {funStep === "moment" && (
+            <>
+              {momentCount > 5 ? (
+                <>
+                  <DialogHeader><DialogTitle>Ok, you get just a moment ⏳</DialogTitle></DialogHeader>
+                  <p className="text-sm text-muted-foreground py-2">Take a breath. I'm timing you.</p>
+                  <div className="py-6 text-center">
+                    <div className="text-6xl font-bold tabular-nums text-primary">{momentCount}</div>
+                    <p className="text-xs text-muted-foreground mt-2">seconds remaining...</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <DialogHeader><DialogTitle>Okay, I got bored. 😪</DialogTitle></DialogHeader>
+                  <p className="text-sm text-muted-foreground py-2">So here's a joke instead:</p>
+                  <p className="text-sm py-3 italic">{momentJoke}</p>
+                  <div className="grid gap-2">
+                    <Button onClick={goToForm}>Alright, I'm ready 📝</Button>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {funStep === "rude" && (
+            <>
+              <DialogHeader><DialogTitle>Well, aren't we impatient? 😒</DialogTitle></DialogHeader>
+              <p className="text-sm py-3 italic">{rudeJoke}</p>
+              <div className="grid gap-2">
+                <Button onClick={goToForm}>Fine, here's your form 📝</Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <div className="flex gap-4 items-start">
+        {/* Left sidebar: tabs, filter, sort */}
+        <div className="w-52 flex-shrink-0 space-y-3">
+          <div className="inline-flex flex-col rounded-md border border-border overflow-hidden w-full">
             <button
               type="button"
               onClick={() => setView("active")}
-              className={`px-3 py-1.5 text-sm ${view === "active" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-secondary"}`}
+              className={`px-3 py-2 text-sm text-left ${view === "active" ? "bg-accent/15 text-accent font-medium" : "text-muted-foreground hover:bg-secondary"}`}
             >
               Active
             </button>
             <button
               type="button"
               onClick={() => setView("closed")}
-              className={`px-3 py-1.5 text-sm border-l border-border ${view === "closed" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-secondary"}`}
+              className={`px-3 py-2 text-sm text-left border-t border-border ${view === "closed" ? "bg-accent/15 text-accent font-medium" : "text-muted-foreground hover:bg-secondary"}`}
             >
               Closed (Archive)
             </button>
           </div>
+
           {isAdmin && (
             <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Tickets</SelectItem>
                 <SelectItem value="mine">My Tickets</SelectItem>
               </SelectContent>
             </Select>
           )}
-          <Button onClick={openFun}><Plus className="w-4 h-4 mr-2" /> New Ticket</Button>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Submit IT Ticket</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Title</Label>
-                  <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Brief summary" />
-                </div>
-                <div>
-                  <Label>Description</Label>
-                  <Textarea rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Describe the issue or request in detail" />
-                </div>
-                <div>
-                  <Label>Priority</Label>
-                  <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                <Button onClick={handleSubmit} disabled={submitting || !form.title.trim() || !form.description.trim()}>
-                  {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Submit
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
 
-          <Dialog open={funOpen} onOpenChange={setFunOpen}>
-            <DialogContent>
-              {funStep === "start" && (
-                <>
-                  <DialogHeader><DialogTitle>Before we begin... what brings you here? 👀</DialogTitle></DialogHeader>
-                  <div className="grid gap-2 py-2">
-                    <Button variant="outline" onClick={() => setFunStep("reporting")}>🐛 Issue Reporting</Button>
-                    <Button variant="outline" onClick={() => { setFunTrail(0); setFunStep("suggestion"); }}>💡 Suggestion</Button>
-                    <Button variant="outline" onClick={() => { setFunTrail(0); setFunStep("question"); }}>❓ Question</Button>
-                  </div>
-                </>
-              )}
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="alpha">A–Z</SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-              {funStep === "reporting" && (
-                <>
-                  <DialogHeader><DialogTitle>Hold up. 🤨</DialogTitle></DialogHeader>
-                  <p className="text-sm text-muted-foreground py-2">Is this really an issue... or are you just complaining?</p>
-                  <div className="grid gap-2">
-                    <Button variant="outline" onClick={() => setFunStep("complaining")}>😤 Just complaining</Button>
-                    <Button variant="outline" onClick={() => setFunStep("realIssue")}>🔥 It's a REAL issue</Button>
-                    <Button variant="ghost" onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
-                  </div>
-                </>
-              )}
-
-              {funStep === "complaining" && (
-                <>
-                  <DialogHeader><DialogTitle>A word from Teddy 🇺🇸</DialogTitle></DialogHeader>
-                  <blockquote className="border-l-4 border-primary pl-4 py-2 italic text-sm">
-                    "Complaining about a problem without posing a solution is called whining."
-                    <footer className="text-xs text-muted-foreground mt-2">— Theodore Roosevelt</footer>
-                  </blockquote>
-                  <div className="grid gap-2 pt-2">
-                    <Button variant="outline" onClick={() => setFunStep("start")}>Take me back 🙃</Button>
-                    <Button onClick={() => { setFunTrail(0); setFunStep("complainingTrail"); }}>Continue... 😏</Button>
-                  </div>
-                </>
-              )}
-
-              {funStep === "complainingTrail" && (
-                <>
-                  <DialogHeader><DialogTitle>Since you're complaining... 😤</DialogTitle></DialogHeader>
-                  <p className="text-sm py-2">{shuffledComplaining[funTrail]}</p>
-                  <div className="grid gap-2">
-                    {funTrail + 1 < shuffledComplaining.length ? (
-                      <>
-                        <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
-                        <Button variant="ghost" onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
-                      </>
-                    ) : (
-                      <Button onClick={goToForm}>Okay, I get it 📝</Button>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {funStep === "realIssue" && (
-                <>
-                  <DialogHeader><DialogTitle>Deep question time 🧘</DialogTitle></DialogHeader>
-                  <p className="text-sm text-muted-foreground py-2">
-                    But like... how do you know <em>anything</em> is real? Are we even here right now? 🌀
-                  </p>
-                  <div className="grid gap-2">
-                    <Button variant="outline" onClick={() => {
-                      setMomentCount(10);
-                      setMomentJoke(realIssueJokes[Math.floor(Math.random() * realIssueJokes.length)]);
-                      setFunStep("moment");
-                    }}>I need a moment 🤯</Button>
-                    <Button onClick={() => { setFunTrail(0); setFunStep("realIssueTrail"); }}>Continue... 🌀</Button>
-                  </div>
-                </>
-              )}
-
-              {funStep === "realIssueTrail" && (
-                <>
-                  <DialogHeader><DialogTitle>Pondering reality... 🧠</DialogTitle></DialogHeader>
-                  <p className="text-sm py-2">{shuffledRealIssue[funTrail]}</p>
-                  <div className="grid gap-2">
-                    {funTrail + 1 < shuffledRealIssue.length ? (
-                      <>
-                        <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
-                        <Button variant="ghost" onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
-                      </>
-                    ) : (
-                      <Button onClick={goToForm}>I accept my reality 📝</Button>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {funStep === "suggestion" && (
-                <>
-                  <DialogHeader><DialogTitle>Suggestion incoming 💡</DialogTitle></DialogHeader>
-                  <p className="text-sm py-2">{shuffledSuggestions[funTrail]}</p>
-                  <div className="grid gap-2">
-                    {funTrail + 1 < Math.min(3, shuffledSuggestions.length) ? (
-                      <>
-                        <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
-                        <Button variant="ghost" onClick={() => skipToForm(rudeSuggestionJokes)}>😠 Just let me suggest</Button>
-                      </>
-                    ) : (
-                      <Button onClick={goToForm}>Okay, here it goes ✨</Button>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {funStep === "question" && (
-                <>
-                  <DialogHeader><DialogTitle>You have a question? 🤔</DialogTitle></DialogHeader>
-                  <p className="text-sm py-2">{shuffledQuestions[funTrail]}</p>
-                  <div className="grid gap-2">
-                    {funTrail + 1 < shuffledQuestions.length ? (
-                      <>
-                        <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
-                        <Button variant="ghost" onClick={() => skipToForm(rudeQuestionJokes)}>😠 Just let me ask</Button>
-                      </>
-                    ) : (
-                      <Button onClick={goToForm}>Fine, ask away 🎤</Button>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {funStep === "moment" && (
-                <>
-                  {momentCount > 5 ? (
-                    <>
-                      <DialogHeader><DialogTitle>Ok, you get just a moment ⏳</DialogTitle></DialogHeader>
-                      <p className="text-sm text-muted-foreground py-2">Take a breath. I'm timing you.</p>
-                      <div className="py-6 text-center">
-                        <div className="text-6xl font-bold tabular-nums text-primary">{momentCount}</div>
-                        <p className="text-xs text-muted-foreground mt-2">seconds remaining...</p>
+        {/* Right: ticket list */}
+        <div className="flex-1 min-w-0">
+          {loading ? (
+            <div className="text-muted-foreground">Loading...</div>
+          ) : tickets.length === 0 ? (
+            <Card><CardContent className="py-10 text-center text-muted-foreground">No tickets yet.</CardContent></Card>
+          ) : (
+            <div className="space-y-3">
+              {tickets.map((t) => (
+                <Card key={t.id}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="min-w-0">
+                        <CardTitle className="text-base">{t.title}</CardTitle>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t.submitter_name || t.submitter_email} · {new Date(t.created_at).toLocaleString()}
+                        </p>
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      <DialogHeader><DialogTitle>Okay, I got bored. 😪</DialogTitle></DialogHeader>
-                      <p className="text-sm text-muted-foreground py-2">So here's a joke instead:</p>
-                      <p className="text-sm py-3 italic">{momentJoke}</p>
-                      <div className="grid gap-2">
-                        <Button onClick={goToForm}>Alright, I'm ready 📝</Button>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge className={priorityColors[t.priority]}>{t.priority}</Badge>
+                        <Badge className={statusColors[t.status]}>{statusLabels[t.status] || t.status}</Badge>
                       </div>
-                    </>
-                  )}
-                </>
-              )}
-
-              {funStep === "rude" && (
-                <>
-                  <DialogHeader><DialogTitle>Well, aren't we impatient? 😒</DialogTitle></DialogHeader>
-                  <p className="text-sm py-3 italic">{rudeJoke}</p>
-                  <div className="grid gap-2">
-                    <Button onClick={goToForm}>Fine, here's your form 📝</Button>
-                  </div>
-                </>
-              )}
-            </DialogContent>
-          </Dialog>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm whitespace-pre-wrap">{t.description}</p>
+                    {isAdmin && (
+                      <div className="space-y-3 pt-3 border-t border-border">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Label className="text-xs">Status:</Label>
+                          <Select value={t.status} onValueChange={(v) => updateStatus(t.id, v)}>
+                            <SelectTrigger className="w-40 h-8"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="open">Open</SelectItem>
+                              <SelectItem value="in_progress">In Progress</SelectItem>
+                              <SelectItem value="resolved">Resolved</SelectItem>
+                              <SelectItem value="closed">Closed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button size="sm" variant="ghost" onClick={() => deleteTicket(t.id)} className="ml-auto text-destructive hover:text-destructive">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div>
+                          <Label className="text-xs">Admin notes</Label>
+                          <Textarea
+                            rows={2}
+                            defaultValue={t.admin_notes || ""}
+                            onBlur={(e) => {
+                              if ((e.target.value || "") !== (t.admin_notes || "")) saveNotes(t.id, e.target.value);
+                            }}
+                            placeholder="Internal notes (saved on blur)"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {!isAdmin && t.admin_notes && (
+                      <div className="pt-3 border-t border-border">
+                        <p className="text-xs text-muted-foreground mb-1">IT response:</p>
+                        <p className="text-sm whitespace-pre-wrap">{t.admin_notes}</p>
+                      </div>
+                    )}
+                    <TicketComments ticketId={t.id} isAdmin={isAdmin} />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-
-
-      {loading ? (
-        <div className="text-muted-foreground">Loading...</div>
-      ) : tickets.length === 0 ? (
-        <Card><CardContent className="py-10 text-center text-muted-foreground">No tickets yet.</CardContent></Card>
-      ) : (
-        <div className="space-y-3">
-          {tickets.map((t) => (
-            <Card key={t.id}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="min-w-0">
-                    <CardTitle className="text-base">{t.title}</CardTitle>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {t.submitter_name || t.submitter_email} · {new Date(t.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge className={priorityColors[t.priority]}>{t.priority}</Badge>
-                    <Badge className={statusColors[t.status]}>{statusLabels[t.status] || t.status}</Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm whitespace-pre-wrap">{t.description}</p>
-                {isAdmin && (
-                  <div className="space-y-3 pt-3 border-t border-border">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Label className="text-xs">Status:</Label>
-                      <Select value={t.status} onValueChange={(v) => updateStatus(t.id, v)}>
-                        <SelectTrigger className="w-40 h-8"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="open">Open</SelectItem>
-                          <SelectItem value="in_progress">In Progress</SelectItem>
-                          <SelectItem value="resolved">Resolved</SelectItem>
-                          <SelectItem value="closed">Closed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button size="sm" variant="ghost" onClick={() => deleteTicket(t.id)} className="ml-auto text-destructive hover:text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <div>
-                      <Label className="text-xs">Admin notes</Label>
-                      <Textarea
-                        rows={2}
-                        defaultValue={t.admin_notes || ""}
-                        onBlur={(e) => {
-                          if ((e.target.value || "") !== (t.admin_notes || "")) saveNotes(t.id, e.target.value);
-                        }}
-                        placeholder="Internal notes (saved on blur)"
-                      />
-                    </div>
-                  </div>
-                )}
-                {!isAdmin && t.admin_notes && (
-                  <div className="pt-3 border-t border-border">
-                    <p className="text-xs text-muted-foreground mb-1">IT response:</p>
-                    <p className="text-sm whitespace-pre-wrap">{t.admin_notes}</p>
-                  </div>
-                )}
-                <TicketComments ticketId={t.id} isAdmin={isAdmin} />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
