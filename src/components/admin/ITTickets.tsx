@@ -168,10 +168,8 @@ export default function ITTickets() {
               </SelectContent>
             </Select>
           )}
+          <Button onClick={openFun}><Plus className="w-4 h-4 mr-2" /> New Ticket</Button>
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 mr-2" /> New Ticket</Button>
-            </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Submit IT Ticket</DialogTitle></DialogHeader>
               <div className="space-y-4">
