@@ -554,6 +554,30 @@ export default function ITTickets() {
                 </>
               )}
 
+              {funStep === "moment" && (
+                <>
+                  {momentCount > 5 ? (
+                    <>
+                      <DialogHeader><DialogTitle>Ok, you get just a moment ⏳</DialogTitle></DialogHeader>
+                      <p className="text-sm text-muted-foreground py-2">Take a breath. I'm timing you.</p>
+                      <div className="py-6 text-center">
+                        <div className="text-6xl font-bold tabular-nums text-primary">{momentCount}</div>
+                        <p className="text-xs text-muted-foreground mt-2">seconds remaining...</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <DialogHeader><DialogTitle>Okay, I got bored. 😪</DialogTitle></DialogHeader>
+                      <p className="text-sm text-muted-foreground py-2">So here's a joke instead:</p>
+                      <p className="text-sm py-3 italic">{momentJoke}</p>
+                      <div className="grid gap-2">
+                        <Button onClick={goToForm}>Alright, I'm ready 📝</Button>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
               {funStep === "rude" && (
                 <>
                   <DialogHeader><DialogTitle>Well, aren't we impatient? 😒</DialogTitle></DialogHeader>
