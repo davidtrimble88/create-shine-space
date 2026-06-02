@@ -35,6 +35,8 @@ const tabs = [
   { id: "referrals", label: "Referral Sources", icon: ListPlus, roles: ["owner", "admin"] },
   { id: "rosters", label: "Class Rosters", icon: ListChecks, roles: ["owner", "admin", "manager", "employee"] },
   { id: "files", label: "Files", icon: FolderOpen, roles: ["owner", "admin", "manager", "employee"] },
+  { id: "it-tickets", label: "IT Tickets", icon: Wrench, roles: ["owner", "admin", "manager", "employee"] },
+  
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
   { id: "auto-emails", label: "Auto Emails", icon: Mail, roles: ["owner", "admin"] },
