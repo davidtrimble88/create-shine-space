@@ -319,6 +319,8 @@ export default function ITTickets() {
     let query = supabase.from("it_tickets").select("*").order("created_at", { ascending: false });
     // Non-admins can only ever see tickets they created
     if ((!isAdmin || filter === "mine") && user) query = query.eq("user_id", user.id);
+    if (view === "closed") query = query.eq("status", "closed");
+    else query = query.neq("status", "closed");
     const { data, error } = await query;
     if (error) toast({ title: "Failed to load tickets", description: error.message, variant: "destructive" });
     else setTickets((data || []) as Ticket[]);
@@ -327,7 +329,7 @@ export default function ITTickets() {
 
   useEffect(() => {
     load();
-  }, [filter]);
+  }, [filter, view]);
 
   // Countdown for "I need a moment" — stops halfway (at 5) and reveals a joke
   useEffect(() => {
