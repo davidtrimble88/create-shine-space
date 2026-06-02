@@ -283,6 +283,10 @@ export default function ITTickets() {
     setShuffledSuggestions(shuffle(suggestionResponses));
     const qCount = Math.floor(Math.random() * 2) + 2; // 2 or 3
     setShuffledQuestions(shuffle(questionResponses).slice(0, qCount));
+    const cCount = Math.floor(Math.random() * 2) + 1; // 1 or 2
+    setShuffledComplaining(shuffle(complainingJokes).slice(0, cCount));
+    const rCount = Math.floor(Math.random() * 2) + 1; // 1 or 2
+    setShuffledRealIssue(shuffle(realIssueJokes).slice(0, rCount));
     setFunStep("start");
     setFunTrail(0);
     setFunOpen(true);
