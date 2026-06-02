@@ -304,9 +304,13 @@ export default function ITTickets() {
               {funStep === "suggestion" && (
                 <>
                   <DialogHeader><DialogTitle>Suggestion incoming 💡</DialogTitle></DialogHeader>
-                  <p className="text-sm py-2">{shuffledSuggestions[funTrail]}</p>
+                  <div className="space-y-1 py-2">
+                    {shuffledSuggestions.slice(0, funTrail + 1).map((text, i) => (
+                      <p key={i} className="text-sm py-1">{text}</p>
+                    ))}
+                  </div>
                   <div className="grid gap-2">
-                    {funTrail + 1 < shuffledSuggestions.length ? (
+                    {funTrail + 1 < Math.min(3, shuffledSuggestions.length) ? (
                       <>
                         <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
                         <Button variant="ghost" onClick={goToForm}>😠 Just let me suggest</Button>
