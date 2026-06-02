@@ -95,9 +95,11 @@ const blankForm = {
 };
 
 // ============= Staff (read-only) view of own certifications =============
-const SelfView = ({ userId }: { userId: string }) => {
+const SelfView = ({ userId, editable = false }: { userId: string; editable?: boolean }) => {
   const [loading, setLoading] = useState(true);
   const [cert, setCert] = useState<CertRow | null>(null);
+  const [form, setForm] = useState(blankForm);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -106,10 +108,46 @@ const SelfView = ({ userId }: { userId: string }) => {
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
-      setCert(data as CertRow | null);
+      const c = data as CertRow | null;
+      setCert(c);
+      setForm({
+        cmsp_expires: c?.cmsp_expires ?? "",
+        irc_expires: c?.irc_expires ?? "",
+        arc_expires: c?.arc_expires ?? "",
+        cpr_expires: c?.cpr_expires ?? "",
+        notes: c?.notes ?? "",
+      });
       setLoading(false);
     })();
   }, [userId]);
+
+  const save = async () => {
+    setSaving(true);
+    const payload = {
+      user_id: userId,
+      cmsp_expires: form.cmsp_expires || null,
+      irc_expires: form.irc_expires || null,
+      arc_expires: form.arc_expires || null,
+      cpr_expires: form.cpr_expires || null,
+      notes: form.notes.trim() || null,
+    };
+    const { error } = cert
+      ? await supabase.from("instructor_certifications").update(payload).eq("id", cert.id)
+      : await supabase.from("instructor_certifications").insert(payload);
+    setSaving(false);
+    if (error) {
+      toast.error("Could not save: " + error.message);
+      return;
+    }
+    toast.success("Saved");
+    // refresh
+    const { data } = await supabase
+      .from("instructor_certifications")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+    setCert(data as CertRow | null);
+  };
 
   if (loading) {
     return (
@@ -122,26 +160,54 @@ const SelfView = ({ userId }: { userId: string }) => {
   return (
     <div className="bg-card border border-border rounded-xl p-6 space-y-5">
       <p className="text-sm text-muted-foreground">
-        Your certification expiration dates as recorded by the office. Contact an admin to make changes.
+        {editable
+          ? "Update your own certification expiration dates below."
+          : "Your certification expiration dates as recorded by the office. Contact an admin to make changes."}
       </p>
 
       <div className="grid sm:grid-cols-2 gap-4">
         {CERT_LABELS.map(({ key, label }) => (
-          <div key={key} className="bg-secondary/30 border border-border rounded-lg p-4">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium mb-2">{label}</div>
-            <StatusBadge iso={(cert?.[key] as string | null) ?? null} />
+          <div key={key} className="bg-secondary/30 border border-border rounded-lg p-4 space-y-2">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">{label}</div>
+            {editable ? (
+              <Input
+                type="date"
+                value={form[key]}
+                onChange={(ev) => setForm((p) => ({ ...p, [key]: ev.target.value }))}
+              />
+            ) : (
+              <StatusBadge iso={(cert?.[key] as string | null) ?? null} />
+            )}
           </div>
         ))}
       </div>
 
-      {cert?.notes && (
-        <div className="bg-secondary/30 border border-border rounded-lg p-4">
-          <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium mb-2">Notes</div>
+      <div className="space-y-2">
+        <Label htmlFor="self-notes" className="text-xs uppercase tracking-wide text-muted-foreground font-medium">Notes</Label>
+        {editable ? (
+          <Textarea
+            id="self-notes"
+            rows={3}
+            value={form.notes}
+            onChange={(ev) => setForm((p) => ({ ...p, notes: ev.target.value }))}
+          />
+        ) : cert?.notes ? (
           <p className="text-sm text-foreground whitespace-pre-wrap">{cert.notes}</p>
+        ) : (
+          <p className="text-sm text-muted-foreground italic">No notes.</p>
+        )}
+      </div>
+
+      {editable && (
+        <div className="flex justify-end">
+          <Button onClick={save} disabled={saving}>
+            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+            Save
+          </Button>
         </div>
       )}
 
-      {!cert && (
+      {!editable && !cert && (
         <p className="text-sm text-muted-foreground italic">
           No certifications recorded yet.
         </p>
@@ -364,7 +430,7 @@ const InstructorCertifications = () => {
         </div>
       )}
 
-      {tab === "all" && isAdmin ? <AdminAllView /> : <SelfView userId={user.id} />}
+      {tab === "all" && isAdmin ? <AdminAllView /> : <SelfView userId={user.id} editable={isAdmin} />}
     </div>
   );
 };
