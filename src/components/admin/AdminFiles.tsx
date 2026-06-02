@@ -327,8 +327,13 @@ const AdminFiles = () => {
                     <Icon className="w-5 h-5 text-accent" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-foreground truncate">
-                      {f.display_name}
+                    <div className="font-medium text-foreground truncate flex items-center gap-2 flex-wrap">
+                      <span className="truncate">{f.display_name}</span>
+                      {roleBadge(f.min_role) && (
+                        <Badge variant="outline" className="text-[10px] font-medium border-accent/40 text-accent shrink-0">
+                          {roleBadge(f.min_role)}
+                        </Badge>
+                      )}
                     </div>
                     {f.description && (
                       <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
