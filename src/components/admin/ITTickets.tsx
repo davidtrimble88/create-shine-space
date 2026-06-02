@@ -61,6 +61,7 @@ export default function ITTickets() {
   const [funOpen, setFunOpen] = useState(false);
   const [funStep, setFunStep] = useState<string>("start");
   const [funTrail, setFunTrail] = useState(0);
+  const [rudeJoke, setRudeJoke] = useState("");
 
   const [shuffledSuggestions, setShuffledSuggestions] = useState<string[]>([]);
   const [shuffledQuestions, setShuffledQuestions] = useState<string[]>([]);
@@ -141,6 +142,88 @@ export default function ITTickets() {
     "Did you try asking your teenager? They know more about tech than all of us combined. 🧑‍🎤",
   ];
 
+  const rudeSuggestionJokes = [
+    "You wouldn't ask Picasso to skip the painting and just take a picture. But fine, since you want to be rude, here you go. 🎨",
+    "Michelangelo didn't rush the Sistine Chapel, but sure, let's rush your suggestion. 🏃",
+    "Mozart spent years composing, but you want your idea processed in 30 seconds? Okay. 🎵",
+    "Shakespeare didn't skip the soliloquies, but since you're in a hurry... 🎭",
+    "Einstein took a decade on relativity, but your suggestion obviously deserves warp speed. 🚀",
+    "Da Vinci didn't say 'just give me the Mona Lisa NOW,' but different strokes. 🖌️",
+    "Beethoven didn't rush the symphonies. But your suggestion? Instant gratification it is. 🎼",
+    "Hemingway would have rewritten this 47 times, but you want it submitted in one click. 📖",
+    "Marie Curie didn't discover radium in a day, but your suggestion goes straight to the pile. ☢️",
+    "The Wright Brothers crashed a few times first, but sure, your idea is definitely flawless. ✈️",
+    "Tesla didn't invent AC in 5 minutes, but your suggestion will get exactly that much attention. ⚡",
+    "Van Gogh painted 900+ works, but you want us to hear one idea and change everything? Okay. 🌻",
+    "Edison failed 1000 times before the lightbulb. You can't handle 3 joke screens? 💡",
+    "Julia Child didn't microwave a gourmet meal, but sure, let's fast-forward your feedback. 🍳",
+    "Neil Armstrong trained for years. You trained for zero seconds. Bold. 🌑",
+    "J.K. Rowling rewrote Chapter One 15 times. You won't even sit through 3 screens. 🧙",
+    "Charles Darwin observed finches for 5 years. You observed... this app for 30 seconds. 🐦",
+    "Beyoncé rehearses for months. You want your suggestion heard without any warm-up. 🎤",
+    "Leonardo built a helicopter sketch in 1480, but you can't wait 30 seconds? 🚁",
+    "Maya Angelou didn't write 'I Know Why' on a napkin, but your suggestion deserves less, apparently. ✍️",
+    "Steve Jobs took 3 years for the first iPhone. You took 3 seconds to skip our fun. 📱",
+    "Gordon Ramsay wouldn't serve a raw suggestion, but you want it served cold and fast. 🍽️",
+    "Frida Kahlo painted her pain. You won't even sit through a mild inconvenience. 🖼️",
+    "Roger Federer hits 10,000 practice serves. You hit 'skip' once and called it a day. 🎾",
+    "Jane Austen wrote by candlelight. You write by rage-click. Impressive. 🕯️",
+  ];
+  const rudeQuestionJokes = [
+    "You wouldn't ask Einstein to skip the theory and just give you the answer. But since you're rude, fine. 🧠",
+    "Socrates asked questions for a living. You skipped mine in 5 seconds. Who's the philosopher now? 🤔",
+    "Sherlock Holmes investigates before concluding. You investigate... nothing. Impressive detective work. 🕵️",
+    "Aristotle didn't jump to conclusions. He had, like, 12 categories first. You have impatience. 🏛️",
+    "Yoda trained Luke for 800 years. You lasted 2 joke screens. Strong with the force, you are not. 👽",
+    "Confucius say: 'Man who skip questions will get answer he deserves.' And here it is. 📜",
+    "Columbus took 2 months to find land. You found the 'skip' button in 2 seconds. Explorer of shortcuts. ⛵",
+    "Marie Curie asked questions that changed science. You ask questions you refuse to earn. 🔬",
+    "Alan Turing cracked Enigma. You cracked... our patience. Congrats. 🧩",
+    "Neil deGrasse Tyson would explain the cosmos first. You want the TL;DR of the universe. 🌌",
+    "Isaac Newton asked why the apple fell. You ask why you have to read. Big thinker. 🍎",
+    "Sigmund Freud would analyze your need to skip. But that would take too long for you, wouldn't it? 🛋️",
+    "Carl Sagan said billions and billions. You said 'just let me ask.' The cosmos weeps. 🌠",
+    "Galileo spent years defending his findings. You spent 5 seconds avoiding ours. Revolutionary. 🔭",
+    "Mark Twain said 'Never put off till tomorrow.' You put off jokes till never. Witty. 📚",
+    "Nikola Tesla envisioned wireless power. You envisioned skipping our jokes. Visionary. 📡",
+    "Watson and Crick took years for DNA. You took 0 years for our humor. Fair trade. 🧬",
+    "Marco Polo explored for 24 years. You explored the 'Continue' button once. Traveler. 🗺️",
+    "Alexander Graham Bell invented communication. You skip it entirely. Progress. ☎️",
+    "Dr. Seuss rhymed for pages. You rage-quit in paragraphs. Rhyme-worthy. 🎩",
+    "Plato had dialogs. You had 'nope.' Philosophically deep. 🏺",
+    "Buzz Aldrin walked on the moon. You walked on our good time. One small step for man... 🌕",
+    "Louis Pasteur didn't just guess germ theory. You just guessed the skip button. Scientist. 🦠",
+    "Martin Luther King had a dream. You have a shortcut. Which is basically the same thing, right? ✊",
+    "Thomas Jefferson drafted carefully. You draft... a ticket with zero patience. Founding father of skipping. 📜",
+  ];
+  const rudeReportJokes = [
+    "You wouldn't ask a surgeon to skip the diagnosis and just cut. But since you're rude, the scalpel is yours. 🔪",
+    "Firefighters assess before they spray. You assess... nothing. Hope that works out. 🚒",
+    "Paramedics check vitals first. You skip straight to the ER. Bold strategy. 🚑",
+    "A pilot does a pre-flight check. You do a pre-complaint skip. Smooth landing incoming. ✈️",
+    "Mechanics diagnose before they fix. You diagnose 'broken' and hand it over. Good luck. 🔧",
+    "Building inspectors look at the foundation. You look at your watch. Solid foundation. 🏗️",
+    "Dentists X-ray before drilling. You want us to drill blind. Open wide. 🦷",
+    "Electricians test circuits before touching. You test our patience. Shockingly effective. ⚡",
+    "Coaches watch game tape. You watch the clock. Championship mentality. 🏆",
+    "Scientists gather data first. You gather... grievances. Nobel Prize material. 🥼",
+    "Architects draw blueprints. You draw conclusions. But hey, buildings collapse, so will this report. 🏢",
+    "Programmers read logs before debugging. You read nothing. Let the chaos begin. 💻",
+    "Veterinarians examine pets first. You examine your own patience limit. Already failed. 🐕",
+    "Pilots file flight plans. You file complaints. Different kind of turbulence ahead. 🛫",
+    "Teachers check homework first. You checked out. Straight to the principal's office with this one. 🍎",
+    "Journalists verify sources. You verify... that you don't care. Pulitzer incoming. 📰",
+    "Plumbers snake the drain before replacing the pipe. You snake past our questions. Drain away. 🪠",
+    "Therapists listen before diagnosing. You don't listen. Self-diagnosis: chronic impatience. 🛋️",
+    "Chefs taste before seasoning. You taste defeat. But here, season your report yourself. 👨‍🍳",
+    "Farmers check the soil before planting. You check your temper. Seed of chaos planted. 🌱",
+    "Botanists classify before naming. You classify as 'skipper.' Latin name: Impatienta reportus. 🌿",
+    "Librarians catalog before shelving. You shelve everything. The book of your issue is lost. 📚",
+    "Meteorologists model storms. You model... storming past our jokes. Category 5 rudeness. 🌪️",
+    "Blacksmiths heat before hammering. You heat up over jokes. Time to hammer out this ticket. 🔨",
+    "Park rangers observe wildlife. You observe the exit. Rare species: the unbothered reporter. 🐻",
+  ];
+
   const shuffle = (arr: string[]) => {
     const copy = [...arr];
     for (let i = copy.length - 1; i > 0; i--) {
@@ -162,6 +245,12 @@ export default function ITTickets() {
   const goToForm = () => {
     setFunOpen(false);
     setOpen(true);
+  };
+
+  const skipToForm = (jokes: string[]) => {
+    const pick = jokes[Math.floor(Math.random() * jokes.length)];
+    setRudeJoke(pick);
+    setFunStep("rude");
   };
 
   const nextTrail = (max: number, finalStep: string) => {
@@ -301,7 +390,7 @@ export default function ITTickets() {
                   <div className="grid gap-2">
                     <Button variant="outline" onClick={() => setFunStep("complaining")}>😤 Just complaining</Button>
                     <Button variant="outline" onClick={() => setFunStep("realIssue")}>🔥 It's a REAL issue</Button>
-                    <Button variant="ghost" onClick={goToForm}>😠 Just let me report</Button>
+                    <Button variant="ghost" onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
                   </div>
                 </>
               )}
@@ -315,7 +404,7 @@ export default function ITTickets() {
                   </blockquote>
                   <div className="grid gap-2 pt-2">
                     <Button variant="outline" onClick={() => setFunStep("start")}>Take me back 🙃</Button>
-                    <Button onClick={goToForm}>😠 Just let me report</Button>
+                    <Button onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
                   </div>
                 </>
               )}
@@ -328,7 +417,7 @@ export default function ITTickets() {
                   </p>
                   <div className="grid gap-2">
                     <Button variant="outline" onClick={() => setFunStep("start")}>I need a moment 🤯</Button>
-                    <Button onClick={goToForm}>😠 Just let me report</Button>
+                    <Button onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
                   </div>
                 </>
               )}
@@ -341,7 +430,7 @@ export default function ITTickets() {
                     {funTrail + 1 < Math.min(3, shuffledSuggestions.length) ? (
                       <>
                         <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
-                        <Button variant="ghost" onClick={goToForm}>😠 Just let me suggest</Button>
+                        <Button variant="ghost" onClick={() => skipToForm(rudeSuggestionJokes)}>😠 Just let me suggest</Button>
                       </>
                     ) : (
                       <Button onClick={goToForm}>Okay, here it goes ✨</Button>
@@ -358,11 +447,21 @@ export default function ITTickets() {
                     {funTrail + 1 < shuffledQuestions.length ? (
                       <>
                         <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
-                        <Button variant="ghost" onClick={goToForm}>😠 Just let me ask</Button>
+                        <Button variant="ghost" onClick={() => skipToForm(rudeQuestionJokes)}>😠 Just let me ask</Button>
                       </>
                     ) : (
                       <Button onClick={goToForm}>Fine, ask away 🎤</Button>
                     )}
+                  </div>
+                </>
+              )}
+
+              {funStep === "rude" && (
+                <>
+                  <DialogHeader><DialogTitle>Well, aren't we impatient? 😒</DialogTitle></DialogHeader>
+                  <p className="text-sm py-3 italic">{rudeJoke}</p>
+                  <div className="grid gap-2">
+                    <Button onClick={goToForm}>Fine, here's your form 📝</Button>
                   </div>
                 </>
               )}
