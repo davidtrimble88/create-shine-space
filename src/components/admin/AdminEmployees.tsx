@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound, Search, Mail } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Employee = Tables<"employees">;
