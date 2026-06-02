@@ -27,6 +27,8 @@ import {
   Info,
   Lightbulb,
   AlertTriangle,
+  Wrench,
+  Mail,
 } from "lucide-react";
 
 import overviewImg from "@/assets/howto/overview.png";
