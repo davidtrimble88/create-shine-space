@@ -430,7 +430,7 @@ export default function ITTickets() {
                     {funTrail + 1 < Math.min(3, shuffledSuggestions.length) ? (
                       <>
                         <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
-                        <Button variant="ghost" onClick={goToForm}>😠 Just let me suggest</Button>
+                        <Button variant="ghost" onClick={() => skipToForm(rudeSuggestionJokes)}>😠 Just let me suggest</Button>
                       </>
                     ) : (
                       <Button onClick={goToForm}>Okay, here it goes ✨</Button>
