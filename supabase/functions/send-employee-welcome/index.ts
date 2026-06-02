@@ -9,7 +9,7 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PORTAL_URL = "https://learntoridevc.com/employee-login";
+const PORTAL_URL = "https://create-shine-space.lovable.app/employee-login";
 const CC_EMAIL = "Office@LearnToRidevc.com";
 const TRIGGER = "employee_welcome";
 
