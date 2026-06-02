@@ -327,6 +327,14 @@ export default function ITTickets() {
     load();
   }, [filter]);
 
+  // Countdown for "I need a moment" — stops halfway (at 5) and reveals a joke
+  useEffect(() => {
+    if (funStep !== "moment") return;
+    if (momentCount <= 5) return;
+    const t = setTimeout(() => setMomentCount((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [funStep, momentCount]);
+
   const handleSubmit = async () => {
     if (!user || !form.title.trim() || !form.description.trim()) return;
     setSubmitting(true);
