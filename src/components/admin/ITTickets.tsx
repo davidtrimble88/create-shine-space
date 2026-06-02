@@ -62,6 +62,8 @@ export default function ITTickets() {
   const [funStep, setFunStep] = useState<string>("start");
   const [funTrail, setFunTrail] = useState(0);
   const [rudeJoke, setRudeJoke] = useState("");
+  const [momentCount, setMomentCount] = useState(10);
+  const [momentJoke, setMomentJoke] = useState("");
 
   const [shuffledSuggestions, setShuffledSuggestions] = useState<string[]>([]);
   const [shuffledQuestions, setShuffledQuestions] = useState<string[]>([]);
@@ -325,6 +327,14 @@ export default function ITTickets() {
     load();
   }, [filter]);
 
+  // Countdown for "I need a moment" — stops halfway (at 5) and reveals a joke
+  useEffect(() => {
+    if (funStep !== "moment") return;
+    if (momentCount <= 5) return;
+    const t = setTimeout(() => setMomentCount((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [funStep, momentCount]);
+
   const handleSubmit = async () => {
     if (!user || !form.title.trim() || !form.description.trim()) return;
     setSubmitting(true);
@@ -483,7 +493,11 @@ export default function ITTickets() {
                     But like... how do you know <em>anything</em> is real? Are we even here right now? 🌀
                   </p>
                   <div className="grid gap-2">
-                    <Button variant="outline" onClick={() => setFunStep("start")}>I need a moment 🤯</Button>
+                    <Button variant="outline" onClick={() => {
+                      setMomentCount(10);
+                      setMomentJoke(realIssueJokes[Math.floor(Math.random() * realIssueJokes.length)]);
+                      setFunStep("moment");
+                    }}>I need a moment 🤯</Button>
                     <Button onClick={() => { setFunTrail(0); setFunStep("realIssueTrail"); }}>Continue... 🌀</Button>
                   </div>
                 </>
@@ -537,6 +551,30 @@ export default function ITTickets() {
                       <Button onClick={goToForm}>Fine, ask away 🎤</Button>
                     )}
                   </div>
+                </>
+              )}
+
+              {funStep === "moment" && (
+                <>
+                  {momentCount > 5 ? (
+                    <>
+                      <DialogHeader><DialogTitle>Ok, you get just a moment ⏳</DialogTitle></DialogHeader>
+                      <p className="text-sm text-muted-foreground py-2">Take a breath. I'm timing you.</p>
+                      <div className="py-6 text-center">
+                        <div className="text-6xl font-bold tabular-nums text-primary">{momentCount}</div>
+                        <p className="text-xs text-muted-foreground mt-2">seconds remaining...</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <DialogHeader><DialogTitle>Okay, I got bored. 😪</DialogTitle></DialogHeader>
+                      <p className="text-sm text-muted-foreground py-2">So here's a joke instead:</p>
+                      <p className="text-sm py-3 italic">{momentJoke}</p>
+                      <div className="grid gap-2">
+                        <Button onClick={goToForm}>Alright, I'm ready 📝</Button>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
 
