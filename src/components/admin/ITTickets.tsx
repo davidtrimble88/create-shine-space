@@ -417,7 +417,7 @@ export default function ITTickets() {
                   </p>
                   <div className="grid gap-2">
                     <Button variant="outline" onClick={() => setFunStep("start")}>I need a moment 🤯</Button>
-                    <Button onClick={goToForm}>😠 Just let me report</Button>
+                    <Button onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
                   </div>
                 </>
               )}
