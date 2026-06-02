@@ -447,7 +447,7 @@ export default function ITTickets() {
                     {funTrail + 1 < shuffledQuestions.length ? (
                       <>
                         <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
-                        <Button variant="ghost" onClick={goToForm}>😠 Just let me ask</Button>
+                        <Button variant="ghost" onClick={() => skipToForm(rudeQuestionJokes)}>😠 Just let me ask</Button>
                       </>
                     ) : (
                       <Button onClick={goToForm}>Fine, ask away 🎤</Button>
