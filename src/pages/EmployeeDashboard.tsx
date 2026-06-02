@@ -58,6 +58,7 @@ const roleLabels: Record<string, { label: string; icon: typeof Shield }> = {
 const EmployeeDashboard = () => {
   const { user, isAdmin, userRole, effectiveRole, viewAsRole, setViewAsRole, loading, mustChangePassword, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const handler = () => setActiveTab("rosters");
