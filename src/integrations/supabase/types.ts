@@ -819,6 +819,7 @@ export type Database = {
           file_size: number
           id: string
           mime_type: string | null
+          min_role: Database["public"]["Enums"]["app_role"]
           updated_at: string
           uploaded_by: string | null
           uploaded_by_name: string | null
@@ -831,6 +832,7 @@ export type Database = {
           file_size?: number
           id?: string
           mime_type?: string | null
+          min_role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
           uploaded_by?: string | null
           uploaded_by_name?: string | null
@@ -843,6 +845,7 @@ export type Database = {
           file_size?: number
           id?: string
           mime_type?: string | null
+          min_role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
           uploaded_by?: string | null
           uploaded_by_name?: string | null
@@ -1063,6 +1066,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_min_role: {
+        Args: {
+          _min: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
