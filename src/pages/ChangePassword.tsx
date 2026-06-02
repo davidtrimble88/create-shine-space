@@ -58,7 +58,7 @@ const ChangePassword = () => {
       return;
     }
 
-    await supabase.from("employees").update({ must_change_password: false }).eq("user_id", user.id);
+    await supabase.rpc("clear_must_change_password" as any);
     toast({ title: "Password updated!", description: "Now set up your security questions." });
     setIsLoading(false);
     setStep("security");
