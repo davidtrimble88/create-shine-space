@@ -222,7 +222,7 @@ const AdminEmployees = () => {
 
       // Auto-send welcome email with login instructions + temp password
       const welcomeRes = await supabase.functions.invoke("send-employee-welcome", {
-        body: { recipientEmail: form.email, fullName: form.full_name, tempPassword },
+        body: { recipientEmail: form.email, fullName: form.full_name, tempPassword, role: form.role },
       });
       const emailSent = !welcomeRes.error && (welcomeRes.data as any)?.queued;
 

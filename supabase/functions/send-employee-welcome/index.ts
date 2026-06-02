@@ -13,6 +13,22 @@ const PORTAL_URL = "https://learntoridevc.com/employee-login";
 const CC_EMAIL = "Office@LearnToRidevc.com";
 const TRIGGER = "employee_welcome";
 
+const SUPABASE_PUBLIC = (Deno.env.get("SUPABASE_URL") || "").replace(/\/$/, "");
+const DECK_BY_ROLE: Record<string, { name: string; path: string }> = {
+  owner:    { name: "Owner Dashboard Training",            path: "training/Training_Owner.pptx" },
+  admin:    { name: "Admin Dashboard Training",            path: "training/Training_Admin.pptx" },
+  manager:  { name: "Admin Dashboard Training",            path: "training/Training_Admin.pptx" },
+  employee: { name: "Employee & Viewer Dashboard Training", path: "training/Training_Employee_Viewer.pptx" },
+  viewer:   { name: "Employee & Viewer Dashboard Training", path: "training/Training_Employee_Viewer.pptx" },
+};
+const deckUrlFor = (role: string) => {
+  const d = DECK_BY_ROLE[(role || "employee").toLowerCase()] ?? DECK_BY_ROLE.employee;
+  return {
+    name: d.name,
+    url: `${SUPABASE_PUBLIC}/storage/v1/object/public/shared-files/${d.path}`,
+  };
+};
+
 const FALLBACK_SUBJECT = "Welcome to the Learn to Ride VC Employee Portal";
 const FALLBACK_BODY = `<p>Hi {{firstName}},</p>
 <p>Welcome to the <strong>Learn to Ride VC</strong> team! Your employee portal account has been created.</p>
@@ -24,7 +40,13 @@ const FALLBACK_BODY = `<p>Hi {{firstName}},</p>
   <li>You'll be prompted to set your own password right after signing in.</li>
   <li>After setting a new password, you'll be guided to set up security questions used for self-service password resets.</li>
 </ol>
+<p style="margin-top:24px;padding:16px;border:1px solid #f3a766;background:#fff7ed;border-radius:8px">
+  <strong style="color:#c2410c">Your training guide:</strong> {{deckName}}<br/>
+  <a href="{{deckUrl}}" style="display:inline-block;margin-top:8px;background:#c2410c;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600">Download training deck (PPTX)</a><br/>
+  <span style="color:#555;font-size:12px">You'll also find this deck inside the dashboard under the Files tab.</span>
+</p>
 <p>— Learn to Ride VC</p>`;
+
 
 const substitute = (s: string, vars: Record<string, string>) =>
   s.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? "");
@@ -45,7 +67,7 @@ const htmlToText = (html: string) =>
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
-    const { recipientEmail, fullName, tempPassword } = await req.json();
+    const { recipientEmail, fullName, tempPassword, role } = await req.json();
     if (!recipientEmail || !tempPassword) {
       return new Response(JSON.stringify({ error: "recipientEmail and tempPassword required" }), {
         status: 400, headers: { ...cors, "Content-Type": "application/json" },
@@ -74,13 +96,17 @@ Deno.serve(async (req) => {
     }
 
     const firstName = (fullName || "").split(" ")[0] || "there";
+    const deck = deckUrlFor(role || "employee");
     const vars: Record<string, string> = {
       firstName,
       fullName: fullName || "",
       email: recipientEmail,
       tempPassword,
       portalUrl: PORTAL_URL,
+      deckName: deck.name,
+      deckUrl: deck.url,
     };
+
 
     const subject = substitute(subjectTpl, vars);
     const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${substitute(bodyTpl, vars)}</div>`;
