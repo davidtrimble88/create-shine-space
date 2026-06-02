@@ -316,7 +316,8 @@ export default function ITTickets() {
   const load = async () => {
     setLoading(true);
     let query = supabase.from("it_tickets").select("*").order("created_at", { ascending: false });
-    if (filter === "mine" && user) query = query.eq("user_id", user.id);
+    // Non-admins can only ever see tickets they created
+    if ((!isAdmin || filter === "mine") && user) query = query.eq("user_id", user.id);
     const { data, error } = await query;
     if (error) toast({ title: "Failed to load tickets", description: error.message, variant: "destructive" });
     else setTickets((data || []) as Ticket[]);
