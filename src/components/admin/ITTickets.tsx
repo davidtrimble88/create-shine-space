@@ -202,8 +202,97 @@ export default function ITTickets() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          <Dialog open={funOpen} onOpenChange={setFunOpen}>
+            <DialogContent>
+              {funStep === "start" && (
+                <>
+                  <DialogHeader><DialogTitle>Before we begin... what brings you here? 👀</DialogTitle></DialogHeader>
+                  <div className="grid gap-2 py-2">
+                    <Button variant="outline" onClick={() => setFunStep("reporting")}>🐛 Issue Reporting</Button>
+                    <Button variant="outline" onClick={() => { setFunTrail(0); setFunStep("suggestion"); }}>💡 Suggestion</Button>
+                    <Button variant="outline" onClick={() => { setFunTrail(0); setFunStep("question"); }}>❓ Question</Button>
+                  </div>
+                </>
+              )}
+
+              {funStep === "reporting" && (
+                <>
+                  <DialogHeader><DialogTitle>Hold up. 🤨</DialogTitle></DialogHeader>
+                  <p className="text-sm text-muted-foreground py-2">Is this really an issue... or are you just complaining?</p>
+                  <div className="grid gap-2">
+                    <Button variant="outline" onClick={() => setFunStep("complaining")}>😤 Just complaining</Button>
+                    <Button variant="outline" onClick={() => setFunStep("realIssue")}>🔥 It's a REAL issue</Button>
+                    <Button variant="ghost" onClick={goToForm}>😠 Just let me report</Button>
+                  </div>
+                </>
+              )}
+
+              {funStep === "complaining" && (
+                <>
+                  <DialogHeader><DialogTitle>A word from Teddy 🇺🇸</DialogTitle></DialogHeader>
+                  <blockquote className="border-l-4 border-primary pl-4 py-2 italic text-sm">
+                    "Complaining about a problem without posing a solution is called whining."
+                    <footer className="text-xs text-muted-foreground mt-2">— Theodore Roosevelt</footer>
+                  </blockquote>
+                  <div className="grid gap-2 pt-2">
+                    <Button variant="outline" onClick={() => setFunStep("start")}>Take me back 🙃</Button>
+                    <Button onClick={goToForm}>😠 Just let me report</Button>
+                  </div>
+                </>
+              )}
+
+              {funStep === "realIssue" && (
+                <>
+                  <DialogHeader><DialogTitle>Deep question time 🧘</DialogTitle></DialogHeader>
+                  <p className="text-sm text-muted-foreground py-2">
+                    But like... how do you know <em>anything</em> is real? Are we even here right now? 🌀
+                  </p>
+                  <div className="grid gap-2">
+                    <Button variant="outline" onClick={() => setFunStep("start")}>I need a moment 🤯</Button>
+                    <Button onClick={goToForm}>😠 Just let me report</Button>
+                  </div>
+                </>
+              )}
+
+              {funStep === "suggestion" && (
+                <>
+                  <DialogHeader><DialogTitle>Suggestion incoming 💡</DialogTitle></DialogHeader>
+                  <p className="text-sm py-2">{suggestionResponses[funTrail]}</p>
+                  <div className="grid gap-2">
+                    {funTrail + 1 < suggestionResponses.length ? (
+                      <>
+                        <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
+                        <Button variant="ghost" onClick={goToForm}>😠 Just let me suggest</Button>
+                      </>
+                    ) : (
+                      <Button onClick={goToForm}>Okay, here it goes ✨</Button>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {funStep === "question" && (
+                <>
+                  <DialogHeader><DialogTitle>You have a question? 🤔</DialogTitle></DialogHeader>
+                  <p className="text-sm py-2">{questionResponses[funTrail]}</p>
+                  <div className="grid gap-2">
+                    {funTrail + 1 < questionResponses.length ? (
+                      <>
+                        <Button variant="outline" onClick={() => setFunTrail(funTrail + 1)}>Continue...</Button>
+                        <Button variant="ghost" onClick={goToForm}>😠 Just let me ask</Button>
+                      </>
+                    ) : (
+                      <Button onClick={goToForm}>Fine, ask away 🎤</Button>
+                    )}
+                  </div>
+                </>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
+
 
       {loading ? (
         <div className="text-muted-foreground">Loading...</div>
