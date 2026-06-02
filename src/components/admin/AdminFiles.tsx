@@ -148,6 +148,7 @@ const AdminFiles = () => {
   const resetUploadForm = () => {
     setDisplayName("");
     setDescription("");
+    setMinRole("employee");
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
