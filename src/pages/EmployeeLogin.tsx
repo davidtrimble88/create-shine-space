@@ -221,10 +221,25 @@ const EmployeeLogin = () => {
             </Button>
           )}
 
-          <div className="mt-4 text-center">
-            <Link to="/forgot-password" className="text-sm text-accent hover:underline">
+          <div className="mt-4 text-center space-y-2">
+            <Link to="/forgot-password" className="text-sm text-accent hover:underline block">
               Forgot your password?
             </Link>
+            {bioReady && isBiometricEnabled() && (
+              <button
+                type="button"
+                onClick={async () => {
+                  await clearCredentials();
+                  toast({ title: `${bioLabel} disabled`, description: "You'll need to sign in with your password next time." });
+                  // Force re-render
+                  setBioReady((v) => v);
+                  window.location.reload();
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground underline"
+              >
+                Disable {bioLabel} on this device
+              </button>
+            )}
           </div>
         </div>
 
