@@ -61,6 +61,7 @@ export default function ITTickets() {
   const [funOpen, setFunOpen] = useState(false);
   const [funStep, setFunStep] = useState<string>("start");
   const [funTrail, setFunTrail] = useState(0);
+  const [rudeJoke, setRudeJoke] = useState("");
 
   const [shuffledSuggestions, setShuffledSuggestions] = useState<string[]>([]);
   const [shuffledQuestions, setShuffledQuestions] = useState<string[]>([]);
