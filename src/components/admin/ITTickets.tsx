@@ -673,6 +673,7 @@ export default function ITTickets() {
                     <p className="text-sm whitespace-pre-wrap">{t.admin_notes}</p>
                   </div>
                 )}
+                <TicketComments ticketId={t.id} isAdmin={isAdmin} />
               </CardContent>
             </Card>
           ))}
