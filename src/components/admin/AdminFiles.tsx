@@ -108,12 +108,14 @@ const AdminFiles = () => {
   const [uploading, setUploading] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [description, setDescription] = useState("");
+  const [minRole, setMinRole] = useState<MinRole>("employee");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editFile, setEditFile] = useState<SharedFile | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editMinRole, setEditMinRole] = useState<MinRole>("employee");
   const [savingEdit, setSavingEdit] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
