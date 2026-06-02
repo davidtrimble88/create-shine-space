@@ -251,6 +251,7 @@ const AdminFiles = () => {
     setEditFile(f);
     setEditName(f.display_name);
     setEditDescription(f.description ?? "");
+    setEditMinRole(f.min_role ?? "employee");
   };
 
   const saveEdit = async () => {
@@ -265,6 +266,7 @@ const AdminFiles = () => {
       .update({
         display_name: editName.trim(),
         description: editDescription.trim() || null,
+        min_role: editMinRole,
       })
       .eq("id", editFile.id);
     setSavingEdit(false);
