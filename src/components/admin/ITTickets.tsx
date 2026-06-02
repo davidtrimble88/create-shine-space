@@ -390,6 +390,22 @@ export default function ITTickets() {
           <p className="text-sm text-muted-foreground">Report a problem or request IT help.</p>
         </div>
         <div className="flex items-center gap-2">
+          <div className="inline-flex rounded-md border border-border overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setView("active")}
+              className={`px-3 py-1.5 text-sm ${view === "active" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-secondary"}`}
+            >
+              Active
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("closed")}
+              className={`px-3 py-1.5 text-sm border-l border-border ${view === "closed" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-secondary"}`}
+            >
+              Closed (Archive)
+            </button>
+          </div>
           {isAdmin && (
             <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
               <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
