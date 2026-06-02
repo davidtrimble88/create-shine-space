@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound, Search, Mail } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Employee = Tables<"employees">;
@@ -311,6 +311,48 @@ const AdminEmployees = () => {
     });
   };
 
+  const handleResendWelcome = async (emp: EmployeeWithRole) => {
+    if (!emp.user_id) {
+      toast({ title: "No account", description: "This employee doesn't have a login account.", variant: "destructive" });
+      return;
+    }
+    // Admins cannot resend for owners
+    if (userRole === "admin" && emp.role === "owner") {
+      toast({ title: "Not allowed", description: "Admins cannot resend welcome emails for owners.", variant: "destructive" });
+      return;
+    }
+    if (!confirm(`Resend welcome email to ${emp.full_name}? This will generate a new temporary password.`)) return;
+
+    const { data, error } = await supabase.functions.invoke("reset-user-password", {
+      body: { target_user_id: emp.user_id },
+    });
+
+    if (error || data?.error) {
+      toast({ title: "Error", description: data?.error || error?.message, variant: "destructive" });
+      return;
+    }
+
+    const tempPassword = data.temp_password;
+
+    // Send welcome email with the new temp password
+    const welcomeRes = await supabase.functions.invoke("send-employee-welcome", {
+      body: { recipientEmail: emp.email, fullName: emp.full_name, tempPassword, role: emp.role },
+    });
+    const emailSent = !welcomeRes.error && (welcomeRes.data as any)?.queued;
+
+    toast({
+      title: emailSent ? "Welcome Email Sent" : "Email Failed",
+      description: emailSent
+        ? `A welcome email with a new temporary password has been sent to ${emp.email}.`
+        : `Password was reset, but the welcome email couldn't be sent to ${emp.email}.`,
+      variant: emailSent ? "default" : "destructive",
+    });
+
+    if (emailSent) {
+      setTempPasswordInfo({ name: emp.full_name, email: emp.email, password: tempPassword });
+    }
+  };
+
   const openNew = () => {
     setEditingId(null);
     setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
@@ -574,6 +616,11 @@ const AdminEmployees = () => {
                     {roleLabels[emp.role ?? "employee"]}
                   </span>
                   <div className="flex gap-1">
+                    {emp.user_id && !(userRole === "admin" && emp.role === "owner") && (
+                      <Button variant="ghost" size="sm" onClick={() => handleResendWelcome(emp)} title="Resend Welcome Email">
+                        <Mail className="w-4 h-4" />
+                      </Button>
+                    )}
                     {emp.user_id && !(userRole === "admin" && emp.role === "owner") && (
                       <Button variant="ghost" size="sm" onClick={() => handleResetPassword(emp)} title="Reset Password">
                         <KeyRound className="w-4 h-4" />
