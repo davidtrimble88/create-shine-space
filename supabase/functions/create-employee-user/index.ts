@@ -52,6 +52,39 @@ Deno.serve(async (req) => {
     });
 
     if (error) {
+      const msg = (error.message || "").toLowerCase();
+      const alreadyExists =
+        msg.includes("already been registered") ||
+        msg.includes("already registered") ||
+        msg.includes("already exists") ||
+        (error as any).code === "email_exists";
+
+      if (alreadyExists) {
+        // Find existing user by email and return their id so the caller
+        // can link/update profile + roles instead of failing.
+        let existingId: string | null = null;
+        let page = 1;
+        const target = String(email).toLowerCase();
+        while (page <= 20 && !existingId) {
+          const { data: list, error: listErr } = await adminClient.auth.admin.listUsers({
+            page,
+            perPage: 200,
+          });
+          if (listErr) break;
+          const found = list.users.find((u: any) => (u.email || "").toLowerCase() === target);
+          if (found) existingId = found.id;
+          if (!list.users.length || list.users.length < 200) break;
+          page++;
+        }
+
+        if (existingId) {
+          return new Response(
+            JSON.stringify({ user_id: existingId, already_existed: true }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+      }
+
       return new Response(JSON.stringify({ error: error.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
