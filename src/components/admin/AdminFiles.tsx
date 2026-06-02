@@ -14,6 +14,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -47,7 +55,27 @@ interface SharedFile {
   uploaded_by: string | null;
   uploaded_by_name: string | null;
   created_at: string;
+  min_role: "owner" | "admin" | "manager" | "employee";
 }
+
+type MinRole = "owner" | "admin" | "manager" | "employee";
+
+const ROLE_OPTIONS: { value: MinRole; label: string; description: string }[] = [
+  { value: "employee", label: "All staff (Viewers and up)", description: "Everyone signed in can see this file" },
+  { value: "manager", label: "Managers and up", description: "Hidden from Viewers" },
+  { value: "admin", label: "Admins and Owners only", description: "Hidden from Viewers and Managers" },
+  { value: "owner", label: "Owners only", description: "Hidden from everyone except Owners" },
+];
+
+const roleBadge = (role: MinRole) => {
+  switch (role) {
+    case "owner": return "Owners only";
+    case "admin": return "Admins+";
+    case "manager": return "Managers+";
+    default: return null;
+  }
+};
+
 
 const formatBytes = (bytes: number) => {
   if (!bytes) return "0 B";
@@ -80,12 +108,14 @@ const AdminFiles = () => {
   const [uploading, setUploading] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [description, setDescription] = useState("");
+  const [minRole, setMinRole] = useState<MinRole>("employee");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editFile, setEditFile] = useState<SharedFile | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editMinRole, setEditMinRole] = useState<MinRole>("employee");
   const [savingEdit, setSavingEdit] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -118,6 +148,7 @@ const AdminFiles = () => {
   const resetUploadForm = () => {
     setDisplayName("");
     setDescription("");
+    setMinRole("employee");
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -158,6 +189,7 @@ const AdminFiles = () => {
       file_path: path,
       file_size: selectedFile.size,
       mime_type: selectedFile.type || null,
+      min_role: minRole,
       uploaded_by: user?.id ?? null,
       uploaded_by_name: user?.email ?? null,
     });
@@ -219,6 +251,7 @@ const AdminFiles = () => {
     setEditFile(f);
     setEditName(f.display_name);
     setEditDescription(f.description ?? "");
+    setEditMinRole(f.min_role ?? "employee");
   };
 
   const saveEdit = async () => {
@@ -233,6 +266,7 @@ const AdminFiles = () => {
       .update({
         display_name: editName.trim(),
         description: editDescription.trim() || null,
+        min_role: editMinRole,
       })
       .eq("id", editFile.id);
     setSavingEdit(false);
@@ -293,8 +327,13 @@ const AdminFiles = () => {
                     <Icon className="w-5 h-5 text-accent" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-foreground truncate">
-                      {f.display_name}
+                    <div className="font-medium text-foreground truncate flex items-center gap-2 flex-wrap">
+                      <span className="truncate">{f.display_name}</span>
+                      {roleBadge(f.min_role) && (
+                        <Badge variant="outline" className="text-[10px] font-medium border-accent/40 text-accent shrink-0">
+                          {roleBadge(f.min_role)}
+                        </Badge>
+                      )}
                     </div>
                     {f.description && (
                       <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
@@ -402,6 +441,22 @@ const AdminFiles = () => {
                 rows={3}
               />
             </div>
+            <div>
+              <Label>Visible to</Label>
+              <Select value={minRole} onValueChange={(v) => setMinRole(v as MinRole)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {ROLE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      <div className="flex flex-col">
+                        <span>{opt.label}</span>
+                        <span className="text-xs text-muted-foreground">{opt.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setUploadOpen(false)} disabled={uploading}>
@@ -445,6 +500,22 @@ const AdminFiles = () => {
                 onChange={(e) => setEditDescription(e.target.value)}
                 rows={3}
               />
+            </div>
+            <div>
+              <Label>Visible to</Label>
+              <Select value={editMinRole} onValueChange={(v) => setEditMinRole(v as MinRole)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {ROLE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      <div className="flex flex-col">
+                        <span>{opt.label}</span>
+                        <span className="text-xs text-muted-foreground">{opt.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
