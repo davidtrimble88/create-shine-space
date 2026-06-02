@@ -58,6 +58,7 @@ export default function ITTickets() {
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", priority: "medium" });
   const [filter, setFilter] = useState<"all" | "mine">(isAdmin ? "all" : "mine");
+  const [view, setView] = useState<"active" | "closed">("active");
   const [funOpen, setFunOpen] = useState(false);
   const [funStep, setFunStep] = useState<string>("start");
   const [funTrail, setFunTrail] = useState(0);
