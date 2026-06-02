@@ -6,8 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ShieldCheck, Save, Loader2, Calendar, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
+import { ShieldCheck, Save, Loader2, AlertTriangle, CheckCircle2, XCircle, Pencil } from "lucide-react";
 
 type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires";
 
@@ -86,61 +94,22 @@ const blankForm = {
   notes: "",
 };
 
-const SelfEditor = ({ userId, onSaved }: { userId: string; onSaved?: () => void }) => {
+// ============= Staff (read-only) view of own certifications =============
+const SelfView = ({ userId }: { userId: string }) => {
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState(blankForm);
-  const [existingId, setExistingId] = useState<string | null>(null);
+  const [cert, setCert] = useState<CertRow | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("instructor_certifications")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (error) {
-      toast.error("Failed to load your certifications");
-    } else if (data) {
-      setExistingId(data.id);
-      setForm({
-        cmsp_expires: data.cmsp_expires ?? "",
-        irc_expires: data.irc_expires ?? "",
-        arc_expires: data.arc_expires ?? "",
-        cpr_expires: data.cpr_expires ?? "",
-        notes: data.notes ?? "",
-      });
-    } else {
-      setExistingId(null);
-      setForm(blankForm);
-    }
-    setLoading(false);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("instructor_certifications")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+      setCert(data as CertRow | null);
+      setLoading(false);
+    })();
   }, [userId]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const save = async () => {
-    setSaving(true);
-    const payload = {
-      user_id: userId,
-      cmsp_expires: form.cmsp_expires || null,
-      irc_expires: form.irc_expires || null,
-      arc_expires: form.arc_expires || null,
-      cpr_expires: form.cpr_expires || null,
-      notes: form.notes.trim() || null,
-    };
-    const { error } = existingId
-      ? await supabase.from("instructor_certifications").update(payload).eq("id", existingId)
-      : await supabase.from("instructor_certifications").insert(payload);
-    setSaving(false);
-    if (error) {
-      toast.error("Could not save: " + error.message);
-      return;
-    }
-    toast.success("Certifications saved");
-    load();
-    onSaved?.();
-  };
 
   if (loading) {
     return (
@@ -153,53 +122,43 @@ const SelfEditor = ({ userId, onSaved }: { userId: string; onSaved?: () => void 
   return (
     <div className="bg-card border border-border rounded-xl p-6 space-y-5">
       <p className="text-sm text-muted-foreground">
-        Keep your certification expiration dates current. The office uses this to plan recertification.
+        Your certification expiration dates as recorded by the office. Contact an admin to make changes.
       </p>
 
       <div className="grid sm:grid-cols-2 gap-4">
         {CERT_LABELS.map(({ key, label }) => (
-          <div key={key} className="space-y-2">
-            <Label htmlFor={key} className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-accent" /> {label}
-              </span>
-              <StatusBadge iso={form[key] || null} />
-            </Label>
-            <Input
-              id={key}
-              type="date"
-              value={form[key]}
-              onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
-            />
+          <div key={key} className="bg-secondary/30 border border-border rounded-lg p-4">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium mb-2">{label}</div>
+            <StatusBadge iso={(cert?.[key] as string | null) ?? null} />
           </div>
         ))}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="notes">Notes (optional)</Label>
-        <Textarea
-          id="notes"
-          rows={3}
-          value={form.notes}
-          onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-          placeholder="Anything the office should know (e.g. recert scheduled for…)"
-        />
-      </div>
+      {cert?.notes && (
+        <div className="bg-secondary/30 border border-border rounded-lg p-4">
+          <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium mb-2">Notes</div>
+          <p className="text-sm text-foreground whitespace-pre-wrap">{cert.notes}</p>
+        </div>
+      )}
 
-      <div className="flex justify-end">
-        <Button onClick={save} disabled={saving}>
-          {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-          Save
-        </Button>
-      </div>
+      {!cert && (
+        <p className="text-sm text-muted-foreground italic">
+          No certifications recorded yet.
+        </p>
+      )}
     </div>
   );
 };
 
+// ============= Admin: list all + edit dialog =============
 const AdminAllView = () => {
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<EmployeeLite[]>([]);
   const [certs, setCerts] = useState<Record<string, CertRow>>({});
+  const [editing, setEditing] = useState<EmployeeLite | null>(null);
+  const [form, setForm] = useState(blankForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -222,6 +181,47 @@ const AdminAllView = () => {
 
   useEffect(() => { load(); }, [load]);
 
+  const openEdit = (e: EmployeeLite) => {
+    if (!e.user_id) {
+      toast.error("This employee has no login account yet.");
+      return;
+    }
+    const c = certs[e.user_id];
+    setEditing(e);
+    setEditingId(c?.id ?? null);
+    setForm({
+      cmsp_expires: c?.cmsp_expires ?? "",
+      irc_expires: c?.irc_expires ?? "",
+      arc_expires: c?.arc_expires ?? "",
+      cpr_expires: c?.cpr_expires ?? "",
+      notes: c?.notes ?? "",
+    });
+  };
+
+  const save = async () => {
+    if (!editing?.user_id) return;
+    setSaving(true);
+    const payload = {
+      user_id: editing.user_id,
+      cmsp_expires: form.cmsp_expires || null,
+      irc_expires: form.irc_expires || null,
+      arc_expires: form.arc_expires || null,
+      cpr_expires: form.cpr_expires || null,
+      notes: form.notes.trim() || null,
+    };
+    const { error } = editingId
+      ? await supabase.from("instructor_certifications").update(payload).eq("id", editingId)
+      : await supabase.from("instructor_certifications").insert(payload);
+    setSaving(false);
+    if (error) {
+      toast.error("Could not save: " + error.message);
+      return;
+    }
+    toast.success("Saved");
+    setEditing(null);
+    load();
+  };
+
   if (loading) {
     return (
       <div className="p-8 text-center text-muted-foreground flex items-center justify-center gap-2">
@@ -231,7 +231,7 @@ const AdminAllView = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -242,11 +242,12 @@ const AdminAllView = () => {
                   <th key={c.key} className="text-left px-4 py-3 font-medium">{c.short}</th>
                 ))}
                 <th className="text-left px-4 py-3 font-medium">Updated</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {employees.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No active employees</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No active employees</td></tr>
               )}
               {employees.map((e) => {
                 const c = e.user_id ? certs[e.user_id] : undefined;
@@ -266,6 +267,17 @@ const AdminAllView = () => {
                         ? new Date(c.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
                         : "—"}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openEdit(e)}
+                        disabled={!e.user_id}
+                        title={e.user_id ? "Edit certifications" : "No login account"}
+                      >
+                        <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
+                      </Button>
+                    </td>
                   </tr>
                 );
               })}
@@ -274,8 +286,48 @@ const AdminAllView = () => {
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        Instructors maintain their own dates from their <strong>My Certifications</strong> tab. Statuses: green = valid, yellow = expires in 30 days, red = expired.
+        Status colors: green = valid, yellow = expires within 30 days, red = expired. Instructors see their own dates read-only.
       </p>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Certifications</DialogTitle>
+            <DialogDescription>{editing?.full_name}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-4">
+              {CERT_LABELS.map(({ key, label }) => (
+                <div key={key} className="space-y-2">
+                  <Label htmlFor={`edit-${key}`}>{label}</Label>
+                  <Input
+                    id={`edit-${key}`}
+                    type="date"
+                    value={form[key]}
+                    onChange={(ev) => setForm((p) => ({ ...p, [key]: ev.target.value }))}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-notes">Notes (optional)</Label>
+              <Textarea
+                id="edit-notes"
+                rows={3}
+                value={form.notes}
+                onChange={(ev) => setForm((p) => ({ ...p, notes: ev.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>Cancel</Button>
+            <Button onClick={save} disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -295,30 +347,24 @@ const InstructorCertifications = () => {
           <h1 className="text-2xl font-bold text-foreground">Instructor Certifications</h1>
         </div>
         <p className="text-muted-foreground text-sm">
-          Track CMSP, IRC, ARC, and CPR certification expiration dates.
+          {isAdmin
+            ? "Track CMSP, IRC, ARC, and CPR expiration dates for every instructor. Only admins and owners can edit."
+            : "Your CMSP, IRC, ARC, and CPR expiration dates. Contact an admin to make changes."}
         </p>
       </div>
 
       {isAdmin && (
         <div className="flex gap-2 mb-4">
-          <Button
-            variant={tab === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setTab("all")}
-          >
+          <Button variant={tab === "all" ? "default" : "outline"} size="sm" onClick={() => setTab("all")}>
             All Instructors
           </Button>
-          <Button
-            variant={tab === "mine" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setTab("mine")}
-          >
+          <Button variant={tab === "mine" ? "default" : "outline"} size="sm" onClick={() => setTab("mine")}>
             My Certifications
           </Button>
         </div>
       )}
 
-      {tab === "all" && isAdmin ? <AdminAllView /> : <SelfEditor userId={user.id} />}
+      {tab === "all" && isAdmin ? <AdminAllView /> : <SelfView userId={user.id} />}
     </div>
   );
 };
