@@ -561,6 +561,55 @@ const guideSections: GuideSection[] = [
     ],
   },
   {
+    id: "certifications-staff",
+    title: "Instructor Certifications",
+    icon: ShieldCheck,
+    roles: ["manager", "employee"],
+    intro:
+      "View your CMSP, IRC, ARC, and CPR certification expiration dates. Only Owners and Admins can edit these dates.",
+    steps: [
+      "Open the Certifications tab to see all four expiration dates at a glance.",
+      "Green badge = valid, yellow = expires within 30 days, red = already expired.",
+      "If a date is wrong or missing, contact an Owner or Admin to have it updated.",
+    ],
+  },
+  {
+    id: "certifications-admin",
+    title: "Instructor Certifications",
+    icon: ShieldCheck,
+    roles: ["owner", "admin"],
+    intro:
+      "Track and manage CMSP, IRC, ARC, and CPR expiration dates for every instructor in one place.",
+    steps: [
+      {
+        heading: "All Instructors view",
+        details: [
+          "The table shows every active employee with their four certification statuses.",
+          "Click Edit on any row to open the date picker and update their expiration dates.",
+          "Use the Notes field for context like 'renewal submitted' or 'waiting on class results'.",
+        ],
+      },
+      {
+        heading: "My Certifications tab",
+        details: [
+          "Admins and Owners can also update their own dates directly from the My Certifications tab.",
+          "This works the same way as editing another instructor — pick dates and hit Save.",
+        ],
+      },
+      {
+        heading: "Status colors",
+        details: [
+          "Green = date is more than 30 days away.",
+          "Yellow = expires within 30 days — time to renew.",
+          "Red = already expired — the instructor may not be eligible to teach until renewed.",
+        ],
+      },
+    ],
+    callouts: [
+      { kind: "note", text: "Only Owners and Admins can create or modify certification records. Instructors always see their own dates read-only." },
+    ],
+  },
+  {
     id: "security-questions",
     title: "Security Questions",
     icon: ShieldCheck,
