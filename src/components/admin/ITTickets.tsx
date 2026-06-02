@@ -404,7 +404,7 @@ export default function ITTickets() {
                   </blockquote>
                   <div className="grid gap-2 pt-2">
                     <Button variant="outline" onClick={() => setFunStep("start")}>Take me back 🙃</Button>
-                    <Button onClick={goToForm}>😠 Just let me report</Button>
+                    <Button onClick={() => skipToForm(rudeReportJokes)}>😠 Just let me report</Button>
                   </div>
                 </>
               )}
