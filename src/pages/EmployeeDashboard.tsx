@@ -22,6 +22,7 @@ import AdminFiles from "@/components/admin/AdminFiles";
 import PaymentSettings from "@/components/admin/PaymentSettings";
 import AutoEmails from "@/components/admin/AutoEmails";
 import ITTickets from "@/components/admin/ITTickets";
+import InstructorCertifications from "@/components/admin/InstructorCertifications";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
 
@@ -36,6 +37,7 @@ const tabs = [
   { id: "rosters", label: "Class Rosters", icon: ListChecks, roles: ["owner", "admin", "manager", "employee"] },
   { id: "files", label: "Files", icon: FolderOpen, roles: ["owner", "admin", "manager", "employee"] },
   { id: "it-tickets", label: "IT Tickets", icon: Wrench, roles: ["owner", "admin", "manager", "employee"] },
+  { id: "certifications", label: "Certifications", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
   
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
@@ -230,6 +232,7 @@ const EmployeeDashboard = () => {
         {activeTab === "rosters" && <ClassRosters />}
         {activeTab === "files" && <AdminFiles />}
         {activeTab === "it-tickets" && <ITTickets />}
+        {activeTab === "certifications" && <InstructorCertifications />}
         
         {activeTab === "signed-waivers" && <SignedWaivers />}
         {activeTab === "auto-emails" && <AutoEmails />}
