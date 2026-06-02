@@ -617,6 +617,11 @@ const AdminEmployees = () => {
                   </span>
                   <div className="flex gap-1">
                     {emp.user_id && !(userRole === "admin" && emp.role === "owner") && (
+                      <Button variant="ghost" size="sm" onClick={() => handleResendWelcome(emp)} title="Resend Welcome Email">
+                        <Mail className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {emp.user_id && !(userRole === "admin" && emp.role === "owner") && (
                       <Button variant="ghost" size="sm" onClick={() => handleResetPassword(emp)} title="Reset Password">
                         <KeyRound className="w-4 h-4" />
                       </Button>
