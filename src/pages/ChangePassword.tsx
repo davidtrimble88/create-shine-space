@@ -132,6 +132,17 @@ const ChangePassword = () => {
                 <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
                   {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</> : "Set Password & Continue"}
                 </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full text-muted-foreground"
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    navigate("/employee-login");
+                  }}
+                >
+                  Back to Login
+                </Button>
               </form>
             </div>
           </>
