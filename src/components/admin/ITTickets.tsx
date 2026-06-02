@@ -58,6 +58,41 @@ export default function ITTickets() {
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", priority: "medium" });
   const [filter, setFilter] = useState<"all" | "mine">(isAdmin ? "all" : "mine");
+  const [funOpen, setFunOpen] = useState(false);
+  const [funStep, setFunStep] = useState<string>("start");
+  const [funTrail, setFunTrail] = useState(0);
+
+  const suggestionResponses = [
+    "Oh, a suggestion? Bold of you to assume we take those. 😏",
+    "Hmm... is this the kind of suggestion that creates more work for IT?",
+    "Fine. But if this is 'we should get standing desks shaped like motorcycles' again...",
+    "Okay okay, the suspense is killing me. Spill it. 🎤",
+  ];
+  const questionResponses = [
+    "A question? Have you tried turning it off and on again first? 🔌",
+    "Are you SURE Google can't answer this? Like, really sure?",
+    "Okay, but if this is 'what's the wifi password' I will riot. 📶",
+    "Alright, hit me with it. I'm bracing myself. 🧠",
+  ];
+
+  const openFun = () => {
+    setFunStep("start");
+    setFunTrail(0);
+    setFunOpen(true);
+  };
+
+  const goToForm = () => {
+    setFunOpen(false);
+    setOpen(true);
+  };
+
+  const nextTrail = (max: number, finalStep: string) => {
+    if (funTrail + 1 >= max) {
+      setFunStep(finalStep);
+    } else {
+      setFunTrail(funTrail + 1);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
