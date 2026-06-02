@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Loader2, MessageSquare, Send } from "lucide-react";
 
 type Ticket = {
   id: string;
@@ -58,6 +58,7 @@ export default function ITTickets() {
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", priority: "medium" });
   const [filter, setFilter] = useState<"all" | "mine">(isAdmin ? "all" : "mine");
+  const [view, setView] = useState<"active" | "closed">("active");
   const [funOpen, setFunOpen] = useState(false);
   const [funStep, setFunStep] = useState<string>("start");
   const [funTrail, setFunTrail] = useState(0);
@@ -318,6 +319,8 @@ export default function ITTickets() {
     let query = supabase.from("it_tickets").select("*").order("created_at", { ascending: false });
     // Non-admins can only ever see tickets they created
     if ((!isAdmin || filter === "mine") && user) query = query.eq("user_id", user.id);
+    if (view === "closed") query = query.eq("status", "closed");
+    else query = query.neq("status", "closed");
     const { data, error } = await query;
     if (error) toast({ title: "Failed to load tickets", description: error.message, variant: "destructive" });
     else setTickets((data || []) as Ticket[]);
@@ -326,7 +329,7 @@ export default function ITTickets() {
 
   useEffect(() => {
     load();
-  }, [filter]);
+  }, [filter, view]);
 
   // Countdown for "I need a moment" — stops halfway (at 5) and reveals a joke
   useEffect(() => {
@@ -387,6 +390,22 @@ export default function ITTickets() {
           <p className="text-sm text-muted-foreground">Report a problem or request IT help.</p>
         </div>
         <div className="flex items-center gap-2">
+          <div className="inline-flex rounded-md border border-border overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setView("active")}
+              className={`px-3 py-1.5 text-sm ${view === "active" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-secondary"}`}
+            >
+              Active
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("closed")}
+              className={`px-3 py-1.5 text-sm border-l border-border ${view === "closed" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-secondary"}`}
+            >
+              Closed (Archive)
+            </button>
+          </div>
           {isAdmin && (
             <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
               <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
@@ -654,9 +673,125 @@ export default function ITTickets() {
                     <p className="text-sm whitespace-pre-wrap">{t.admin_notes}</p>
                   </div>
                 )}
+                <TicketComments ticketId={t.id} isAdmin={isAdmin} />
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type Comment = {
+  id: string;
+  ticket_id: string;
+  user_id: string;
+  author_name: string | null;
+  author_role: string;
+  body: string;
+  created_at: string;
+};
+
+function TicketComments({ ticketId, isAdmin }: { ticketId: string; isAdmin: boolean }) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [body, setBody] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [showInput, setShowInput] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("ticket_comments")
+      .select("*")
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: true });
+    if (!error) setComments((data || []) as Comment[]);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, [ticketId]);
+
+  const submit = async () => {
+    if (!user || !body.trim()) return;
+    setSubmitting(true);
+    const { error } = await supabase.from("ticket_comments").insert({
+      ticket_id: ticketId,
+      user_id: user.id,
+      author_name: (user.user_metadata?.full_name as string) ?? user.email ?? null,
+      author_role: isAdmin ? "staff" : "creator",
+      body: body.trim(),
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: "Could not post comment", description: error.message, variant: "destructive" });
+      return;
+    }
+    setBody("");
+    setShowInput(false);
+    load();
+  };
+
+  return (
+    <div className="pt-3 border-t border-border space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+          <MessageSquare className="w-3.5 h-3.5" />
+          Comments {comments.length > 0 && `(${comments.length})`}
+        </p>
+        {!showInput && (
+          <Button size="sm" variant="ghost" onClick={() => setShowInput(true)} className="h-7 text-xs">
+            Add comment
+          </Button>
+        )}
+      </div>
+      {loading ? (
+        <p className="text-xs text-muted-foreground">Loading...</p>
+      ) : comments.length === 0 ? (
+        <p className="text-xs text-muted-foreground italic">No comments yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {comments.map((c) => (
+            <div
+              key={c.id}
+              className={`rounded-md p-2.5 text-sm ${
+                c.author_role === "staff"
+                  ? "bg-accent/10 border-l-2 border-accent"
+                  : "bg-secondary/50 border-l-2 border-muted-foreground/30"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <span className="text-xs font-medium">
+                  {c.author_name || "User"}
+                  <span className="ml-1.5 text-[10px] text-muted-foreground uppercase tracking-wide">
+                    {c.author_role === "staff" ? "IT" : "you"}
+                  </span>
+                </span>
+                <span className="text-[10px] text-muted-foreground">{new Date(c.created_at).toLocaleString()}</span>
+              </div>
+              <p className="whitespace-pre-wrap">{c.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {showInput && (
+        <div className="space-y-2">
+          <Textarea
+            rows={2}
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder={isAdmin ? "Reply to the ticket creator..." : "Add a comment or respond to IT..."}
+          />
+          <div className="flex gap-2 justify-end">
+            <Button size="sm" variant="ghost" onClick={() => { setShowInput(false); setBody(""); }}>Cancel</Button>
+            <Button size="sm" onClick={submit} disabled={submitting || !body.trim()}>
+              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 mr-1.5" />}
+              Post
+            </Button>
+          </div>
         </div>
       )}
     </div>
