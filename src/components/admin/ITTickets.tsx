@@ -247,6 +247,12 @@ export default function ITTickets() {
     setOpen(true);
   };
 
+  const skipToForm = (jokes: string[]) => {
+    const pick = jokes[Math.floor(Math.random() * jokes.length)];
+    setRudeJoke(pick);
+    setFunStep("rude");
+  };
+
   const nextTrail = (max: number, finalStep: string) => {
     if (funTrail + 1 >= max) {
       setFunStep(finalStep);
