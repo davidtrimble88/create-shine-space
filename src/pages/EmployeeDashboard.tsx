@@ -232,6 +232,7 @@ const EmployeeDashboard = () => {
         {activeTab === "rosters" && <ClassRosters />}
         {activeTab === "files" && <AdminFiles />}
         {activeTab === "it-tickets" && <ITTickets />}
+        {activeTab === "certifications" && <InstructorCertifications />}
         
         {activeTab === "signed-waivers" && <SignedWaivers />}
         {activeTab === "auto-emails" && <AutoEmails />}
