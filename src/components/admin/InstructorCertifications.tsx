@@ -430,7 +430,7 @@ const InstructorCertifications = () => {
         </div>
       )}
 
-      {tab === "all" && isAdmin ? <AdminAllView /> : <SelfView userId={user.id} />}
+      {tab === "all" && isAdmin ? <AdminAllView /> : <SelfView userId={user.id} editable={isAdmin} />}
     </div>
   );
 };
