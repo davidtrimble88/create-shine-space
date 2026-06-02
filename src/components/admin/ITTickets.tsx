@@ -152,7 +152,8 @@ export default function ITTickets() {
 
   const openFun = () => {
     setShuffledSuggestions(shuffle(suggestionResponses));
-    setShuffledQuestions(shuffle(questionResponses));
+    const qCount = Math.floor(Math.random() * 2) + 2; // 2 or 3
+    setShuffledQuestions(shuffle(questionResponses).slice(0, qCount));
     setFunStep("start");
     setFunTrail(0);
     setFunOpen(true);
