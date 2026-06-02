@@ -65,6 +65,8 @@ export default function ITTickets() {
 
   const [shuffledSuggestions, setShuffledSuggestions] = useState<string[]>([]);
   const [shuffledQuestions, setShuffledQuestions] = useState<string[]>([]);
+  const [shuffledComplaining, setShuffledComplaining] = useState<string[]>([]);
+  const [shuffledRealIssue, setShuffledRealIssue] = useState<string[]>([]);
 
   const suggestionResponses = [
     "Oh, a suggestion? Bold of you to assume we take those. 😏",
