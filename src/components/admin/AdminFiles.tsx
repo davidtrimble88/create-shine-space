@@ -501,6 +501,22 @@ const AdminFiles = () => {
                 rows={3}
               />
             </div>
+            <div>
+              <Label>Visible to</Label>
+              <Select value={editMinRole} onValueChange={(v) => setEditMinRole(v as MinRole)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {ROLE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      <div className="flex flex-col">
+                        <span>{opt.label}</span>
+                        <span className="text-xs text-muted-foreground">{opt.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditFile(null)} disabled={savingEdit}>
