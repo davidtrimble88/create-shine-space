@@ -586,6 +586,68 @@ const guideSections: GuideSection[] = [
       "Choose a strong password — mix uppercase, lowercase, numbers, and symbols.",
     ],
   },
+  {
+    id: "it-tickets",
+    title: "IT Tickets",
+    icon: Wrench,
+    roles: ["owner", "admin", "manager", "employee"],
+    intro:
+      "Submit suggestions, questions, or issue reports to the IT team — and follow them through to resolution.",
+    steps: [
+      {
+        heading: "Create a ticket",
+        details: [
+          "Click New Ticket and pick a category: Suggestion, Question, or Issue.",
+          "Yes, you'll get a joke first — it's part of the experience. Then the form unlocks.",
+          "Fill in a clear title and a description with enough detail for someone to reproduce or understand.",
+        ],
+      },
+      {
+        heading: "Track and discuss your tickets",
+        details: [
+          "Employees and viewers only see tickets they created. Admins and owners see everything.",
+          "Use the left sidebar to switch between Active and Closed (Archive), and to sort alphabetically or by newest.",
+          "Open the Comments section on any ticket to add updates or reply to IT staff.",
+        ],
+      },
+      {
+        heading: "Closed tickets",
+        details: [
+          "Once a ticket is closed it moves to the Closed (Archive) view. The poster, admins, and owners can still open it to read history and comments.",
+        ],
+      },
+    ],
+    callouts: [
+      { kind: "tip", text: "Add screenshots or steps to reproduce inside the description — it dramatically speeds up resolution." },
+    ],
+  },
+  {
+    id: "auto-emails",
+    title: "Auto Emails",
+    icon: Mail,
+    roles: ["owner", "admin"],
+    intro:
+      "Manage the automated emails sent to students — booking confirmations, reminders, and follow-ups.",
+    steps: [
+      {
+        heading: "Review the email list",
+        details: [
+          "Each row is one automated email type with its trigger (e.g. booking created, 24h before class).",
+          "Toggle an email on or off without losing its content.",
+        ],
+      },
+      {
+        heading: "Edit content",
+        details: [
+          "Open an email to edit the subject line and body. Merge tags like student name and class date are replaced at send time.",
+          "Send a test to yourself before saving — it's the fastest way to catch formatting issues.",
+        ],
+      },
+    ],
+    callouts: [
+      { kind: "warning", text: "Disabling a confirmation or reminder email affects every future booking. Double-check before turning one off." },
+    ],
+  },
 ];
 
 const calloutStyles: Record<Callout["kind"], { wrap: string; icon: React.ElementType }> = {
