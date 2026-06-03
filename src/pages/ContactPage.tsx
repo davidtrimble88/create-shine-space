@@ -12,6 +12,7 @@ const contactMethods = [
     value: "(805) 827-0075",
     href: "tel:+18058270075",
     description: "Call or text for Ventura County courses and scheduling.",
+    officeHours: "Mon-Fri: 9:00 AM - 5:00 PM",
   },
   {
     icon: Phone,
@@ -20,6 +21,7 @@ const contactMethods = [
     value: "(760) 987-6652",
     href: "tel:+17609876652",
     description: "Call or text for High Desert courses and scheduling.",
+    officeHours: "Mon-Fri: 9:00 AM - 5:00 PM",
   },
   {
     icon: Mail,
@@ -112,6 +114,14 @@ const ContactPage = () => {
                   <p className="text-xl font-bold text-foreground mb-2">
                     <EditableText contentKey={`${method.keyPrefix}.value`} fallback={method.value} />
                   </p>
+                  {method.officeHours && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <Clock className="w-4 h-4 text-accent flex-shrink-0" />
+                      <span className="text-sm font-medium text-foreground">
+                        <EditableText contentKey={`${method.keyPrefix}.hours`} fallback={method.officeHours} />
+                      </span>
+                    </div>
+                  )}
                   <p className="text-sm text-muted-foreground">
                     <EditableText contentKey={`${method.keyPrefix}.desc`} fallback={method.description} multiline />
                   </p>
