@@ -12,6 +12,7 @@ const contactMethods = [
     value: "(805) 827-0075",
     href: "tel:+18058270075",
     description: "Call or text for Ventura County courses and scheduling.",
+    officeHours: "Mon-Fri: 9:00 AM - 5:00 PM",
   },
   {
     icon: Phone,
@@ -20,6 +21,7 @@ const contactMethods = [
     value: "(760) 987-6652",
     href: "tel:+17609876652",
     description: "Call or text for High Desert courses and scheduling.",
+    officeHours: "Mon-Fri: 9:00 AM - 5:00 PM",
   },
   {
     icon: Mail,
