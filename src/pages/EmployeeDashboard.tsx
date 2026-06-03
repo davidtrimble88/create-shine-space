@@ -131,17 +131,10 @@ const EmployeeDashboard = () => {
               </div>
             </div>
           )}
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 p-2 space-y-1">
+        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
           {visibleTabs.map((tab) => (
             <button
               key={tab.id}
@@ -160,6 +153,17 @@ const EmployeeDashboard = () => {
             </button>
           ))}
         </nav>
+
+        {/* Collapse toggle - centered for easy phone access */}
+        <div className="flex justify-center py-2">
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {sidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          </button>
+        </div>
 
         {/* Footer */}
         <div className={`border-t border-border space-y-3 ${sidebarCollapsed ? "p-2" : "p-4"}`}>
