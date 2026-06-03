@@ -114,6 +114,14 @@ const ContactPage = () => {
                   <p className="text-xl font-bold text-foreground mb-2">
                     <EditableText contentKey={`${method.keyPrefix}.value`} fallback={method.value} />
                   </p>
+                  {method.officeHours && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <Clock className="w-4 h-4 text-accent flex-shrink-0" />
+                      <span className="text-sm font-medium text-foreground">
+                        <EditableText contentKey={`${method.keyPrefix}.hours`} fallback={method.officeHours} />
+                      </span>
+                    </div>
+                  )}
                   <p className="text-sm text-muted-foreground">
                     <EditableText contentKey={`${method.keyPrefix}.desc`} fallback={method.description} multiline />
                   </p>
