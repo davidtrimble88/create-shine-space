@@ -122,7 +122,7 @@ const BasicCourse = () => (
             <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1 rounded-full">RECOMMENDED</span>
             <span className="text-foreground font-bold text-lg">21 and Over</span>
           </div>
-          <p className="text-3xl font-bold text-accent mb-3">$425</p>
+          <p className="text-3xl font-bold text-accent mb-3"><EditableText contentKey="courses.mtc.priceAlt" fallback="$425" /></p>
           <ul className="space-y-2 text-sm text-foreground/80">
             <li className="flex items-start gap-2">
               <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
