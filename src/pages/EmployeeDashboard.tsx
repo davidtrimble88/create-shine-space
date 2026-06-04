@@ -25,6 +25,7 @@ import ITTickets from "@/components/admin/ITTickets";
 import InstructorCertifications from "@/components/admin/InstructorCertifications";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
+import NotificationBell from "@/components/admin/NotificationBell";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
