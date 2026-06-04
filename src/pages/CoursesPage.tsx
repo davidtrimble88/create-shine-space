@@ -96,7 +96,7 @@ const BasicCourse = () => (
             <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">REQUIRED</span>
             <span className="text-foreground font-bold text-lg">Under 21</span>
           </div>
-          <p className="text-3xl font-bold text-foreground mb-3">$395</p>
+          <p className="text-3xl font-bold text-foreground mb-3"><EditableText contentKey="courses.mtc.price" fallback="$395" /></p>
           <ul className="space-y-2 text-sm text-foreground/80">
             <li className="flex items-start gap-2">
               <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
@@ -122,7 +122,7 @@ const BasicCourse = () => (
             <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1 rounded-full">RECOMMENDED</span>
             <span className="text-foreground font-bold text-lg">21 and Over</span>
           </div>
-          <p className="text-3xl font-bold text-accent mb-3">$425</p>
+          <p className="text-3xl font-bold text-accent mb-3"><EditableText contentKey="courses.mtc.priceAlt" fallback="$425" /></p>
           <ul className="space-y-2 text-sm text-foreground/80">
             <li className="flex items-start gap-2">
               <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
@@ -296,7 +296,7 @@ const PremierCourse = () => (
           <div className="space-y-4">
             <div className="bg-secondary/50 rounded-xl p-4">
               <p className="text-sm text-muted-foreground mb-1">New Student</p>
-              <p className="text-3xl font-bold text-foreground">$350</p>
+              <p className="text-3xl font-bold text-foreground"><EditableText contentKey="courses.premier.price" fallback="$350" /></p>
               <p className="text-xs text-muted-foreground mt-1">Group discount for 4+ friends</p>
             </div>
             <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 relative">
@@ -304,7 +304,7 @@ const PremierCourse = () => (
                 SAVE $50
               </span>
               <p className="text-sm text-muted-foreground mb-1">Returning Student</p>
-              <p className="text-3xl font-bold text-accent">$300</p>
+              <p className="text-3xl font-bold text-accent"><EditableText contentKey="courses.premier.priceReturning" fallback="$300" /></p>
               <p className="text-xs text-muted-foreground mt-1">Previous Learn to Ride VC student</p>
               <p className="text-[10px] text-accent font-medium mt-1">Call to receive discounted rate</p>
             </div>
@@ -438,7 +438,7 @@ const IntermediateCourse = () => (
           <div className="space-y-4">
             <div className="bg-secondary/50 rounded-xl p-4">
               <p className="text-sm text-muted-foreground mb-1">New Student</p>
-              <p className="text-3xl font-bold text-foreground">$350</p>
+              <p className="text-3xl font-bold text-foreground"><EditableText contentKey="courses.intermediate.price" fallback="$350" /></p>
               <p className="text-xs text-muted-foreground mt-1">Group discount for 4+ friends</p>
             </div>
             <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 relative">
@@ -446,7 +446,7 @@ const IntermediateCourse = () => (
                 SAVE $50
               </span>
               <p className="text-sm text-muted-foreground mb-1">Returning Student</p>
-              <p className="text-3xl font-bold text-accent">$300</p>
+              <p className="text-3xl font-bold text-accent"><EditableText contentKey="courses.intermediate.priceReturning" fallback="$300" /></p>
               <p className="text-xs text-muted-foreground mt-1">Previous Learn to Ride VC student</p>
               <p className="text-[10px] text-accent font-medium mt-1">Call to receive discounted rate</p>
             </div>
