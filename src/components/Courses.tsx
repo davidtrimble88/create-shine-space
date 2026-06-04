@@ -130,16 +130,22 @@ const Courses = () => {
                 {'priceAlt' in course && (course as any).priceAlt ? (
                   <div className="flex flex-col">
                     <div>
-                      <span className="text-4xl font-bold text-foreground">{course.price}</span>
+                      <span className="text-4xl font-bold text-foreground">
+                        <EditableText contentKey={(course as any).priceKey} fallback={course.price} />
+                      </span>
                       <span className="text-muted-foreground ml-2">under 21</span>
                     </div>
                     <div className="mt-1">
-                      <span className="text-2xl font-bold text-foreground">{(course as any).priceAlt}</span>
+                      <span className="text-2xl font-bold text-foreground">
+                        <EditableText contentKey={(course as any).priceAltKey} fallback={(course as any).priceAlt} />
+                      </span>
                     </div>
                   </div>
                 ) : (
                   <>
-                    <span className="text-4xl font-bold text-foreground">{course.price}</span>
+                    <span className="text-4xl font-bold text-foreground">
+                      <EditableText contentKey={(course as any).priceKey} fallback={course.price} />
+                    </span>
                     {course.price !== "Contact for Pricing" && (
                       <span className="text-muted-foreground ml-2">per person</span>
                     )}
