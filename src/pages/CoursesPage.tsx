@@ -296,7 +296,7 @@ const PremierCourse = () => (
           <div className="space-y-4">
             <div className="bg-secondary/50 rounded-xl p-4">
               <p className="text-sm text-muted-foreground mb-1">New Student</p>
-              <p className="text-3xl font-bold text-foreground">$350</p>
+              <p className="text-3xl font-bold text-foreground"><EditableText contentKey="courses.premier.price" fallback="$350" /></p>
               <p className="text-xs text-muted-foreground mt-1">Group discount for 4+ friends</p>
             </div>
             <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 relative">
