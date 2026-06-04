@@ -304,7 +304,7 @@ const PremierCourse = () => (
                 SAVE $50
               </span>
               <p className="text-sm text-muted-foreground mb-1">Returning Student</p>
-              <p className="text-3xl font-bold text-accent">$300</p>
+              <p className="text-3xl font-bold text-accent"><EditableText contentKey="courses.premier.priceReturning" fallback="$300" /></p>
               <p className="text-xs text-muted-foreground mt-1">Previous Learn to Ride VC student</p>
               <p className="text-[10px] text-accent font-medium mt-1">Call to receive discounted rate</p>
             </div>
