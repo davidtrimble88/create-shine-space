@@ -225,6 +225,9 @@ const EmployeeDashboard = () => {
 
       {/* Main content */}
       <main className="flex-1 p-8 overflow-auto">
+        <div className="flex justify-end mb-4">
+          <NotificationBell onNavigate={setActiveTab} />
+        </div>
         {activeTab === "overview" && <AdminOverview />}
         {activeTab === "schedule" && <AdminSchedule />}
         {activeTab === "full-schedule" && <ComprehensiveSchedule />}
