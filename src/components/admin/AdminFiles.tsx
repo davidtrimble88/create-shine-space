@@ -211,9 +211,17 @@ const AdminFiles = () => {
 
   const handleDownload = async (f: SharedFile) => {
     setDownloadingId(f.id);
+    // Preserve the original file extension so the OS opens it with the right app.
+    const pathExt = f.file_path.includes(".")
+      ? f.file_path.split(".").pop()!.toLowerCase()
+      : "";
+    const nameHasExt = /\.[a-z0-9]{1,6}$/i.test(f.display_name);
+    // Sanitize the display name for use as a filename (avoid ":", "/", etc.)
+    const safeBase = f.display_name.replace(/[\\/:*?"<>|]+/g, "-").trim();
+    const downloadName = nameHasExt || !pathExt ? safeBase : `${safeBase}.${pathExt}`;
     const { data, error } = await supabase.storage
       .from("shared-files")
-      .createSignedUrl(f.file_path, 60, { download: f.display_name });
+      .createSignedUrl(f.file_path, 60, { download: downloadName });
     setDownloadingId(null);
     if (error || !data?.signedUrl) {
       toast.error("Could not get download link");
