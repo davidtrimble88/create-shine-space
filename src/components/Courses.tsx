@@ -10,6 +10,8 @@ const courses = [
     subtitle: "Perfect for beginners",
     price: "$395",
     priceAlt: "$425 (21+)",
+    priceKey: "courses.mtc.price",
+    priceAltKey: "courses.mtc.priceAlt",
     duration: "2 Days (Weekend)",
     tab: "basic",
     features: [
@@ -26,6 +28,7 @@ const courses = [
     name: "1-Day Premier Course",
     subtitle: "For experienced riders · Licensing for 21+",
     price: "$350",
+    priceKey: "courses.premier.price",
     duration: "1 Day (8 Hours)",
     tab: "premier",
     features: [
@@ -42,6 +45,7 @@ const courses = [
     name: "Intermediate Course",
     subtitle: "Level up your skills",
     price: "$350",
+    priceKey: "courses.intermediate.price",
     duration: "1 Day",
     tab: "intermediate",
     features: [
@@ -58,6 +62,7 @@ const courses = [
     name: "Advanced Riding Clinic",
     subtitle: "Total Control ARC®",
     price: "Contact for Pricing",
+    priceKey: "courses.arc.price",
     duration: "1 Day",
     tab: "advanced",
     features: [
