@@ -223,6 +223,7 @@ const RegisterPage = () => {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [pendingBooking, setPendingBooking] = useState<Record<string, unknown> | null>(null);
   const [pendingGroupName, setPendingGroupName] = useState<string | null>(null);
+  const [pendingScheduleDetail, setPendingScheduleDetail] = useState<string | null>(null);
   const [paymentRegion, setPaymentRegion] = useState<SquareRegion>("ventura");
   const [paymentAmountCents, setPaymentAmountCents] = useState(0);
   const [paymentAmountLabel, setPaymentAmountLabel] = useState("");
@@ -234,6 +235,17 @@ const RegisterPage = () => {
   const [modelReleaseOpen, setModelReleaseOpen] = useState(false);
   const [modelReleasePrefill, setModelReleasePrefill] = useState<ModelReleasePrefill | null>(null);
 
+  const formatScheduleDate = (iso: string | null) => {
+    if (!iso) return "";
+    // Parse YYYY-MM-DD as a local date (avoid UTC shift)
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+    if (!m) return iso;
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return d.toLocaleDateString("en-US", {
+      weekday: "long", month: "long", day: "numeric", year: "numeric",
+    });
+  };
+
   const fireRegistrationEmail = async (payload: {
     email: string;
     firstName: string;
@@ -244,6 +256,7 @@ const RegisterPage = () => {
     location: string;
     groupName: string | null;
     scheduleDate: string | null;
+    scheduleDetail: string | null;
     fee: string;
   }) => {
     try {
@@ -260,13 +273,15 @@ const RegisterPage = () => {
             course: payload.courseLabel,
             locationLabel: payload.locationLabel,
             groupName: payload.groupName || "",
-            scheduleDate: payload.scheduleDate || "",
-            schedule: "",
+            scheduleDate: formatScheduleDate(payload.scheduleDate),
+            scheduleDetail: payload.scheduleDetail || "",
+            schedule: payload.scheduleDetail || "",
             fee: payload.fee,
             email: payload.email,
           },
         },
       });
+
 
       if (error) throw error;
 
@@ -285,22 +300,25 @@ const RegisterPage = () => {
       // Look up the actual selected schedule (by id) to get its price + date
       let scheduleId: string | null = null;
       let scheduleDate: string | null = null;
+      let scheduleDetail: string | null = null;
       let schedulePrice: string | null = null;
       let scheduleGroup: string | null = null;
       if (schedule) {
         const { data: schedData } = await supabase
           .from("schedules")
-          .select("id, date, price, group_name")
+          .select("id, date, price, group_name, schedule")
           .eq("id", schedule)
           .is("cancelled_at", null)
           .maybeSingle();
         if (schedData) {
           scheduleId = schedData.id;
           scheduleDate = schedData.date;
+          scheduleDetail = (schedData as any).schedule ?? null;
           schedulePrice = schedData.price;
           scheduleGroup = (schedData as any).group_name ?? null;
         }
       }
+
 
       // Parse the schedule's price (e.g. "$1", "$425") into cents.
       // Fall back to age-based default only if no schedule price is available.
@@ -370,6 +388,7 @@ const RegisterPage = () => {
           location,
           groupName: scheduleGroup,
           scheduleDate,
+          scheduleDetail,
           fee: feeLabel,
         });
         form.reset();
@@ -381,6 +400,7 @@ const RegisterPage = () => {
       // Show CMSP Student Registration Form step first, then waiver, then payment.
       setPendingBooking(bookingPayload);
       setPendingGroupName(scheduleGroup);
+      setPendingScheduleDetail(scheduleDetail);
       setPaymentRegion(region);
       setPaymentAmountCents(feeCents);
       setPaymentAmountLabel(feeLabel);
@@ -501,11 +521,12 @@ const RegisterPage = () => {
         location: p.location,
         groupName: pendingGroupName,
         scheduleDate: p.schedule_date,
+        scheduleDetail: pendingScheduleDetail,
         fee: p.fee,
       });
     }
     form.reset();
-    setPendingBooking(null); setPendingGroupName(null);
+    setPendingBooking(null); setPendingGroupName(null); setPendingScheduleDetail(null);
     setWaiverPrefill(null);
     setRegFormPrefill(null);
     setModelReleasePrefill(null);
@@ -547,10 +568,11 @@ const RegisterPage = () => {
         location: p.location,
         groupName: pendingGroupName,
         scheduleDate: p.schedule_date,
+        scheduleDetail: pendingScheduleDetail,
         fee: p.fee,
       });
       form.reset();
-      setPendingBooking(null); setPendingGroupName(null);
+      setPendingBooking(null); setPendingGroupName(null); setPendingScheduleDetail(null);
       setWaiverPrefill(null);
       setRegFormPrefill(null);
       setModelReleasePrefill(null);
