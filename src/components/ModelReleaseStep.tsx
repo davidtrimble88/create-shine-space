@@ -323,7 +323,7 @@ const ModelReleaseStep = ({ prefill, onBack, onComplete }: Props) => {
       {decision === "sign" && (
         <>
           <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-4">
-            <h3 className="font-semibold">Visual Reference (helps staff identify you on class day)</h3>
+            <h3 className="font-semibold">Visual Reference If Known (helps staff identify you on class day)</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div><Label>Bike Model</Label><Input value={bikeModel} onChange={(e) => setBikeModel(e.target.value)} placeholder="e.g. Honda Grom" /></div>
               <div><Label>Helmet Color</Label><Input value={helmetColor} onChange={(e) => setHelmetColor(e.target.value)} placeholder="e.g. Black" /></div>
