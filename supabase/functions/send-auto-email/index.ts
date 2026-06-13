@@ -77,14 +77,33 @@ Deno.serve(async (req) => {
         '<a href="$1" style="color:#c2410c;text-decoration:underline" target="_blank" rel="noopener">$1</a>'
       );
 
+    // Detect if the template body already contains HTML markup (tags, entities, or images).
+    // If so, pass through as-is (only converting blank lines/newlines for spacing) instead
+    // of escaping every < and >, which would otherwise render tags like <img>, <strong>,
+    // and <mark> as literal text in the email.
+    const looksLikeHtml = (text: string) =>
+      /<\/?[a-zA-Z][^>]*>|&[a-zA-Z#0-9]+;/.test(text);
+
     const textToHtml = (text: string) => {
-      const esc = text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-      const paras = esc.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+      const isHtml = looksLikeHtml(text);
+      const paras = (isHtml ? text : text)
+        .split(/\n\n+/)
+        .map((p) => p.trim())
+        .filter(Boolean);
       const htmlBody = paras
-        .map((p) => `<p style="margin:0 0 16px 0;line-height:1.6">${linkify(p).replace(/\n/g, "<br>")}</p>`)
+        .map((p) => {
+          if (isHtml) {
+            // Preserve existing HTML; only linkify bare URLs that aren't already inside an <a>.
+            const withBreaks = p.replace(/\n/g, "<br>");
+            const linked = withBreaks.replace(
+              /(?<!href=["'])(https?:\/\/[^\s<"']+[^\s<.,;:!?)\]}'"])/g,
+              '<a href="$1" style="color:#c2410c;text-decoration:underline" target="_blank" rel="noopener">$1</a>'
+            );
+            return `<div style="margin:0 0 16px 0;line-height:1.6">${linked}</div>`;
+          }
+          const esc = p.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          return `<p style="margin:0 0 16px 0;line-height:1.6">${linkify(esc).replace(/\n/g, "<br>")}</p>`;
+        })
         .join("");
       const attachmentBlock = attachments.length
         ? `<div style="margin-top:24px;padding:16px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa"><div style="font-weight:bold;margin-bottom:8px">Attachments</div>${attachments
@@ -96,6 +115,7 @@ Deno.serve(async (req) => {
         : "";
       return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${htmlBody}${attachmentBlock}</div>`;
     };
+
 
 
     // Try queue-based send if email infrastructure exists.
