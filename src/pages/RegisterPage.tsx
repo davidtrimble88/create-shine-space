@@ -293,6 +293,56 @@ const RegisterPage = () => {
     }
   };
 
+  const completeRegistration = (booking: any) => {
+    fireRegistrationEmail({
+      email: booking.email,
+      firstName: booking.first_name,
+      lastName: booking.last_name,
+      courseKey: booking.course,
+      courseLabel: courseLabels[booking.course] || booking.course,
+      locationLabel: booking.location_label,
+      location: booking.location,
+      groupName: pendingGroupName,
+      scheduleDate: booking.schedule_date,
+      scheduleDetail: pendingScheduleDetail,
+      fee: booking.fee,
+    });
+    paymentCompletedRef.current = false;
+    form.reset();
+    setPendingBooking(null);
+    setPendingGroupName(null);
+    setPendingScheduleDetail(null);
+    setPaymentOpen(false);
+    setWaiverPrefill(null);
+    setRegFormPrefill(null);
+    setModelReleasePrefill(null);
+    navigate("/registration-confirmation");
+  };
+
+  const saveBooking = async (
+    booking: any,
+    paymentStatus: "skipped" | "unpaid",
+    paymentProvider?: string,
+  ) => {
+    const { data, error } = await supabase.functions.invoke("create-booking", {
+      body: {
+        booking,
+        paymentStatus,
+        paymentProvider,
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message || "Could not save booking");
+    }
+
+    if (data && typeof data === "object" && "error" in data && (data as any).error) {
+      throw new Error(String((data as any).error));
+    }
+
+    return data;
+  };
+
 
   const onSubmit = async (data: RegistrationFormData) => {
     setSubmitting(true);
@@ -339,6 +389,7 @@ const RegisterPage = () => {
       const region: SquareRegion = location.startsWith("high-desert") ? "high_desert" : "ventura";
 
       const bookingPayload = {
+        id: crypto.randomUUID(),
         schedule_id: scheduleId,
         course,
         location,
@@ -371,28 +422,9 @@ const RegisterPage = () => {
 
       if (skipPaymentRef.current) {
         skipPaymentRef.current = false;
-        const { error: insertErr } = await supabase.from("bookings").insert({
-          ...bookingPayload,
-          payment_status: "skipped",
-          booking_status: "confirmed",
-        });
-        if (insertErr) throw insertErr;
+        await saveBooking(bookingPayload, "skipped");
         toast({ title: "Test booking saved", description: "Payment skipped (testing only)." });
-        fireRegistrationEmail({
-          email: data.email,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          courseKey: course,
-          courseLabel: courseLabels[course] || course,
-          locationLabel: locationLabels[location] || location,
-          location,
-          groupName: scheduleGroup,
-          scheduleDate,
-          scheduleDetail,
-          fee: feeLabel,
-        });
-        form.reset();
-        navigate("/registration-confirmation");
+        completeRegistration(bookingPayload);
         setSubmitting(false);
         return;
       }
@@ -510,27 +542,18 @@ const RegisterPage = () => {
   const handlePaymentSuccess = () => {
     paymentCompletedRef.current = true;
     if (pendingBooking) {
-      const p = pendingBooking as any;
-      fireRegistrationEmail({
-        email: p.email,
-        firstName: p.first_name,
-        lastName: p.last_name,
-        courseKey: p.course,
-        courseLabel: courseLabels[p.course] || p.course,
-        locationLabel: p.location_label,
-        location: p.location,
-        groupName: pendingGroupName,
-        scheduleDate: p.schedule_date,
-        scheduleDetail: pendingScheduleDetail,
-        fee: p.fee,
-      });
+      completeRegistration(pendingBooking as any);
     }
-    form.reset();
-    setPendingBooking(null); setPendingGroupName(null); setPendingScheduleDetail(null);
-    setWaiverPrefill(null);
-    setRegFormPrefill(null);
-    setModelReleasePrefill(null);
-    navigate("/registration-confirmation");
+  };
+
+  const handleTestingSkipPayment = async () => {
+    if (!pendingBooking) return;
+
+    const booking = pendingBooking as any;
+    await saveBooking(booking, "skipped");
+    toast({ title: "Test booking saved", description: "Payment skipped (testing only)." });
+    paymentCompletedRef.current = true;
+    completeRegistration(booking);
   };
 
   // If the payment dialog is closed without paying, still create the booking
@@ -540,47 +563,18 @@ const RegisterPage = () => {
     setPaymentOpen(open);
     if (open || paymentCompletedRef.current || !pendingBooking) return;
     try {
-      const { error } = await supabase.from("bookings").insert({
-        ...(pendingBooking as any),
-        payment_status: "unpaid",
-        booking_status: "confirmed",
-      } as any);
-      if (error) {
-        toast({
-          title: "Could not save booking",
-          description: "Please contact us to confirm your spot.",
-          variant: "destructive",
-        });
-        return;
-      }
+      const booking = pendingBooking as any;
+      await saveBooking(booking, "unpaid");
       toast({
         title: "You're booked!",
         description: "Payment was skipped — staff will collect it from you.",
       });
-      const p = pendingBooking as any;
-      fireRegistrationEmail({
-        email: p.email,
-        firstName: p.first_name,
-        lastName: p.last_name,
-        courseKey: p.course,
-        courseLabel: courseLabels[p.course] || p.course,
-        locationLabel: p.location_label,
-        location: p.location,
-        groupName: pendingGroupName,
-        scheduleDate: p.schedule_date,
-        scheduleDetail: pendingScheduleDetail,
-        fee: p.fee,
-      });
-      form.reset();
-      setPendingBooking(null); setPendingGroupName(null); setPendingScheduleDetail(null);
-      setWaiverPrefill(null);
-      setRegFormPrefill(null);
-      setModelReleasePrefill(null);
-      navigate("/registration-confirmation");
-    } catch {
+      paymentCompletedRef.current = true;
+      completeRegistration(booking);
+    } catch (error) {
       toast({
         title: "Could not save booking",
-        description: "Please contact us to confirm your spot.",
+        description: error instanceof Error ? error.message : "Please contact us to confirm your spot.",
         variant: "destructive",
       });
     }
@@ -1243,6 +1237,7 @@ const RegisterPage = () => {
         <PaymentDialog
           open={paymentOpen}
           onOpenChange={handlePaymentDialogChange}
+          onSkipPayment={handleTestingSkipPayment}
           region={paymentRegion}
           amountCents={paymentAmountCents}
           amountLabel={paymentAmountLabel}
