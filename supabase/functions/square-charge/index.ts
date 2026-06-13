@@ -96,25 +96,53 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { error: insertErr } = await supabase.from("bookings").insert({
-      ...booking,
-      payment_status: "paid",
-      booking_status: "confirmed",
-    });
+    const bookingId = typeof booking.id === "string" ? booking.id : null;
 
-    if (insertErr) {
-      console.error("Booking insert failed after successful charge:", insertErr);
-      // Card was charged but booking didn't save — surface clearly
+    if (!bookingId) {
+      return new Response(
+        JSON.stringify({ error: "Booking id is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: existing, error: existingErr } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("id", bookingId)
+      .maybeSingle();
+
+    if (existingErr) {
+      console.error("Booking lookup failed after successful charge:", existingErr);
       return new Response(
         JSON.stringify({
-          error: "Payment succeeded but booking could not be saved. Please contact us with this reference: " + paymentId,
+          error: "Payment succeeded but booking verification failed. Please contact us with this reference: " + paymentId,
           paymentId,
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    return new Response(JSON.stringify({ success: true, paymentId }), {
+    if (!existing) {
+      const { error: insertErr } = await supabase.from("bookings").insert({
+        ...booking,
+        payment_status: "paid",
+        booking_status: "confirmed",
+        payment_provider: "square",
+      });
+
+      if (insertErr) {
+        console.error("Booking insert failed after successful charge:", insertErr);
+        return new Response(
+          JSON.stringify({
+            error: "Payment succeeded but booking could not be saved. Please contact us with this reference: " + paymentId,
+            paymentId,
+          }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    return new Response(JSON.stringify({ success: true, paymentId, bookingId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
