@@ -14,7 +14,10 @@ const cors = {
 };
 
 const render = (tpl: string, vars: Record<string, string>) =>
-  tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => (vars?.[k] ?? `{{${k}}}`));
+  tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => {
+    const v = vars?.[k];
+    return v === undefined || v === null ? "" : String(v);
+  });
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
