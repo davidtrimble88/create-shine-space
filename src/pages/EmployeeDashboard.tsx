@@ -120,13 +120,18 @@ const EmployeeDashboard = () => {
   const isImpersonating = isOwner && !!viewAsRole && viewAsRole !== "owner";
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div
+      className="min-h-screen bg-background flex"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Sidebar */}
       <aside
         className={`bg-card border-r border-border flex flex-col min-h-screen transition-all duration-300 ${
           sidebarCollapsed ? "w-16" : "w-64"
         }`}
       >
+
         {/* Header */}
         <div className={`border-b border-border flex items-center ${sidebarCollapsed ? "p-3 justify-center" : "p-6"}`}>
           {!sidebarCollapsed && (
