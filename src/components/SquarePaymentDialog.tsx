@@ -37,6 +37,7 @@ export type SquareRegion = "ventura" | "high_desert";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSkipPayment?: () => Promise<void> | void;
   region: SquareRegion;
   amountCents: number;
   amountLabel: string; // e.g. "$425"
@@ -45,7 +46,7 @@ interface Props {
 }
 
 export const SquarePaymentDialog = ({
-  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, onSuccess,
+  open, onOpenChange, onSkipPayment, region, amountCents, amountLabel, bookingPayload, onSuccess,
 }: Props) => {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<any>(null);
@@ -121,6 +122,19 @@ export const SquarePaymentDialog = ({
     setSubmitting(false);
   };
 
+  const handleSkipPayment = async () => {
+    if (!onSkipPayment) return;
+    setSubmitting(true);
+    try {
+      await onSkipPayment();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Could not save booking";
+      toast({ title: "Could not save booking", description: msg, variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(o) => !submitting && onOpenChange(o)}>
       <DialogContent className="sm:max-w-md">
@@ -157,7 +171,7 @@ export const SquarePaymentDialog = ({
             variant="ghost"
             size="sm"
             className="w-full text-xs text-muted-foreground hover:text-foreground"
-            onClick={() => onSuccess(`test-skip-${Date.now()}`)}
+            onClick={handleSkipPayment}
             disabled={submitting}
           >
             Skip Payment (Testing Only)
