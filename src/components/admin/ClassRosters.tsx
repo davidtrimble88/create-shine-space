@@ -1730,7 +1730,7 @@ const ClassRosters = () => {
                               const em = (b.email || "").toLowerCase();
                               const mr = modelReleaseByEmail.get(em);
                               const label = mr === "signed" ? "Model release: accepted" : mr === "declined" ? "Model release: declined" : "Model release: not completed";
-                              const cls = mr === "signed" ? "bg-emerald-500/15 text-emerald-500" : mr === "declined" ? "bg-rose-500/15 text-rose-500" : "bg-muted text-muted-foreground";
+                              const cls = mr === "signed" ? "bg-emerald-500/15 text-emerald-500" : mr === "declined" ? "bg-red-500/20 text-red-500 ring-1 ring-red-500/40" : "bg-muted text-muted-foreground";
                               const sym = mr === "signed" ? "✓" : mr === "declined" ? "✗" : "—";
                               return (
                                 <span title={label} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
