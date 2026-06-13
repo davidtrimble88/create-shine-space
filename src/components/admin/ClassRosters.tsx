@@ -1442,6 +1442,15 @@ const ClassRosters = () => {
                           <Input type="date" value={retestForm.date_of_birth} onChange={e => setRetestForm(p => ({ ...p, date_of_birth: e.target.value }))} />
                         </div>
                       </div>
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Instructor Notes (what are they retesting for?)</label>
+                        <Textarea
+                          value={retestForm.comment}
+                          onChange={e => setRetestForm(p => ({ ...p, comment: e.target.value }))}
+                          placeholder="e.g. Skill retest — dropped bike during eval"
+                          className="min-h-[80px] text-sm"
+                        />
+                      </div>
                       <Button onClick={handleAddRetest} disabled={addingRetest} className="w-full">
                         {addingRetest ? "Adding..." : "Add to Retest Roster"}
                       </Button>
