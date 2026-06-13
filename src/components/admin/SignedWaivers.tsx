@@ -179,24 +179,24 @@ const SignedWaivers = () => {
       </div>
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-[98vw] sm:max-w-[95vw] w-full h-[95vh] p-3 sm:p-6 flex flex-col">
           {selected && (
             <>
-              <DialogHeader>
-                <DialogTitle>Signed Waiver — {selected.signer_first_name} {selected.signer_last_name}</DialogTitle>
-                <DialogDescription>
+              <DialogHeader className="shrink-0">
+                <DialogTitle className="text-base sm:text-lg">Signed Waiver — {selected.signer_first_name} {selected.signer_last_name}</DialogTitle>
+                <DialogDescription className="text-xs">
                   Electronically signed {new Date(selected.signed_at).toLocaleString()} (ESIGN Act / UETA) · IP {selected.ip_address || "—"} · SHA-256 {selected.document_hash?.slice(0, 16)}…
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="flex-1 min-h-[60vh] rounded-lg border border-border bg-muted/30 overflow-hidden">
+              <div className="flex-1 min-h-0 rounded-lg border border-border bg-white overflow-hidden">
                 {pdfLoading && (
                   <div className="h-full flex items-center justify-center text-muted-foreground">
                     <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading signed PDF…
                   </div>
                 )}
                 {!pdfLoading && pdfUrl && (
-                  <iframe src={pdfUrl} title="Signed waiver PDF" className="w-full h-full" />
+                  <iframe src={`${pdfUrl}#view=FitH&toolbar=1`} title="Signed waiver PDF" className="w-full h-full" />
                 )}
                 {!pdfLoading && !pdfUrl && (
                   <div className="h-full flex items-center justify-center text-muted-foreground text-sm p-4 text-center">
@@ -205,7 +205,12 @@ const SignedWaivers = () => {
                 )}
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2 pt-2 shrink-0 flex-wrap">
+                {pdfUrl && (
+                  <Button variant="outline" onClick={() => window.open(pdfUrl, "_blank", "noopener,noreferrer")}>
+                    Open in new tab
+                  </Button>
+                )}
                 <Button variant="outline" onClick={() => setSelected(null)}>Close</Button>
                 <Button onClick={() => downloadPdf(selected)} disabled={!selected.pdf_path}>
                   <Download className="w-4 h-4 mr-2" /> Download Signed PDF
