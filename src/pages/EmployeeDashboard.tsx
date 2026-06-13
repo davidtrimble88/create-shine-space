@@ -279,6 +279,17 @@ const EmployeeDashboard = () => {
         </Sheet>
       )}
 
+      {/* Mobile swipe hint */}
+      {isMobile && (
+        <button
+          onClick={() => setMobileNavOpen(true)}
+          className="fixed left-0 top-1/2 -translate-y-1/2 z-20 flex items-center py-2 pl-1 pr-1.5 bg-card/70 backdrop-blur-sm border border-border border-l-0 rounded-r-lg shadow-sm active:bg-card"
+          aria-label="Open menu"
+        >
+          <ChevronRight className="w-4 h-4 text-muted-foreground/70" />
+        </button>
+      )}
+
       {/* Main content */}
       <main className="flex-1 overflow-auto">
         {/* Mobile sticky top bar */}
