@@ -294,7 +294,7 @@ const EmployeeDashboard = () => {
       <main className="flex-1 overflow-auto">
         {/* Mobile sticky top bar */}
         {isMobile && (
-          <div className="sticky top-0 z-30 bg-card/95 backdrop-blur border-b border-border flex items-center justify-between px-3 py-2">
+          <div className="sticky top-0 z-30 bg-card/95 backdrop-blur border-b border-border flex items-center justify-between px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
             <div className="flex items-center gap-2 min-w-0">
               <Button
                 variant="ghost"
