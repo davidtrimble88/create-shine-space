@@ -64,28 +64,7 @@ Deno.serve(async (req) => {
     }
 
     const subject = render(tpl.subject, variables);
-    let body = render(tpl.body, variables);
-    const rawAttachments = Array.isArray((tpl as any).attachments) ? (tpl as any).attachments : [];
-    // Bucket is private — mint long-lived signed URLs (1 year) at send time so
-    // recipients can still open the attachments referenced in the email.
-    const SIGNED_URL_TTL = 60 * 60 * 24 * 365; // 1 year
-    const attachments = await Promise.all(
-      rawAttachments.map(async (a: any) => {
-        if (a?.path) {
-          try {
-            const { data: signed } = await supabase.storage
-              .from("email-attachments")
-              .createSignedUrl(a.path, SIGNED_URL_TTL);
-            if (signed?.signedUrl) return { ...a, url: signed.signedUrl };
-          } catch (_) { /* fall through to existing url */ }
-        }
-        return a;
-      })
-    );
-    if (attachments.length) {
-      const list = attachments.map((a: any) => `${a.name}: ${a.url}`).join("\n");
-      body = `${body}\n\n${list}`;
-    }
+    const body = render(tpl.body, variables);
 
     const linkify = (escapedText: string) =>
       escapedText.replace(
@@ -99,6 +78,12 @@ Deno.serve(async (req) => {
     // and <mark> as literal text in the email.
     const looksLikeHtml = (text: string) =>
       /<\/?[a-zA-Z][^>]*>|&[a-zA-Z#0-9]+;/.test(text);
+
+    const replaceEmailHighlights = (html: string) =>
+      html.replace(/<mark\b[^>]*>([\s\S]*?)<\/mark>/gi, (_match, content) => {
+        const cleaned = String(content).trim();
+        return `<strong style="display:inline-block;background:#fff59d;background-color:#fff59d;color:#111111;padding:2px 6px;font-weight:700;mso-highlight:yellow;text-decoration:none;">${cleaned}</strong>`;
+      });
 
     const textToHtml = (text: string) => {
       const isHtml = looksLikeHtml(text);
@@ -114,21 +99,13 @@ Deno.serve(async (req) => {
               /(?<!href=["'])(https?:\/\/[^\s<"']+[^\s<.,;:!?)\]}'"])/g,
               '<a href="$1" style="color:#c2410c;text-decoration:underline" target="_blank" rel="noopener">$1</a>'
             );
-            return `<div style="margin:0 0 16px 0;line-height:1.6">${linked}</div>`;
+            return `<div style="margin:0 0 16px 0;line-height:1.6">${replaceEmailHighlights(linked)}</div>`;
           }
           const esc = p.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
           return `<p style="margin:0 0 16px 0;line-height:1.6">${linkify(esc).replace(/\n/g, "<br>")}</p>`;
         })
         .join("");
-      const attachmentBlock = attachments.length
-        ? `<div style="margin-top:16px;line-height:1.6">${attachments
-            .map(
-              (a: any) =>
-                `<a href="${a.url}" style="color:#c2410c;text-decoration:underline" target="_blank" rel="noopener">${a.name}</a>`
-            )
-            .join("<br>")}</div>`
-        : "";
-      const inner = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${htmlBody}${attachmentBlock}</div>`;
+      const inner = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${htmlBody}</div>`;
       // Wrap in a full email document so clients (Gmail, Outlook) reliably
       // preserve inline styles like background-color on <span> tags instead
       // of stripping them as part of "stray fragment" sanitization.
@@ -138,11 +115,13 @@ Deno.serve(async (req) => {
     // Build a real plain-text alternative by stripping HTML tags. Mail clients
     // showing the text/plain part would otherwise see raw tags or nothing.
     const htmlToPlainText = (input: string) => {
-      if (!looksLikeHtml(input)) return input;
-      return input
+      const normalized = replaceEmailHighlights(input);
+      if (!looksLikeHtml(normalized)) return normalized;
+      return normalized
         .replace(/<br\s*\/?>/gi, "\n")
         .replace(/<\/(p|div|h[1-6]|li)>/gi, "\n")
         .replace(/<li[^>]*>/gi, "• ")
+        .replace(/<strong\b[^>]*background(?:-color)?\s*:[^>]*>([\s\S]*?)<\/strong>/gi, "$1")
         .replace(/<[^>]+>/g, "")
         .replace(/&nbsp;/gi, " ")
         .replace(/&amp;/gi, "&")
