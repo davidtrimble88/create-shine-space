@@ -25,7 +25,7 @@ interface Props {
  * scaffolded placeholders that can be wired up later without touching callers.
  */
 export const PaymentDialog = (props: Props) => {
-  const { open, onOpenChange, onSuccess } = props;
+  const { open, onOpenChange } = props;
   const [provider, setProvider] = useState<PaymentProvider | null>(null);
   const [loading, setLoading] = useState(true);
 
