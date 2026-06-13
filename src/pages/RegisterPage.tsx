@@ -400,6 +400,7 @@ const RegisterPage = () => {
       // Show CMSP Student Registration Form step first, then waiver, then payment.
       setPendingBooking(bookingPayload);
       setPendingGroupName(scheduleGroup);
+      setPendingScheduleDetail(scheduleDetail);
       setPaymentRegion(region);
       setPaymentAmountCents(feeCents);
       setPaymentAmountLabel(feeLabel);
