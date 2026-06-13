@@ -307,7 +307,6 @@ const RegisterPage = () => {
       scheduleDetail: pendingScheduleDetail,
       fee: booking.fee,
     });
-    paymentCompletedRef.current = false;
     form.reset();
     setPendingBooking(null);
     setPendingGroupName(null);
