@@ -67,7 +67,25 @@ Deno.serve(async (req) => {
     }
 
     const subject = render(tpl.subject, variables);
-    const body = render(tpl.body, variables);
+    let body = render(tpl.body, variables);
+
+    // Append a clean attachment list (filename-only clickable links) to the
+    // email body. Avoids dumping raw signed URLs into the message body.
+    const attList: Array<{ name?: string; url?: string }> = Array.isArray(tpl.attachments)
+      ? (tpl.attachments as any[])
+      : [];
+    if (attList.length > 0) {
+      const htmlLinks = attList
+        .filter((a) => a && a.url && a.name)
+        .map(
+          (a) =>
+            `<div style="margin:4px 0"><a href="${a.url}" target="_blank" rel="noopener" style="color:#c2410c;text-decoration:underline;font-weight:600">📎 ${a.name}</a></div>`,
+        )
+        .join("");
+      if (htmlLinks) {
+        body = `${body}\n\n<div style="margin-top:20px;padding-top:14px;border-top:1px solid #e5e7eb"><div style="font-weight:700;margin-bottom:8px">Attachments</div>${htmlLinks}</div>`;
+      }
+    }
 
     const linkify = (escapedText: string) =>
       escapedText.replace(
