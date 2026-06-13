@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format, parseISO, eachWeekendOfInterval } from "date-fns";
+import { format, parseISO, eachWeekendOfInterval, addDays } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
@@ -389,6 +389,26 @@ const parsePartsFromSchedule = (scheduleText: string): string[] => {
     .filter(Boolean);
 };
 
+const DAY_ABBR_TO_NUM: Record<string, number> = {
+  Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+};
+
+const getPartDates = (startDate: string, scheduleText: string): { part: string; dateStr: string }[] => {
+  const parts = parsePartsFromSchedule(scheduleText);
+  const start = parseISO(startDate);
+  const startDay = start.getDay();
+
+  return parts.map(part => {
+    const dayAbbr = part.trim().split(" ")[0];
+    const targetDay = DAY_ABBR_TO_NUM[dayAbbr];
+    if (targetDay === undefined) return { part, dateStr: "" };
+
+    const offset = (targetDay - startDay + 7) % 7;
+    const partDate = addDays(start, offset);
+    return { part, dateStr: format(partDate, "EEE, MMM d") };
+  });
+};
+
 const ScheduleCard = ({
   schedule: s,
   hasAvailability,
@@ -476,11 +496,17 @@ const ScheduleCard = ({
           {isPartialAvailable && selectedParts && selectedParts.length > 0 && (
             <div className="ml-13 mt-2 flex flex-wrap gap-1.5">
               <span className="text-xs text-muted-foreground">Available for:</span>
-              {selectedParts.map(p => (
-                <span key={p} className="text-xs bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full">
-                  {p}
-                </span>
-              ))}
+              {(() => {
+                const partDates = getPartDates(s.date, s.schedule);
+                return selectedParts.map(p => {
+                  const match = partDates.find(pd => pd.part === p);
+                  return (
+                    <span key={p} className="text-xs bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full">
+                      {match?.dateStr ? `${match.dateStr} — ` : ""}{p}
+                    </span>
+                  );
+                });
+              })()}
             </div>
           )}
         </div>
@@ -538,24 +564,27 @@ const ScheduleCard = ({
         <div className="mt-4 ml-13 p-4 bg-background/50 border border-border rounded-lg">
           <p className="text-sm font-medium text-foreground mb-3">Select the parts you're available for:</p>
           <div className="flex flex-wrap gap-2 mb-3">
-            {parts.map(p => {
-              const checked = draftParts.includes(p);
-              return (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => togglePart(p)}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                    checked
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-card text-foreground border-border hover:border-accent/50"
-                  }`}
-                >
-                  {checked && <Check className="w-3 h-3 inline mr-1" />}
-                  {p}
-                </button>
-              );
-            })}
+            {(() => {
+              const partDates = getPartDates(s.date, s.schedule);
+              return partDates.map(({ part, dateStr }) => {
+                const checked = draftParts.includes(part);
+                return (
+                  <button
+                    key={part}
+                    type="button"
+                    onClick={() => togglePart(part)}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                      checked
+                        ? "bg-green-600 text-white border-green-600"
+                        : "bg-card text-foreground border-border hover:border-accent/50"
+                    }`}
+                  >
+                    {checked && <Check className="w-3 h-3 inline mr-1" />}
+                    {dateStr ? `${dateStr} — ` : ""}{part}
+                  </button>
+                );
+              });
+            })()}
           </div>
           <div className="flex gap-2">
             <Button
