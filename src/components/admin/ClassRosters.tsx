@@ -1942,7 +1942,7 @@ const ClassRosters = () => {
                       </td>
                       <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
                       <td className="center" style={{ fontWeight: 700 }}>
-                        {(b as any).waiver_id && waiverIds.has((b as any).waiver_id) ? "✓" : "✗"}
+                        {(((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has((b.email || "").toLowerCase())) ? "✓" : "✗"}
                       </td>
                       <td className="center" style={{ fontWeight: 700 }}>
                         {regFormEmails.has((b.email || "").toLowerCase()) ? "✓" : "✗"}
