@@ -77,6 +77,7 @@ const ClassRosters = () => {
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [waiverIds, setWaiverIds] = useState<Set<string>>(new Set());
+  const [waiverEmails, setWaiverEmails] = useState<Set<string>>(new Set());
   const [regFormEmails, setRegFormEmails] = useState<Set<string>>(new Set());
   const [modelReleaseByEmail, setModelReleaseByEmail] = useState<Map<string, "signed" | "declined">>(new Map());
   const [loading, setLoading] = useState(false);
@@ -334,33 +335,39 @@ const ClassRosters = () => {
       } else {
         setWaiverIds(new Set());
       }
-      // Look up registration form + model release signings for these students
+      // Look up registration form + model release + waiver-by-email for these students
       const emails = Array.from(new Set((data ?? []).map((b: any) => (b.email || "").toLowerCase()).filter(Boolean)));
       if (emails.length > 0) {
         const { data: extras } = await (supabase as any)
           .from("signed_waivers")
-          .select("signer_email, document_type, schedule_id")
+          .select("signer_email, document_type, schedule_id, schedule_date")
           .in("signer_email", emails)
-          .eq("schedule_id", selectedScheduleId)
-          .in("document_type", ["cmsp_registration_form", "cmsp_model_release", "cmsp_model_release_decline"]);
+          .in("document_type", ["cmsp_waiver", "cmsp_registration_form", "cmsp_model_release", "cmsp_model_release_decline"]);
         const regSet = new Set<string>();
+        const wEmails = new Set<string>();
         const mrMap = new Map<string, "signed" | "declined">();
+        const scheduleDate = schedules.find(s => s.id === selectedScheduleId)?.date || null;
         (extras ?? []).forEach((r: any) => {
           const em = (r.signer_email || "").toLowerCase();
-          if (r.document_type === "cmsp_registration_form") regSet.add(em);
+          const matchesClass = r.schedule_id === selectedScheduleId || (scheduleDate && r.schedule_date === scheduleDate);
+          if (!matchesClass) return;
+          if (r.document_type === "cmsp_waiver") wEmails.add(em);
+          else if (r.document_type === "cmsp_registration_form") regSet.add(em);
           else if (r.document_type === "cmsp_model_release") mrMap.set(em, "signed");
           else if (r.document_type === "cmsp_model_release_decline" && !mrMap.has(em)) mrMap.set(em, "declined");
         });
+        setWaiverEmails(wEmails);
         setRegFormEmails(regSet);
         setModelReleaseByEmail(mrMap);
       } else {
+        setWaiverEmails(new Set());
         setRegFormEmails(new Set());
         setModelReleaseByEmail(new Map());
       }
       setLoading(false);
     };
     fetchBookings();
-  }, [selectedScheduleId, cancelledEvalBookings]);
+  }, [selectedScheduleId, cancelledEvalBookings, schedules]);
 
   // When the Schedule Retest dialog opens, fetch retest counts for matching upcoming classes
   useEffect(() => {
@@ -1698,7 +1705,7 @@ const ClassRosters = () => {
                         <td className="p-3 font-medium text-foreground uppercase">
                           <div className="flex items-center gap-2">
                             <span>{b.last_name}</span>
-                            {(b as any).waiver_id && waiverIds.has((b as any).waiver_id) ? (
+                            {(((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has((b.email || "").toLowerCase())) ? (
                               <span title="Waiver signed" aria-label="Waiver signed" className="inline-flex items-center text-emerald-500">
                                 <ShieldCheck className="w-3.5 h-3.5" />
                               </span>
@@ -1723,7 +1730,7 @@ const ClassRosters = () => {
                               const em = (b.email || "").toLowerCase();
                               const mr = modelReleaseByEmail.get(em);
                               const label = mr === "signed" ? "Model release: accepted" : mr === "declined" ? "Model release: declined" : "Model release: not completed";
-                              const cls = mr === "signed" ? "bg-emerald-500/15 text-emerald-500" : mr === "declined" ? "bg-rose-500/15 text-rose-500" : "bg-muted text-muted-foreground";
+                              const cls = mr === "signed" ? "bg-emerald-500/15 text-emerald-500" : mr === "declined" ? "bg-red-500/20 text-red-500 ring-1 ring-red-500/40" : "bg-muted text-muted-foreground";
                               const sym = mr === "signed" ? "✓" : mr === "declined" ? "✗" : "—";
                               return (
                                 <span title={label} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
@@ -1935,7 +1942,7 @@ const ClassRosters = () => {
                       </td>
                       <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
                       <td className="center" style={{ fontWeight: 700 }}>
-                        {(b as any).waiver_id && waiverIds.has((b as any).waiver_id) ? "✓" : "✗"}
+                        {(((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has((b.email || "").toLowerCase())) ? "✓" : "✗"}
                       </td>
                       <td className="center" style={{ fontWeight: 700 }}>
                         {regFormEmails.has((b.email || "").toLowerCase()) ? "✓" : "✗"}
