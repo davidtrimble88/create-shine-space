@@ -288,7 +288,7 @@ const AdminBookings = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Legal First Name *</Label>
                   <Input value={retestForm.first_name} onChange={e => setRetestForm(f => ({ ...f, first_name: e.target.value }))} />
@@ -302,7 +302,7 @@ const AdminBookings = () => {
                 <Label>Phone *</Label>
                 <Input type="tel" value={retestForm.phone} onChange={e => setRetestForm(f => ({ ...f, phone: e.target.value }))} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>DL #</Label>
                   <Input value={retestForm.license_number} onChange={e => setRetestForm(f => ({ ...f, license_number: e.target.value }))} />
@@ -382,7 +382,7 @@ const AdminBookings = () => {
                   <p className="text-xs text-destructive mt-1">⚠ This class is full</p>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Legal First Name *</Label>
                   <Input value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))} />
@@ -400,7 +400,7 @@ const AdminBookings = () => {
                 <Label>Phone *</Label>
                 <Input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Gender</Label>
                   <Select value={form.gender} onValueChange={v => setForm(f => ({ ...f, gender: v }))}>
@@ -575,7 +575,7 @@ const AdminBookings = () => {
           {selectedBooking && (
             <div className="space-y-3 text-sm">
               {/* Personal Info */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <p className="text-muted-foreground text-xs">First Name</p>
                   <p className="font-medium text-foreground">{selectedBooking.first_name}</p>
@@ -593,7 +593,7 @@ const AdminBookings = () => {
                 <p className="text-muted-foreground text-xs">Phone</p>
                 <p className="font-medium text-foreground">{selectedBooking.phone}</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <p className="text-muted-foreground text-xs">Gender</p>
                   <p className="font-medium text-foreground capitalize">{selectedBooking.gender || "—"}</p>
@@ -618,7 +618,7 @@ const AdminBookings = () => {
               {/* Driver License */}
               <div className="border-t border-border pt-3">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Driver License</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <p className="text-muted-foreground text-xs">License Number</p>
                     <p className="font-medium text-foreground">{(selectedBooking as any).license_number || "—"}</p>
@@ -641,7 +641,7 @@ const AdminBookings = () => {
               {/* Booking Info */}
               <div className="border-t border-border pt-3">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Booking Info</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <p className="text-muted-foreground text-xs">Course</p>
                     <p className="font-medium text-foreground">{courseLabels[selectedBooking.course] || selectedBooking.course}</p>
