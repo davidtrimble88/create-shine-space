@@ -19,6 +19,8 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const isNativeApp = useIsNativeApp();
+  const canGoBack = location.pathname !== "/" && isNativeApp;
 
   const handleHomeClick = (e: React.MouseEvent) => {
     if (location.pathname === "/") {
