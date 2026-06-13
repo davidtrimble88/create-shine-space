@@ -276,6 +276,47 @@ const StudentIds = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={uploadOpen} onOpenChange={(o) => !o && setUploadOpen(false)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Manual ID Upload</DialogTitle>
+            <DialogDescription>Attach an ID photo or PDF to an existing booking.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Find booking (name or email)</Label>
+              <Input value={bookingQuery} onChange={(e) => { setBookingQuery(e.target.value); setSelectedBookingId(""); }} placeholder="Type at least 2 characters…" />
+              {bookingResults.length > 0 && !selectedBookingId && (
+                <div className="mt-1 max-h-48 overflow-auto rounded border border-border">
+                  {bookingResults.map(b => (
+                    <button key={b.id} type="button" onClick={() => { setSelectedBookingId(b.id); setBookingQuery(`${b.first_name} ${b.last_name} — ${b.email}`); }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 border-b border-border last:border-0">
+                      <div className="font-medium">{b.first_name} {b.last_name}</div>
+                      <div className="text-xs text-muted-foreground">{b.email} · {b.course || "—"} · {b.schedule_date || "—"}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <Label>ID type</Label>
+              <div className="flex gap-2 mt-1">
+                <Button type="button" size="sm" variant={uploadWhich === "student" ? "default" : "outline"} onClick={() => setUploadWhich("student")}>Student</Button>
+                <Button type="button" size="sm" variant={uploadWhich === "guardian" ? "default" : "outline"} onClick={() => setUploadWhich("guardian")}>Guardian</Button>
+              </div>
+            </div>
+            <div><Label>File (image or PDF)</Label><Input type="file" accept="image/*,application/pdf,.pdf" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUploadOpen(false)} disabled={uploading}>Cancel</Button>
+            <Button onClick={submitIdUpload} disabled={uploading || !selectedBookingId}>
+              {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+              Upload
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
