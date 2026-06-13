@@ -83,8 +83,8 @@ Deno.serve(async (req) => {
       })
     );
     if (attachments.length) {
-      const list = attachments.map((a: any) => `📎 ${a.name}: ${a.url}`).join("\n");
-      body = `${body}\n\n— Attachments —\n${list}`;
+      const list = attachments.map((a: any) => `${a.name}: ${a.url}`).join("\n");
+      body = `${body}\n\n${list}`;
     }
 
     const linkify = (escapedText: string) =>
@@ -122,12 +122,12 @@ Deno.serve(async (req) => {
         })
         .join("");
       const attachmentBlock = attachments.length
-        ? `<div style="margin-top:24px;padding:16px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa"><div style="font-weight:bold;margin-bottom:8px">Attachments</div>${attachments
+        ? `<div style="margin-top:16px;line-height:1.6">${attachments
             .map(
               (a: any) =>
-                `<div style="margin:6px 0">📎 <a href="${a.url}" style="color:#c2410c;text-decoration:underline" target="_blank" rel="noopener">${a.name}</a></div>`
+                `<a href="${a.url}" style="color:#c2410c;text-decoration:underline" target="_blank" rel="noopener">${a.name}</a>`
             )
-            .join("")}</div>`
+            .join("<br>")}</div>`
         : "";
       return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${htmlBody}${attachmentBlock}</div>`;
     };
