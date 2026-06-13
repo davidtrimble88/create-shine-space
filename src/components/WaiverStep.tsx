@@ -260,7 +260,7 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
+      <div id="waiver-acknowledgments" className="bg-card border border-border rounded-2xl p-6 md:p-8">
         <h3 className="font-semibold mb-4">Participant Information (auto-filled)</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <Field label="Name" value={fullName} />
