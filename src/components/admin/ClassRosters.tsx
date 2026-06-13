@@ -335,33 +335,39 @@ const ClassRosters = () => {
       } else {
         setWaiverIds(new Set());
       }
-      // Look up registration form + model release signings for these students
+      // Look up registration form + model release + waiver-by-email for these students
       const emails = Array.from(new Set((data ?? []).map((b: any) => (b.email || "").toLowerCase()).filter(Boolean)));
       if (emails.length > 0) {
         const { data: extras } = await (supabase as any)
           .from("signed_waivers")
-          .select("signer_email, document_type, schedule_id")
+          .select("signer_email, document_type, schedule_id, schedule_date")
           .in("signer_email", emails)
-          .eq("schedule_id", selectedScheduleId)
-          .in("document_type", ["cmsp_registration_form", "cmsp_model_release", "cmsp_model_release_decline"]);
+          .in("document_type", ["cmsp_waiver", "cmsp_registration_form", "cmsp_model_release", "cmsp_model_release_decline"]);
         const regSet = new Set<string>();
+        const wEmails = new Set<string>();
         const mrMap = new Map<string, "signed" | "declined">();
+        const scheduleDate = schedules.find(s => s.id === selectedScheduleId)?.date || null;
         (extras ?? []).forEach((r: any) => {
           const em = (r.signer_email || "").toLowerCase();
-          if (r.document_type === "cmsp_registration_form") regSet.add(em);
+          const matchesClass = r.schedule_id === selectedScheduleId || (scheduleDate && r.schedule_date === scheduleDate);
+          if (!matchesClass) return;
+          if (r.document_type === "cmsp_waiver") wEmails.add(em);
+          else if (r.document_type === "cmsp_registration_form") regSet.add(em);
           else if (r.document_type === "cmsp_model_release") mrMap.set(em, "signed");
           else if (r.document_type === "cmsp_model_release_decline" && !mrMap.has(em)) mrMap.set(em, "declined");
         });
+        setWaiverEmails(wEmails);
         setRegFormEmails(regSet);
         setModelReleaseByEmail(mrMap);
       } else {
+        setWaiverEmails(new Set());
         setRegFormEmails(new Set());
         setModelReleaseByEmail(new Map());
       }
       setLoading(false);
     };
     fetchBookings();
-  }, [selectedScheduleId, cancelledEvalBookings]);
+  }, [selectedScheduleId, cancelledEvalBookings, schedules]);
 
   // When the Schedule Retest dialog opens, fetch retest counts for matching upcoming classes
   useEffect(() => {
