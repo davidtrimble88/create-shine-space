@@ -45,6 +45,7 @@ const tabs = [
   
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
+  { id: "student-ids", label: "Student IDs", icon: ShieldCheck, roles: ["owner", "admin"] },
   { id: "auto-emails", label: "Auto Emails", icon: Mail, roles: ["owner", "admin"] },
   { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
   { id: "payment-settings", label: "Payment Settings", icon: CreditCard, roles: ["owner"] },
