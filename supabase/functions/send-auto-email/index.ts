@@ -185,7 +185,7 @@ Deno.serve(async (req) => {
           from: "Learn to Ride VC <notify@learntoridevc.com>",
           sender_domain: "notify.learntoridevc.com",
           subject,
-          text: body,
+          text: htmlToPlainText(body),
           html: textToHtml(body),
           template_name: `auto_${trigger_event}`,
           label: `auto_${trigger_event}`,
