@@ -65,7 +65,23 @@ Deno.serve(async (req) => {
 
     const subject = render(tpl.subject, variables);
     let body = render(tpl.body, variables);
-    const attachments = Array.isArray((tpl as any).attachments) ? (tpl as any).attachments : [];
+    const rawAttachments = Array.isArray((tpl as any).attachments) ? (tpl as any).attachments : [];
+    // Bucket is private — mint long-lived signed URLs (1 year) at send time so
+    // recipients can still open the attachments referenced in the email.
+    const SIGNED_URL_TTL = 60 * 60 * 24 * 365; // 1 year
+    const attachments = await Promise.all(
+      rawAttachments.map(async (a: any) => {
+        if (a?.path) {
+          try {
+            const { data: signed } = await supabase.storage
+              .from("email-attachments")
+              .createSignedUrl(a.path, SIGNED_URL_TTL);
+            if (signed?.signedUrl) return { ...a, url: signed.signedUrl };
+          } catch (_) { /* fall through to existing url */ }
+        }
+        return a;
+      })
+    );
     if (attachments.length) {
       const list = attachments.map((a: any) => `📎 ${a.name}: ${a.url}`).join("\n");
       body = `${body}\n\n— Attachments —\n${list}`;

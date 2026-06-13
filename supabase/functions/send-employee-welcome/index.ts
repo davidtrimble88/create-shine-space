@@ -21,12 +21,18 @@ const DECK_BY_ROLE: Record<string, { name: string; path: string }> = {
   employee: { name: "Employee & Viewer Dashboard Training", path: "training/Training_Employee_Viewer.pptx" },
   viewer:   { name: "Employee & Viewer Dashboard Training", path: "training/Training_Employee_Viewer.pptx" },
 };
-const deckUrlFor = (role: string) => {
+const deckUrlFor = async (role: string, client: any) => {
   const d = DECK_BY_ROLE[(role || "employee").toLowerCase()] ?? DECK_BY_ROLE.employee;
-  return {
-    name: d.name,
-    url: `${SUPABASE_PUBLIC}/storage/v1/object/public/shared-files/${d.path}`,
-  };
+  // shared-files bucket is private — mint a long-lived signed URL (1 year) so
+  // the welcome email link stays usable for the recipient.
+  let url = `${SUPABASE_PUBLIC}/storage/v1/object/public/shared-files/${d.path}`;
+  try {
+    const { data: signed } = await client.storage
+      .from("shared-files")
+      .createSignedUrl(d.path, 60 * 60 * 24 * 365);
+    if (signed?.signedUrl) url = signed.signedUrl;
+  } catch (_) { /* fall back to public URL placeholder */ }
+  return { name: d.name, url };
 };
 
 const FALLBACK_SUBJECT = "Welcome to the Learn to Ride VC Employee Portal";
@@ -96,7 +102,7 @@ Deno.serve(async (req) => {
     }
 
     const firstName = (fullName || "").split(" ")[0] || "there";
-    const deck = deckUrlFor(role || "employee");
+    const deck = await deckUrlFor(role || "employee", supabase);
     const vars: Record<string, string> = {
       firstName,
       fullName: fullName || "",

@@ -258,8 +258,12 @@ const AutoEmails = () => {
           .from("email-attachments")
           .upload(path, file, { upsert: false, contentType: file.type });
         if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("email-attachments").getPublicUrl(path);
-        newAtts.push({ name: file.name, path, url: pub.publicUrl, size: file.size });
+        // Bucket is private — create a short-lived signed URL just for the admin preview.
+        // The actual email send-side mints fresh long-lived signed URLs from `path`.
+        const { data: signed } = await supabase.storage
+          .from("email-attachments")
+          .createSignedUrl(path, 60 * 60);
+        newAtts.push({ name: file.name, path, url: signed?.signedUrl ?? "", size: file.size });
       }
       setEditing({ ...editing, attachments: newAtts });
       toast({ title: "Attachment(s) uploaded" });
