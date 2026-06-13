@@ -43,6 +43,64 @@ const SignedWaivers = () => {
   const [selected, setSelected] = useState<SignedWaiver | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [form, setForm] = useState({
+    first_name: "", last_name: "", email: "", document_type: "cmsp_waiver",
+    course: "", location_label: "", schedule_date: "",
+  });
+  const [file, setFile] = useState<File | null>(null);
+
+  const reload = async () => {
+    const { data } = await supabase.from("signed_waivers" as any).select("*").order("signed_at", { ascending: false });
+    setRows((data as any[]) || []);
+  };
+
+  const submitUpload = async () => {
+    if (!file) { toast({ title: "Choose a PDF file", variant: "destructive" }); return; }
+    if (!form.first_name || !form.last_name || !form.email) {
+      toast({ title: "Name and email are required", variant: "destructive" }); return;
+    }
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "pdf").toLowerCase();
+      const path = `manual-uploads/${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}.${ext}`;
+      const up = await supabase.storage.from("waivers").upload(path, file, {
+        contentType: file.type || "application/pdf", upsert: false,
+      });
+      if (up.error) throw up.error;
+      const buf = await file.arrayBuffer();
+      const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+      const hash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,"0")).join("");
+      const sentinel = "(manually uploaded)";
+      const ins = await supabase.from("signed_waivers" as any).insert({
+        document_type: form.document_type,
+        document_version: "manual-upload",
+        document_text: sentinel,
+        document_hash: hash,
+        signer_first_name: form.first_name.trim(),
+        signer_last_name: form.last_name.trim(),
+        signer_email: form.email.trim(),
+        signature_typed: sentinel,
+        signature_drawn: sentinel,
+        consent_acknowledgments: [{ manual_upload: true, uploaded_at: new Date().toISOString() }],
+        course: form.course || null,
+        location_label: form.location_label || null,
+        schedule_date: form.schedule_date || null,
+        pdf_path: path,
+      });
+      if (ins.error) throw ins.error;
+      toast({ title: "Waiver uploaded" });
+      setUploadOpen(false);
+      setFile(null);
+      setForm({ first_name: "", last_name: "", email: "", document_type: "cmsp_waiver", course: "", location_label: "", schedule_date: "" });
+      await reload();
+    } catch (e: any) {
+      toast({ title: "Upload failed", description: e.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (!selected?.pdf_path) {
