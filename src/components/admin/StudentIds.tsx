@@ -28,6 +28,64 @@ const StudentIds = () => {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [fileLoading, setFileLoading] = useState(false);
   const [isPdf, setIsPdf] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [bookingQuery, setBookingQuery] = useState("");
+  const [bookingResults, setBookingResults] = useState<BookingRow[]>([]);
+  const [selectedBookingId, setSelectedBookingId] = useState<string>("");
+  const [uploadWhich, setUploadWhich] = useState<"student" | "guardian">("student");
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+  const reload = async () => {
+    const { data } = await supabase
+      .from("bookings")
+      .select("id, first_name, last_name, email, course, location_label, schedule_date, id_photo_path, guardian_id_photo_path, created_at")
+      .or("id_photo_path.not.is.null,guardian_id_photo_path.not.is.null")
+      .order("created_at", { ascending: false });
+    setRows((data as any[]) || []);
+  };
+
+  useEffect(() => {
+    const q = bookingQuery.trim();
+    if (q.length < 2) { setBookingResults([]); return; }
+    let cancel = false;
+    (async () => {
+      const { data } = await supabase
+        .from("bookings")
+        .select("id, first_name, last_name, email, course, location_label, schedule_date, id_photo_path, guardian_id_photo_path, created_at")
+        .or(`email.ilike.%${q}%,first_name.ilike.%${q}%,last_name.ilike.%${q}%`)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (!cancel) setBookingResults((data as any[]) || []);
+    })();
+    return () => { cancel = true; };
+  }, [bookingQuery]);
+
+  const submitIdUpload = async () => {
+    if (!selectedBookingId) { toast({ title: "Pick a booking", variant: "destructive" }); return; }
+    if (!uploadFile) { toast({ title: "Choose a file", variant: "destructive" }); return; }
+    setUploading(true);
+    try {
+      const ext = (uploadFile.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}.${ext}`;
+      const up = await supabase.storage.from("id-photos").upload(path, uploadFile, {
+        contentType: uploadFile.type || undefined, upsert: false,
+      });
+      if (up.error) throw up.error;
+      const field = uploadWhich === "guardian" ? "guardian_id_photo_path" : "id_photo_path";
+      const upd = await supabase.from("bookings").update({ [field]: path } as any).eq("id", selectedBookingId);
+      if (upd.error) throw upd.error;
+      toast({ title: "ID uploaded" });
+      setUploadOpen(false);
+      setUploadFile(null); setSelectedBookingId(""); setBookingQuery(""); setBookingResults([]);
+      setUploadWhich("student");
+      await reload();
+    } catch (e: any) {
+      toast({ title: "Upload failed", description: e.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     (async () => {
