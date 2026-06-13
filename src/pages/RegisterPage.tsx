@@ -388,6 +388,7 @@ const RegisterPage = () => {
           location,
           groupName: scheduleGroup,
           scheduleDate,
+          scheduleDetail,
           fee: feeLabel,
         });
         form.reset();
