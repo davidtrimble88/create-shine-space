@@ -249,9 +249,18 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
         <p className="text-xs text-muted-foreground mt-2">
           This is the exact document you are signing. A signed copy will be saved to your file.
         </p>
+        <div className="mt-4 flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => document.getElementById('waiver-acknowledgments')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            Finish and Continue →
+          </Button>
+        </div>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
+      <div id="waiver-acknowledgments" className="bg-card border border-border rounded-2xl p-6 md:p-8">
         <h3 className="font-semibold mb-4">Participant Information (auto-filled)</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <Field label="Name" value={fullName} />
