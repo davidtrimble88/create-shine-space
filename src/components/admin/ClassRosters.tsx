@@ -89,7 +89,7 @@ const ClassRosters = () => {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [showRetestDialog, setShowRetestDialog] = useState(false);
-  const [retestForm, setRetestForm] = useState({ first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
+  const [retestForm, setRetestForm] = useState({ first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "", comment: "" });
   const [addingRetest, setAddingRetest] = useState(false);
   const [studentSearch, setStudentSearch] = useState("");
   const [searchResults, setSearchResults] = useState<Booking[]>([]);
@@ -558,13 +558,14 @@ const ClassRosters = () => {
       booking_status: "confirmed",
       payment_status: "paid",
       is_retest: true,
+      roster_comment: retestForm.comment.trim() || null,
     }).select().single();
 
     if (error) {
       toast.error("Failed to add retest student");
     } else if (data) {
       setBookings(prev => [...prev, data as Booking]);
-      setRetestForm({ first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
+      setRetestForm({ first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "", comment: "" });
       setShowRetestDialog(false);
       toast.success("Retest student added");
     }
