@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     }
 
     const firstName = (fullName || "").split(" ")[0] || "there";
-    const deck = deckUrlFor(role || "employee");
+    const deck = await deckUrlFor(role || "employee", supabase);
     const vars: Record<string, string> = {
       firstName,
       fullName: fullName || "",
