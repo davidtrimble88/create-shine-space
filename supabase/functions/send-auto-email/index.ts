@@ -83,8 +83,8 @@ Deno.serve(async (req) => {
       })
     );
     if (attachments.length) {
-      const list = attachments.map((a: any) => `📎 ${a.name}: ${a.url}`).join("\n");
-      body = `${body}\n\n— Attachments —\n${list}`;
+      const list = attachments.map((a: any) => `${a.name}: ${a.url}`).join("\n");
+      body = `${body}\n\n${list}`;
     }
 
     const linkify = (escapedText: string) =>
