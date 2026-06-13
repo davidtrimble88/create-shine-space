@@ -109,7 +109,6 @@ Deno.serve(async (req) => {
       const htmlBody = paras
         .map((p) => {
           if (isHtml) {
-            // Preserve existing HTML; only linkify bare URLs that aren't already inside an <a>.
             const withBreaks = p.replace(/\n/g, "<br>");
             const linked = withBreaks.replace(
               /(?<!href=["'])(https?:\/\/[^\s<"']+[^\s<.,;:!?)\]}'"])/g,
@@ -129,7 +128,30 @@ Deno.serve(async (req) => {
             )
             .join("<br>")}</div>`
         : "";
-      return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${htmlBody}${attachmentBlock}</div>`;
+      const inner = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${htmlBody}${attachmentBlock}</div>`;
+      // Wrap in a full email document so clients (Gmail, Outlook) reliably
+      // preserve inline styles like background-color on <span> tags instead
+      // of stripping them as part of "stray fragment" sanitization.
+      return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Email</title></head><body style="margin:0;padding:16px;background:#ffffff">${inner}</body></html>`;
+    };
+
+    // Build a real plain-text alternative by stripping HTML tags. Mail clients
+    // showing the text/plain part would otherwise see raw tags or nothing.
+    const htmlToPlainText = (input: string) => {
+      if (!looksLikeHtml(input)) return input;
+      return input
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/(p|div|h[1-6]|li)>/gi, "\n")
+        .replace(/<li[^>]*>/gi, "• ")
+        .replace(/<[^>]+>/g, "")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
     };
 
 
