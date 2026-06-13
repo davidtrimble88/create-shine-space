@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Loader2, ShieldCheck, Download, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, ShieldCheck, Download, Search, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface SignedWaiver {
@@ -41,6 +43,64 @@ const SignedWaivers = () => {
   const [selected, setSelected] = useState<SignedWaiver | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [form, setForm] = useState({
+    first_name: "", last_name: "", email: "", document_type: "cmsp_waiver",
+    course: "", location_label: "", schedule_date: "",
+  });
+  const [file, setFile] = useState<File | null>(null);
+
+  const reload = async () => {
+    const { data } = await supabase.from("signed_waivers" as any).select("*").order("signed_at", { ascending: false });
+    setRows((data as any[]) || []);
+  };
+
+  const submitUpload = async () => {
+    if (!file) { toast({ title: "Choose a PDF file", variant: "destructive" }); return; }
+    if (!form.first_name || !form.last_name || !form.email) {
+      toast({ title: "Name and email are required", variant: "destructive" }); return;
+    }
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "pdf").toLowerCase();
+      const path = `manual-uploads/${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}.${ext}`;
+      const up = await supabase.storage.from("waivers").upload(path, file, {
+        contentType: file.type || "application/pdf", upsert: false,
+      });
+      if (up.error) throw up.error;
+      const buf = await file.arrayBuffer();
+      const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+      const hash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,"0")).join("");
+      const sentinel = "(manually uploaded)";
+      const ins = await supabase.from("signed_waivers" as any).insert({
+        document_type: form.document_type,
+        document_version: "manual-upload",
+        document_text: sentinel,
+        document_hash: hash,
+        signer_first_name: form.first_name.trim(),
+        signer_last_name: form.last_name.trim(),
+        signer_email: form.email.trim(),
+        signature_typed: sentinel,
+        signature_drawn: sentinel,
+        consent_acknowledgments: [{ manual_upload: true, uploaded_at: new Date().toISOString() }],
+        course: form.course || null,
+        location_label: form.location_label || null,
+        schedule_date: form.schedule_date || null,
+        pdf_path: path,
+      });
+      if (ins.error) throw ins.error;
+      toast({ title: "Waiver uploaded" });
+      setUploadOpen(false);
+      setFile(null);
+      setForm({ first_name: "", last_name: "", email: "", document_type: "cmsp_waiver", course: "", location_label: "", schedule_date: "" });
+      await reload();
+    } catch (e: any) {
+      toast({ title: "Upload failed", description: e.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (!selected?.pdf_path) {
@@ -126,6 +186,9 @@ const SignedWaivers = () => {
         <ShieldCheck className="w-5 h-5 text-accent" />
         <h2 className="text-2xl font-bold">Signed Waivers</h2>
         <span className="text-sm text-muted-foreground ml-2">{rows.length} total</span>
+        <Button size="sm" className="ml-auto" onClick={() => setUploadOpen(true)}>
+          <Upload className="w-4 h-4 mr-2" /> Manual Upload
+        </Button>
       </div>
 
       <div className="relative max-w-md">
@@ -230,6 +293,46 @@ const SignedWaivers = () => {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={uploadOpen} onOpenChange={(o) => !o && setUploadOpen(false)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Manual Waiver Upload</DialogTitle>
+            <DialogDescription>Upload a signed PDF and tag it with signer details.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>First name *</Label><Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} /></div>
+              <div><Label>Last name *</Label><Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></div>
+            </div>
+            <div><Label>Email *</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+            <div>
+              <Label>Document type</Label>
+              <Select value={form.document_type} onValueChange={(v) => setForm({ ...form, document_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cmsp_waiver">Waiver</SelectItem>
+                  <SelectItem value="cmsp_registration_form">Registration Form</SelectItem>
+                  <SelectItem value="cmsp_model_release">Model Release</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Course</Label><Input value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} /></div>
+              <div><Label>Location</Label><Input value={form.location_label} onChange={(e) => setForm({ ...form, location_label: e.target.value })} /></div>
+            </div>
+            <div><Label>Class date</Label><Input type="date" value={form.schedule_date} onChange={(e) => setForm({ ...form, schedule_date: e.target.value })} /></div>
+            <div><Label>PDF file *</Label><Input type="file" accept="application/pdf,.pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUploadOpen(false)} disabled={uploading}>Cancel</Button>
+            <Button onClick={submitUpload} disabled={uploading}>
+              {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+              Upload
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
