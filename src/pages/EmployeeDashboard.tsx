@@ -3,7 +3,7 @@ import { Navigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail, ChevronLeft, ChevronRight, Wrench } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
 import AdminOverview from "@/components/admin/AdminOverview";
@@ -65,6 +65,25 @@ const EmployeeDashboard = () => {
   const { user, isAdmin, userRole, effectiveRole, viewAsRole, setViewAsRole, loading, mustChangePassword, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      if (dx < 0 && !sidebarCollapsed) setSidebarCollapsed(true);
+      else if (dx > 0 && sidebarCollapsed) setSidebarCollapsed(false);
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
 
   useEffect(() => {
     const handler = () => setActiveTab("rosters");
@@ -101,13 +120,18 @@ const EmployeeDashboard = () => {
   const isImpersonating = isOwner && !!viewAsRole && viewAsRole !== "owner";
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div
+      className="min-h-screen bg-background flex"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Sidebar */}
       <aside
         className={`bg-card border-r border-border flex flex-col min-h-screen transition-all duration-300 ${
           sidebarCollapsed ? "w-16" : "w-64"
         }`}
       >
+
         {/* Header */}
         <div className={`border-b border-border flex items-center ${sidebarCollapsed ? "p-3 justify-center" : "p-6"}`}>
           {!sidebarCollapsed && (
