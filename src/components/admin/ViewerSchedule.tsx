@@ -389,6 +389,26 @@ const parsePartsFromSchedule = (scheduleText: string): string[] => {
     .filter(Boolean);
 };
 
+const DAY_ABBR_TO_NUM: Record<string, number> = {
+  Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+};
+
+const getPartDates = (startDate: string, scheduleText: string): { part: string; dateStr: string }[] => {
+  const parts = parsePartsFromSchedule(scheduleText);
+  const start = parseISO(startDate);
+  const startDay = start.getDay();
+
+  return parts.map(part => {
+    const dayAbbr = part.trim().split(" ")[0];
+    const targetDay = DAY_ABBR_TO_NUM[dayAbbr];
+    if (targetDay === undefined) return { part, dateStr: "" };
+
+    const offset = (targetDay - startDay + 7) % 7;
+    const partDate = addDays(start, offset);
+    return { part, dateStr: format(partDate, "EEE, MMM d") };
+  });
+};
+
 const ScheduleCard = ({
   schedule: s,
   hasAvailability,
