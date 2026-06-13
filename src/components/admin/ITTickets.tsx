@@ -589,9 +589,10 @@ export default function ITTickets() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex gap-4 items-start">
+      <div className="flex flex-col sm:flex-row gap-4 items-start">
         {/* Left sidebar: tabs, filter, sort */}
-        <div className="w-52 flex-shrink-0 space-y-3">
+        <div className="w-full sm:w-52 flex-shrink-0 space-y-3">
+
           <div className="inline-flex flex-col rounded-md border border-border overflow-hidden w-full">
             <button
               type="button"

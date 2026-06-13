@@ -1099,7 +1099,7 @@ const ClassRosters = () => {
               );
               return (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="First Name" value={b.first_name} />
                     <Field label="Last Name" value={b.last_name} />
                     <Field label="Phone" value={b.phone} />
@@ -1117,7 +1117,7 @@ const ClassRosters = () => {
                       {[b.address, b.city, b.state, b.zip].filter(Boolean).join(", ") || "—"}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border">
                     <Field label="Course" value={courseName} />
                     <Field label="Class Date" value={sched?.date || b.schedule_date} />
                     <Field label="Location" value={sched?.location_label || b.location_label} />
@@ -1186,8 +1186,9 @@ const ClassRosters = () => {
             <p className="text-muted-foreground">No students currently awaiting a retest within the 60-day window.</p>
           </div>
         ) : (
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="bg-card border border-border rounded-xl overflow-x-auto">
+            <table className="w-full text-sm min-w-[640px]">
+
               <thead>
                 <tr className="border-b border-border bg-secondary/50">
                   <th className="text-left p-3 font-medium text-muted-foreground">Student</th>
@@ -1409,7 +1410,7 @@ const ClassRosters = () => {
                       <DialogTitle>Add Retest Student</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3 mt-2">
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="text-xs font-medium text-muted-foreground mb-1 block">First Name *</label>
                           <Input value={retestForm.first_name} onChange={e => setRetestForm(p => ({ ...p, first_name: e.target.value }))} />
@@ -1423,7 +1424,7 @@ const ClassRosters = () => {
                         <label className="text-xs font-medium text-muted-foreground mb-1 block">Phone *</label>
                         <Input value={retestForm.phone} onChange={e => setRetestForm(p => ({ ...p, phone: e.target.value }))} />
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="text-xs font-medium text-muted-foreground mb-1 block">DL #</label>
                           <Input value={retestForm.license_number} onChange={e => setRetestForm(p => ({ ...p, license_number: e.target.value }))} />
@@ -2073,7 +2074,7 @@ const ClassRosters = () => {
                   />
                   <span className="font-semibold">Entire class (all parts)</span>
                 </label>
-                <div className="grid grid-cols-2 gap-2 pl-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-1">
                   {PART_OPTIONS.map(o => (
                     <label key={o.value} className="flex items-center gap-2 text-sm cursor-pointer">
                       <Checkbox
@@ -2136,7 +2137,7 @@ const ClassRosters = () => {
             </div>
             <div>
               <div className="text-xs font-medium text-muted-foreground mb-2">Can this student be rescheduled into another class? *</div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setDropCanReschedule("yes")}
