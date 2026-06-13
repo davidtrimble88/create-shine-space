@@ -95,12 +95,24 @@ const SignedWaivers = () => {
       toast({ title: "No PDF", description: "PDF was not saved for this waiver.", variant: "destructive" });
       return;
     }
-    const { data, error } = await supabase.storage.from("waivers").createSignedUrl(w.pdf_path, 60);
+    const safe = `Signed_Waiver_${w.signer_first_name}_${w.signer_last_name}.pdf`.replace(/[^a-z0-9_.-]+/gi, "_");
+    // Prefer already-loaded blob (avoids popup blockers)
+    if (selected?.id === w.id && pdfUrl) {
+      const a = document.createElement("a");
+      a.href = pdfUrl; a.download = safe;
+      document.body.appendChild(a); a.click(); a.remove();
+      return;
+    }
+    const { data, error } = await supabase.storage.from("waivers").download(w.pdf_path);
     if (error || !data) {
       toast({ title: "Download failed", description: error?.message, variant: "destructive" });
       return;
     }
-    window.open(data.signedUrl, "_blank");
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url; a.download = safe;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   if (loading) {
