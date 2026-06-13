@@ -28,6 +28,7 @@ import InstructorCertifications from "@/components/admin/InstructorCertification
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
 import NotificationBell from "@/components/admin/NotificationBell";
+import PushNotificationsToggle from "@/components/admin/PushNotificationsToggle";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
@@ -295,13 +296,17 @@ const EmployeeDashboard = () => {
               </Button>
               <span className="text-accent font-bold text-base truncate">Learn to Ride VC</span>
             </div>
-            <NotificationBell onNavigate={(t) => setActiveTab(t as typeof activeTab)} />
+            <div className="flex items-center gap-2">
+              <PushNotificationsToggle compact />
+              <NotificationBell onNavigate={(t) => setActiveTab(t as typeof activeTab)} />
+            </div>
           </div>
         )}
 
         <div className={isMobile ? "p-4" : "p-8"}>
           {!isMobile && (
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mb-4 gap-2">
+              <PushNotificationsToggle />
               <NotificationBell onNavigate={(t) => setActiveTab(t as typeof activeTab)} />
             </div>
           )}
