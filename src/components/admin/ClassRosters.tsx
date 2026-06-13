@@ -338,17 +338,24 @@ const ClassRosters = () => {
       // Look up registration form + model release + waiver-by-email for these students
       const emails = Array.from(new Set((data ?? []).map((b: any) => (b.email || "").toLowerCase()).filter(Boolean)));
       if (emails.length > 0) {
-        const { data: extras } = await (supabase as any)
+        const scheduleDate = schedules.find(s => s.id === selectedScheduleId)?.date || null;
+        let extrasQuery = (supabase as any)
           .from("signed_waivers")
           .select("signer_email, document_type, schedule_id, schedule_date")
-          .in("signer_email", emails)
           .in("document_type", ["cmsp_waiver", "cmsp_registration_form", "cmsp_model_release", "cmsp_model_release_decline"]);
+
+        extrasQuery = scheduleDate
+          ? extrasQuery.or(`schedule_id.eq.${selectedScheduleId},schedule_date.eq.${scheduleDate}`)
+          : extrasQuery.eq("schedule_id", selectedScheduleId);
+
+        const { data: extras } = await extrasQuery;
         const regSet = new Set<string>();
         const wEmails = new Set<string>();
         const mrMap = new Map<string, "signed" | "declined">();
-        const scheduleDate = schedules.find(s => s.id === selectedScheduleId)?.date || null;
+        const studentEmails = new Set(emails);
         (extras ?? []).forEach((r: any) => {
           const em = (r.signer_email || "").toLowerCase();
+          if (!studentEmails.has(em)) return;
           const matchesClass = r.schedule_id === selectedScheduleId || (scheduleDate && r.schedule_date === scheduleDate);
           if (!matchesClass) return;
           if (r.document_type === "cmsp_waiver") wEmails.add(em);
