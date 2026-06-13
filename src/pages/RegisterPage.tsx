@@ -568,10 +568,11 @@ const RegisterPage = () => {
         location: p.location,
         groupName: pendingGroupName,
         scheduleDate: p.schedule_date,
+        scheduleDetail: pendingScheduleDetail,
         fee: p.fee,
       });
       form.reset();
-      setPendingBooking(null); setPendingGroupName(null);
+      setPendingBooking(null); setPendingGroupName(null); setPendingScheduleDetail(null);
       setWaiverPrefill(null);
       setRegFormPrefill(null);
       setModelReleasePrefill(null);
