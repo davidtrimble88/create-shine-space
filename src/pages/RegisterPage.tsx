@@ -223,6 +223,7 @@ const RegisterPage = () => {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [pendingBooking, setPendingBooking] = useState<Record<string, unknown> | null>(null);
   const [pendingGroupName, setPendingGroupName] = useState<string | null>(null);
+  const [pendingScheduleDetail, setPendingScheduleDetail] = useState<string | null>(null);
   const [paymentRegion, setPaymentRegion] = useState<SquareRegion>("ventura");
   const [paymentAmountCents, setPaymentAmountCents] = useState(0);
   const [paymentAmountLabel, setPaymentAmountLabel] = useState("");
