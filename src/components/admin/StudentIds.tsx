@@ -169,6 +169,9 @@ const StudentIds = () => {
         <IdCard className="w-5 h-5 text-accent" />
         <h2 className="text-2xl font-bold">Student IDs</h2>
         <span className="text-sm text-muted-foreground ml-2">{rows.length} on file</span>
+        <Button size="sm" className="ml-auto" onClick={() => setUploadOpen(true)}>
+          <Upload className="w-4 h-4 mr-2" /> Manual Upload
+        </Button>
       </div>
 
       <div className="relative max-w-md">
