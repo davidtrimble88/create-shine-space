@@ -496,11 +496,17 @@ const ScheduleCard = ({
           {isPartialAvailable && selectedParts && selectedParts.length > 0 && (
             <div className="ml-13 mt-2 flex flex-wrap gap-1.5">
               <span className="text-xs text-muted-foreground">Available for:</span>
-              {selectedParts.map(p => (
-                <span key={p} className="text-xs bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full">
-                  {p}
-                </span>
-              ))}
+              {(() => {
+                const partDates = getPartDates(s.date, s.schedule);
+                return selectedParts.map(p => {
+                  const match = partDates.find(pd => pd.part === p);
+                  return (
+                    <span key={p} className="text-xs bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full">
+                      {match?.dateStr ? `${match.dateStr} — ` : ""}{p}
+                    </span>
+                  );
+                });
+              })()}
             </div>
           )}
         </div>
