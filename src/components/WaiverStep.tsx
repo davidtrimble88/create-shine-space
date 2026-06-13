@@ -223,6 +223,9 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
         <div className="flex items-center gap-2 mb-4">
           <ShieldCheck className="w-5 h-5 text-accent" />
           <h2 className="text-xl font-bold text-foreground">Sign Your CMSP Course Waiver</h2>
+          <span className="ml-2 inline-flex items-center rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
+            Do not scroll below the form — your info is already filled in.
+          </span>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
           Please review the official waiver below. Your registration information has been pre-filled.
