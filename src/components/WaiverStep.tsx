@@ -221,12 +221,12 @@ const WaiverStep = ({ prefill, onBack, onSigned }: Props) => {
     <div className="space-y-6">
       <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
         <div className="mb-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <ShieldCheck className="w-5 h-5 text-accent shrink-0" />
             <h2 className="text-xl font-bold text-foreground">Sign Your CMSP Course Waiver</h2>
-          </div>
-          <div className="mt-2 inline-flex items-center rounded-full bg-accent/15 border border-accent/30 px-3 py-1 text-xs font-semibold text-accent">
-            ↓ Scroll below the form to answer the questions
+            <div className="inline-flex items-center rounded-full bg-accent/15 border border-accent/30 px-3 py-1 text-xs font-semibold text-accent">
+              Scroll below the form to answer the questions
+            </div>
           </div>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
