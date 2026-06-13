@@ -295,6 +295,46 @@ const SignedWaivers = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={uploadOpen} onOpenChange={(o) => !o && setUploadOpen(false)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Manual Waiver Upload</DialogTitle>
+            <DialogDescription>Upload a signed PDF and tag it with signer details.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>First name *</Label><Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} /></div>
+              <div><Label>Last name *</Label><Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></div>
+            </div>
+            <div><Label>Email *</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+            <div>
+              <Label>Document type</Label>
+              <Select value={form.document_type} onValueChange={(v) => setForm({ ...form, document_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cmsp_waiver">Waiver</SelectItem>
+                  <SelectItem value="cmsp_registration_form">Registration Form</SelectItem>
+                  <SelectItem value="cmsp_model_release">Model Release</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Course</Label><Input value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} /></div>
+              <div><Label>Location</Label><Input value={form.location_label} onChange={(e) => setForm({ ...form, location_label: e.target.value })} /></div>
+            </div>
+            <div><Label>Class date</Label><Input type="date" value={form.schedule_date} onChange={(e) => setForm({ ...form, schedule_date: e.target.value })} /></div>
+            <div><Label>PDF file *</Label><Input type="file" accept="application/pdf,.pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUploadOpen(false)} disabled={uploading}>Cancel</Button>
+            <Button onClick={submitUpload} disabled={uploading}>
+              {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+              Upload
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
