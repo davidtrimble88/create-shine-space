@@ -246,6 +246,39 @@ const RegisterPage = () => {
     });
   };
 
+  // Expand schedule detail like "Sat 6:45am–5:00pm, Sun 6:45am–5:00pm" into
+  // dated lines using the schedule's start date. First weekday token = startIso.
+  const expandScheduleDetailWithDates = (
+    detail: string | null,
+    startIso: string | null,
+  ): string => {
+    if (!detail) return "";
+    if (!startIso) return detail;
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(startIso);
+    if (!m) return detail;
+    const dowMap: Record<string, number> = {
+      sun: 0, mon: 1, tue: 2, tues: 2, wed: 3, thu: 4, thur: 4, thurs: 4, fri: 5, sat: 6,
+    };
+    const start = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    const startDow = start.getDay();
+    const parts = detail.split(/\s*,\s*/).filter(Boolean);
+    const out: string[] = [];
+    for (const part of parts) {
+      const mm = /^([A-Za-z]+)\s+(.*)$/.exec(part.trim());
+      if (!mm) { out.push(part); continue; }
+      const dow = dowMap[mm[1].toLowerCase()];
+      if (dow === undefined) { out.push(part); continue; }
+      const offset = (dow - startDow + 7) % 7;
+      const d = new Date(start);
+      d.setDate(start.getDate() + offset);
+      const dateLabel = d.toLocaleDateString("en-US", {
+        weekday: "short", month: "short", day: "numeric", year: "numeric",
+      });
+      out.push(`${dateLabel} — ${mm[2]}`);
+    }
+    return out.join("\n");
+  };
+
   const fireRegistrationEmail = async (payload: {
     email: string;
     firstName: string;
@@ -274,8 +307,9 @@ const RegisterPage = () => {
             locationLabel: payload.locationLabel,
             groupName: payload.groupName || "",
             scheduleDate: formatScheduleDate(payload.scheduleDate),
-            scheduleDetail: payload.scheduleDetail || "",
-            schedule: payload.scheduleDetail || "",
+            scheduleDetail: expandScheduleDetailWithDates(payload.scheduleDetail, payload.scheduleDate),
+            schedule: expandScheduleDetailWithDates(payload.scheduleDetail, payload.scheduleDate),
+            scheduleTimes: payload.scheduleDetail || "",
             fee: payload.fee,
             email: payload.email,
           },
