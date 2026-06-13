@@ -810,9 +810,9 @@ const RegisterPage = () => {
                   </div>
                 </div>
 
-                {/* Address */}
+                {/* Mailing Address */}
                 <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
-                  <h2 className="text-xl font-bold text-foreground mb-6">Address</h2>
+                  <h2 className="text-xl font-bold text-foreground mb-6">Mailing Address</h2>
                   <div className="space-y-4">
                     <FormField
                       control={form.control}
