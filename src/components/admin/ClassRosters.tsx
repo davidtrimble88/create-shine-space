@@ -1117,7 +1117,7 @@ const ClassRosters = () => {
                       {[b.address, b.city, b.state, b.zip].filter(Boolean).join(", ") || "—"}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border">
                     <Field label="Course" value={courseName} />
                     <Field label="Class Date" value={sched?.date || b.schedule_date} />
                     <Field label="Location" value={sched?.location_label || b.location_label} />

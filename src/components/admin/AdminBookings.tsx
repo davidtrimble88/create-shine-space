@@ -651,7 +651,7 @@ const AdminBookings = () => {
                     <p className="font-medium text-foreground">{selectedBooking.location_label}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   <div>
                     <p className="text-muted-foreground text-xs">Class Date</p>
                     <p className="font-medium text-foreground">{selectedBooking.schedule_date || "—"}</p>
@@ -661,7 +661,7 @@ const AdminBookings = () => {
                     <p className="font-medium text-foreground">{selectedBooking.fee || "—"}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   <div>
                     <p className="text-muted-foreground text-xs">Payment Status</p>
                     <p className="font-medium text-foreground capitalize">{selectedBooking.payment_status}</p>
@@ -671,7 +671,7 @@ const AdminBookings = () => {
                     <p className="font-medium text-foreground capitalize">{selectedBooking.booking_status}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                   <div>
                     <p className="text-muted-foreground text-xs">Referral Source</p>
                     <p className="font-medium text-foreground">{selectedBooking.referral_source || "—"}</p>
