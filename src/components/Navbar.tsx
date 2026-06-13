@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, ArrowLeft } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useIsNativeApp } from "@/hooks/use-native-app";
 import EditableText from "@/components/EditableText";
 import logo from "@/assets/logo.png";
 
@@ -18,6 +19,8 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const isNativeApp = useIsNativeApp();
+  const canGoBack = location.pathname !== "/" && isNativeApp;
 
   const handleHomeClick = (e: React.MouseEvent) => {
     if (location.pathname === "/") {
@@ -54,9 +57,20 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-28">
-          <a href="/" onClick={handleHomeClick} className="flex items-center">
-            <img src={logo} alt="Learn to Ride VC" className="h-24 w-auto" />
-          </a>
+          <div className="flex items-center gap-2">
+            {canGoBack && (
+              <button
+                className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground"
+                onClick={() => navigate(-1)}
+                aria-label="Go back"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
+            )}
+            <a href="/" onClick={handleHomeClick} className="flex items-center">
+              <img src={logo} alt="Learn to Ride VC" className="h-24 w-auto" />
+            </a>
+          </div>
 
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
