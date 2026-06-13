@@ -27,6 +27,7 @@ import ITTickets from "@/components/admin/ITTickets";
 import InstructorCertifications from "@/components/admin/InstructorCertifications";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
+import StudentIds from "@/components/admin/StudentIds";
 import NotificationBell from "@/components/admin/NotificationBell";
 
 const tabs = [
