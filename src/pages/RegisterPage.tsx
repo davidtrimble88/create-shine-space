@@ -285,22 +285,25 @@ const RegisterPage = () => {
       // Look up the actual selected schedule (by id) to get its price + date
       let scheduleId: string | null = null;
       let scheduleDate: string | null = null;
+      let scheduleDetail: string | null = null;
       let schedulePrice: string | null = null;
       let scheduleGroup: string | null = null;
       if (schedule) {
         const { data: schedData } = await supabase
           .from("schedules")
-          .select("id, date, price, group_name")
+          .select("id, date, price, group_name, schedule")
           .eq("id", schedule)
           .is("cancelled_at", null)
           .maybeSingle();
         if (schedData) {
           scheduleId = schedData.id;
           scheduleDate = schedData.date;
+          scheduleDetail = (schedData as any).schedule ?? null;
           schedulePrice = schedData.price;
           scheduleGroup = (schedData as any).group_name ?? null;
         }
       }
+
 
       // Parse the schedule's price (e.g. "$1", "$425") into cents.
       // Fall back to age-based default only if no schedule price is available.
