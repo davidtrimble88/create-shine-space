@@ -234,6 +234,17 @@ const RegisterPage = () => {
   const [modelReleaseOpen, setModelReleaseOpen] = useState(false);
   const [modelReleasePrefill, setModelReleasePrefill] = useState<ModelReleasePrefill | null>(null);
 
+  const formatScheduleDate = (iso: string | null) => {
+    if (!iso) return "";
+    // Parse YYYY-MM-DD as a local date (avoid UTC shift)
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+    if (!m) return iso;
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return d.toLocaleDateString("en-US", {
+      weekday: "long", month: "long", day: "numeric", year: "numeric",
+    });
+  };
+
   const fireRegistrationEmail = async (payload: {
     email: string;
     firstName: string;
@@ -244,6 +255,7 @@ const RegisterPage = () => {
     location: string;
     groupName: string | null;
     scheduleDate: string | null;
+    scheduleDetail: string | null;
     fee: string;
   }) => {
     try {
@@ -260,13 +272,15 @@ const RegisterPage = () => {
             course: payload.courseLabel,
             locationLabel: payload.locationLabel,
             groupName: payload.groupName || "",
-            scheduleDate: payload.scheduleDate || "",
-            schedule: "",
+            scheduleDate: formatScheduleDate(payload.scheduleDate),
+            scheduleDetail: payload.scheduleDetail || "",
+            schedule: payload.scheduleDetail || "",
             fee: payload.fee,
             email: payload.email,
           },
         },
       });
+
 
       if (error) throw error;
 
