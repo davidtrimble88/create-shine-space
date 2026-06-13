@@ -67,6 +67,8 @@ const EmployeeDashboard = () => {
   const { user, isAdmin, userRole, effectiveRole, viewAsRole, setViewAsRole, loading, mustChangePassword, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const isMobile = useIsMobile();
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
@@ -79,8 +81,13 @@ const EmployeeDashboard = () => {
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     const dy = e.changedTouches[0].clientY - touchStartY.current;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-      if (dx < 0 && !sidebarCollapsed) setSidebarCollapsed(true);
-      else if (dx > 0 && sidebarCollapsed) setSidebarCollapsed(false);
+      if (isMobile) {
+        if (dx > 0 && !mobileNavOpen && touchStartX.current < 30) setMobileNavOpen(true);
+        else if (dx < 0 && mobileNavOpen) setMobileNavOpen(false);
+      } else {
+        if (dx < 0 && !sidebarCollapsed) setSidebarCollapsed(true);
+        else if (dx > 0 && sidebarCollapsed) setSidebarCollapsed(false);
+      }
     }
     touchStartX.current = null;
     touchStartY.current = null;
