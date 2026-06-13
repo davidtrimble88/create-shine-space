@@ -69,22 +69,43 @@ Deno.serve(async (req) => {
     const subject = render(tpl.subject, variables);
     let body = render(tpl.body, variables);
 
-    // Append a clean attachment list (filename-only clickable links) to the
-    // email body. Avoids dumping raw signed URLs into the message body.
-    const attList: Array<{ name?: string; url?: string }> = Array.isArray(tpl.attachments)
+    // Refresh attachment URLs at send time. The admin UI stores a short-lived
+    // preview URL, which expires; emails need a newly minted signed URL.
+    const rawAttachments: Array<{ name?: string; path?: string; url?: string }> = Array.isArray(tpl.attachments)
       ? (tpl.attachments as any[])
       : [];
-    if (attList.length > 0) {
-      const htmlLinks = attList
-        .filter((a) => a && a.url && a.name)
-        .map(
-          (a) =>
-            `<div style="margin:4px 0"><a href="${a.url}" target="_blank" rel="noopener" style="color:#c2410c;text-decoration:underline;font-weight:600">📎 ${a.name}</a></div>`,
-        )
-        .join("");
-      if (htmlLinks) {
-        body = `${body}\n\n<div style="margin-top:20px;padding-top:14px;border-top:1px solid #e5e7eb"><div style="font-weight:700;margin-bottom:8px">Attachments</div>${htmlLinks}</div>`;
+    const attList = await Promise.all(rawAttachments.map(async (attachment) => {
+      if (!attachment?.name) return null;
+
+      if (attachment.path) {
+        try {
+          const { data } = await supabase.storage
+            .from("email-attachments")
+            .createSignedUrl(attachment.path, 60 * 60 * 24 * 365);
+          if (data?.signedUrl) {
+            return { name: attachment.name, url: data.signedUrl };
+          }
+        } catch (_err) {
+          // Fall back to any stored URL below.
+        }
       }
+
+      if (attachment.url) {
+        return { name: attachment.name, url: attachment.url };
+      }
+
+      return null;
+    }));
+
+    const htmlLinks = attList
+      .filter((a): a is { name: string; url: string } => Boolean(a?.name && a?.url))
+      .map(
+        (a) =>
+          `<div style="margin:4px 0"><a href="${a.url}" target="_blank" rel="noopener" style="color:#c2410c;text-decoration:underline;font-weight:600">📎 ${a.name}</a></div>`,
+      )
+      .join("");
+    if (htmlLinks) {
+      body = `${body}\n\n<div style="margin-top:20px;padding-top:14px;border-top:1px solid #e5e7eb"><div style="font-weight:700;margin-bottom:8px">Attachments</div>${htmlLinks}</div>`;
     }
 
     const linkify = (escapedText: string) =>
