@@ -564,24 +564,27 @@ const ScheduleCard = ({
         <div className="mt-4 ml-13 p-4 bg-background/50 border border-border rounded-lg">
           <p className="text-sm font-medium text-foreground mb-3">Select the parts you're available for:</p>
           <div className="flex flex-wrap gap-2 mb-3">
-            {parts.map(p => {
-              const checked = draftParts.includes(p);
-              return (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => togglePart(p)}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                    checked
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-card text-foreground border-border hover:border-accent/50"
-                  }`}
-                >
-                  {checked && <Check className="w-3 h-3 inline mr-1" />}
-                  {p}
-                </button>
-              );
-            })}
+            {(() => {
+              const partDates = getPartDates(s.date, s.schedule);
+              return partDates.map(({ part, dateStr }) => {
+                const checked = draftParts.includes(part);
+                return (
+                  <button
+                    key={part}
+                    type="button"
+                    onClick={() => togglePart(part)}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                      checked
+                        ? "bg-green-600 text-white border-green-600"
+                        : "bg-card text-foreground border-border hover:border-accent/50"
+                    }`}
+                  >
+                    {checked && <Check className="w-3 h-3 inline mr-1" />}
+                    {dateStr ? `${dateStr} — ` : ""}{part}
+                  </button>
+                );
+              });
+            })()}
           </div>
           <div className="flex gap-2">
             <Button
