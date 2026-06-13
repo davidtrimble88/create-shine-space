@@ -89,7 +89,7 @@ const ClassRosters = () => {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [showRetestDialog, setShowRetestDialog] = useState(false);
-  const [retestForm, setRetestForm] = useState({ first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
+  const [retestForm, setRetestForm] = useState({ first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "", comment: "" });
   const [addingRetest, setAddingRetest] = useState(false);
   const [studentSearch, setStudentSearch] = useState("");
   const [searchResults, setSearchResults] = useState<Booking[]>([]);
@@ -558,13 +558,14 @@ const ClassRosters = () => {
       booking_status: "confirmed",
       payment_status: "paid",
       is_retest: true,
+      roster_comment: retestForm.comment.trim() || null,
     }).select().single();
 
     if (error) {
       toast.error("Failed to add retest student");
     } else if (data) {
       setBookings(prev => [...prev, data as Booking]);
-      setRetestForm({ first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
+      setRetestForm({ first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "", comment: "" });
       setShowRetestDialog(false);
       toast.success("Retest student added");
     }
@@ -1440,6 +1441,15 @@ const ClassRosters = () => {
                           <label className="text-xs font-medium text-muted-foreground mb-1 block">Date of Birth</label>
                           <Input type="date" value={retestForm.date_of_birth} onChange={e => setRetestForm(p => ({ ...p, date_of_birth: e.target.value }))} />
                         </div>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Instructor Notes (what are they retesting for?)</label>
+                        <Textarea
+                          value={retestForm.comment}
+                          onChange={e => setRetestForm(p => ({ ...p, comment: e.target.value }))}
+                          placeholder="e.g. Skill retest — dropped bike during eval"
+                          className="min-h-[80px] text-sm"
+                        />
                       </div>
                       <Button onClick={handleAddRetest} disabled={addingRetest} className="w-full">
                         {addingRetest ? "Adding..." : "Add to Retest Roster"}
