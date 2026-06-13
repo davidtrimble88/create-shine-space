@@ -20,7 +20,8 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isNativeApp = useIsNativeApp();
-  const canGoBack = location.pathname !== "/" && isNativeApp;
+  const canGoBack = location.pathname !== "/";
+
 
   const handleHomeClick = (e: React.MouseEvent) => {
     if (location.pathname === "/") {
