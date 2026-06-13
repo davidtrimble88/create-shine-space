@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 
 interface SignedWaiver {
   id: string;
+  document_type: string | null;
   document_version: string;
   document_hash: string;
   signer_first_name: string;
@@ -142,6 +143,7 @@ const SignedWaivers = () => {
           <thead className="bg-muted/50">
             <tr>
               <th className="text-left px-3 py-2">Signed</th>
+              <th className="text-left px-3 py-2">Type</th>
               <th className="text-left px-3 py-2">Signer</th>
               <th className="text-left px-3 py-2">Course / Location</th>
               <th className="text-left px-3 py-2">Class Date</th>
@@ -153,6 +155,16 @@ const SignedWaivers = () => {
             {filtered.map(w => (
               <tr key={w.id} className="border-t border-border hover:bg-muted/30">
                 <td className="px-3 py-2 whitespace-nowrap">{new Date(w.signed_at).toLocaleString()}</td>
+                <td className="px-3 py-2 whitespace-nowrap">
+                  <span className="inline-flex items-center rounded-md bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent ring-1 ring-inset ring-accent/20">
+                    {w.document_type
+                      ? w.document_type
+                          .replace(/^cmsp_/, "")
+                          .replace(/_/g, " ")
+                          .replace(/\b\w/g, (c) => c.toUpperCase())
+                      : "Waiver"}
+                  </span>
+                </td>
                 <td className="px-3 py-2">
                   <div className="font-medium">{w.signer_first_name} {w.signer_last_name}{w.is_minor && <span className="ml-2 text-xs text-accent">(minor)</span>}</div>
                   <div className="text-xs text-muted-foreground">{w.signer_email}</div>
@@ -172,7 +184,7 @@ const SignedWaivers = () => {
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">No waivers found.</td></tr>
+              <tr><td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">No waivers found.</td></tr>
             )}
           </tbody>
         </table>
