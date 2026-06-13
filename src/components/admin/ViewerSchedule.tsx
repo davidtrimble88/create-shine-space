@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format, parseISO, eachWeekendOfInterval } from "date-fns";
+import { format, parseISO, eachWeekendOfInterval, addDays } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
