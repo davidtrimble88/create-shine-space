@@ -1186,8 +1186,9 @@ const ClassRosters = () => {
             <p className="text-muted-foreground">No students currently awaiting a retest within the 60-day window.</p>
           </div>
         ) : (
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="bg-card border border-border rounded-xl overflow-x-auto">
+            <table className="w-full text-sm min-w-[640px]">
+
               <thead>
                 <tr className="border-b border-border bg-secondary/50">
                   <th className="text-left p-3 font-medium text-muted-foreground">Student</th>
