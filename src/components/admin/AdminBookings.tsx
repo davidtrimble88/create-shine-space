@@ -535,7 +535,11 @@ const AdminBookings = () => {
                   <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
                 )}
               </div>
-              <Button onClick={handleSubmit} className="w-full">Add Student to Class</Button>
+              <Button onClick={handleSubmit} className="w-full">
+                {studentPaymentCollected && studentPaymentMethod === "charge_card" ? (
+                  <><CreditCard className="w-4 h-4 mr-2" />Charge Card &amp; Add Student</>
+                ) : "Add Student to Class"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
