@@ -80,6 +80,8 @@ const ClassRosters = () => {
   const [waiverEmails, setWaiverEmails] = useState<Set<string>>(new Set());
   const [regFormEmails, setRegFormEmails] = useState<Set<string>>(new Set());
   const [modelReleaseByEmail, setModelReleaseByEmail] = useState<Map<string, "signed" | "declined">>(new Map());
+  const [waiverEditFor, setWaiverEditFor] = useState<Booking | null>(null);
+  const [savingWaiverStatus, setSavingWaiverStatus] = useState(false);
   const [loading, setLoading] = useState(false);
   const [locationFilter, setLocationFilter] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("");
