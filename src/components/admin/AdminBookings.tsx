@@ -183,7 +183,7 @@ const AdminBookings = () => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Student Added", description: `${form.first_name} ${form.last_name} has been booked.` });
-      setForm({ schedule_id: "", first_name: "", last_name: "", email: "", phone: "", gender: "", date_of_birth: "", referral_source: "" });
+      setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "" });
       setStudentPaymentCollected(false);
       setStudentPaymentMethod("cash");
       setDialogOpen(false);
@@ -254,7 +254,7 @@ const AdminBookings = () => {
     toast({ title: "Payment received", description: "Student has been booked and marked paid." });
     setChargeOpen(false);
     setChargePayload(null);
-    setForm({ schedule_id: "", first_name: "", last_name: "", email: "", phone: "", gender: "", date_of_birth: "", referral_source: "" });
+    setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "" });
     setStudentPaymentCollected(false);
     setStudentPaymentMethod("cash");
     setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
