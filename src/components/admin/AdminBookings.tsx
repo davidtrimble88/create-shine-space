@@ -129,7 +129,8 @@ const AdminBookings = () => {
     const sched = schedules.find(s => s.id === form.schedule_id);
     if (!sched) return;
 
-    const { error } = await supabase.from("bookings").insert({
+    const basePayload: Record<string, unknown> = {
+      id: crypto.randomUUID(),
       schedule_id: form.schedule_id,
       course: sched.course,
       location: sched.location,
@@ -143,9 +144,30 @@ const AdminBookings = () => {
       date_of_birth: form.date_of_birth || null,
       referral_source: form.referral_source || "Phone Call",
       fee: sched.price,
+    };
+
+    // Take real card payment via Square
+    if (studentPaymentCollected && studentPaymentMethod === "charge_card") {
+      const cents = parseFeeCents(sched.price);
+      if (cents <= 0) {
+        toast({ title: "Invalid fee", description: "This class has no price set.", variant: "destructive" });
+        return;
+      }
+      setChargePayload(basePayload);
+      setChargeRegion(regionFor(sched.location));
+      setChargeAmountCents(cents);
+      setChargeAmountLabel(sched.price);
+      setDialogOpen(false);
+      setChargeOpen(true);
+      return;
+    }
+
+    const { error } = await supabase.from("bookings").insert({
+      ...basePayload,
       payment_status: studentPaymentCollected ? "paid" : "unpaid",
+      payment_provider: studentPaymentCollected ? studentPaymentMethod : null,
       booking_status: "confirmed",
-    });
+    } as any);
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -167,7 +189,8 @@ const AdminBookings = () => {
     const sched = schedules.find(s => s.id === retestForm.schedule_id);
     if (!sched) return;
 
-    const { error } = await supabase.from("bookings").insert({
+    const basePayload: Record<string, unknown> = {
+      id: crypto.randomUUID(),
       schedule_id: retestForm.schedule_id,
       course: sched.course,
       location: sched.location,
@@ -179,10 +202,31 @@ const AdminBookings = () => {
       phone: retestForm.phone,
       license_number: retestForm.license_number || null,
       date_of_birth: retestForm.date_of_birth || null,
-      payment_status: retestPaymentCollected ? "paid" : "unpaid",
-      booking_status: "confirmed",
       is_retest: true,
-    });
+      fee: sched.price,
+    };
+
+    if (retestPaymentCollected && retestPaymentMethod === "charge_card") {
+      const cents = parseFeeCents(sched.price);
+      if (cents <= 0) {
+        toast({ title: "Invalid fee", description: "This class has no price set.", variant: "destructive" });
+        return;
+      }
+      setChargePayload(basePayload);
+      setChargeRegion(regionFor(sched.location));
+      setChargeAmountCents(cents);
+      setChargeAmountLabel(sched.price);
+      setRetestDialogOpen(false);
+      setChargeOpen(true);
+      return;
+    }
+
+    const { error } = await supabase.from("bookings").insert({
+      ...basePayload,
+      payment_status: retestPaymentCollected ? "paid" : "unpaid",
+      payment_provider: retestPaymentCollected ? retestPaymentMethod : null,
+      booking_status: "confirmed",
+    } as any);
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -195,6 +239,20 @@ const AdminBookings = () => {
       fetchData();
     }
   };
+
+  const handleChargeSuccess = (_paymentId: string, _provider: PaymentProvider) => {
+    toast({ title: "Payment received", description: "Student has been booked and marked paid." });
+    setChargeOpen(false);
+    setChargePayload(null);
+    setForm({ schedule_id: "", first_name: "", last_name: "", email: "", phone: "", gender: "", date_of_birth: "", referral_source: "" });
+    setStudentPaymentCollected(false);
+    setStudentPaymentMethod("cash");
+    setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
+    setRetestPaymentCollected(false);
+    setRetestPaymentMethod("cash");
+    fetchData();
+  };
+
 
   const activeCourse = filterCourse && filterCourse !== "all" ? filterCourse : "";
   const activeLocation = filterLocation && filterLocation !== "all" ? filterLocation : "";
