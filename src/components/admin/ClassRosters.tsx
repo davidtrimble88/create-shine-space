@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { roleLabelMap } from "@/components/admin/InstructorAssignment";
+import { WaiverStatusEditor } from "@/components/admin/WaiverStatusEditor";
 
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -80,6 +81,8 @@ const ClassRosters = () => {
   const [waiverEmails, setWaiverEmails] = useState<Set<string>>(new Set());
   const [regFormEmails, setRegFormEmails] = useState<Set<string>>(new Set());
   const [modelReleaseByEmail, setModelReleaseByEmail] = useState<Map<string, "signed" | "declined">>(new Map());
+  const [waiverEditFor, setWaiverEditFor] = useState<Booking | null>(null);
+  const [savingWaiverStatus, setSavingWaiverStatus] = useState(false);
   const [loading, setLoading] = useState(false);
   const [locationFilter, setLocationFilter] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("");
@@ -543,6 +546,81 @@ const ClassRosters = () => {
     setCancelledEvalBookings(prev => prev.filter(b => b.id !== booking.id));
     toast.success(`${booking.first_name} ${booking.last_name} moved back to Needs Rescheduling.`);
   };
+
+  // Manually mark waivers / registration form / model release as signed in person.
+  // Inserts sentinel rows into signed_waivers so the roster badges turn green.
+  const handleSaveWaiverStatus = async (
+    b: Booking,
+    flags: { waiver: boolean; reg_form: boolean; model_release: "signed" | "declined" | "none" }
+  ) => {
+    const email = (b.email || "").toLowerCase().trim();
+    if (!email) { toast.error("Student has no email on file"); return; }
+    const sched = schedules.find(s => s.id === selectedScheduleId) || null;
+    const sentinel = "(marked signed in person)";
+    const baseRow = {
+      document_version: "manual-in-person",
+      document_text: sentinel,
+      document_hash: sentinel,
+      signer_first_name: b.first_name || "",
+      signer_middle_name: (b as any).middle_name || null,
+      signer_last_name: b.last_name || "",
+      signer_email: email,
+      signer_phone: b.phone || null,
+      date_of_birth: b.date_of_birth || null,
+      license_number: b.license_number || null,
+      license_state: (b as any).issuing_state || null,
+      signature_typed: sentinel,
+      signature_drawn: sentinel,
+      consent_acknowledgments: [{ manual_in_person: true, marked_at: new Date().toISOString() }],
+      course: b.course || null,
+      location: b.location || null,
+      location_label: b.location_label || null,
+      schedule_id: b.schedule_id || selectedScheduleId || null,
+      schedule_date: b.schedule_date || sched?.date || null,
+    };
+
+    const inserts: any[] = [];
+    if (flags.waiver && !(waiverEmails.has(email) || ((b as any).waiver_id && waiverIds.has((b as any).waiver_id)))) {
+      inserts.push({ ...baseRow, document_type: "cmsp_waiver" });
+    }
+    if (flags.reg_form && !regFormEmails.has(email)) {
+      inserts.push({ ...baseRow, document_type: "cmsp_registration_form" });
+    }
+    const currentMR = modelReleaseByEmail.get(email);
+    if (flags.model_release === "signed" && currentMR !== "signed") {
+      inserts.push({ ...baseRow, document_type: "cmsp_model_release" });
+    } else if (flags.model_release === "declined" && currentMR !== "declined") {
+      inserts.push({ ...baseRow, document_type: "cmsp_model_release_decline" });
+    }
+
+    if (inserts.length === 0) { setWaiverEditFor(null); return; }
+
+    setSavingWaiverStatus(true);
+    const { error } = await (supabase as any).from("signed_waivers").insert(inserts);
+    setSavingWaiverStatus(false);
+    if (error) { toast.error("Could not save: " + error.message); return; }
+
+    // Update local sets so badges turn green immediately
+    setWaiverEmails(prev => {
+      const next = new Set(prev);
+      if (flags.waiver) next.add(email);
+      return next;
+    });
+    setRegFormEmails(prev => {
+      const next = new Set(prev);
+      if (flags.reg_form) next.add(email);
+      return next;
+    });
+    setModelReleaseByEmail(prev => {
+      const next = new Map(prev);
+      if (flags.model_release === "signed") next.set(email, "signed");
+      else if (flags.model_release === "declined") next.set(email, "declined");
+      return next;
+    });
+    toast.success("Waiver status updated");
+    setWaiverEditFor(null);
+  };
+
 
   const handleAddRetest = async () => {
     if (!selectedSchedule || !retestForm.first_name.trim() || !retestForm.last_name.trim() || !retestForm.phone.trim()) {
@@ -1755,6 +1833,14 @@ const ClassRosters = () => {
                                 </span>
                               );
                             })()}
+                            <button
+                              type="button"
+                              onClick={() => setWaiverEditFor(b)}
+                              title="Mark waivers signed in person"
+                              className="ml-1 text-muted-foreground hover:text-foreground inline-flex items-center"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
                           </div>
                         </td>
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
@@ -2208,6 +2294,17 @@ const ClassRosters = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <WaiverStatusEditor
+        booking={waiverEditFor}
+        open={!!waiverEditFor}
+        onOpenChange={(o) => { if (!o) setWaiverEditFor(null); }}
+        currentWaiver={waiverEditFor ? (waiverEmails.has((waiverEditFor.email || "").toLowerCase()) || (((waiverEditFor as any).waiver_id) && waiverIds.has((waiverEditFor as any).waiver_id))) : false}
+        currentReg={waiverEditFor ? regFormEmails.has((waiverEditFor.email || "").toLowerCase()) : false}
+        currentMR={waiverEditFor ? (modelReleaseByEmail.get((waiverEditFor.email || "").toLowerCase()) || "none") : "none"}
+        saving={savingWaiverStatus}
+        onSave={(flags) => waiverEditFor && handleSaveWaiverStatus(waiverEditFor, flags)}
+      />
     </div>
   );
 };
