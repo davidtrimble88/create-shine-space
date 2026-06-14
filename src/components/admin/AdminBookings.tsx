@@ -517,10 +517,11 @@ const AdminBookings = () => {
                     <Select value={studentPaymentMethod} onValueChange={setStudentPaymentMethod}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="charge_card">💳 Charge Card Now (Square)</SelectItem>
                         <SelectItem value="cash">Cash</SelectItem>
                         <SelectItem value="check">Check</SelectItem>
-                        <SelectItem value="card">Card</SelectItem>
-                        <SelectItem value="square">Square</SelectItem>
+                        <SelectItem value="card">Card (recorded only)</SelectItem>
+                        <SelectItem value="square">Square (recorded only)</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
