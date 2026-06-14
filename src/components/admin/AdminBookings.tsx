@@ -8,9 +8,20 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle } from "lucide-react";
+import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminCancellations from "./AdminCancellations";
+import { PaymentDialog, type PaymentProvider } from "@/components/PaymentDialog";
+import type { SquareRegion } from "@/components/SquarePaymentDialog";
+
+const regionFor = (location: string): SquareRegion =>
+  location.startsWith("high-desert") ? "high_desert" : "ventura";
+
+const parseFeeCents = (price: string | null | undefined): number => {
+  if (!price) return 0;
+  const n = Number(String(price).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) ? Math.round(n * 100) : 0;
+};
 
 type Booking = Tables<"bookings">;
 type Schedule = Tables<"schedules">;
