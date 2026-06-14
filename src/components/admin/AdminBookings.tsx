@@ -62,11 +62,21 @@ const AdminBookings = () => {
   const [form, setForm] = useState({
     schedule_id: "",
     first_name: "",
+    middle_name: "",
     last_name: "",
+    preferred_name: "",
     email: "",
     phone: "",
     gender: "",
     date_of_birth: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    license_number: "",
+    issuing_country: "US",
+    issuing_state: "",
+    license_expiration: "",
     referral_source: "",
   });
   const [studentPaymentCollected, setStudentPaymentCollected] = useState(false);
@@ -137,11 +147,21 @@ const AdminBookings = () => {
       location_label: sched.location_label,
       schedule_date: sched.date,
       first_name: form.first_name,
+      middle_name: form.middle_name || null,
       last_name: form.last_name,
+      preferred_name: form.preferred_name || null,
       email: form.email,
       phone: form.phone,
       gender: form.gender || null,
       date_of_birth: form.date_of_birth || null,
+      address: form.address || null,
+      city: form.city || null,
+      state: form.state || null,
+      zip: form.zip || null,
+      license_number: form.license_number || null,
+      issuing_country: form.issuing_country || null,
+      issuing_state: form.issuing_state || null,
+      license_expiration: form.license_expiration || null,
       referral_source: form.referral_source || "Phone Call",
       fee: sched.price,
     };
@@ -173,7 +193,7 @@ const AdminBookings = () => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Student Added", description: `${form.first_name} ${form.last_name} has been booked.` });
-      setForm({ schedule_id: "", first_name: "", last_name: "", email: "", phone: "", gender: "", date_of_birth: "", referral_source: "" });
+      setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "" });
       setStudentPaymentCollected(false);
       setStudentPaymentMethod("cash");
       setDialogOpen(false);
@@ -244,7 +264,7 @@ const AdminBookings = () => {
     toast({ title: "Payment received", description: "Student has been booked and marked paid." });
     setChargeOpen(false);
     setChargePayload(null);
-    setForm({ schedule_id: "", first_name: "", last_name: "", email: "", phone: "", gender: "", date_of_birth: "", referral_source: "" });
+    setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "" });
     setStudentPaymentCollected(false);
     setStudentPaymentMethod("cash");
     setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
@@ -463,15 +483,23 @@ const AdminBookings = () => {
                   <p className="text-xs text-destructive mt-1">⚠ This class is full</p>
                 )}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label>Legal First Name *</Label>
                   <Input value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))} />
                 </div>
                 <div>
+                  <Label>Middle Name</Label>
+                  <Input value={form.middle_name} onChange={e => setForm(f => ({ ...f, middle_name: e.target.value }))} />
+                </div>
+                <div>
                   <Label>Legal Last Name *</Label>
                   <Input value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))} />
                 </div>
+              </div>
+              <div>
+                <Label>Preferred Name</Label>
+                <Input value={form.preferred_name} onChange={e => setForm(f => ({ ...f, preferred_name: e.target.value }))} />
               </div>
               <div>
                 <Label>Email *</Label>
@@ -498,6 +526,59 @@ const AdminBookings = () => {
                   <Input type="date" value={form.date_of_birth} onChange={e => setForm(f => ({ ...f, date_of_birth: e.target.value }))} />
                 </div>
               </div>
+
+              {/* Address */}
+              <div className="pt-2 border-t border-border/40">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Address</p>
+                <div className="space-y-3">
+                  <div>
+                    <Label>Street Address</Label>
+                    <Input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <Label>City</Label>
+                      <Input value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label>State</Label>
+                      <Input value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} maxLength={50} />
+                    </div>
+                    <div>
+                      <Label>ZIP</Label>
+                      <Input value={form.zip} onChange={e => setForm(f => ({ ...f, zip: e.target.value }))} maxLength={10} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ID / License */}
+              <div className="pt-2 border-t border-border/40">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Driver's License / ID</p>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <Label>ID / License Number</Label>
+                      <Input value={form.license_number} onChange={e => setForm(f => ({ ...f, license_number: e.target.value }))} maxLength={50} />
+                    </div>
+                    <div>
+                      <Label>Expiration</Label>
+                      <Input type="date" value={form.license_expiration} onChange={e => setForm(f => ({ ...f, license_expiration: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <Label>Issuing Country</Label>
+                      <Input value={form.issuing_country} onChange={e => setForm(f => ({ ...f, issuing_country: e.target.value }))} maxLength={50} />
+                    </div>
+                    <div>
+                      <Label>Issuing State</Label>
+                      <Input value={form.issuing_state} onChange={e => setForm(f => ({ ...f, issuing_state: e.target.value }))} maxLength={50} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <Label>How did they hear about us?</Label>
                 <Select value={form.referral_source} onValueChange={v => setForm(f => ({ ...f, referral_source: v }))}>
