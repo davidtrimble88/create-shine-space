@@ -805,6 +805,18 @@ const AdminBookings = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {chargePayload && (
+        <PaymentDialog
+          open={chargeOpen}
+          onOpenChange={(o) => { if (!o) { setChargeOpen(false); setChargePayload(null); } }}
+          region={chargeRegion}
+          amountCents={chargeAmountCents}
+          amountLabel={chargeAmountLabel}
+          bookingPayload={chargePayload}
+          onSuccess={handleChargeSuccess}
+        />
+      )}
     </div>
   );
 };
