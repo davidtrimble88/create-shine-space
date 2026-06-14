@@ -62,11 +62,21 @@ const AdminBookings = () => {
   const [form, setForm] = useState({
     schedule_id: "",
     first_name: "",
+    middle_name: "",
     last_name: "",
+    preferred_name: "",
     email: "",
     phone: "",
     gender: "",
     date_of_birth: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    license_number: "",
+    issuing_country: "US",
+    issuing_state: "",
+    license_expiration: "",
     referral_source: "",
   });
   const [studentPaymentCollected, setStudentPaymentCollected] = useState(false);
