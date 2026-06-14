@@ -416,7 +416,11 @@ const AdminBookings = () => {
                   <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
                 )}
               </div>
-              <Button onClick={handleRetestSubmit} className="w-full">Add to Retest Roster</Button>
+              <Button onClick={handleRetestSubmit} className="w-full">
+                {retestPaymentCollected && retestPaymentMethod === "charge_card" ? (
+                  <><CreditCard className="w-4 h-4 mr-2" />Charge Card &amp; Add to Retest</>
+                ) : "Add to Retest Roster"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
