@@ -82,6 +82,13 @@ const AdminBookings = () => {
   const [retestPaymentCollected, setRetestPaymentCollected] = useState(false);
   const [retestPaymentMethod, setRetestPaymentMethod] = useState("cash");
 
+  // Charge-card dialog state (for taking actual payment via Square)
+  const [chargeOpen, setChargeOpen] = useState(false);
+  const [chargePayload, setChargePayload] = useState<Record<string, unknown> | null>(null);
+  const [chargeRegion, setChargeRegion] = useState<SquareRegion>("ventura");
+  const [chargeAmountCents, setChargeAmountCents] = useState(0);
+  const [chargeAmountLabel, setChargeAmountLabel] = useState("$0");
+
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
     const [bookRes, schedRes, refRes] = await Promise.all([
