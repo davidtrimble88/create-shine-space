@@ -2293,6 +2293,17 @@ const ClassRosters = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <WaiverStatusEditor
+        booking={waiverEditFor}
+        open={!!waiverEditFor}
+        onOpenChange={(o) => { if (!o) setWaiverEditFor(null); }}
+        currentWaiver={waiverEditFor ? (waiverEmails.has((waiverEditFor.email || "").toLowerCase()) || (((waiverEditFor as any).waiver_id) && waiverIds.has((waiverEditFor as any).waiver_id))) : false}
+        currentReg={waiverEditFor ? regFormEmails.has((waiverEditFor.email || "").toLowerCase()) : false}
+        currentMR={waiverEditFor ? (modelReleaseByEmail.get((waiverEditFor.email || "").toLowerCase()) || "none") : "none"}
+        saving={savingWaiverStatus}
+        onSave={(flags) => waiverEditFor && handleSaveWaiverStatus(waiverEditFor, flags)}
+      />
     </div>
   );
 };
