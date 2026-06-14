@@ -1832,6 +1832,14 @@ const ClassRosters = () => {
                                 </span>
                               );
                             })()}
+                            <button
+                              type="button"
+                              onClick={() => setWaiverEditFor(b)}
+                              title="Mark waivers signed in person"
+                              className="ml-1 text-muted-foreground hover:text-foreground inline-flex items-center"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
                           </div>
                         </td>
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
