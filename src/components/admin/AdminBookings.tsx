@@ -8,9 +8,20 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle } from "lucide-react";
+import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminCancellations from "./AdminCancellations";
+import { PaymentDialog, type PaymentProvider } from "@/components/PaymentDialog";
+import type { SquareRegion } from "@/components/SquarePaymentDialog";
+
+const regionFor = (location: string): SquareRegion =>
+  location.startsWith("high-desert") ? "high_desert" : "ventura";
+
+const parseFeeCents = (price: string | null | undefined): number => {
+  if (!price) return 0;
+  const n = Number(String(price).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) ? Math.round(n * 100) : 0;
+};
 
 type Booking = Tables<"bookings">;
 type Schedule = Tables<"schedules">;
@@ -71,6 +82,13 @@ const AdminBookings = () => {
   const [retestPaymentCollected, setRetestPaymentCollected] = useState(false);
   const [retestPaymentMethod, setRetestPaymentMethod] = useState("cash");
 
+  // Charge-card dialog state (for taking actual payment via Square)
+  const [chargeOpen, setChargeOpen] = useState(false);
+  const [chargePayload, setChargePayload] = useState<Record<string, unknown> | null>(null);
+  const [chargeRegion, setChargeRegion] = useState<SquareRegion>("ventura");
+  const [chargeAmountCents, setChargeAmountCents] = useState(0);
+  const [chargeAmountLabel, setChargeAmountLabel] = useState("$0");
+
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
     const [bookRes, schedRes, refRes] = await Promise.all([
@@ -111,7 +129,8 @@ const AdminBookings = () => {
     const sched = schedules.find(s => s.id === form.schedule_id);
     if (!sched) return;
 
-    const { error } = await supabase.from("bookings").insert({
+    const basePayload: Record<string, unknown> = {
+      id: crypto.randomUUID(),
       schedule_id: form.schedule_id,
       course: sched.course,
       location: sched.location,
@@ -125,9 +144,30 @@ const AdminBookings = () => {
       date_of_birth: form.date_of_birth || null,
       referral_source: form.referral_source || "Phone Call",
       fee: sched.price,
+    };
+
+    // Take real card payment via Square
+    if (studentPaymentCollected && studentPaymentMethod === "charge_card") {
+      const cents = parseFeeCents(sched.price);
+      if (cents <= 0) {
+        toast({ title: "Invalid fee", description: "This class has no price set.", variant: "destructive" });
+        return;
+      }
+      setChargePayload(basePayload);
+      setChargeRegion(regionFor(sched.location));
+      setChargeAmountCents(cents);
+      setChargeAmountLabel(sched.price);
+      setDialogOpen(false);
+      setChargeOpen(true);
+      return;
+    }
+
+    const { error } = await supabase.from("bookings").insert({
+      ...basePayload,
       payment_status: studentPaymentCollected ? "paid" : "unpaid",
+      payment_provider: studentPaymentCollected ? studentPaymentMethod : null,
       booking_status: "confirmed",
-    });
+    } as any);
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -149,7 +189,8 @@ const AdminBookings = () => {
     const sched = schedules.find(s => s.id === retestForm.schedule_id);
     if (!sched) return;
 
-    const { error } = await supabase.from("bookings").insert({
+    const basePayload: Record<string, unknown> = {
+      id: crypto.randomUUID(),
       schedule_id: retestForm.schedule_id,
       course: sched.course,
       location: sched.location,
@@ -161,10 +202,31 @@ const AdminBookings = () => {
       phone: retestForm.phone,
       license_number: retestForm.license_number || null,
       date_of_birth: retestForm.date_of_birth || null,
-      payment_status: retestPaymentCollected ? "paid" : "unpaid",
-      booking_status: "confirmed",
       is_retest: true,
-    });
+      fee: sched.price,
+    };
+
+    if (retestPaymentCollected && retestPaymentMethod === "charge_card") {
+      const cents = parseFeeCents(sched.price);
+      if (cents <= 0) {
+        toast({ title: "Invalid fee", description: "This class has no price set.", variant: "destructive" });
+        return;
+      }
+      setChargePayload(basePayload);
+      setChargeRegion(regionFor(sched.location));
+      setChargeAmountCents(cents);
+      setChargeAmountLabel(sched.price);
+      setRetestDialogOpen(false);
+      setChargeOpen(true);
+      return;
+    }
+
+    const { error } = await supabase.from("bookings").insert({
+      ...basePayload,
+      payment_status: retestPaymentCollected ? "paid" : "unpaid",
+      payment_provider: retestPaymentCollected ? retestPaymentMethod : null,
+      booking_status: "confirmed",
+    } as any);
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -177,6 +239,20 @@ const AdminBookings = () => {
       fetchData();
     }
   };
+
+  const handleChargeSuccess = (_paymentId: string, _provider: PaymentProvider) => {
+    toast({ title: "Payment received", description: "Student has been booked and marked paid." });
+    setChargeOpen(false);
+    setChargePayload(null);
+    setForm({ schedule_id: "", first_name: "", last_name: "", email: "", phone: "", gender: "", date_of_birth: "", referral_source: "" });
+    setStudentPaymentCollected(false);
+    setStudentPaymentMethod("cash");
+    setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
+    setRetestPaymentCollected(false);
+    setRetestPaymentMethod("cash");
+    fetchData();
+  };
+
 
   const activeCourse = filterCourse && filterCourse !== "all" ? filterCourse : "";
   const activeLocation = filterLocation && filterLocation !== "all" ? filterLocation : "";
@@ -326,10 +402,11 @@ const AdminBookings = () => {
                     <Select value={retestPaymentMethod} onValueChange={setRetestPaymentMethod}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="charge_card">💳 Charge Card Now (Square)</SelectItem>
                         <SelectItem value="cash">Cash</SelectItem>
                         <SelectItem value="check">Check</SelectItem>
-                        <SelectItem value="card">Card</SelectItem>
-                        <SelectItem value="square">Square</SelectItem>
+                        <SelectItem value="card">Card (recorded only)</SelectItem>
+                        <SelectItem value="square">Square (recorded only)</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
@@ -339,7 +416,11 @@ const AdminBookings = () => {
                   <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
                 )}
               </div>
-              <Button onClick={handleRetestSubmit} className="w-full">Add to Retest Roster</Button>
+              <Button onClick={handleRetestSubmit} className="w-full">
+                {retestPaymentCollected && retestPaymentMethod === "charge_card" ? (
+                  <><CreditCard className="w-4 h-4 mr-2" />Charge Card &amp; Add to Retest</>
+                ) : "Add to Retest Roster"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -440,10 +521,11 @@ const AdminBookings = () => {
                     <Select value={studentPaymentMethod} onValueChange={setStudentPaymentMethod}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="charge_card">💳 Charge Card Now (Square)</SelectItem>
                         <SelectItem value="cash">Cash</SelectItem>
                         <SelectItem value="check">Check</SelectItem>
-                        <SelectItem value="card">Card</SelectItem>
-                        <SelectItem value="square">Square</SelectItem>
+                        <SelectItem value="card">Card (recorded only)</SelectItem>
+                        <SelectItem value="square">Square (recorded only)</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
@@ -453,7 +535,11 @@ const AdminBookings = () => {
                   <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
                 )}
               </div>
-              <Button onClick={handleSubmit} className="w-full">Add Student to Class</Button>
+              <Button onClick={handleSubmit} className="w-full">
+                {studentPaymentCollected && studentPaymentMethod === "charge_card" ? (
+                  <><CreditCard className="w-4 h-4 mr-2" />Charge Card &amp; Add Student</>
+                ) : "Add Student to Class"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -719,6 +805,18 @@ const AdminBookings = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {chargePayload && (
+        <PaymentDialog
+          open={chargeOpen}
+          onOpenChange={(o) => { if (!o) { setChargeOpen(false); setChargePayload(null); } }}
+          region={chargeRegion}
+          amountCents={chargeAmountCents}
+          amountLabel={chargeAmountLabel}
+          bookingPayload={chargePayload}
+          onSuccess={handleChargeSuccess}
+        />
+      )}
     </div>
   );
 };
