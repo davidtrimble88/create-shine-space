@@ -176,6 +176,7 @@ const ClassRosters = () => {
         .from("schedules")
         .select("*")
         .gte("date", today)
+        .is("cancelled_at", null)
         .order("date");
       if (activeRes.data) setSchedules(activeRes.data);
 
@@ -305,6 +306,8 @@ const ClassRosters = () => {
       }
     };
     fetchData();
+    const interval = setInterval(fetchData, 300000); // refresh every 5 min
+    return () => clearInterval(interval);
   }, [user?.id, view]);
 
   useEffect(() => {

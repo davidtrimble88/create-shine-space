@@ -58,7 +58,7 @@ const ViewerSchedule = () => {
     const schedQueryBuilder = supabase.from("schedules").select("*");
     const schedPromise = view === "past"
       ? schedQueryBuilder.lt("date", today).order("date", { ascending: false })
-      : schedQueryBuilder.gte("date", today).order("date", { ascending: true });
+      : schedQueryBuilder.gte("date", today).is("cancelled_at", null).order("date", { ascending: true });
 
     const [schedRes, dismissedRes] = await Promise.all([
       schedPromise,
@@ -92,7 +92,11 @@ const ViewerSchedule = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, [user, view]);
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 300000); // refresh every 5 min
+    return () => clearInterval(interval);
+  }, [user, view]);
 
   const setAvailability = async (scheduleId: string, parts: string[] | null) => {
     if (!user) return;
