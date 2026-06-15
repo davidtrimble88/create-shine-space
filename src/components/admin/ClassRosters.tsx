@@ -176,6 +176,7 @@ const ClassRosters = () => {
         .from("schedules")
         .select("*")
         .gte("date", today)
+        .is("cancelled_at", null)
         .order("date");
       if (activeRes.data) setSchedules(activeRes.data);
 

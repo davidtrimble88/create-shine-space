@@ -44,7 +44,7 @@ const ComprehensiveSchedule = () => {
       if (view === "past") {
         query = query.lt("date", today).order("date", { ascending: false });
       } else {
-        query = query.gte("date", today).order("date", { ascending: true });
+        query = query.gte("date", today).is("cancelled_at", null).order("date", { ascending: true });
       }
       if (filterCourse !== "all") query = query.eq("course", filterCourse);
       if (filterLocation !== "all") query = query.eq("location", filterLocation);

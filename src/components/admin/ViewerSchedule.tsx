@@ -58,7 +58,7 @@ const ViewerSchedule = () => {
     const schedQueryBuilder = supabase.from("schedules").select("*");
     const schedPromise = view === "past"
       ? schedQueryBuilder.lt("date", today).order("date", { ascending: false })
-      : schedQueryBuilder.gte("date", today).order("date", { ascending: true });
+      : schedQueryBuilder.gte("date", today).is("cancelled_at", null).order("date", { ascending: true });
 
     const [schedRes, dismissedRes] = await Promise.all([
       schedPromise,
