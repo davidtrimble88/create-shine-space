@@ -92,7 +92,11 @@ const ViewerSchedule = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, [user, view]);
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 300000); // refresh every 5 min
+    return () => clearInterval(interval);
+  }, [user, view]);
 
   const setAvailability = async (scheduleId: string, parts: string[] | null) => {
     if (!user) return;

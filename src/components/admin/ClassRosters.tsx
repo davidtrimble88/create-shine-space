@@ -306,6 +306,8 @@ const ClassRosters = () => {
       }
     };
     fetchData();
+    const interval = setInterval(fetchData, 300000); // refresh every 5 min
+    return () => clearInterval(interval);
   }, [user?.id, view]);
 
   useEffect(() => {

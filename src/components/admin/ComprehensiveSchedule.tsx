@@ -80,6 +80,8 @@ const ComprehensiveSchedule = () => {
       setLoading(false);
     };
     load();
+    const interval = setInterval(load, 300000); // refresh every 5 min
+    return () => clearInterval(interval);
   }, [filterCourse, filterLocation, view]);
 
   const filteredRows = filterInstructor === "all"
