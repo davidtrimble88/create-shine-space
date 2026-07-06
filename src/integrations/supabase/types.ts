@@ -241,6 +241,33 @@ export type Database = {
           },
         ]
       }
+      certification_notifications_sent: {
+        Row: {
+          cert_type: string
+          expires_on: string
+          id: string
+          milestone: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          cert_type: string
+          expires_on: string
+          id?: string
+          milestone: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          cert_type?: string
+          expires_on?: string
+          id?: string
+          milestone?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dismissed_weekends: {
         Row: {
           created_at: string
