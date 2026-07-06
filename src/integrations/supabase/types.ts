@@ -241,6 +241,33 @@ export type Database = {
           },
         ]
       }
+      certification_notifications_sent: {
+        Row: {
+          cert_type: string
+          expires_on: string
+          id: string
+          milestone: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          cert_type: string
+          expires_on: string
+          id?: string
+          milestone: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          cert_type?: string
+          expires_on?: string
+          id?: string
+          milestone?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dismissed_weekends: {
         Row: {
           created_at: string
@@ -1180,6 +1207,7 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
