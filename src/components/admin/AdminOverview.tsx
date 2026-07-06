@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarDays, Users, BookOpen, DollarSign, MapPin, Smartphone, ClipboardList } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import CertStatusSummary from "./CertStatusSummary";
 
 interface LocationEarnings {
   [location: string]: number;
