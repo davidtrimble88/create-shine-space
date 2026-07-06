@@ -131,14 +131,14 @@ const Courses = () => {
                   <div className="flex flex-col">
                     <div>
                       <span className="text-4xl font-bold text-foreground">
-                        <EditableText contentKey={(course as any).priceKey} fallback={course.price} />
+                        <EditableText contentKey={(course as any).priceAltKey} fallback={(course as any).priceAlt} />
                       </span>
-                      <span className="text-muted-foreground ml-2">under 21</span>
                     </div>
                     <div className="mt-1">
                       <span className="text-2xl font-bold text-foreground">
-                        <EditableText contentKey={(course as any).priceAltKey} fallback={(course as any).priceAlt} />
+                        <EditableText contentKey={(course as any).priceKey} fallback={course.price} />
                       </span>
+                      <span className="text-muted-foreground ml-2">under 21</span>
                     </div>
                   </div>
                 ) : (
