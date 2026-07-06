@@ -15,7 +15,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ShieldCheck, Save, Loader2, AlertTriangle, CheckCircle2, XCircle, Pencil } from "lucide-react";
+import { ShieldCheck, Save, Loader2, AlertTriangle, CheckCircle2, XCircle, Pencil, BarChart3 } from "lucide-react";
+import CertificationStatusReport from "./CertificationStatusReport";
 
 type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires";
 
