@@ -402,7 +402,8 @@ const AdminAllView = () => {
 const InstructorCertifications = () => {
   const { user, effectiveRole } = useAuth();
   const isAdmin = effectiveRole === "owner" || effectiveRole === "admin";
-  const [tab, setTab] = useState<"mine" | "all">(isAdmin ? "all" : "mine");
+  const isManagerOrAbove = isAdmin || effectiveRole === "manager";
+  const [tab, setTab] = useState<"mine" | "all" | "report">(isAdmin ? "all" : "mine");
 
   if (!user) return null;
 
@@ -420,10 +421,15 @@ const InstructorCertifications = () => {
         </p>
       </div>
 
-      {isAdmin && (
-        <div className="flex gap-2 mb-4">
-          <Button variant={tab === "all" ? "default" : "outline"} size="sm" onClick={() => setTab("all")}>
-            All Instructors
+      {isManagerOrAbove && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {isAdmin && (
+            <Button variant={tab === "all" ? "default" : "outline"} size="sm" onClick={() => setTab("all")}>
+              All Instructors
+            </Button>
+          )}
+          <Button variant={tab === "report" ? "default" : "outline"} size="sm" onClick={() => setTab("report")}>
+            <BarChart3 className="w-4 h-4 mr-1" /> Status Report
           </Button>
           <Button variant={tab === "mine" ? "default" : "outline"} size="sm" onClick={() => setTab("mine")}>
             My Certifications
@@ -431,7 +437,13 @@ const InstructorCertifications = () => {
         </div>
       )}
 
-      {tab === "all" && isAdmin ? <AdminAllView /> : <SelfView userId={user.id} editable={isAdmin} />}
+      {tab === "all" && isAdmin ? (
+        <AdminAllView />
+      ) : tab === "report" && isManagerOrAbove ? (
+        <CertificationStatusReport />
+      ) : (
+        <SelfView userId={user.id} editable={isAdmin} />
+      )}
     </div>
   );
 };
