@@ -9,7 +9,7 @@ const courses = [
     name: "Motorcycle Training Course",
     subtitle: "Perfect for beginners",
     price: "$395",
-    priceAlt: "$425 (21+)",
+    priceAlt: "$425",
     priceKey: "courses.mtc.price",
     priceAltKey: "courses.mtc.priceAlt",
     duration: "2 Days (Weekend)",
