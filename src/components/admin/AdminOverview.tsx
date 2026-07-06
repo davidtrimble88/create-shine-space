@@ -195,6 +195,15 @@ const AdminOverview = () => {
         ))}
       </div>
 
+      {user && (
+        <CertStatusSummary
+          scope={effectiveRole === "owner" || effectiveRole === "admin" || effectiveRole === "manager" ? "all" : "self"}
+          userId={user.id}
+        />
+      )}
+
+
+
       {canSeeAnalytics && (
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <div className="bg-card border border-border rounded-xl p-6">
