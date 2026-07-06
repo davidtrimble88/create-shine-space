@@ -103,7 +103,7 @@ const BasicCourse = () => (
               <span>Not required, but <strong>highly recommended</strong></span>
             </li>
             <li className="flex items-start gap-2">
-              <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-into" />
+              <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
               <span>Earn your <strong>CA DMV DL389 Certificate</strong></span>
             </li>
             <li className="flex items-start gap-2">
