@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarDays, Users, BookOpen, DollarSign, MapPin, Smartphone, ClipboardList } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import CertStatusSummary from "./CertStatusSummary";
 
 interface LocationEarnings {
   [location: string]: number;
@@ -193,6 +194,15 @@ const AdminOverview = () => {
           </div>
         ))}
       </div>
+
+      {user && (
+        <CertStatusSummary
+          scope={effectiveRole === "owner" || effectiveRole === "admin" || effectiveRole === "manager" ? "all" : "self"}
+          userId={user.id}
+        />
+      )}
+
+
 
       {canSeeAnalytics && (
         <div className="grid md:grid-cols-2 gap-6 mb-8">
