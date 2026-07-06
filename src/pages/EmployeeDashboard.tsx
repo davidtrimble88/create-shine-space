@@ -42,7 +42,6 @@ const tabs = [
   { id: "files", label: "Files", icon: FolderOpen, roles: ["owner", "admin", "manager", "employee"] },
   { id: "it-tickets", label: "IT Tickets", icon: Wrench, roles: ["owner", "admin", "manager", "employee"] },
   { id: "certifications", label: "Certifications", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "cert-status", label: "Cert Status Report", icon: ClipboardList, roles: ["owner", "admin", "manager"] },
   
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
