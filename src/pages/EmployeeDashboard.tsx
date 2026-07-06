@@ -25,7 +25,6 @@ import PaymentSettings from "@/components/admin/PaymentSettings";
 import AutoEmails from "@/components/admin/AutoEmails";
 import ITTickets from "@/components/admin/ITTickets";
 import InstructorCertifications from "@/components/admin/InstructorCertifications";
-import CertificationStatusReport from "@/components/admin/CertificationStatusReport";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
 import StudentIds from "@/components/admin/StudentIds";
@@ -43,7 +42,6 @@ const tabs = [
   { id: "files", label: "Files", icon: FolderOpen, roles: ["owner", "admin", "manager", "employee"] },
   { id: "it-tickets", label: "IT Tickets", icon: Wrench, roles: ["owner", "admin", "manager", "employee"] },
   { id: "certifications", label: "Certifications", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "cert-status", label: "Cert Status Report", icon: ClipboardList, roles: ["owner", "admin", "manager"] },
   
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
@@ -333,7 +331,6 @@ const EmployeeDashboard = () => {
           {activeTab === "files" && <AdminFiles />}
           {activeTab === "it-tickets" && <ITTickets />}
           {activeTab === "certifications" && <InstructorCertifications />}
-          {activeTab === "cert-status" && <CertificationStatusReport />}
           {activeTab === "signed-waivers" && <SignedWaivers />}
           {activeTab === "student-ids" && <StudentIds />}
           {activeTab === "auto-emails" && <AutoEmails />}
