@@ -9,7 +9,7 @@ const courses = [
     name: "Motorcycle Training Course",
     subtitle: "Perfect for beginners",
     price: "$395",
-    priceAlt: "$425 (21+)",
+    priceAlt: "$425",
     priceKey: "courses.mtc.price",
     priceAltKey: "courses.mtc.priceAlt",
     duration: "2 Days (Weekend)",
@@ -133,6 +133,7 @@ const Courses = () => {
                       <span className="text-4xl font-bold text-foreground">
                         <EditableText contentKey={(course as any).priceAltKey} fallback={(course as any).priceAlt} />
                       </span>
+                      <span className="text-muted-foreground ml-2">(21+)</span>
                     </div>
                     <div className="mt-1">
                       <span className="text-2xl font-bold text-foreground">
