@@ -93,18 +93,18 @@ const BasicCourse = () => (
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
-            <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">REQUIRED</span>
-            <span className="text-foreground font-bold text-lg">Under 21</span>
+            <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1 rounded-full">RECOMMENDED</span>
+            <span className="text-foreground font-bold text-lg">21 and Over</span>
           </div>
-          <p className="text-3xl font-bold text-foreground mb-3"><EditableText contentKey="courses.mtc.price" fallback="$395" /></p>
+          <p className="text-3xl font-bold text-accent mb-3"><EditableText contentKey="courses.mtc.priceAlt" fallback="$425" /></p>
           <ul className="space-y-2 text-sm text-foreground/80">
             <li className="flex items-start gap-2">
               <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-              <span><strong>Mandatory</strong> before taking your permit written test at the DMV</span>
+              <span>Not required, but <strong>highly recommended</strong></span>
             </li>
             <li className="flex items-start gap-2">
-              <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-              <span>Earn your <strong>CA DMV DL389 Certificate</strong> — required to proceed</span>
+              <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-into" />
+              <span>Earn your <strong>CA DMV DL389 Certificate</strong></span>
             </li>
             <li className="flex items-start gap-2">
               <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
@@ -119,18 +119,18 @@ const BasicCourse = () => (
 
         <div className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
-            <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1 rounded-full">RECOMMENDED</span>
-            <span className="text-foreground font-bold text-lg">21 and Over</span>
+            <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">REQUIRED</span>
+            <span className="text-foreground font-bold text-lg">Under 21</span>
           </div>
-          <p className="text-3xl font-bold text-accent mb-3"><EditableText contentKey="courses.mtc.priceAlt" fallback="$425" /></p>
+          <p className="text-3xl font-bold text-foreground mb-3"><EditableText contentKey="courses.mtc.price" fallback="$395" /></p>
           <ul className="space-y-2 text-sm text-foreground/80">
             <li className="flex items-start gap-2">
               <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-              <span>Not required, but <strong>highly recommended</strong></span>
+              <span><strong>Mandatory</strong> before taking your permit written test at the DMV</span>
             </li>
             <li className="flex items-start gap-2">
               <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-              <span>Earn your <strong>CA DMV DL389 Certificate</strong></span>
+              <span>Earn your <strong>CA DMV DL389 Certificate</strong> — required to proceed</span>
             </li>
             <li className="flex items-start gap-2">
               <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
