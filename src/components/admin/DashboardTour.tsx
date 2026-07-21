@@ -55,6 +55,39 @@ export default function DashboardTour({ role, userId, open, onOpenChange, onNavi
     if (open && steps[i]) onNavigateTab(steps[i].tab);
   }, [i, open, steps, onNavigateTab]);
 
+  // Track the highlighted element's rect
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  useEffect(() => {
+    if (!open || minimized || !steps[safeIndexRef()]) { setRect(null); return; }
+    const targetTab = steps[Math.min(Math.max(i, 0), steps.length - 1)]?.tab;
+    if (!targetTab) return;
+
+    let raf = 0;
+    const update = () => {
+      const el = document.querySelector<HTMLElement>(`[data-tour-target="${targetTab}"]`);
+      if (el) {
+        el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        setRect(el.getBoundingClientRect());
+      } else {
+        setRect(null);
+      }
+    };
+    // small delay to let tab switch / layout settle
+    const t = window.setTimeout(update, 150);
+    const onScrollResize = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
+    window.addEventListener("resize", onScrollResize);
+    window.addEventListener("scroll", onScrollResize, true);
+    const interval = window.setInterval(update, 500);
+    return () => {
+      window.clearTimeout(t);
+      window.clearInterval(interval);
+      window.removeEventListener("resize", onScrollResize);
+      window.removeEventListener("scroll", onScrollResize, true);
+      cancelAnimationFrame(raf);
+    };
+    function safeIndexRef() { return Math.min(Math.max(i, 0), steps.length - 1); }
+  }, [i, open, minimized, steps]);
+
   if (!open || !steps.length) return null;
 
   const finish = () => {
@@ -70,13 +103,19 @@ export default function DashboardTour({ role, userId, open, onOpenChange, onNavi
 
   if (minimized) {
     return (
-      <div className="fixed bottom-6 right-6 z-50 animate-in fade-in zoom-in duration-300">
+      <div className="fixed bottom-6 right-6 z-[60] animate-in fade-in zoom-in duration-300">
         <Button size="lg" onClick={() => setMinimized(false)} className="shadow-2xl ring-2 ring-accent/40 ring-offset-2 ring-offset-background">
           <Sparkles className="w-5 h-5 mr-2" /> Resume tour ({i + 1}/{steps.length})
         </Button>
       </div>
     );
   }
+
+  // Spotlight geometry
+  const pad = 8;
+  const spot = rect
+    ? { x: rect.left - pad, y: rect.top - pad, w: rect.width + pad * 2, h: rect.height + pad * 2 }
+    : null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 w-[min(26rem,calc(100vw-2rem))] animate-in slide-in-from-bottom-4 fade-in zoom-in duration-300">
