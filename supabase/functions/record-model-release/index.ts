@@ -50,6 +50,8 @@ const BaseSchema = z.object({
   document_text: z.string().min(50),
 });
 
+const OffsetSchema = z.record(z.string(), z.object({ dx: z.number(), dy: z.number() }));
+
 const SignSchema = BaseSchema.extend({
   decision: z.literal("sign"),
   signature_typed: z.string().min(1),
@@ -59,6 +61,8 @@ const SignSchema = BaseSchema.extend({
   consent_acknowledgments: z.array(z.object({
     key: z.string(), label: z.string(), accepted: z.literal(true),
   })),
+  render_scale: z.number().positive().optional().nullable(),
+  offsets: OffsetSchema.optional().nullable(),
 });
 
 const DeclineSchema = BaseSchema.extend({
@@ -68,6 +72,8 @@ const DeclineSchema = BaseSchema.extend({
   decline_acknowledgments: z.array(z.object({
     key: z.string(), label: z.string(), accepted: z.literal(true),
   })),
+  render_scale: z.number().positive().optional().nullable(),
+  offsets: OffsetSchema.optional().nullable(),
 });
 
 const BodySchema = z.discriminatedUnion("decision", [SignSchema, DeclineSchema]);
