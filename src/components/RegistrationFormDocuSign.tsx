@@ -447,6 +447,16 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             {/* Q11 */}
             <Checkbox k="q11y" c={q11.yes} checked={q11v === "yes"} onClick={() => setQ11v("yes")} />
             <Checkbox k="q11n" c={q11.no} checked={q11v === "no"} onClick={() => setQ11v("no")} />
+            {/* PDF Q9 "How did you hear about this course?" — multi-select */}
+            {HEAR_OPTIONS.map((opt) => (
+              <Checkbox
+                key={"hear_" + opt}
+                k={"hear_" + opt.replace(/\s+/g, "_")}
+                c={HEAR_POS[opt]}
+                checked={!!hearSel[opt]}
+                onClick={() => toggleHear(opt)}
+              />
+            ))}
             {/* Inline typeable blanks (optional) */}
             {inlineBlanks.map((b, i) => {
               const key = "blank_" + ["q3","q5","q6cc","q7other","hearOther"][i];
