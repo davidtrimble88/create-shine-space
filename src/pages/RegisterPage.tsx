@@ -678,6 +678,18 @@ const RegisterPage = () => {
                 : regFormOpen ? "Step 5 of 7 — Sign Registration Form"
                 : "Step 4 of 7"}
             </span>
+            {isCalibrate && !modelReleaseOpen && (
+              <div className="mb-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-destructive text-destructive hover:bg-destructive/10"
+                  onClick={jumpToModelReleaseCalibration}
+                >
+                  Debug: Jump to Model Release Calibration
+                </Button>
+              </div>
+            )}
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Student <span className="text-accent">Registration</span>
             </h1>
