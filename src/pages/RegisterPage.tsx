@@ -674,13 +674,13 @@ const RegisterPage = () => {
             className={(waiverOpen && waiverPrefill) || (regFormOpen && regFormPrefill) || (modelReleaseOpen && modelReleasePrefill) ? "max-w-5xl mx-auto" : "max-w-2xl mx-auto"}
           >
             {regFormOpen && regFormPrefill ? (
-              <RegistrationFormStep
+              <RegistrationFormDocuSign
                 prefill={regFormPrefill}
                 onBack={() => setRegFormOpen(false)}
                 onSigned={handleRegistrationFormSigned}
               />
             ) : modelReleaseOpen && modelReleasePrefill ? (
-              <ModelReleaseStep
+              <ModelReleaseDocuSign
                 prefill={modelReleasePrefill}
                 onBack={() => setModelReleaseOpen(false)}
                 onComplete={handleModelReleaseComplete}
