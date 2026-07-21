@@ -210,7 +210,7 @@ const EmployeeDashboard = () => {
           <button
             key={tab.id}
             onClick={() => handleTabSelect(tab.id)}
-            className={`w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
+            className={`relative w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
               collapsed ? "justify-center px-2 py-3" : "px-4 py-3"
             } ${
               activeTab === tab.id
