@@ -242,12 +242,14 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
   ];
   const GAF: { k: string; x: number; y: number; w: number; text: string }[] = prefill.isMinor ? [
     { k: "gaf_date", x: 449, y: 568, w: 92, text: dateStr },
-    { k: "gaf_address", x: 86, y: 604, w: 320, text: gAddress },
-    { k: "gaf_phone", x: 446, y: 604, w: 152, text: gPhone },
-    { k: "gaf_city", x: 86, y: 640, w: 145, text: gCity },
-    { k: "gaf_state", x: 234, y: 640, w: 100, text: gState },
-    { k: "gaf_zip", x: 342, y: 640, w: 65, text: gZip },
-    { k: "gaf_email", x: 446, y: 640, w: 152, text: gEmail },
+  ] : [];
+  const GAF_INPUTS: { k: string; x: number; y: number; w: number; value: string; setter: (v: string) => void; placeholder: string; type?: string }[] = prefill.isMinor ? [
+    { k: "gaf_address", x: 86, y: 604, w: 320, value: gAddress, setter: setGAddress, placeholder: "Address *" },
+    { k: "gaf_phone", x: 446, y: 604, w: 152, value: gPhone, setter: setGPhone, placeholder: "Phone *" },
+    { k: "gaf_city", x: 86, y: 640, w: 145, value: gCity, setter: setGCity, placeholder: "City *" },
+    { k: "gaf_state", x: 234, y: 640, w: 100, value: gState, setter: setGState, placeholder: "State *" },
+    { k: "gaf_zip", x: 342, y: 640, w: 65, value: gZip, setter: setGZip, placeholder: "ZIP *" },
+    { k: "gaf_email", x: 446, y: 640, w: 152, value: gEmail, setter: setGEmail, placeholder: "Email *", type: "email" },
   ] : [];
 
 
