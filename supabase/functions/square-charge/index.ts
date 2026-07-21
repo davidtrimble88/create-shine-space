@@ -265,22 +265,39 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Mark a one-time discount code as used (best effort — never fail the response here)
+    // Record discount code redemption (best effort — never fail the response here).
     if (discountCodeId) {
       try {
-        await supabase
-          .from("discount_codes")
-          .update({
-            used_at: new Date().toISOString(),
-            used_by_booking_id: bookingId,
-            used_by_email: typeof booking.email === "string" ? booking.email : null,
-          })
-          .eq("id", discountCodeId)
-          .is("used_at", null);
+        if (discountCodeIsMultiUse) {
+          // Fetch-then-write to increment (avoid rpc dependency).
+          const { data: current } = await supabaseAdmin
+            .from("discount_codes")
+            .select("use_count, max_uses")
+            .eq("id", discountCodeId)
+            .maybeSingle();
+          const nextCount = ((current as any)?.use_count ?? 0) + 1;
+          if ((current as any)?.max_uses == null || nextCount <= (current as any).max_uses) {
+            await supabaseAdmin
+              .from("discount_codes")
+              .update({ use_count: nextCount })
+              .eq("id", discountCodeId);
+          }
+        } else {
+          await supabaseAdmin
+            .from("discount_codes")
+            .update({
+              used_at: new Date().toISOString(),
+              used_by_booking_id: bookingId,
+              used_by_email: typeof booking.email === "string" ? booking.email : null,
+            })
+            .eq("id", discountCodeId)
+            .is("used_at", null);
+        }
       } catch (e) {
-        console.warn("Failed to mark discount code used:", e);
+        console.warn("Failed to record discount code usage:", e);
       }
     }
+
 
     return new Response(JSON.stringify({ success: true, paymentId, bookingId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
