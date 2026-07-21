@@ -167,12 +167,13 @@ async function stampReleaseTemplate(
 
   if (data.is_minor) {
     stampText(p0, font, dateStr, 449, 583.9, 10, 92, getOffset(offsets, "gaf_date", scale));
-    stampText(p0, font, addr, 86, 620.4, 10, 320, getOffset(offsets, "gaf_address", scale));
-    stampText(p0, font, data.guardian_phone || data.phone || "", 446, 618.4, 10, 152, getOffset(offsets, "gaf_phone", scale));
-    stampText(p0, font, data.address_city || "", 86, 656.7, 10, 145, getOffset(offsets, "gaf_city", scale));
-    stampText(p0, font, data.address_state || "", 234, 656.7, 10, 100, getOffset(offsets, "gaf_state", scale));
-    stampText(p0, font, data.address_zip || "", 342, 656.7, 10, 65, getOffset(offsets, "gaf_zip", scale));
-    stampText(p0, font, data.guardian_email || data.email, 446, 656.7, 10, 152, getOffset(offsets, "gaf_email", scale));
+    stampText(p0, font, data.guardian_address || "", 86, 620.4, 10, 320, getOffset(offsets, "gaf_address", scale));
+    stampText(p0, font, data.guardian_phone || "", 446, 618.4, 10, 152, getOffset(offsets, "gaf_phone", scale));
+    stampText(p0, font, data.guardian_city || "", 86, 656.7, 10, 145, getOffset(offsets, "gaf_city", scale));
+    stampText(p0, font, data.guardian_state || "", 234, 656.7, 10, 100, getOffset(offsets, "gaf_state", scale));
+    stampText(p0, font, data.guardian_zip || "", 342, 656.7, 10, 65, getOffset(offsets, "gaf_zip", scale));
+    stampText(p0, font, data.guardian_email || "", 446, 656.7, 10, 152, getOffset(offsets, "gaf_email", scale));
+
     const gDrawn = data.decision === "sign" ? data.guardian_signature_drawn : null;
     if (gDrawn) {
       const parsed = dataUrlToBytes(gDrawn);
