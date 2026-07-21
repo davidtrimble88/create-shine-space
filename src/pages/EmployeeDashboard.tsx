@@ -25,6 +25,7 @@ import PaymentSettings from "@/components/admin/PaymentSettings";
 import AutoEmails from "@/components/admin/AutoEmails";
 import ITTickets from "@/components/admin/ITTickets";
 import InstructorCertifications from "@/components/admin/InstructorCertifications";
+import AdminDiscounts from "@/components/admin/AdminDiscounts";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
 
