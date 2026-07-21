@@ -112,8 +112,13 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const [sig, setSig] = useState<string | null>(null);
   const [typed, setTyped] = useState("");
   const [adoptOpen, setAdoptOpen] = useState(false);
+  const [guardianSig, setGuardianSig] = useState<string | null>(null);
+  const [guardianTyped, setGuardianTyped] = useState("");
+  const [guardianAdoptOpen, setGuardianAdoptOpen] = useState(false);
+  const guardianFullName = [prefill.guardianFirstName, prefill.guardianLastName].filter(Boolean).join(" ").trim();
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ recordId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
+
 
   useEffect(() => {
     let cancelled = false;
