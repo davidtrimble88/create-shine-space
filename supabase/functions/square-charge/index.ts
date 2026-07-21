@@ -115,29 +115,45 @@ Deno.serve(async (req) => {
     let discountReason: string | null = null;
     let discountCodeStr: string | null = null;
     let discountCodeId: string | null = null;
+    let discountCodeIsMultiUse = false;
 
-    if (discount && booking.course === "intermediate") {
+    const DISCOUNT_ELIGIBLE = new Set(["intermediate", "advanced"]);
+
+    if (discount) {
       const { data: settings } = await supabaseAdmin
         .from("discount_settings")
-        .select("returning_student_amount_cents")
+        .select("intermediate_returning_amount_cents, advanced_returning_amount_cents, promo_default_amount_cents")
         .eq("id", 1)
         .maybeSingle();
-      const defaultAmount = settings?.returning_student_amount_cents ?? 7500;
+      const intAmount = (settings as any)?.intermediate_returning_amount_cents ?? 7500;
+      const advAmount = (settings as any)?.advanced_returning_amount_cents ?? 7500;
+      const promoAmount = (settings as any)?.promo_default_amount_cents ?? 5000;
 
       if (discount.source === "code" && discount.code) {
         const { data: dc } = await supabaseAdmin
           .from("discount_codes")
-          .select("id, code, amount_cents, used_at, expires_at")
+          .select("id, code, amount_cents, used_at, starts_at, expires_at, applies_to_courses, usage_type, max_uses, use_count")
           .ilike("code", discount.code)
           .maybeSingle();
-        if (dc && !dc.used_at && (!dc.expires_at || new Date(dc.expires_at) >= new Date())) {
-          discountCents = dc.amount_cents ?? defaultAmount;
-          discountReason = "code";
-          discountCodeStr = dc.code;
-          discountCodeId = dc.id;
+        if (dc) {
+          const now = new Date();
+          const notStarted = dc.starts_at && new Date(dc.starts_at) > now;
+          const expired = dc.expires_at && new Date(dc.expires_at) < now;
+          const restrictedTo: string[] = Array.isArray(dc.applies_to_courses) ? dc.applies_to_courses : [];
+          const courseOk = restrictedTo.length === 0 || restrictedTo.includes(booking.course);
+          const isMulti = dc.usage_type === "multi_use";
+          const usageOk = isMulti
+            ? (dc.max_uses == null || (dc.use_count ?? 0) < dc.max_uses)
+            : !dc.used_at;
+          if (!notStarted && !expired && courseOk && usageOk) {
+            discountCents = dc.amount_cents ?? (isMulti ? promoAmount : intAmount);
+            discountReason = isMulti ? "promo" : "code";
+            discountCodeStr = dc.code;
+            discountCodeId = dc.id;
+            discountCodeIsMultiUse = isMulti;
+          }
         }
-      } else if (discount.source === "returning") {
-        // Verify a prior booking exists for this license number or email.
+      } else if (discount.source === "returning" && DISCOUNT_ELIGIBLE.has(booking.course)) {
         const lic = typeof booking.license_number === "string" ? booking.license_number : null;
         const em = typeof booking.email === "string" ? booking.email : null;
         let q = supabaseAdmin.from("bookings").select("id", { count: "exact", head: true }).neq("payment_status", "cancelled");
@@ -147,11 +163,12 @@ Deno.serve(async (req) => {
         else q = q.eq("id", "00000000-0000-0000-0000-000000000000");
         const { count } = await q;
         if (count && count > 0) {
-          discountCents = defaultAmount;
+          discountCents = booking.course === "advanced" ? advAmount : intAmount;
           discountReason = "returning_student";
         }
       }
     }
+
 
     const amountCents = Math.max(expectedCents - discountCents, 100);
     if (Math.abs(clientAmountCents - amountCents) > 100) {
@@ -248,22 +265,39 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Mark a one-time discount code as used (best effort — never fail the response here)
+    // Record discount code redemption (best effort — never fail the response here).
     if (discountCodeId) {
       try {
-        await supabase
-          .from("discount_codes")
-          .update({
-            used_at: new Date().toISOString(),
-            used_by_booking_id: bookingId,
-            used_by_email: typeof booking.email === "string" ? booking.email : null,
-          })
-          .eq("id", discountCodeId)
-          .is("used_at", null);
+        if (discountCodeIsMultiUse) {
+          // Fetch-then-write to increment (avoid rpc dependency).
+          const { data: current } = await supabaseAdmin
+            .from("discount_codes")
+            .select("use_count, max_uses")
+            .eq("id", discountCodeId)
+            .maybeSingle();
+          const nextCount = ((current as any)?.use_count ?? 0) + 1;
+          if ((current as any)?.max_uses == null || nextCount <= (current as any).max_uses) {
+            await supabaseAdmin
+              .from("discount_codes")
+              .update({ use_count: nextCount })
+              .eq("id", discountCodeId);
+          }
+        } else {
+          await supabaseAdmin
+            .from("discount_codes")
+            .update({
+              used_at: new Date().toISOString(),
+              used_by_booking_id: bookingId,
+              used_by_email: typeof booking.email === "string" ? booking.email : null,
+            })
+            .eq("id", discountCodeId)
+            .is("used_at", null);
+        }
       } catch (e) {
-        console.warn("Failed to mark discount code used:", e);
+        console.warn("Failed to record discount code usage:", e);
       }
     }
+
 
     return new Response(JSON.stringify({ success: true, paymentId, bookingId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

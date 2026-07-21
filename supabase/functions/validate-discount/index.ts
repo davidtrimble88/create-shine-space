@@ -1,13 +1,13 @@
-// Validates a discount request for the Intermediate Course registration.
-// Supports two sources:
-//   - "returning": looks up prior bookings by license number or email.
-//   - "code": looks up an unused, non-expired one-time discount code.
-// Returns the current discount amount in cents (from discount_settings, or
-// the code's override amount when present). Callable by anonymous visitors
-// on the register page.
+// Validates a discount request for register-page checkout.
+// Sources:
+//   - "returning": prior booking by license number / email (Intermediate + Advanced only)
+//   - "code": one-time code OR multi-use promotional code, with optional
+//     course restrictions, start date, expiry, and max-use cap.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod";
+
+const RETURNING_ELIGIBLE = new Set(["intermediate", "advanced"]);
 
 const BodySchema = z.object({
   course: z.string().trim().min(1),
@@ -17,31 +17,20 @@ const BodySchema = z.object({
   code: z.string().trim().min(1).max(50).optional(),
 });
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
     const parsed = BodySchema.safeParse(await req.json());
-    if (!parsed.success) {
-      return new Response(
-        JSON.stringify({ valid: false, error: "Invalid request" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
+    if (!parsed.success) return json({ valid: false, error: "Invalid request" }, 400);
     const { course, source, licenseNumber, email, code } = parsed.data;
-
-    if (course !== "intermediate") {
-      return new Response(
-        JSON.stringify({ valid: false, error: "Discount only available on the Intermediate Course." }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -50,55 +39,66 @@ Deno.serve(async (req) => {
 
     const { data: settings } = await supabase
       .from("discount_settings")
-      .select("returning_student_amount_cents")
+      .select("intermediate_returning_amount_cents, advanced_returning_amount_cents, promo_default_amount_cents")
       .eq("id", 1)
       .maybeSingle();
-    const defaultAmount = settings?.returning_student_amount_cents ?? 7500;
+
+    const intermediateAmount = (settings as any)?.intermediate_returning_amount_cents ?? 7500;
+    const advancedAmount = (settings as any)?.advanced_returning_amount_cents ?? 7500;
+    const promoDefault = (settings as any)?.promo_default_amount_cents ?? 5000;
 
     if (source === "code") {
-      if (!code) {
-        return new Response(
-          JSON.stringify({ valid: false, error: "Discount code is required." }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
+      if (!code) return json({ valid: false, error: "Discount code is required." });
+
       const { data: dc } = await supabase
         .from("discount_codes")
-        .select("id, code, amount_cents, used_at, expires_at")
+        .select("id, code, amount_cents, used_at, starts_at, expires_at, applies_to_courses, usage_type, max_uses, use_count")
         .ilike("code", code)
         .maybeSingle();
 
-      if (!dc) {
-        return new Response(
-          JSON.stringify({ valid: false, error: "That discount code is not valid." }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+      if (!dc) return json({ valid: false, error: "That discount code is not valid." });
+
+      const now = new Date();
+      if (dc.starts_at && new Date(dc.starts_at) > now) {
+        return json({ valid: false, error: "This discount code is not active yet." });
       }
-      if (dc.used_at) {
-        return new Response(
-          JSON.stringify({ valid: false, error: "That discount code has already been used." }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+      if (dc.expires_at && new Date(dc.expires_at) < now) {
+        return json({ valid: false, error: "That discount code has expired." });
       }
-      if (dc.expires_at && new Date(dc.expires_at) < new Date()) {
-        return new Response(
-          JSON.stringify({ valid: false, error: "That discount code has expired." }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+
+      const restrictedTo: string[] = Array.isArray(dc.applies_to_courses) ? dc.applies_to_courses : [];
+      if (restrictedTo.length > 0 && !restrictedTo.includes(course)) {
+        return json({
+          valid: false,
+          error: `This code isn't valid for that course. It can be used for: ${restrictedTo.join(", ")}.`,
+        });
       }
-      const amount = dc.amount_cents ?? defaultAmount;
-      return new Response(
-        JSON.stringify({ valid: true, source: "code", amountCents: amount, codeId: dc.id, code: dc.code }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+
+      if (dc.usage_type === "multi_use") {
+        if (dc.max_uses != null && (dc.use_count ?? 0) >= dc.max_uses) {
+          return json({ valid: false, error: "That discount code has reached its usage limit." });
+        }
+      } else {
+        if (dc.used_at) return json({ valid: false, error: "That discount code has already been used." });
+      }
+
+      const amount = dc.amount_cents ?? (dc.usage_type === "multi_use" ? promoDefault : intermediateAmount);
+      return json({ valid: true, source: "code", amountCents: amount, codeId: dc.id, code: dc.code });
     }
 
     // Returning-student check
+    if (!RETURNING_ELIGIBLE.has(course)) {
+      return json({
+        valid: false,
+        error: "Returning-student discount is only available on the Intermediate and Advanced courses.",
+      });
+    }
+
     if (!licenseNumber && !email) {
-      return new Response(
-        JSON.stringify({ valid: false, error: "Provide an ID number or email to look up a prior class." }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return json({
+        valid: false,
+        error: "Provide an ID number or email to look up a prior class.",
+      });
     }
 
     let query = supabase
@@ -117,32 +117,21 @@ Deno.serve(async (req) => {
     const { count, error: qErr } = await query;
     if (qErr) {
       console.error("validate-discount lookup error", qErr);
-      return new Response(
-        JSON.stringify({ valid: false, error: "Could not verify prior registration." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return json({ valid: false, error: "Could not verify prior registration." }, 500);
     }
 
     if (!count || count === 0) {
-      return new Response(
-        JSON.stringify({
-          valid: false,
-          notFound: true,
-          error: "We couldn't find a past registration for that ID or email. If you believe this is a mistake, please contact the office and we'll apply the discount for you.",
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return json({
+        valid: false,
+        notFound: true,
+        error: "We couldn't find a past registration for that ID or email. If you believe this is a mistake, please contact the office and we'll apply the discount for you.",
+      });
     }
 
-    return new Response(
-      JSON.stringify({ valid: true, source: "returning", amountCents: defaultAmount }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    const amount = course === "advanced" ? advancedAmount : intermediateAmount;
+    return json({ valid: true, source: "returning", amountCents: amount });
   } catch (err) {
     console.error("validate-discount error", err);
-    return new Response(
-      JSON.stringify({ valid: false, error: err instanceof Error ? err.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return json({ valid: false, error: err instanceof Error ? err.message : "Unknown error" }, 500);
   }
 });

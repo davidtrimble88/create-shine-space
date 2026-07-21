@@ -244,20 +244,28 @@ const RegisterPage = () => {
   >(null);
   const [discountBusy, setDiscountBusy] = useState<null | "returning" | "code">(null);
   const [discountNotice, setDiscountNotice] = useState<string | null>(null);
-  const [defaultDiscountCents, setDefaultDiscountCents] = useState<number>(7500);
+  const [intReturnCents, setIntReturnCents] = useState<number>(7500);
+  const [advReturnCents, setAdvReturnCents] = useState<number>(7500);
+
+  const isDiscountEligibleCourse = course === "intermediate" || course === "advanced";
+  const defaultDiscountCents = course === "advanced" ? advReturnCents : intReturnCents;
 
   useEffect(() => {
-    supabase
+    (supabase as any)
       .from("discount_settings")
-      .select("returning_student_amount_cents")
+      .select("intermediate_returning_amount_cents, advanced_returning_amount_cents")
       .eq("id", 1)
       .maybeSingle()
-      .then(({ data }) => {
-        if (data?.returning_student_amount_cents != null) {
-          setDefaultDiscountCents(data.returning_student_amount_cents);
+      .then(({ data }: any) => {
+        if (data?.intermediate_returning_amount_cents != null) {
+          setIntReturnCents(data.intermediate_returning_amount_cents);
+        }
+        if (data?.advanced_returning_amount_cents != null) {
+          setAdvReturnCents(data.advanced_returning_amount_cents);
         }
       });
   }, []);
+
 
   // Clear any applied discount if the checkbox is turned off
   useEffect(() => {
@@ -517,7 +525,7 @@ const RegisterPage = () => {
         : (isUnder21 ? 39500 : 42500);
 
       // Apply discount only for the Intermediate Course.
-      const discountCents = (course === "intermediate" && discountApplied)
+      const discountCents = (isDiscountEligibleCourse && discountApplied)
         ? Math.min(discountApplied.amountCents, Math.max(baseFeeCents - 100, 0))
         : 0;
       const feeCents = Math.max(baseFeeCents - discountCents, 100);
@@ -1158,12 +1166,12 @@ const RegisterPage = () => {
                     )}
                   </div>
 
-                  {course === "intermediate" && (
+                  {isDiscountEligibleCourse && (
                     <div className="rounded-lg border border-accent/40 bg-accent/5 p-4 mb-6 space-y-4">
                       <div>
                         <h3 className="text-sm font-bold text-accent">Returning-Student Discount</h3>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Prior students of Learn to Ride VC receive {formatCents(defaultDiscountCents)} off the Intermediate Course.
+                          Prior students of Learn to Ride VC receive {formatCents(defaultDiscountCents)} off the {course === "advanced" ? "Advanced Riding Clinic" : "Intermediate Course"}.
                         </p>
                       </div>
 
