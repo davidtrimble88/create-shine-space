@@ -141,24 +141,24 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
 
   // Autofilled text overlays (mirrors backend stamping)
   const AF: Array<{ k: string; x: number; y: number; w: number; text: string }> = [
-    { k: "date", x: 420, y: 128, w: 120, text: dateStr },
-    { k: "first", x: 90, y: 172, w: 140, text: prefill.firstName || "" },
-    { k: "middle", x: 240, y: 172, w: 140, text: prefill.middleName || "" },
-    { k: "last", x: 400, y: 172, w: 170, text: prefill.lastName || "" },
-    { k: "street", x: 90, y: 204, w: 180, text: prefill.addressStreet || "" },
-    { k: "city", x: 280, y: 204, w: 100, text: prefill.addressCity || "" },
-    { k: "state", x: 390, y: 204, w: 90, text: prefill.addressState || "" },
-    { k: "zip", x: 490, y: 204, w: 80, text: prefill.addressZip || "" },
-    { k: "dob", x: 107, y: 236, w: 100, text: formatDob() },
-    { k: "age", x: 236, y: 236, w: 30, text: age },
-    { k: "phone", x: 434, y: 258, w: 140, text: prefill.phone || "" },
-    { k: "email", x: 67, y: 280, w: 255, text: prefill.email || "" },
+    { k: "date", x: 420, y: 142.9, w: 120, text: dateStr },
+    { k: "first", x: 90, y: 186.1, w: 140, text: prefill.firstName || "" },
+    { k: "middle", x: 240, y: 186.1, w: 140, text: prefill.middleName || "" },
+    { k: "last", x: 400, y: 186.1, w: 170, text: prefill.lastName || "" },
+    { k: "street", x: 90, y: 218.5, w: 180, text: prefill.addressStreet || "" },
+    { k: "city", x: 280, y: 218.5, w: 100, text: prefill.addressCity || "" },
+    { k: "state", x: 390, y: 218.5, w: 90, text: prefill.addressState || "" },
+    { k: "zip", x: 490, y: 218.5, w: 80, text: prefill.addressZip || "" },
+    { k: "dob", x: 107, y: 250.9, w: 100, text: formatDob() },
+    { k: "age", x: 236, y: 250.9, w: 30, text: age },
+    { k: "phone", x: 434, y: 272.5, w: 140, text: prefill.phone || "" },
+    { k: "email", x: 67, y: 294.1, w: 255, text: prefill.email || "" },
   ];
-  // ID row stamping - row y based on id_type
+  // ID row stamping - row y based on id_type (verified against the template's actual label positions)
   const idRowY: Record<string, number> = {
-    drivers_license: 344, permit: 344, state_id: 364, foreign_license: 384, passport: 404, other: 404,
+    drivers_license: 338.1, permit: 338.1, state_id: 358.1, foreign_license: 378.1, passport: 398.1, other: 398.1,
   };
-  const idY = idRowY[prefill.idType] ?? 324;
+  const idY = idRowY[prefill.idType] ?? 338.1;
   const idAF: Array<{ k: string; x: number; y: number; w: number; text: string }> = [
     { k: "idNumber", x: 250, y: idY, w: 150, text: prefill.idNumber || "" },
     { k: "idState", x: 410, y: idY, w: 60, text: prefill.idState || prefill.idCountry || "" },
@@ -195,10 +195,10 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   // Coordinates use the same top-left origin as checkboxes (yTop from pdfplumber).
   type BlankPos = { x: number; y: number; w: number };
   const inlineBlanks: Array<{ pos: BlankPos; value: string; onChange: (v: string) => void; placeholder?: string }> = [
-    { pos: { x: 230, y: 491, w: 60 }, value: q3v, onChange: setQ3v, placeholder: "years" },       // Q3 __ years
-    { pos: { x: 350, y: 527, w: 90 }, value: q5v, onChange: setQ5v, placeholder: "miles" },        // Q5 __ miles
-    { pos: { x: 486, y: 539, w: 45 }, value: q6cc, onChange: setQ6cc, placeholder: "cc" },         // Q6 cc size
-    { pos: { x: 200, y: 575, w: 240 }, value: q7other, onChange: setQ7other, placeholder: "other" }, // Q7 other
+    { pos: { x: 180, y: 491.7, w: 35 }, value: q3v, onChange: setQ3v, placeholder: "years" },        // Q3 __ years
+    { pos: { x: 290, y: 527.7, w: 68 }, value: q5v, onChange: setQ5v, placeholder: "miles" },        // Q5 __ miles
+    { pos: { x: 380, y: 539.7, w: 50 }, value: q6cc, onChange: setQ6cc, placeholder: "cc" },         // Q6 cc size
+    { pos: { x: 195, y: 563.7, w: 145 }, value: q7other, onChange: setQ7other, placeholder: "other" }, // Q7 other
   ];
 
   const allAnswered = q1v && q2v && q4v && q6v && q7v && (q7v !== "other" || q7other) && q8v && q9v && q10v && q11v;
@@ -348,8 +348,8 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
               </div>
             ))}
             {/* Sex checkboxes at y=250.9 */}
-            <Checkbox k="sexM" c={{ x: 289, y: 250 }} checked={prefill.sex === "M"} onClick={() => { }} />
-            <Checkbox k="sexF" c={{ x: 322, y: 250 }} checked={prefill.sex === "F"} onClick={() => { }} />
+            <Checkbox k="sexM" c={{ x: 289, y: 250.9 }} checked={prefill.sex === "M"} onClick={() => { }} />
+            <Checkbox k="sexF" c={{ x: 322, y: 250.9 }} checked={prefill.sex === "F"} onClick={() => { }} />
             {/* ID type row checkbox at x=36 */}
             <Checkbox k="idRow" c={{ x: 36, y: idY }} checked={true} onClick={() => { }} />
             {/* Q1 */}
