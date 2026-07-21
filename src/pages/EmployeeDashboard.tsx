@@ -158,11 +158,11 @@ const EmployeeDashboard = () => {
     const loadName = async () => {
       const { data } = await supabase
         .from("employees")
-        .select("first_name, preferred_name")
+        .select("full_name")
         .eq("user_id", user.id)
         .maybeSingle();
-      if (data) {
-        setEmployeeName(data.preferred_name || data.first_name || "");
+      if (data?.full_name) {
+        setEmployeeName(data.full_name);
       }
     };
     loadName();
