@@ -1006,7 +1006,7 @@ export type Database = {
       }
       security_questions: {
         Row: {
-          answer: string
+          answer_hash: string
           created_at: string
           id: string
           question: string
@@ -1015,7 +1015,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          answer: string
+          answer_hash: string
           created_at?: string
           id?: string
           question: string
@@ -1024,7 +1024,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          answer?: string
+          answer_hash?: string
           created_at?: string
           id?: string
           question?: string
@@ -1382,6 +1382,11 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      set_security_questions: { Args: { _questions: Json }; Returns: undefined }
+      verify_security_answers: {
+        Args: { _answers: string[]; _user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
