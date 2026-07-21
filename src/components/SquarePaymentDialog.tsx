@@ -109,7 +109,7 @@ export const SquarePaymentDialog = ({
       const sourceId = result.token;
 
       const { data, error } = await supabase.functions.invoke("square-charge", {
-        body: { sourceId, region, amountCents, booking: bookingPayload },
+        body: { sourceId, region, amountCents, booking: bookingPayload, discount },
       });
 
       if (error) throw new Error(error.message || "Payment failed");
