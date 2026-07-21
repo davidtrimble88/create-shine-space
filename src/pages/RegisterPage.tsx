@@ -525,7 +525,7 @@ const RegisterPage = () => {
         : (isUnder21 ? 39500 : 42500);
 
       // Apply discount only for the Intermediate Course.
-      const discountCents = (course === "intermediate" && discountApplied)
+      const discountCents = (isDiscountEligibleCourse && discountApplied)
         ? Math.min(discountApplied.amountCents, Math.max(baseFeeCents - 100, 0))
         : 0;
       const feeCents = Math.max(baseFeeCents - discountCents, 100);
