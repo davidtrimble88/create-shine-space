@@ -108,6 +108,41 @@ const EmployeeDashboard = () => {
     return () => window.removeEventListener("openRoster", handler);
   }, []);
 
+  // Unread message threads count for sidebar badge
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const recompute = async () => {
+      const { data: parts } = await supabase
+        .from("message_thread_participants")
+        .select("thread_id, last_read_at")
+        .eq("user_id", user.id);
+      if (!parts || parts.length === 0) { if (!cancelled) setUnreadMessages(0); return; }
+      const ids = parts.map((p: any) => p.thread_id);
+      const { data: threads } = await supabase
+        .from("message_threads")
+        .select("id, last_message_at")
+        .in("id", ids);
+      const readMap = new Map(parts.map((p: any) => [p.thread_id, p.last_read_at]));
+      const count = (threads || []).reduce((acc: number, t: any) => {
+        const lr = readMap.get(t.id);
+        if (t.last_message_at && (!lr || new Date(t.last_message_at) > new Date(lr))) return acc + 1;
+        return acc;
+      }, 0);
+      if (!cancelled) setUnreadMessages(count);
+    };
+    recompute();
+    const channel = supabase
+      .channel("sidebar-unread-messages")
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, recompute)
+      .on("postgres_changes", { event: "*", schema: "public", table: "message_thread_participants", filter: `user_id=eq.${user.id}` }, recompute)
+      .on("postgres_changes", { event: "*", schema: "public", table: "message_threads" }, recompute)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [user, activeTab]);
+
+
   // If owner switches to a view that hides the active tab, send them back to overview
   useEffect(() => {
     const stillVisible = tabs.find(t => t.id === activeTab)?.roles.includes(effectiveRole as any);
