@@ -76,6 +76,9 @@ export type Database = {
           course: string
           created_at: string
           date_of_birth: string | null
+          discount_amount_cents: number
+          discount_code: string | null
+          discount_reason: string | null
           dl389_completed: boolean
           dl389_completed_at: string | null
           dl389_completed_by: string | null
@@ -130,6 +133,9 @@ export type Database = {
           course: string
           created_at?: string
           date_of_birth?: string | null
+          discount_amount_cents?: number
+          discount_code?: string | null
+          discount_reason?: string | null
           dl389_completed?: boolean
           dl389_completed_at?: string | null
           dl389_completed_by?: string | null
@@ -184,6 +190,9 @@ export type Database = {
           course?: string
           created_at?: string
           date_of_birth?: string | null
+          discount_amount_cents?: number
+          discount_code?: string | null
+          discount_reason?: string | null
           dl389_completed?: boolean
           dl389_completed_at?: string | null
           dl389_completed_by?: string | null
@@ -265,6 +274,63 @@ export type Database = {
           milestone?: string
           sent_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      discount_codes: {
+        Row: {
+          amount_cents: number | null
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          notes: string | null
+          used_at: string | null
+          used_by_booking_id: string | null
+          used_by_email: string | null
+        }
+        Insert: {
+          amount_cents?: number | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          used_at?: string | null
+          used_by_booking_id?: string | null
+          used_by_email?: string | null
+        }
+        Update: {
+          amount_cents?: number | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          used_at?: string | null
+          used_by_booking_id?: string | null
+          used_by_email?: string | null
+        }
+        Relationships: []
+      }
+      discount_settings: {
+        Row: {
+          id: number
+          returning_student_amount_cents: number
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          returning_student_amount_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          returning_student_amount_cents?: number
+          updated_at?: string
         }
         Relationships: []
       }

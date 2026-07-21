@@ -236,6 +236,36 @@ const RegisterPage = () => {
   const [regFormPrefill, setRegFormPrefill] = useState<RegistrationFormPrefill | null>(null);
   const [modelReleaseOpen, setModelReleaseOpen] = useState(false);
   const [modelReleasePrefill, setModelReleasePrefill] = useState<ModelReleasePrefill | null>(null);
+  const [returningStudent, setReturningStudent] = useState(false);
+  const [discountCodeInput, setDiscountCodeInput] = useState("");
+  const [discountApplied, setDiscountApplied] = useState<
+    | { source: "returning" | "code"; amountCents: number; code?: string; codeId?: string }
+    | null
+  >(null);
+  const [discountBusy, setDiscountBusy] = useState<null | "returning" | "code">(null);
+  const [discountNotice, setDiscountNotice] = useState<string | null>(null);
+  const [defaultDiscountCents, setDefaultDiscountCents] = useState<number>(7500);
+
+  useEffect(() => {
+    supabase
+      .from("discount_settings")
+      .select("returning_student_amount_cents")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.returning_student_amount_cents != null) {
+          setDefaultDiscountCents(data.returning_student_amount_cents);
+        }
+      });
+  }, []);
+
+  // Clear any applied discount if the checkbox is turned off
+  useEffect(() => {
+    if (!returningStudent && discountApplied?.source === "returning") {
+      setDiscountApplied(null);
+      setDiscountNotice(null);
+    }
+  }, [returningStudent, discountApplied]);
 
   const formatScheduleDate = (iso: string | null) => {
     if (!iso) return "";
@@ -364,6 +394,7 @@ const RegisterPage = () => {
         booking,
         paymentStatus,
         paymentProvider,
+        discountCodeId: discountApplied?.source === "code" ? discountApplied.codeId : undefined,
       },
     });
 
@@ -377,6 +408,72 @@ const RegisterPage = () => {
 
     return data;
   };
+
+  const formatCents = (cents: number) =>
+    `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: cents % 100 === 0 ? 0 : 2, maximumFractionDigits: 2 })}`;
+
+  const validateReturningDiscount = async () => {
+    const licenseNumber = form.getValues("licenseNumber")?.trim();
+    const email = form.getValues("email")?.trim();
+    if (!licenseNumber && !email) {
+      setDiscountNotice("Fill in your ID number or email first so we can look up your prior class.");
+      return;
+    }
+    setDiscountBusy("returning");
+    setDiscountNotice(null);
+    try {
+      const { data } = await supabase.functions.invoke("validate-discount", {
+        body: { course, source: "returning", licenseNumber, email },
+      });
+      const res = data as any;
+      if (res?.valid) {
+        setDiscountApplied({ source: "returning", amountCents: res.amountCents });
+        setDiscountNotice(null);
+        toast({ title: "Returning-student discount applied", description: `${formatCents(res.amountCents)} off your Intermediate Course.` });
+      } else {
+        setDiscountApplied((prev) => (prev?.source === "returning" ? null : prev));
+        setDiscountNotice(res?.error || "We couldn't find a prior registration.");
+      }
+    } catch (e) {
+      setDiscountNotice(e instanceof Error ? e.message : "Could not verify prior registration.");
+    }
+    setDiscountBusy(null);
+  };
+
+  const validateDiscountCode = async () => {
+    const code = discountCodeInput.trim();
+    if (!code) {
+      setDiscountNotice("Enter a discount code.");
+      return;
+    }
+    setDiscountBusy("code");
+    setDiscountNotice(null);
+    try {
+      const { data } = await supabase.functions.invoke("validate-discount", {
+        body: { course, source: "code", code },
+      });
+      const res = data as any;
+      if (res?.valid) {
+        setDiscountApplied({ source: "code", amountCents: res.amountCents, code: res.code, codeId: res.codeId });
+        setDiscountNotice(null);
+        toast({ title: "Discount code applied", description: `${formatCents(res.amountCents)} off your Intermediate Course.` });
+      } else {
+        setDiscountApplied((prev) => (prev?.source === "code" ? null : prev));
+        setDiscountNotice(res?.error || "That code is not valid.");
+      }
+    } catch (e) {
+      setDiscountNotice(e instanceof Error ? e.message : "Could not validate that code.");
+    }
+    setDiscountBusy(null);
+  };
+
+  const clearDiscount = () => {
+    setDiscountApplied(null);
+    setDiscountNotice(null);
+    setReturningStudent(false);
+    setDiscountCodeInput("");
+  };
+
 
 
   const onSubmit = async (data: RegistrationFormData) => {
@@ -415,12 +512,18 @@ const RegisterPage = () => {
       };
 
       const scheduleCents = parsePriceCents(schedulePrice);
-      const feeLabel = scheduleCents != null
-        ? (schedulePrice as string)
-        : (isUnder21 ? "$395" : "$425");
-      const feeCents = scheduleCents != null
+      const baseFeeCents = scheduleCents != null
         ? scheduleCents
         : (isUnder21 ? 39500 : 42500);
+
+      // Apply discount only for the Intermediate Course.
+      const discountCents = (course === "intermediate" && discountApplied)
+        ? Math.min(discountApplied.amountCents, Math.max(baseFeeCents - 100, 0))
+        : 0;
+      const feeCents = Math.max(baseFeeCents - discountCents, 100);
+      const feeLabel = discountCents > 0
+        ? formatCents(feeCents)
+        : (scheduleCents != null ? (schedulePrice as string) : (isUnder21 ? "$395" : "$425"));
       const region: SquareRegion = location.startsWith("high-desert") ? "high_desert" : "ventura";
 
       const bookingPayload = {
@@ -453,6 +556,9 @@ const RegisterPage = () => {
         license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
         id_photo_path: data.idPhotoPath || null,
         guardian_id_photo_path: isUnder18 ? (data.guardianIdPhotoPath || null) : null,
+        discount_amount_cents: discountCents,
+        discount_reason: discountCents > 0 ? (discountApplied?.source === "code" ? "code" : "returning_student") : null,
+        discount_code: discountCents > 0 && discountApplied?.source === "code" ? (discountApplied.code || null) : null,
       };
 
       if (skipPaymentRef.current) {
@@ -1052,6 +1158,84 @@ const RegisterPage = () => {
                     )}
                   </div>
 
+                  {course === "intermediate" && (
+                    <div className="rounded-lg border border-accent/40 bg-accent/5 p-4 mb-6 space-y-4">
+                      <div>
+                        <h3 className="text-sm font-bold text-accent">Returning-Student Discount</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Prior students of Learn to Ride VC receive {formatCents(defaultDiscountCents)} off the Intermediate Course.
+                        </p>
+                      </div>
+
+                      <label className="flex items-start gap-3 text-sm">
+                        <Checkbox
+                          checked={returningStudent}
+                          onCheckedChange={(v) => setReturningStudent(!!v)}
+                        />
+                        <span className="leading-snug">
+                          I've taken a class with Learn to Ride VC before — apply my returning-student discount.
+                        </span>
+                      </label>
+
+                      {returningStudent && (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={validateReturningDiscount}
+                            disabled={discountBusy !== null}
+                          >
+                            {discountBusy === "returning" ? "Checking..." : "Look up my prior class"}
+                          </Button>
+                          <span className="text-xs text-muted-foreground">
+                            Uses the ID number and email you entered above.
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="pt-3 border-t border-border/60">
+                        <p className="text-xs font-medium text-foreground mb-2">Have a discount code?</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Input
+                            placeholder="Enter code"
+                            value={discountCodeInput}
+                            onChange={(e) => setDiscountCodeInput(e.target.value)}
+                            className="max-w-xs"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={validateDiscountCode}
+                            disabled={discountBusy !== null || !discountCodeInput.trim()}
+                          >
+                            {discountBusy === "code" ? "Checking..." : "Apply code"}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {discountApplied && (
+                        <div className="rounded-md bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-500 flex items-center justify-between gap-3">
+                          <span>
+                            ✓ {formatCents(discountApplied.amountCents)} discount applied
+                            {discountApplied.source === "code" && discountApplied.code ? ` (code: ${discountApplied.code})` : " (returning student)"}
+                          </span>
+                          <Button type="button" variant="ghost" size="sm" onClick={clearDiscount} className="h-7 text-xs">
+                            Remove
+                          </Button>
+                        </div>
+                      )}
+
+                      {discountNotice && !discountApplied && (
+                        <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-xs text-destructive">
+                          {discountNotice}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+
                   <FormField
                     control={form.control}
                     name="referralSource"
@@ -1253,6 +1437,7 @@ const RegisterPage = () => {
           amountCents={paymentAmountCents}
           amountLabel={paymentAmountLabel}
           bookingPayload={pendingBooking}
+          discount={discountApplied ? { source: discountApplied.source, code: discountApplied.code } : undefined}
           onSuccess={handlePaymentSuccess}
         />
       )}

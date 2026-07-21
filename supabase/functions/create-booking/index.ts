@@ -32,12 +32,16 @@ const BookingSchema = z.object({
   waiver_id: z.string().uuid().nullable().optional(),
   id_photo_path: NullableString,
   guardian_id_photo_path: NullableString,
+  discount_amount_cents: z.number().int().min(0).optional(),
+  discount_reason: z.string().trim().min(1).nullable().optional(),
+  discount_code: z.string().trim().min(1).nullable().optional(),
 });
 
 const BodySchema = z.object({
   booking: BookingSchema,
   paymentStatus: z.enum(["skipped", "unpaid"]),
   paymentProvider: z.string().trim().min(1).optional(),
+  discountCodeId: z.string().uuid().optional(),
 });
 
 Deno.serve(async (req) => {
@@ -61,7 +65,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { booking, paymentStatus, paymentProvider } = parsed.data;
+    const { booking, paymentStatus, paymentProvider, discountCodeId } = parsed.data;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -108,6 +112,23 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Mark a one-time discount code as used (best-effort)
+    if (discountCodeId) {
+      try {
+        await supabase
+          .from("discount_codes")
+          .update({
+            used_at: new Date().toISOString(),
+            used_by_booking_id: booking.id,
+            used_by_email: booking.email,
+          })
+          .eq("id", discountCodeId)
+          .is("used_at", null);
+      } catch (e) {
+        console.warn("Failed to mark discount code used:", e);
+      }
     }
 
     return new Response(JSON.stringify({ success: true, bookingId: inserted.id, existing: false }), {

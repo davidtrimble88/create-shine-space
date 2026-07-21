@@ -8,11 +8,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const DiscountSchema = z
+  .object({
+    source: z.enum(["returning", "code"]),
+    code: z.string().trim().min(1).max(50).optional(),
+  })
+  .optional();
+
 const BodySchema = z.object({
   sourceId: z.string().min(1),
   region: z.enum(["ventura", "high_desert"]),
   amountCents: z.number().int().positive().max(100000), // max $1000 sanity cap
   booking: z.record(z.any()),
+  discount: DiscountSchema,
 });
 
 function regionCreds(region: "ventura" | "high_desert") {
@@ -48,7 +56,7 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    const { sourceId, region, amountCents: clientAmountCents, booking } = parsed.data;
+    const { sourceId, region, amountCents: clientAmountCents, booking, discount } = parsed.data;
 
     const { token, locationId } = regionCreds(region);
     if (!token || !locationId) {
@@ -102,16 +110,59 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Server is authoritative: charge the schedule's price, not the client's value.
-    // A ±$1 tolerance mismatch on the client is logged for visibility.
-    if (Math.abs(clientAmountCents - expectedCents) > 100) {
+    // Server is authoritative: charge the schedule's price minus any verified discount.
+    let discountCents = 0;
+    let discountReason: string | null = null;
+    let discountCodeStr: string | null = null;
+    let discountCodeId: string | null = null;
+
+    if (discount && booking.course === "intermediate") {
+      const { data: settings } = await supabaseAdmin
+        .from("discount_settings")
+        .select("returning_student_amount_cents")
+        .eq("id", 1)
+        .maybeSingle();
+      const defaultAmount = settings?.returning_student_amount_cents ?? 7500;
+
+      if (discount.source === "code" && discount.code) {
+        const { data: dc } = await supabaseAdmin
+          .from("discount_codes")
+          .select("id, code, amount_cents, used_at, expires_at")
+          .ilike("code", discount.code)
+          .maybeSingle();
+        if (dc && !dc.used_at && (!dc.expires_at || new Date(dc.expires_at) >= new Date())) {
+          discountCents = dc.amount_cents ?? defaultAmount;
+          discountReason = "code";
+          discountCodeStr = dc.code;
+          discountCodeId = dc.id;
+        }
+      } else if (discount.source === "returning") {
+        // Verify a prior booking exists for this license number or email.
+        const lic = typeof booking.license_number === "string" ? booking.license_number : null;
+        const em = typeof booking.email === "string" ? booking.email : null;
+        let q = supabaseAdmin.from("bookings").select("id", { count: "exact", head: true }).neq("payment_status", "cancelled");
+        if (lic && em) q = q.or(`license_number.ilike.${lic},email.ilike.${em}`);
+        else if (lic) q = q.ilike("license_number", lic);
+        else if (em) q = q.ilike("email", em);
+        else q = q.eq("id", "00000000-0000-0000-0000-000000000000");
+        const { count } = await q;
+        if (count && count > 0) {
+          discountCents = defaultAmount;
+          discountReason = "returning_student";
+        }
+      }
+    }
+
+    const amountCents = Math.max(expectedCents - discountCents, 100);
+    if (Math.abs(clientAmountCents - amountCents) > 100) {
       console.warn("[square-charge] client amountCents mismatch", {
         scheduleId,
         clientAmountCents,
         expectedCents,
+        discountCents,
+        amountCents,
       });
     }
-    const amountCents = expectedCents;
 
     // Charge the card via Square Payments API (production)
     const idempotencyKey = crypto.randomUUID();
@@ -180,6 +231,9 @@ Deno.serve(async (req) => {
         payment_status: "paid",
         booking_status: "confirmed",
         payment_provider: "square",
+        discount_amount_cents: discountCents,
+        discount_reason: discountReason,
+        discount_code: discountCodeStr,
       });
 
       if (insertErr) {
@@ -191,6 +245,23 @@ Deno.serve(async (req) => {
           }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
+      }
+    }
+
+    // Mark a one-time discount code as used (best effort — never fail the response here)
+    if (discountCodeId) {
+      try {
+        await supabase
+          .from("discount_codes")
+          .update({
+            used_at: new Date().toISOString(),
+            used_by_booking_id: bookingId,
+            used_by_email: typeof booking.email === "string" ? booking.email : null,
+          })
+          .eq("id", discountCodeId)
+          .is("used_at", null);
+      } catch (e) {
+        console.warn("Failed to mark discount code used:", e);
       }
     }
 

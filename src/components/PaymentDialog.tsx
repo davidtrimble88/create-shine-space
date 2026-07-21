@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, AlertCircle } from "lucide-react";
-import { SquarePaymentDialog, type SquareRegion } from "./SquarePaymentDialog";
+import { SquarePaymentDialog, type SquareRegion, type PaymentDiscount } from "./SquarePaymentDialog";
 
 export type PaymentProvider = "square" | "paypal" | "stripe";
 
@@ -15,6 +15,7 @@ interface Props {
   amountCents: number;
   amountLabel: string;
   bookingPayload: Record<string, unknown>;
+  discount?: PaymentDiscount;
   onSuccess: (paymentId: string, provider: PaymentProvider) => void;
 }
 

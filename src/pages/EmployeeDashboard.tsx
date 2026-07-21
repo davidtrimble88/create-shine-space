@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail, ChevronLeft, ChevronRight, Wrench, Menu, MessageSquare } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail, ChevronLeft, ChevronRight, Wrench, Menu, MessageSquare, Ticket } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -25,6 +25,7 @@ import PaymentSettings from "@/components/admin/PaymentSettings";
 import AutoEmails from "@/components/admin/AutoEmails";
 import ITTickets from "@/components/admin/ITTickets";
 import InstructorCertifications from "@/components/admin/InstructorCertifications";
+import AdminDiscounts from "@/components/admin/AdminDiscounts";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
 
@@ -50,6 +51,7 @@ const tabs = [
   
   { id: "auto-emails", label: "Auto Emails", icon: Mail, roles: ["owner", "admin"] },
   { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
+  { id: "discounts", label: "Discounts", icon: Ticket, roles: ["owner", "admin"] },
   { id: "payment-settings", label: "Payment Settings", icon: CreditCard, roles: ["owner"] },
   { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
   { id: "roles", label: "Role Permissions", icon: KeyRound, roles: ["owner"] },
@@ -329,6 +331,7 @@ const EmployeeDashboard = () => {
           {activeTab === "referrals" && <AdminReferralSources />}
           {activeTab === "earnings" && <EarningsAnalytics />}
           {activeTab === "payment-settings" && <PaymentSettings />}
+          {activeTab === "discounts" && <AdminDiscounts />}
           {activeTab === "rosters" && <ClassRosters />}
           {activeTab === "files" && <AdminFiles />}
           {activeTab === "it-tickets" && <ITTickets />}
