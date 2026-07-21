@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, X } from "lucide-react";
 
@@ -48,26 +48,46 @@ export default function DashboardTour({ role, userId, open, onOpenChange, onNavi
   const steps = useMemo(() => STEPS.filter(s => s.roles.includes(role)), [role]);
   const [i, setI] = useState(0);
   const [minimized, setMinimized] = useState(false);
+  const onNavigateTabRef = useRef(onNavigateTab);
+
+  useEffect(() => {
+    onNavigateTabRef.current = onNavigateTab;
+  }, [onNavigateTab]);
+
+  const safeIndex = steps.length ? Math.min(Math.max(i, 0), steps.length - 1) : 0;
+  const step = steps[safeIndex];
+  const targetTab = step?.tab;
 
   useEffect(() => { if (open) { setI(0); setMinimized(false); } }, [open]);
 
   useEffect(() => {
-    if (open && steps[i]) onNavigateTab(steps[i].tab);
-  }, [i, open, steps, onNavigateTab]);
+    if (open && targetTab) onNavigateTabRef.current(targetTab);
+  }, [open, targetTab]);
 
   // Track the highlighted element's rect
   const [rect, setRect] = useState<DOMRect | null>(null);
   useEffect(() => {
-    if (!open || minimized || !steps[safeIndexRef()]) { setRect(null); return; }
-    const targetTab = steps[Math.min(Math.max(i, 0), steps.length - 1)]?.tab;
     if (!targetTab) return;
+    if (!open || minimized) { setRect(null); return; }
 
     let raf = 0;
     const update = () => {
       const el = document.querySelector<HTMLElement>(`[data-tour-target="${targetTab}"]`);
       if (el) {
         el.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        setRect(el.getBoundingClientRect());
+        const next = el.getBoundingClientRect();
+        setRect((prev) => {
+          if (
+            prev &&
+            Math.abs(prev.left - next.left) < 1 &&
+            Math.abs(prev.top - next.top) < 1 &&
+            Math.abs(prev.width - next.width) < 1 &&
+            Math.abs(prev.height - next.height) < 1
+          ) {
+            return prev;
+          }
+          return next;
+        });
       } else {
         setRect(null);
       }
@@ -85,8 +105,7 @@ export default function DashboardTour({ role, userId, open, onOpenChange, onNavi
       window.removeEventListener("scroll", onScrollResize, true);
       cancelAnimationFrame(raf);
     };
-    function safeIndexRef() { return Math.min(Math.max(i, 0), steps.length - 1); }
-  }, [i, open, minimized, steps]);
+  }, [open, minimized, targetTab]);
 
   if (!open || !steps.length) return null;
 
@@ -96,8 +115,6 @@ export default function DashboardTour({ role, userId, open, onOpenChange, onNavi
     onNavigateTab("overview");
   };
 
-  const safeIndex = Math.min(Math.max(i, 0), steps.length - 1);
-  const step = steps[safeIndex];
   if (!step) return null;
   const isLast = safeIndex === steps.length - 1;
 
