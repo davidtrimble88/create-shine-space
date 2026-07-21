@@ -37,6 +37,16 @@ import { type ModelReleasePrefill } from "@/components/ModelReleaseStep";
 import RegistrationFormDocuSign from "@/components/RegistrationFormDocuSign";
 import ModelReleaseDocuSign from "@/components/ModelReleaseDocuSign";
 import WaiverDocuSign from "@/components/WaiverDocuSign";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 const registrationSchema = z.object({
@@ -715,29 +725,39 @@ const RegisterPage = () => {
     completeRegistration(booking);
   };
 
-  // If the payment dialog is closed without paying, still create the booking
-  // so the student lands on the class roster. Marked as unpaid so staff can
-  // collect payment later.
-  const handlePaymentDialogChange = async (open: boolean) => {
-    setPaymentOpen(open);
-    if (open || paymentCompletedRef.current || !pendingBooking) return;
-    try {
-      const booking = pendingBooking as any;
-      await saveBooking(booking, "unpaid");
-      toast({
-        title: "You're booked!",
-        description: "Payment was skipped — staff will collect it from you.",
-      });
-      paymentCompletedRef.current = true;
-      completeRegistration(booking);
-    } catch (error) {
-      toast({
-        title: "Could not save booking",
-        description: error instanceof Error ? error.message : "Please contact us to confirm your spot.",
-        variant: "destructive",
-      });
+  // If the user tries to close the payment dialog without paying, show a
+  // confirmation warning. Only cancel (do not register) if they explicitly
+  // confirm. Otherwise, keep the payment dialog open so they can pay.
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+
+  const handlePaymentDialogChange = (open: boolean) => {
+    if (open) {
+      setPaymentOpen(true);
+      return;
     }
+    if (paymentCompletedRef.current || !pendingBooking) {
+      setPaymentOpen(false);
+      return;
+    }
+    // User attempted to close without paying — ask for confirmation.
+    setCancelConfirmOpen(true);
   };
+
+  const handleConfirmCancelPayment = () => {
+    setCancelConfirmOpen(false);
+    setPaymentOpen(false);
+    setPendingBooking(null);
+    toast({
+      title: "Registration cancelled",
+      description: "Your spot was not reserved. You can register again anytime.",
+    });
+  };
+
+  const handleGoBackToPayment = () => {
+    setCancelConfirmOpen(false);
+    setPaymentOpen(true);
+  };
+
 
   const dateOfBirth = useWatch({ control: form.control, name: "dateOfBirth" });
   const idType = useWatch({ control: form.control, name: "idType" });
@@ -1447,6 +1467,27 @@ const RegisterPage = () => {
           onSuccess={handlePaymentSuccess}
         />
       )}
+
+      <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel payment and lose your spot?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your spot in this class will <strong>not be reserved</strong> until payment is completed.
+              If you cancel now, no registration will be created and you'll need to start over to sign up.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleGoBackToPayment}>Go back to payment</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmCancelPayment}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, cancel registration
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
