@@ -250,6 +250,7 @@ const EmployeeDashboard = () => {
         {visibleTabs.map((tab) => (
           <button
             key={tab.id}
+            data-tour-target={tab.id}
             onClick={() => handleTabSelect(tab.id)}
             className={`relative w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
               collapsed ? "justify-center px-2 py-3" : "px-4 py-3"
