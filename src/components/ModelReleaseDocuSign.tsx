@@ -431,6 +431,24 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
                 {f.text}
               </div>
             ))}
+            {/* Guardian typeable inputs (minor only) */}
+            {GAF_INPUTS.map((f) => (
+              <input key={f.k}
+                type={f.type || "text"}
+                value={f.value}
+                onChange={(e) => f.setter(e.target.value)}
+                placeholder={f.placeholder}
+                onMouseDown={(e) => calibrate && onOverlayMouseDown(f.k)(e)}
+                className={`absolute text-[11px] text-black bg-yellow-100 border border-yellow-500 rounded px-1 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-500 ${calibrate ? "ring-2 ring-pink-500 cursor-move" : ""}`}
+                style={{
+                  left: f.x * renderScale + (offsets[f.k]?.dx || 0),
+                  top: f.y * renderScale + (offsets[f.k]?.dy || 0),
+                  width: f.w * renderScale,
+                  height: 18 * renderScale,
+                  fontSize: `${Math.max(10, 11 * renderScale)}px`,
+                }}
+              />
+            ))}
             {/* Signature tags */}
             {requiredSigs.map(t => {
               const sig = t.id === "student" ? studentSig : guardianSig;
