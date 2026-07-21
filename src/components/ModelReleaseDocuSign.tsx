@@ -22,6 +22,27 @@ type SigTag = { id: "student" | "guardian"; xPdf: number; yTopPdf: number; wPdf:
 const STUDENT_TAG: SigTag = { id: "student", xPdf: 84, yTopPdf: 432, wPdf: 223, hPdf: 20 };
 const GUARDIAN_TAG: SigTag = { id: "guardian", xPdf: 86, yTopPdf: 565, wPdf: 223, hPdf: 20 };
 
+const DEFAULT_OFFSETS: Record<string, { dx: number; dy: number }> = {
+  af_fullName: { dx: 0, dy: 0 },
+  af_dob: { dx: 0, dy: 0 },
+  af_date: { dx: 0, dy: 0 },
+  af_address: { dx: 0, dy: 0 },
+  af_phone: { dx: 0, dy: 0 },
+  af_city: { dx: 0, dy: 0 },
+  af_state: { dx: 0, dy: 0 },
+  af_zip: { dx: 0, dy: 0 },
+  af_email: { dx: 0, dy: 0 },
+  gaf_date: { dx: 0, dy: 0 },
+  gaf_address: { dx: 0, dy: 0 },
+  gaf_phone: { dx: 0, dy: 0 },
+  gaf_city: { dx: 0, dy: 0 },
+  gaf_state: { dx: 0, dy: 0 },
+  gaf_zip: { dx: 0, dy: 0 },
+  gaf_email: { dx: 0, dy: 0 },
+  tag_student: { dx: 0, dy: 0 },
+  tag_guardian: { dx: 0, dy: 0 },
+};
+
 interface Props {
   prefill: ModelReleasePrefill;
   onBack: () => void;
