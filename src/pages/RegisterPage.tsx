@@ -688,17 +688,26 @@ const RegisterPage = () => {
                 : "Step 4 of 7"}
             </span>
             {isCalibrate && !modelReleaseOpen && (
-              <div className="mb-4">
+              <div className="mb-4 flex flex-wrap gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   className="border-destructive text-destructive hover:bg-destructive/10"
-                  onClick={jumpToModelReleaseCalibration}
+                  onClick={() => jumpToModelReleaseCalibration(false)}
                 >
-                  Debug: Jump to Model Release Calibration
+                  Debug: Model Release (Adult)
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-destructive text-destructive hover:bg-destructive/10"
+                  onClick={() => jumpToModelReleaseCalibration(true)}
+                >
+                  Debug: Model Release (Minor + Guardian)
                 </Button>
               </div>
             )}
+
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Student <span className="text-accent">Registration</span>
             </h1>
