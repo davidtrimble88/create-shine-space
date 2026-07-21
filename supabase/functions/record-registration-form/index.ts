@@ -106,15 +106,40 @@ const Q7_LABELS: Record<string, string> = {
 
 type RegData = z.infer<typeof ResponseSchema>;
 
+// Calibration offsets (PDF points). Frontend calibration sends screen-pixel deltas;
+// these are converted by dividing by the render scale shown in the calibration bar.
+const FIELD_OFFSETS: Record<string, { dx: number; dy: number }> = {
+  first: { dx: -23.8, dy: -4.6 },
+  middle: { dx: -0.8, dy: -4.6 },
+  last: { dx: -0.8, dy: -4.6 },
+  street: { dx: -2.3, dy: -2.3 },
+  city: { dx: 0.8, dy: -3.8 },
+  state: { dx: 3.1, dy: -2.3 },
+  zip: { dx: 0.8, dy: -3.8 },
+  idNumber: { dx: -53.8, dy: -3.8 },
+  idState: { dx: -60.8, dy: -3.1 },
+  idExp: { dx: 5.4, dy: -3.1 },
+  q3: { dx: -2.3, dy: 4.6 },
+  q5: { dx: 7.7, dy: 1.5 },
+  q6cc: { dx: 5.4, dy: 3.1 },
+  q7other: { dx: 0, dy: 4.6 },
+};
+
+function getOffset(fieldKey?: string) {
+  return FIELD_OFFSETS[fieldKey || ""] || { dx: 0, dy: 0 };
+}
+
 // Stamp text at yTop (from page top, 792-tall). Clips to maxW.
-function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 9, maxW?: number) {
+function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 9, maxW?: number, fieldKey?: string) {
   if (!text) return;
   let t = String(text);
   if (maxW) while (font.widthOfTextAtSize(t, size) > maxW && t.length > 1) t = t.slice(0, -1);
-  page.drawText(t, { x, y: 792 - yTop + 2, size, font, color: rgb(0, 0, 0) });
+  const off = getOffset(fieldKey);
+  page.drawText(t, { x: x + off.dx, y: 792 - yTop + 2 - off.dy, size, font, color: rgb(0, 0, 0) });
 }
-function stampX(page: any, font: any, xCenter: number, yTop: number) {
-  page.drawText("X", { x: xCenter - 3, y: 792 - yTop, size: 11, font, color: rgb(0, 0, 0) });
+function stampX(page: any, font: any, xCenter: number, yTop: number, fieldKey?: string) {
+  const off = getOffset(fieldKey);
+  page.drawText("X", { x: xCenter - 3 + off.dx, y: 792 - yTop - off.dy, size: 11, font, color: rgb(0, 0, 0) });
 }
 
 async function stampRegistrationTemplate(
@@ -132,13 +157,13 @@ async function stampRegistrationTemplate(
   // Header
   stampText(p0, font, dateStr, 420, 142.9, 10, 120);
   // Personal data
-  stampText(p0, font, data.first_name, 90, 186.1, 9, 140);
-  if (data.middle_name) stampText(p0, font, data.middle_name, 240, 186.1, 9, 140);
-  stampText(p0, font, data.last_name, 400, 186.1, 9, 170);
-  stampText(p0, font, data.address_street || "", 90, 218.5, 9, 180);
-  stampText(p0, font, data.address_city || "", 280, 218.5, 9, 100);
-  stampText(p0, font, data.address_state || "", 390, 218.5, 9, 90);
-  stampText(p0, font, data.address_zip || "", 490, 218.5, 9, 80);
+  stampText(p0, font, data.first_name, 90, 186.1, 9, 140, "first");
+  if (data.middle_name) stampText(p0, font, data.middle_name, 240, 186.1, 9, 140, "middle");
+  stampText(p0, font, data.last_name, 400, 186.1, 9, 170, "last");
+  stampText(p0, font, data.address_street || "", 90, 218.5, 9, 180, "street");
+  stampText(p0, font, data.address_city || "", 280, 218.5, 9, 100, "city");
+  stampText(p0, font, data.address_state || "", 390, 218.5, 9, 90, "state");
+  stampText(p0, font, data.address_zip || "", 490, 218.5, 9, 80, "zip");
   stampText(p0, font, dob, 107, 250.9, 9, 100);
   if (data.age != null) stampText(p0, font, String(data.age), 236, 250.9, 9, 30);
   if (data.sex === "M") stampX(p0, font, 289, 250.9);
@@ -155,9 +180,9 @@ async function stampRegistrationTemplate(
   const y = rowY[data.id_type] ?? 338.1;
   stampX(p0, font, 36, y);
   if (data.id_type === "permit") stampX(p0, font, 143, y);
-  stampText(p0, font, data.id_number || "", 250, y, 9, 150);
-  stampText(p0, font, data.id_state || data.id_country || "", 410, y, 9, 60);
-  stampText(p0, font, data.id_expiration || "", 495, y, 9, 70);
+  stampText(p0, font, data.id_number || "", 250, y, 9, 150, "idNumber");
+  stampText(p0, font, data.id_state || data.id_country || "", 410, y, 9, 60, "idState");
+  stampText(p0, font, data.id_expiration || "", 495, y, 9, 70, "idExp");
 
   // Q1
   if (data.q1_ridden_regularly_5yr === "yes") stampX(p0, font, 316, 455.7);
@@ -167,20 +192,20 @@ async function stampRegistrationTemplate(
   if (data.q2_experience_bucket === "500_2000") stampX(p0, font, 144, 479.7);
   if (data.q2_experience_bucket === "gt_2000") stampX(p0, font, 252, 479.7);
   // Q3
-  stampText(p0, font, data.q3_years_riding || "", 180, 491.7, 9, 35);
+  stampText(p0, font, data.q3_years_riding || "", 180, 491.7, 9, 35, "q3");
   // Q4
   if (data.q4_off_road === "yes") stampX(p0, font, 152, 503.7);
   if (data.q4_off_road === "no") stampX(p0, font, 182, 503.7);
   // Q5
-  stampText(p0, font, data.q5_miles_past_year || "", 290, 527.7, 9, 68);
+  stampText(p0, font, data.q5_miles_past_year || "", 290, 527.7, 9, 68, "q5");
   // Q6
   if (data.q6_owns_motorcycle === "yes") stampX(p0, font, 244, 539.7);
   if (data.q6_owns_motorcycle === "no") stampX(p0, font, 284, 539.7);
-  stampText(p0, font, data.q6_engine_cc || "", 380, 539.7, 9, 50);
+  stampText(p0, font, data.q6_engine_cc || "", 380, 539.7, 9, 50, "q6cc");
   // Q7
   if (data.q7_primary_reason === "commuting") stampX(p0, font, 36, 563.7);
   if (data.q7_primary_reason === "recreation") stampX(p0, font, 97, 563.7);
-  if (data.q7_primary_reason === "other") { stampX(p0, font, 156, 563.7); stampText(p0, font, data.q7_other || "", 195, 563.7, 9, 145); }
+  if (data.q7_primary_reason === "other") { stampX(p0, font, 156, 563.7); stampText(p0, font, data.q7_other || "", 195, 563.7, 9, 145, "q7other"); }
   // Q8
   if (data.q8_prior_accident === "yes") stampX(p0, font, 366, 575.7);
   if (data.q8_prior_accident === "no") stampX(p0, font, 396, 575.7);
