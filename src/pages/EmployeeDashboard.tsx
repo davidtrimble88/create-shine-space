@@ -27,7 +27,7 @@ import ITTickets from "@/components/admin/ITTickets";
 import InstructorCertifications from "@/components/admin/InstructorCertifications";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
-import StudentIds from "@/components/admin/StudentIds";
+
 import NotificationBell from "@/components/admin/NotificationBell";
 import MessagingCenter from "@/components/admin/MessagingCenter";
 
@@ -47,7 +47,7 @@ const tabs = [
   
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
-  { id: "student-ids", label: "Student IDs", icon: ShieldCheck, roles: ["owner", "admin"] },
+  
   { id: "auto-emails", label: "Auto Emails", icon: Mail, roles: ["owner", "admin"] },
   { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
   { id: "payment-settings", label: "Payment Settings", icon: CreditCard, roles: ["owner"] },
@@ -335,7 +335,7 @@ const EmployeeDashboard = () => {
           {activeTab === "certifications" && <InstructorCertifications />}
           {activeTab === "messages" && <MessagingCenter />}
           {activeTab === "signed-waivers" && <SignedWaivers />}
-          {activeTab === "student-ids" && <StudentIds />}
+          
           {activeTab === "auto-emails" && <AutoEmails />}
           {activeTab === "analytics" && <WebsiteAnalytics />}
           {activeTab === "roles" && <RolePermissions />}
