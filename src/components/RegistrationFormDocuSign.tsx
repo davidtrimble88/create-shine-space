@@ -140,29 +140,29 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   }, [prefill.dateOfBirth]);
 
   // Autofilled text overlays (mirrors backend stamping)
-  const AF = [
-    { x: 420, y: 128, w: 120, text: dateStr },
-    { x: 90, y: 172, w: 140, text: prefill.firstName || "" },
-    { x: 240, y: 172, w: 140, text: prefill.middleName || "" },
-    { x: 400, y: 172, w: 170, text: prefill.lastName || "" },
-    { x: 90, y: 204, w: 180, text: prefill.addressStreet || "" },
-    { x: 280, y: 204, w: 100, text: prefill.addressCity || "" },
-    { x: 390, y: 204, w: 90, text: prefill.addressState || "" },
-    { x: 490, y: 204, w: 80, text: prefill.addressZip || "" },
-    { x: 107, y: 236, w: 100, text: formatDob() },
-    { x: 236, y: 236, w: 30, text: age },
-    { x: 434, y: 258, w: 140, text: prefill.phone || "" },
-    { x: 67, y: 280, w: 255, text: prefill.email || "" },
+  const AF: Array<{ k: string; x: number; y: number; w: number; text: string }> = [
+    { k: "date", x: 420, y: 128, w: 120, text: dateStr },
+    { k: "first", x: 90, y: 172, w: 140, text: prefill.firstName || "" },
+    { k: "middle", x: 240, y: 172, w: 140, text: prefill.middleName || "" },
+    { k: "last", x: 400, y: 172, w: 170, text: prefill.lastName || "" },
+    { k: "street", x: 90, y: 204, w: 180, text: prefill.addressStreet || "" },
+    { k: "city", x: 280, y: 204, w: 100, text: prefill.addressCity || "" },
+    { k: "state", x: 390, y: 204, w: 90, text: prefill.addressState || "" },
+    { k: "zip", x: 490, y: 204, w: 80, text: prefill.addressZip || "" },
+    { k: "dob", x: 107, y: 236, w: 100, text: formatDob() },
+    { k: "age", x: 236, y: 236, w: 30, text: age },
+    { k: "phone", x: 434, y: 258, w: 140, text: prefill.phone || "" },
+    { k: "email", x: 67, y: 280, w: 255, text: prefill.email || "" },
   ];
   // ID row stamping - row y based on id_type
   const idRowY: Record<string, number> = {
     drivers_license: 344, permit: 344, state_id: 364, foreign_license: 384, passport: 404, other: 404,
   };
   const idY = idRowY[prefill.idType] ?? 324;
-  const idAF = [
-    { x: 250, y: idY, w: 150, text: prefill.idNumber || "" },
-    { x: 410, y: idY, w: 60, text: prefill.idState || prefill.idCountry || "" },
-    { x: 495, y: idY, w: 70, text: prefill.idExpiration || "" },
+  const idAF: Array<{ k: string; x: number; y: number; w: number; text: string }> = [
+    { k: "idNumber", x: 250, y: idY, w: 150, text: prefill.idNumber || "" },
+    { k: "idState", x: 410, y: idY, w: 60, text: prefill.idState || prefill.idCountry || "" },
+    { k: "idExp", x: 495, y: idY, w: 70, text: prefill.idExpiration || "" },
   ];
 
   const cbStyle = (c: CB, key: string): React.CSSProperties => {
