@@ -99,6 +99,79 @@ type SignData = z.infer<typeof SignSchema>;
 type DeclineData = z.infer<typeof DeclineSchema>;
 type AnyData = z.infer<typeof BodySchema>;
 
+// Stamp a text value on the CMSP Model Release template's page 0 using yTop
+// (measured from top of a 792-tall page).
+function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 10, maxW?: number) {
+  if (!text) return;
+  let t = text;
+  if (maxW) {
+    while (font.widthOfTextAtSize(t, size) > maxW && t.length > 1) t = t.slice(0, -1);
+  }
+  page.drawText(t, { x, y: 792 - yTop + 2, size, font, color: rgb(0, 0, 0) });
+}
+
+async function stampReleaseTemplate(
+  pdf: PDFDocument, font: any, data: AnyData, meta: { signedAt: string },
+) {
+  const pages = pdf.getPages();
+  const p0 = pages[0];
+  const fullName = [data.first_name, data.middle_name || "", data.last_name]
+    .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+  const today = new Date(meta.signedAt);
+  const dateStr = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
+  const addr = data.address_street || "";
+
+  // Student block
+  stampText(p0, font, fullName, 86, 414.6, 10, 220);
+  stampText(p0, font, data.date_of_birth || "", 446, 414.6, 10, 92);
+  stampText(p0, font, dateStr, 446, 449.4, 10, 92);
+  stampText(p0, font, addr, 86, 485.1, 10, 320);
+  stampText(p0, font, data.phone || "", 446, 487.1, 10, 152);
+  stampText(p0, font, data.address_city || "", 86, 522.6, 10, 145);
+  stampText(p0, font, data.address_state || "", 234, 522.6, 10, 100);
+  stampText(p0, font, data.address_zip || "", 342, 522.6, 10, 65);
+  stampText(p0, font, data.email, 446, 522.6, 10, 152);
+
+  const drawnSig = data.decision === "sign" ? data.signature_drawn : data.signature_drawn;
+  if (drawnSig) {
+    const parsed = dataUrlToBytes(drawnSig);
+    if (parsed) {
+      const img = parsed.mime === "png" ? await pdf.embedPng(parsed.bytes) : await pdf.embedJpg(parsed.bytes);
+      const maxW = 220, maxH = 26;
+      const s = Math.min(maxW / img.width, maxH / img.height);
+      p0.drawImage(img, { x: 86, y: 792 - 450.4, width: img.width * s, height: img.height * s });
+    }
+  }
+
+  if (data.is_minor) {
+    stampText(p0, font, dateStr, 449, 583.9, 10, 92);
+    stampText(p0, font, addr, 86, 620.4, 10, 320);
+    stampText(p0, font, data.guardian_phone || data.phone || "", 446, 618.4, 10, 152);
+    stampText(p0, font, data.address_city || "", 86, 656.7, 10, 145);
+    stampText(p0, font, data.address_state || "", 234, 656.7, 10, 100);
+    stampText(p0, font, data.address_zip || "", 342, 656.7, 10, 65);
+    stampText(p0, font, data.guardian_email || data.email, 446, 656.7, 10, 152);
+    const gDrawn = data.decision === "sign" ? data.guardian_signature_drawn : null;
+    if (gDrawn) {
+      const parsed = dataUrlToBytes(gDrawn);
+      if (parsed) {
+        const img = parsed.mime === "png" ? await pdf.embedPng(parsed.bytes) : await pdf.embedJpg(parsed.bytes);
+        const maxW = 220, maxH = 26;
+        const s = Math.min(maxW / img.width, maxH / img.height);
+        p0.drawImage(img, { x: 86, y: 792 - 583.9, width: img.width * s, height: img.height * s });
+      }
+    }
+  }
+
+  if (data.decision === "decline") {
+    // Big diagonal DECLINED watermark
+    p0.drawText("DECLINED", {
+      x: 90, y: 380, size: 90, font, color: rgb(0.85, 0.15, 0.15),
+      rotate: { type: "degrees", angle: 22 } as any, opacity: 0.35,
+    });
+  }
+}
+
 async function buildSignedPdf(
   templateBytes: Uint8Array,
   data: SignData,
@@ -107,6 +180,8 @@ async function buildSignedPdf(
   const pdf = await PDFDocument.load(templateBytes);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+
+  await stampReleaseTemplate(pdf, font, data, meta);
 
   const fullName = [data.first_name, data.middle_name || "", data.last_name]
     .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
