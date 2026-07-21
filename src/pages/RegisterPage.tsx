@@ -236,6 +236,36 @@ const RegisterPage = () => {
   const [regFormPrefill, setRegFormPrefill] = useState<RegistrationFormPrefill | null>(null);
   const [modelReleaseOpen, setModelReleaseOpen] = useState(false);
   const [modelReleasePrefill, setModelReleasePrefill] = useState<ModelReleasePrefill | null>(null);
+  const [returningStudent, setReturningStudent] = useState(false);
+  const [discountCodeInput, setDiscountCodeInput] = useState("");
+  const [discountApplied, setDiscountApplied] = useState<
+    | { source: "returning" | "code"; amountCents: number; code?: string; codeId?: string }
+    | null
+  >(null);
+  const [discountBusy, setDiscountBusy] = useState<null | "returning" | "code">(null);
+  const [discountNotice, setDiscountNotice] = useState<string | null>(null);
+  const [defaultDiscountCents, setDefaultDiscountCents] = useState<number>(7500);
+
+  useEffect(() => {
+    supabase
+      .from("discount_settings")
+      .select("returning_student_amount_cents")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.returning_student_amount_cents != null) {
+          setDefaultDiscountCents(data.returning_student_amount_cents);
+        }
+      });
+  }, []);
+
+  // Clear any applied discount if the checkbox is turned off
+  useEffect(() => {
+    if (!returningStudent && discountApplied?.source === "returning") {
+      setDiscountApplied(null);
+      setDiscountNotice(null);
+    }
+  }, [returningStudent, discountApplied]);
 
   const formatScheduleDate = (iso: string | null) => {
     if (!iso) return "";
