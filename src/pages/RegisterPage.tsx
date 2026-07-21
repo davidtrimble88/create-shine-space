@@ -1158,6 +1158,84 @@ const RegisterPage = () => {
                     )}
                   </div>
 
+                  {course === "intermediate" && (
+                    <div className="rounded-lg border border-accent/40 bg-accent/5 p-4 mb-6 space-y-4">
+                      <div>
+                        <h3 className="text-sm font-bold text-accent">Returning-Student Discount</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Prior students of Learn to Ride VC receive {formatCents(defaultDiscountCents)} off the Intermediate Course.
+                        </p>
+                      </div>
+
+                      <label className="flex items-start gap-3 text-sm">
+                        <Checkbox
+                          checked={returningStudent}
+                          onCheckedChange={(v) => setReturningStudent(!!v)}
+                        />
+                        <span className="leading-snug">
+                          I've taken a class with Learn to Ride VC before — apply my returning-student discount.
+                        </span>
+                      </label>
+
+                      {returningStudent && (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={validateReturningDiscount}
+                            disabled={discountBusy !== null}
+                          >
+                            {discountBusy === "returning" ? "Checking..." : "Look up my prior class"}
+                          </Button>
+                          <span className="text-xs text-muted-foreground">
+                            Uses the ID number and email you entered above.
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="pt-3 border-t border-border/60">
+                        <p className="text-xs font-medium text-foreground mb-2">Have a discount code?</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Input
+                            placeholder="Enter code"
+                            value={discountCodeInput}
+                            onChange={(e) => setDiscountCodeInput(e.target.value)}
+                            className="max-w-xs"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={validateDiscountCode}
+                            disabled={discountBusy !== null || !discountCodeInput.trim()}
+                          >
+                            {discountBusy === "code" ? "Checking..." : "Apply code"}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {discountApplied && (
+                        <div className="rounded-md bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-500 flex items-center justify-between gap-3">
+                          <span>
+                            ✓ {formatCents(discountApplied.amountCents)} discount applied
+                            {discountApplied.source === "code" && discountApplied.code ? ` (code: ${discountApplied.code})` : " (returning student)"}
+                          </span>
+                          <Button type="button" variant="ghost" size="sm" onClick={clearDiscount} className="h-7 text-xs">
+                            Remove
+                          </Button>
+                        </div>
+                      )}
+
+                      {discountNotice && !discountApplied && (
+                        <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-xs text-destructive">
+                          {discountNotice}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+
                   <FormField
                     control={form.control}
                     name="referralSource"
