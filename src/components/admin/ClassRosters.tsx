@@ -804,7 +804,8 @@ const ClassRosters = () => {
             .roster-table th { background: #e8e8e8; font-weight: 600; font-size: 10px; }
             .roster-table td.center { text-align: center; }
             .roster-table .check-col { width: 28px; text-align: center; }
-            .roster-table .score-col { width: 50px; text-align: center; }
+            .roster-table .score-col { width: 28px; text-align: center; }
+            .roster-table .id-verify-col { width: 90px; text-align: center; }
             .count { font-size: 11px; margin-bottom: 6px; font-weight: 600; }
             .section-title { font-size: 13px; font-weight: 700; margin: 16px 0 6px; }
             .office-tracking { margin-top: 16px; font-size: 11px; font-weight: 600; }
