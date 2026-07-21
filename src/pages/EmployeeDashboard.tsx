@@ -151,6 +151,22 @@ const EmployeeDashboard = () => {
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [user, activeTab]);
 
+  // Fetch the logged-in employee's name for the welcome header
+  const [employeeName, setEmployeeName] = useState("");
+  useEffect(() => {
+    if (!user) return;
+    const loadName = async () => {
+      const { data } = await supabase
+        .from("employees")
+        .select("first_name, preferred_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) {
+        setEmployeeName(data.preferred_name || data.first_name || "");
+      }
+    };
+    loadName();
+  }, [user]);
 
   // If owner switches to a view that hides the active tab, send them back to overview
   useEffect(() => {
