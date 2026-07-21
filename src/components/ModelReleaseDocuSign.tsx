@@ -52,7 +52,18 @@ interface Props {
 const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
   const fullName = [prefill.firstName, prefill.middleName, prefill.lastName]
     .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
-  const guardianFullName = [prefill.guardianFirstName, prefill.guardianLastName].filter(Boolean).join(" ").trim();
+  // Guardian info is entered fresh on this step, NOT auto-filled from registration
+  const [gFirst, setGFirst] = useState(prefill.guardianFirstName || "");
+  const [gLast, setGLast] = useState(prefill.guardianLastName || "");
+  const [gRelationship, setGRelationship] = useState(prefill.guardianRelationship || "");
+  const [gAddress, setGAddress] = useState("");
+  const [gCity, setGCity] = useState("");
+  const [gState, setGState] = useState("");
+  const [gZip, setGZip] = useState("");
+  const [gPhone, setGPhone] = useState("");
+  const [gEmail, setGEmail] = useState("");
+  const guardianFullName = [gFirst, gLast].filter(Boolean).join(" ").trim();
+
 
   const [decision, setDecision] = useState<"sign" | "decline" | null>(null);
   const [bikeModel, setBikeModel] = useState("");
@@ -135,8 +146,10 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
 
   const addressLine = [prefill.addressStreet].filter(Boolean).join(", ");
 
+  const guardianComplete = !prefill.isMinor || (gFirst.trim() && gLast.trim() && gRelationship.trim() && gAddress.trim() && gCity.trim() && gState.trim() && gZip.trim() && gPhone.trim() && gEmail.trim());
   const submit = async () => {
-    if (!allSigned) return;
+    if (!allSigned || !guardianComplete) return;
+
     setSubmitting(true);
     try {
       const body: any = {
@@ -152,9 +165,14 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
         address_zip: prefill.addressZip || null,
         is_minor: prefill.isMinor,
         guardian_name: prefill.isMinor ? guardianFullName : null,
-        guardian_relationship: prefill.isMinor ? (prefill.guardianRelationship || null) : null,
-        guardian_phone: prefill.isMinor ? (prefill.guardianPhone || null) : null,
-        guardian_email: prefill.isMinor ? (prefill.guardianEmail || null) : null,
+        guardian_relationship: prefill.isMinor ? (gRelationship || null) : null,
+        guardian_address: prefill.isMinor ? (gAddress || null) : null,
+        guardian_city: prefill.isMinor ? (gCity || null) : null,
+        guardian_state: prefill.isMinor ? (gState || null) : null,
+        guardian_zip: prefill.isMinor ? (gZip || null) : null,
+        guardian_phone: prefill.isMinor ? (gPhone || null) : null,
+        guardian_email: prefill.isMinor ? (gEmail || null) : null,
+
         bike_model: decision === "sign" ? (bikeModel || null) : null,
         helmet_color: decision === "sign" ? (helmetColor || null) : null,
         jacket_color: decision === "sign" ? (jacketColor || null) : null,
@@ -224,13 +242,14 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
   ];
   const GAF: { k: string; x: number; y: number; w: number; text: string }[] = prefill.isMinor ? [
     { k: "gaf_date", x: 449, y: 568, w: 92, text: dateStr },
-    { k: "gaf_address", x: 86, y: 604, w: 320, text: addressLine },
-    { k: "gaf_phone", x: 446, y: 604, w: 152, text: prefill.guardianPhone || prefill.phone || "" },
-    { k: "gaf_city", x: 86, y: 640, w: 145, text: prefill.addressCity || "" },
-    { k: "gaf_state", x: 234, y: 640, w: 100, text: prefill.addressState || "" },
-    { k: "gaf_zip", x: 342, y: 640, w: 65, text: prefill.addressZip || "" },
-    { k: "gaf_email", x: 446, y: 640, w: 152, text: prefill.guardianEmail || prefill.email || "" },
+    { k: "gaf_address", x: 86, y: 604, w: 320, text: gAddress },
+    { k: "gaf_phone", x: 446, y: 604, w: 152, text: gPhone },
+    { k: "gaf_city", x: 86, y: 640, w: 145, text: gCity },
+    { k: "gaf_state", x: 234, y: 640, w: 100, text: gState },
+    { k: "gaf_zip", x: 342, y: 640, w: 65, text: gZip },
+    { k: "gaf_email", x: 446, y: 640, w: 152, text: gEmail },
   ] : [];
+
 
   if (result) {
     return (
@@ -331,11 +350,41 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
         </div>
         <div className="flex gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => { setDecision(null); setStudentSig(null); setGuardianSig(null); }}>Change decision</Button>
-          <Button type="button" variant="hero" size="sm" disabled={!allSigned || submitting} onClick={submit}>
+          <Button type="button" variant="hero" size="sm" disabled={!allSigned || !guardianComplete || submitting} onClick={submit}>
             {submitting ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Saving…</> : "Finish and Save"}
           </Button>
         </div>
       </div>
+
+      {prefill.isMinor && decision === "sign" && (
+        <div className="bg-card border-2 border-accent/40 rounded-2xl p-4 md:p-6 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <ShieldCheck className="w-5 h-5 text-accent" />
+            <h3 className="font-bold text-foreground">Parent / Legal Guardian Information</h3>
+            <span className="text-xs font-semibold uppercase tracking-wide bg-accent/15 text-accent px-2 py-0.5 rounded">Required — Minor</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            The parent or legal guardian must complete their own information below. Nothing here is copied from the student's registration.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input value={gFirst} onChange={e => setGFirst(e.target.value)} placeholder="Guardian first name *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+            <input value={gLast} onChange={e => setGLast(e.target.value)} placeholder="Guardian last name *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+            <input value={gRelationship} onChange={e => setGRelationship(e.target.value)} placeholder="Relationship to student (e.g. Parent) *" className="px-3 py-2 rounded-md border border-border bg-background text-sm md:col-span-2" />
+            <input value={gAddress} onChange={e => setGAddress(e.target.value)} placeholder="Street address *" className="px-3 py-2 rounded-md border border-border bg-background text-sm md:col-span-2" />
+            <input value={gCity} onChange={e => setGCity(e.target.value)} placeholder="City *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+            <div className="grid grid-cols-2 gap-3">
+              <input value={gState} onChange={e => setGState(e.target.value)} placeholder="State *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+              <input value={gZip} onChange={e => setGZip(e.target.value)} placeholder="ZIP *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+            </div>
+            <input value={gPhone} onChange={e => setGPhone(e.target.value)} placeholder="Phone *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+            <input value={gEmail} onChange={e => setGEmail(e.target.value)} placeholder="Email *" type="email" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+          </div>
+          {!guardianComplete && (
+            <p className="text-xs text-destructive">All guardian fields are required before signing.</p>
+          )}
+        </div>
+      )}
+
 
       {calibrate && (
         <div className="sticky top-16 z-30 bg-pink-100 border-2 border-pink-500 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3 text-sm">

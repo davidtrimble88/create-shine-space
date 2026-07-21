@@ -35,8 +35,12 @@ const BaseSchema = z.object({
   guardian_name: z.string().optional().nullable(),
   guardian_relationship: z.string().optional().nullable(),
   guardian_address: z.string().optional().nullable(),
+  guardian_city: z.string().optional().nullable(),
+  guardian_state: z.string().optional().nullable(),
+  guardian_zip: z.string().optional().nullable(),
   guardian_phone: z.string().optional().nullable(),
   guardian_email: z.string().optional().nullable(),
+
   bike_model: z.string().optional().nullable(),
   helmet_color: z.string().optional().nullable(),
   jacket_color: z.string().optional().nullable(),
@@ -163,12 +167,13 @@ async function stampReleaseTemplate(
 
   if (data.is_minor) {
     stampText(p0, font, dateStr, 449, 583.9, 10, 92, getOffset(offsets, "gaf_date", scale));
-    stampText(p0, font, addr, 86, 620.4, 10, 320, getOffset(offsets, "gaf_address", scale));
-    stampText(p0, font, data.guardian_phone || data.phone || "", 446, 618.4, 10, 152, getOffset(offsets, "gaf_phone", scale));
-    stampText(p0, font, data.address_city || "", 86, 656.7, 10, 145, getOffset(offsets, "gaf_city", scale));
-    stampText(p0, font, data.address_state || "", 234, 656.7, 10, 100, getOffset(offsets, "gaf_state", scale));
-    stampText(p0, font, data.address_zip || "", 342, 656.7, 10, 65, getOffset(offsets, "gaf_zip", scale));
-    stampText(p0, font, data.guardian_email || data.email, 446, 656.7, 10, 152, getOffset(offsets, "gaf_email", scale));
+    stampText(p0, font, data.guardian_address || "", 86, 620.4, 10, 320, getOffset(offsets, "gaf_address", scale));
+    stampText(p0, font, data.guardian_phone || "", 446, 618.4, 10, 152, getOffset(offsets, "gaf_phone", scale));
+    stampText(p0, font, data.guardian_city || "", 86, 656.7, 10, 145, getOffset(offsets, "gaf_city", scale));
+    stampText(p0, font, data.guardian_state || "", 234, 656.7, 10, 100, getOffset(offsets, "gaf_state", scale));
+    stampText(p0, font, data.guardian_zip || "", 342, 656.7, 10, 65, getOffset(offsets, "gaf_zip", scale));
+    stampText(p0, font, data.guardian_email || "", 446, 656.7, 10, 152, getOffset(offsets, "gaf_email", scale));
+
     const gDrawn = data.decision === "sign" ? data.guardian_signature_drawn : null;
     if (gDrawn) {
       const parsed = dataUrlToBytes(gDrawn);
@@ -259,7 +264,7 @@ async function buildSignedPdf(
     heading("Parent / Legal Guardian");
     row("Name", data.guardian_name || "—");
     row("Relationship", data.guardian_relationship || "—");
-    row("Address", data.guardian_address || "—");
+    row("Address", [data.guardian_address, [data.guardian_city, data.guardian_state, data.guardian_zip].filter(Boolean).join(", ")].filter(Boolean).join(" — ") || "—");
     row("Phone", data.guardian_phone || "—");
     row("Email", data.guardian_email || "—");
   }
