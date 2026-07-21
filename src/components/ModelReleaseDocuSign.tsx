@@ -313,7 +313,7 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
       {decision === "sign" && (
         <div className="bg-card border border-border rounded-2xl p-4 md:p-6">
           <h3 className="font-semibold mb-3 text-sm">
-            Visual Reference (helps staff identify you on class day — optional)
+            Visual Reference — if known (helps staff identify you on class day — optional)
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
             <input placeholder="Bike model" value={bikeModel} onChange={e => setBikeModel(e.target.value)} className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
