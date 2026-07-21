@@ -74,17 +74,14 @@ const SecurityQuestionsSetup = () => {
 
     setSaving(true);
 
-    // Delete existing then insert
-    await supabase.from("security_questions").delete().eq("user_id", user.id);
-    
-    const { error } = await supabase.from("security_questions").insert(
-      questions.map((q, i) => ({
-        user_id: user.id,
+    // Save via RPC; answers are hashed server-side
+    const { error } = await supabase.rpc("set_security_questions" as any, {
+      _questions: questions.map((q, i) => ({
         question_number: i + 1,
         question: q.question,
         answer: q.answer.trim(),
-      }))
-    );
+      })),
+    });
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
