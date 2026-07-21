@@ -2063,6 +2063,7 @@ const ClassRosters = () => {
                       </td>
                       <td>{b.phone}</td>
                       <td>{b.license_number || ""}</td>
+                      <td className="center"></td>
                       <td>{b.date_of_birth || ""}</td>
                       <td className="center"></td>
                       <td className="center"></td>
