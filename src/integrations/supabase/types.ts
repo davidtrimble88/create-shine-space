@@ -280,36 +280,51 @@ export type Database = {
       discount_codes: {
         Row: {
           amount_cents: number | null
+          applies_to_courses: string[]
           code: string
           created_at: string
           created_by: string | null
           expires_at: string | null
           id: string
+          max_uses: number | null
           notes: string | null
+          starts_at: string | null
+          usage_type: string
+          use_count: number
           used_at: string | null
           used_by_booking_id: string | null
           used_by_email: string | null
         }
         Insert: {
           amount_cents?: number | null
+          applies_to_courses?: string[]
           code: string
           created_at?: string
           created_by?: string | null
           expires_at?: string | null
           id?: string
+          max_uses?: number | null
           notes?: string | null
+          starts_at?: string | null
+          usage_type?: string
+          use_count?: number
           used_at?: string | null
           used_by_booking_id?: string | null
           used_by_email?: string | null
         }
         Update: {
           amount_cents?: number | null
+          applies_to_courses?: string[]
           code?: string
           created_at?: string
           created_by?: string | null
           expires_at?: string | null
           id?: string
+          max_uses?: number | null
           notes?: string | null
+          starts_at?: string | null
+          usage_type?: string
+          use_count?: number
           used_at?: string | null
           used_by_booking_id?: string | null
           used_by_email?: string | null
@@ -318,18 +333,24 @@ export type Database = {
       }
       discount_settings: {
         Row: {
+          advanced_returning_amount_cents: number
           id: number
-          returning_student_amount_cents: number
+          intermediate_returning_amount_cents: number
+          promo_default_amount_cents: number
           updated_at: string
         }
         Insert: {
+          advanced_returning_amount_cents?: number
           id?: number
-          returning_student_amount_cents?: number
+          intermediate_returning_amount_cents?: number
+          promo_default_amount_cents?: number
           updated_at?: string
         }
         Update: {
+          advanced_returning_amount_cents?: number
           id?: number
-          returning_student_amount_cents?: number
+          intermediate_returning_amount_cents?: number
+          promo_default_amount_cents?: number
           updated_at?: string
         }
         Relationships: []
