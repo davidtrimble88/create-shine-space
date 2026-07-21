@@ -317,63 +317,82 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         <canvas ref={canvasRef} />
         {pdfReady && (
           <>
-            {AF.concat(idAF).map((f, i) => f.text && (
-              <div key={"af" + i} className="absolute text-blue-800 bg-blue-50/70 border border-blue-200 rounded px-1 overflow-hidden"
-                style={{ left: f.x * renderScale, top: f.y * renderScale, width: f.w * renderScale, fontSize: `${Math.max(8, 9 * renderScale)}px`, lineHeight: 1.1 }}>
+            {AF.concat(idAF).map((f) => f.text && (
+              <div key={"af_" + f.k}
+                onMouseDown={onOverlayMouseDown("af_" + f.k)}
+                className={`absolute text-blue-800 bg-blue-50/70 border border-blue-200 rounded px-1 overflow-hidden ${calibrate ? "ring-2 ring-pink-500 cursor-move" : ""}`}
+                style={{
+                  left: f.x * renderScale + (offsets["af_" + f.k]?.dx || 0),
+                  top: f.y * renderScale + (offsets["af_" + f.k]?.dy || 0),
+                  width: f.w * renderScale,
+                  fontSize: `${Math.max(8, 9 * renderScale)}px`,
+                  lineHeight: 1.1,
+                }}>
                 {f.text}
               </div>
             ))}
             {/* Sex checkboxes at y=250.9 */}
-            <Checkbox c={{ x: 289, y: 250 }} checked={prefill.sex === "M"} onClick={() => { }} />
-            <Checkbox c={{ x: 322, y: 250 }} checked={prefill.sex === "F"} onClick={() => { }} />
+            <Checkbox k="sexM" c={{ x: 289, y: 250 }} checked={prefill.sex === "M"} onClick={() => { }} />
+            <Checkbox k="sexF" c={{ x: 322, y: 250 }} checked={prefill.sex === "F"} onClick={() => { }} />
             {/* ID type row checkbox at x=36 */}
-            <Checkbox c={{ x: 36, y: idY }} checked={true} onClick={() => { }} />
+            <Checkbox k="idRow" c={{ x: 36, y: idY }} checked={true} onClick={() => { }} />
             {/* Q1 */}
-            <Checkbox c={q1.yes} checked={q1v === "yes"} onClick={() => setQ1v("yes")} />
-            <Checkbox c={q1.no} checked={q1v === "no"} onClick={() => setQ1v("no")} />
+            <Checkbox k="q1y" c={q1.yes} checked={q1v === "yes"} onClick={() => setQ1v("yes")} />
+            <Checkbox k="q1n" c={q1.no} checked={q1v === "no"} onClick={() => setQ1v("no")} />
             {/* Q2 */}
-            <Checkbox c={q2.lt_500} checked={q2v === "lt_500"} onClick={() => setQ2v("lt_500")} />
-            <Checkbox c={q2["500_2000"]} checked={q2v === "500_2000"} onClick={() => setQ2v("500_2000")} />
-            <Checkbox c={q2.gt_2000} checked={q2v === "gt_2000"} onClick={() => setQ2v("gt_2000")} />
+            <Checkbox k="q2a" c={q2.lt_500} checked={q2v === "lt_500"} onClick={() => setQ2v("lt_500")} />
+            <Checkbox k="q2b" c={q2["500_2000"]} checked={q2v === "500_2000"} onClick={() => setQ2v("500_2000")} />
+            <Checkbox k="q2c" c={q2.gt_2000} checked={q2v === "gt_2000"} onClick={() => setQ2v("gt_2000")} />
             {/* Q4 */}
-            <Checkbox c={q4.yes} checked={q4v === "yes"} onClick={() => setQ4v("yes")} />
-            <Checkbox c={q4.no} checked={q4v === "no"} onClick={() => setQ4v("no")} />
+            <Checkbox k="q4y" c={q4.yes} checked={q4v === "yes"} onClick={() => setQ4v("yes")} />
+            <Checkbox k="q4n" c={q4.no} checked={q4v === "no"} onClick={() => setQ4v("no")} />
             {/* Q6 */}
-            <Checkbox c={q6.yes} checked={q6v === "yes"} onClick={() => setQ6v("yes")} />
-            <Checkbox c={q6.no} checked={q6v === "no"} onClick={() => setQ6v("no")} />
+            <Checkbox k="q6y" c={q6.yes} checked={q6v === "yes"} onClick={() => setQ6v("yes")} />
+            <Checkbox k="q6n" c={q6.no} checked={q6v === "no"} onClick={() => setQ6v("no")} />
             {/* Q7 */}
-            <Checkbox c={q7.commuting} checked={q7v === "commuting"} onClick={() => setQ7v("commuting")} />
-            <Checkbox c={q7.recreation} checked={q7v === "recreation"} onClick={() => setQ7v("recreation")} />
-            <Checkbox c={q7.other} checked={q7v === "other"} onClick={() => setQ7v("other")} />
+            <Checkbox k="q7c" c={q7.commuting} checked={q7v === "commuting"} onClick={() => setQ7v("commuting")} />
+            <Checkbox k="q7r" c={q7.recreation} checked={q7v === "recreation"} onClick={() => setQ7v("recreation")} />
+            <Checkbox k="q7o" c={q7.other} checked={q7v === "other"} onClick={() => setQ7v("other")} />
             {/* Q8 */}
-            <Checkbox c={q8.yes} checked={q8v === "yes"} onClick={() => setQ8v("yes")} />
-            <Checkbox c={q8.no} checked={q8v === "no"} onClick={() => setQ8v("no")} />
+            <Checkbox k="q8y" c={q8.yes} checked={q8v === "yes"} onClick={() => setQ8v("yes")} />
+            <Checkbox k="q8n" c={q8.no} checked={q8v === "no"} onClick={() => setQ8v("no")} />
             {/* Q9 */}
-            <Checkbox c={q9.yes} checked={q9v === "yes"} onClick={() => setQ9v("yes")} />
-            <Checkbox c={q9.no} checked={q9v === "no"} onClick={() => setQ9v("no")} />
+            <Checkbox k="q9y" c={q9.yes} checked={q9v === "yes"} onClick={() => setQ9v("yes")} />
+            <Checkbox k="q9n" c={q9.no} checked={q9v === "no"} onClick={() => setQ9v("no")} />
             {/* Q10 */}
-            <Checkbox c={q10.yes} checked={q10v === "yes"} onClick={() => setQ10v("yes")} />
-            <Checkbox c={q10.no} checked={q10v === "no"} onClick={() => setQ10v("no")} />
+            <Checkbox k="q10y" c={q10.yes} checked={q10v === "yes"} onClick={() => setQ10v("yes")} />
+            <Checkbox k="q10n" c={q10.no} checked={q10v === "no"} onClick={() => setQ10v("no")} />
             {/* Q11 */}
-            <Checkbox c={q11.yes} checked={q11v === "yes"} onClick={() => setQ11v("yes")} />
-            <Checkbox c={q11.no} checked={q11v === "no"} onClick={() => setQ11v("no")} />
+            <Checkbox k="q11y" c={q11.yes} checked={q11v === "yes"} onClick={() => setQ11v("yes")} />
+            <Checkbox k="q11n" c={q11.no} checked={q11v === "no"} onClick={() => setQ11v("no")} />
             {/* Inline typeable blanks (optional) */}
-            {inlineBlanks.map((b, i) => (
-              <input
-                key={"blank" + i}
-                value={b.value}
-                onChange={e => b.onChange(e.target.value)}
-                placeholder={b.placeholder}
-                className="absolute bg-yellow-100/70 border-b border-yellow-600 text-blue-900 outline-none focus:bg-yellow-200 px-1"
-                style={{
-                  left: b.pos.x * renderScale,
-                  top: (b.pos.y - 10) * renderScale,
+            {inlineBlanks.map((b, i) => {
+              const key = "blank_" + ["q3","q5","q6cc","q7other"][i];
+              const o = offsets[key] || { dx: 0, dy: 0 };
+              return (
+                <div key={key} className="absolute" style={{
+                  left: b.pos.x * renderScale + o.dx,
+                  top: (b.pos.y - 10) * renderScale + o.dy,
                   width: b.pos.w * renderScale,
-                  fontSize: `${Math.max(9, 10 * renderScale)}px`,
-                  lineHeight: 1.1,
-                }}
-              />
-            ))}
+                }}>
+                  {calibrate && (
+                    <div onMouseDown={onOverlayMouseDown(key)}
+                      className="absolute -left-4 top-0 w-4 h-full bg-pink-500 cursor-move rounded-l" title="drag" />
+                  )}
+                  <input
+                    value={b.value}
+                    onChange={e => b.onChange(e.target.value)}
+                    placeholder={b.placeholder}
+                    disabled={calibrate}
+                    className={`w-full bg-yellow-100/70 border-b border-yellow-600 text-blue-900 outline-none focus:bg-yellow-200 px-1 ${calibrate ? "ring-2 ring-pink-500" : ""}`}
+                    style={{
+                      fontSize: `${Math.max(9, 10 * renderScale)}px`,
+                      lineHeight: 1.1,
+                    }}
+                  />
+                </div>
+              );
+            })}
           </>
         )}
         {!pdfReady && (
