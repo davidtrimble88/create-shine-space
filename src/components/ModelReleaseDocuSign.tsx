@@ -186,12 +186,16 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
     return (
       <WaiverSignedDialog
         open
-        onOpenChange={() => onComplete(result.recordId, result.decision)}
+        pdfPath={result.pdfPath}
+        downloadUrl={result.downloadUrl}
+        signerName={fullName}
+        onContinue={() => onComplete(result.recordId, result.decision)}
         title={result.decision === "sign" ? "Model Release Signed" : "Model Release Declined"}
         description={result.decision === "sign"
           ? "Your permission has been recorded. A copy is attached to your registration."
           : "Your declination has been recorded. Staff will not photograph you on class day."}
-        downloadUrl={result.downloadUrl}
+        continueLabel="Continue →"
+        downloadPrefix="Signed_CMSP_Model_Release"
       />
     );
   }
