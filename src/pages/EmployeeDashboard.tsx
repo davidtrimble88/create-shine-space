@@ -31,6 +31,8 @@ import SignedWaivers from "@/components/admin/SignedWaivers";
 
 import NotificationBell from "@/components/admin/NotificationBell";
 import MessagingCenter from "@/components/admin/MessagingCenter";
+import { supabase } from "@/integrations/supabase/client";
+
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
