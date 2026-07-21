@@ -44,6 +44,23 @@ const q9 = { yes: { x: 281, y: 639.9 } as CB, no: { x: 311, y: 639.9 } as CB };
 const q10 = { yes: { x: 214, y: 651.9 } as CB, no: { x: 244, y: 651.9 } as CB };
 const q11 = { yes: { x: 202, y: 663.9 } as CB, no: { x: 232, y: 663.9 } as CB };
 
+const DEFAULT_OFFSETS: Record<string, { dx: number; dy: number }> = {
+  af_first: { dx: -31, dy: -6 },
+  af_middle: { dx: -1, dy: -6 },
+  af_last: { dx: -1, dy: -6 },
+  af_street: { dx: -3, dy: -3 },
+  af_city: { dx: 1, dy: -5 },
+  af_state: { dx: 4, dy: -3 },
+  af_zip: { dx: 1, dy: -5 },
+  af_idNumber: { dx: -70, dy: -5 },
+  af_idState: { dx: -79, dy: -4 },
+  af_idExp: { dx: 7, dy: -4 },
+  blank_q3: { dx: -3, dy: 6 },
+  blank_q5: { dx: 10, dy: 2 },
+  blank_q6cc: { dx: 7, dy: 4 },
+  blank_q7other: { dx: 0, dy: 6 },
+};
+
 const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const fullName = [prefill.firstName, prefill.middleName, prefill.lastName].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -52,7 +69,10 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const [renderScale, setRenderScale] = useState(1);
   const calibrate = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("calibrate") === "1";
   const [offsets, setOffsets] = useState<Record<string, { dx: number; dy: number }>>(() => {
-    try { return JSON.parse(localStorage.getItem("regFormOffsets") || "{}"); } catch { return {}; }
+    try {
+      const saved = JSON.parse(localStorage.getItem("regFormOffsets") || "{}");
+      return { ...DEFAULT_OFFSETS, ...saved };
+    } catch { return { ...DEFAULT_OFFSETS }; }
   });
   const dragRef = useRef<{ key: string; startX: number; startY: number; baseDx: number; baseDy: number } | null>(null);
   const applyOffset = (key: string, x: number, y: number) => {
