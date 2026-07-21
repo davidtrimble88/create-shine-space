@@ -145,11 +145,8 @@ Deno.serve(async (req) => {
     const payment = sqData.payment;
     const paymentId = payment?.id;
 
-    // Insert the booking server-side (uses service role to bypass RLS safely)
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    // Reuse the admin client from above.
+    const supabase = supabaseAdmin;
 
     const bookingId = typeof booking.id === "string" ? booking.id : null;
 
