@@ -50,6 +50,30 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [pdfReady, setPdfReady] = useState(false);
   const [renderScale, setRenderScale] = useState(1);
+  const calibrate = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("calibrate") === "1";
+  const [offsets, setOffsets] = useState<Record<string, { dx: number; dy: number }>>(() => {
+    try { return JSON.parse(localStorage.getItem("regFormOffsets") || "{}"); } catch { return {}; }
+  });
+  const dragRef = useRef<{ key: string; startX: number; startY: number; baseDx: number; baseDy: number } | null>(null);
+  const applyOffset = (key: string, x: number, y: number) => {
+    const o = offsets[key] || { dx: 0, dy: 0 };
+    return { x: x + o.dx / renderScale, y: y + o.dy / renderScale };
+  };
+  const onOverlayMouseDown = (key: string) => (e: React.MouseEvent) => {
+    if (!calibrate) return;
+    e.preventDefault(); e.stopPropagation();
+    const o = offsets[key] || { dx: 0, dy: 0 };
+    dragRef.current = { key, startX: e.clientX, startY: e.clientY, baseDx: o.dx, baseDy: o.dy };
+    const move = (ev: MouseEvent) => {
+      const d = dragRef.current; if (!d) return;
+      const dx = d.baseDx + (ev.clientX - d.startX);
+      const dy = d.baseDy + (ev.clientY - d.startY);
+      setOffsets(prev => ({ ...prev, [d.key]: { dx, dy } }));
+    };
+    const up = () => { dragRef.current = null; window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+  };
+
 
   const [q1v, setQ1v] = useState<"yes" | "no" | "">("");
   const [q2v, setQ2v] = useState<"lt_500" | "500_2000" | "gt_2000" | "">("");
@@ -116,47 +140,56 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   }, [prefill.dateOfBirth]);
 
   // Autofilled text overlays (mirrors backend stamping)
-  const AF = [
-    { x: 420, y: 128, w: 120, text: dateStr },
-    { x: 90, y: 172, w: 140, text: prefill.firstName || "" },
-    { x: 240, y: 172, w: 140, text: prefill.middleName || "" },
-    { x: 400, y: 172, w: 170, text: prefill.lastName || "" },
-    { x: 90, y: 204, w: 180, text: prefill.addressStreet || "" },
-    { x: 280, y: 204, w: 100, text: prefill.addressCity || "" },
-    { x: 390, y: 204, w: 90, text: prefill.addressState || "" },
-    { x: 490, y: 204, w: 80, text: prefill.addressZip || "" },
-    { x: 107, y: 236, w: 100, text: formatDob() },
-    { x: 236, y: 236, w: 30, text: age },
-    { x: 434, y: 258, w: 140, text: prefill.phone || "" },
-    { x: 67, y: 280, w: 255, text: prefill.email || "" },
+  const AF: Array<{ k: string; x: number; y: number; w: number; text: string }> = [
+    { k: "date", x: 420, y: 128, w: 120, text: dateStr },
+    { k: "first", x: 90, y: 172, w: 140, text: prefill.firstName || "" },
+    { k: "middle", x: 240, y: 172, w: 140, text: prefill.middleName || "" },
+    { k: "last", x: 400, y: 172, w: 170, text: prefill.lastName || "" },
+    { k: "street", x: 90, y: 204, w: 180, text: prefill.addressStreet || "" },
+    { k: "city", x: 280, y: 204, w: 100, text: prefill.addressCity || "" },
+    { k: "state", x: 390, y: 204, w: 90, text: prefill.addressState || "" },
+    { k: "zip", x: 490, y: 204, w: 80, text: prefill.addressZip || "" },
+    { k: "dob", x: 107, y: 236, w: 100, text: formatDob() },
+    { k: "age", x: 236, y: 236, w: 30, text: age },
+    { k: "phone", x: 434, y: 258, w: 140, text: prefill.phone || "" },
+    { k: "email", x: 67, y: 280, w: 255, text: prefill.email || "" },
   ];
   // ID row stamping - row y based on id_type
   const idRowY: Record<string, number> = {
     drivers_license: 344, permit: 344, state_id: 364, foreign_license: 384, passport: 404, other: 404,
   };
   const idY = idRowY[prefill.idType] ?? 324;
-  const idAF = [
-    { x: 250, y: idY, w: 150, text: prefill.idNumber || "" },
-    { x: 410, y: idY, w: 60, text: prefill.idState || prefill.idCountry || "" },
-    { x: 495, y: idY, w: 70, text: prefill.idExpiration || "" },
+  const idAF: Array<{ k: string; x: number; y: number; w: number; text: string }> = [
+    { k: "idNumber", x: 250, y: idY, w: 150, text: prefill.idNumber || "" },
+    { k: "idState", x: 410, y: idY, w: 60, text: prefill.idState || prefill.idCountry || "" },
+    { k: "idExp", x: 495, y: idY, w: 70, text: prefill.idExpiration || "" },
   ];
 
-  const cbStyle = (c: CB): React.CSSProperties => ({
-    position: "absolute",
-    left: (c.x - 1) * renderScale,
-    top: (c.y - 5) * renderScale,
-    width: (CB_SIZE + 4) * renderScale,
-    height: (CB_SIZE + 4) * renderScale,
-  });
+  const cbStyle = (c: CB, key: string): React.CSSProperties => {
+    const o = offsets[key] || { dx: 0, dy: 0 };
+    return {
+      position: "absolute",
+      left: (c.x - 1) * renderScale + o.dx,
+      top: (c.y - 5) * renderScale + o.dy,
+      width: (CB_SIZE + 4) * renderScale,
+      height: (CB_SIZE + 4) * renderScale,
+      cursor: calibrate ? "move" : "pointer",
+    };
+  };
 
-  const Checkbox = ({ c, checked, onClick }: { c: CB; checked: boolean; onClick: () => void }) => (
-    <div style={cbStyle(c)} onClick={onClick}
-      className={`cursor-pointer flex items-center justify-center rounded ${
-        checked ? "bg-accent/80 text-white" : "bg-yellow-200/70 border border-yellow-600 border-dashed hover:bg-yellow-300"
-      }`}>
-      {checked ? <span className="text-xs font-black leading-none">✓</span> : null}
-    </div>
-  );
+  const Checkbox = ({ c, checked, onClick, k }: { c: CB; checked: boolean; onClick: () => void; k?: string }) => {
+    const key = k || `cb_${c.x}_${c.y}`;
+    return (
+      <div style={cbStyle(c, key)}
+        onMouseDown={onOverlayMouseDown(key)}
+        onClick={calibrate ? undefined : onClick}
+        className={`flex items-center justify-center rounded ${
+          checked ? "bg-accent/80 text-white" : "bg-yellow-200/70 border border-yellow-600 border-dashed hover:bg-yellow-300"
+        } ${calibrate ? "ring-2 ring-pink-500" : ""}`}>
+        {checked ? <span className="text-xs font-black leading-none">✓</span> : null}
+      </div>
+    );
+  };
 
   // Inline text inputs overlaid on the PDF blank lines (optional).
   // Coordinates use the same top-left origin as checkboxes (yTop from pdfplumber).
@@ -280,67 +313,102 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         </div>
       </div>
 
+      {calibrate && (
+        <div className="sticky top-16 z-30 bg-pink-100 border-2 border-pink-500 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3 text-sm">
+          <span className="font-bold text-pink-900">CALIBRATE MODE</span>
+          <span className="text-pink-800">Drag the pink-outlined fields into place, then click Copy Layout and paste it to me.</span>
+          <Button type="button" size="sm" variant="outline" onClick={() => {
+            localStorage.setItem("regFormOffsets", JSON.stringify(offsets));
+            navigator.clipboard.writeText(JSON.stringify(offsets, null, 2));
+            toast({ title: "Layout copied", description: "Offsets copied to clipboard and saved locally." });
+          }}>Copy Layout</Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => {
+            setOffsets({}); localStorage.removeItem("regFormOffsets");
+          }}>Reset</Button>
+          <span className="text-xs text-pink-700">Scale: {renderScale.toFixed(3)}</span>
+        </div>
+      )}
+
       <div ref={containerRef} className="relative rounded-lg border border-border bg-white overflow-hidden" style={{ maxWidth: 900, margin: "0 auto" }}>
         <canvas ref={canvasRef} />
         {pdfReady && (
           <>
-            {AF.concat(idAF).map((f, i) => f.text && (
-              <div key={"af" + i} className="absolute text-blue-800 bg-blue-50/70 border border-blue-200 rounded px-1 overflow-hidden"
-                style={{ left: f.x * renderScale, top: f.y * renderScale, width: f.w * renderScale, fontSize: `${Math.max(8, 9 * renderScale)}px`, lineHeight: 1.1 }}>
+            {AF.concat(idAF).map((f) => f.text && (
+              <div key={"af_" + f.k}
+                onMouseDown={onOverlayMouseDown("af_" + f.k)}
+                className={`absolute text-blue-800 bg-blue-50/70 border border-blue-200 rounded px-1 overflow-hidden ${calibrate ? "ring-2 ring-pink-500 cursor-move" : ""}`}
+                style={{
+                  left: f.x * renderScale + (offsets["af_" + f.k]?.dx || 0),
+                  top: f.y * renderScale + (offsets["af_" + f.k]?.dy || 0),
+                  width: f.w * renderScale,
+                  fontSize: `${Math.max(8, 9 * renderScale)}px`,
+                  lineHeight: 1.1,
+                }}>
                 {f.text}
               </div>
             ))}
             {/* Sex checkboxes at y=250.9 */}
-            <Checkbox c={{ x: 289, y: 250 }} checked={prefill.sex === "M"} onClick={() => { }} />
-            <Checkbox c={{ x: 322, y: 250 }} checked={prefill.sex === "F"} onClick={() => { }} />
+            <Checkbox k="sexM" c={{ x: 289, y: 250 }} checked={prefill.sex === "M"} onClick={() => { }} />
+            <Checkbox k="sexF" c={{ x: 322, y: 250 }} checked={prefill.sex === "F"} onClick={() => { }} />
             {/* ID type row checkbox at x=36 */}
-            <Checkbox c={{ x: 36, y: idY }} checked={true} onClick={() => { }} />
+            <Checkbox k="idRow" c={{ x: 36, y: idY }} checked={true} onClick={() => { }} />
             {/* Q1 */}
-            <Checkbox c={q1.yes} checked={q1v === "yes"} onClick={() => setQ1v("yes")} />
-            <Checkbox c={q1.no} checked={q1v === "no"} onClick={() => setQ1v("no")} />
+            <Checkbox k="q1y" c={q1.yes} checked={q1v === "yes"} onClick={() => setQ1v("yes")} />
+            <Checkbox k="q1n" c={q1.no} checked={q1v === "no"} onClick={() => setQ1v("no")} />
             {/* Q2 */}
-            <Checkbox c={q2.lt_500} checked={q2v === "lt_500"} onClick={() => setQ2v("lt_500")} />
-            <Checkbox c={q2["500_2000"]} checked={q2v === "500_2000"} onClick={() => setQ2v("500_2000")} />
-            <Checkbox c={q2.gt_2000} checked={q2v === "gt_2000"} onClick={() => setQ2v("gt_2000")} />
+            <Checkbox k="q2a" c={q2.lt_500} checked={q2v === "lt_500"} onClick={() => setQ2v("lt_500")} />
+            <Checkbox k="q2b" c={q2["500_2000"]} checked={q2v === "500_2000"} onClick={() => setQ2v("500_2000")} />
+            <Checkbox k="q2c" c={q2.gt_2000} checked={q2v === "gt_2000"} onClick={() => setQ2v("gt_2000")} />
             {/* Q4 */}
-            <Checkbox c={q4.yes} checked={q4v === "yes"} onClick={() => setQ4v("yes")} />
-            <Checkbox c={q4.no} checked={q4v === "no"} onClick={() => setQ4v("no")} />
+            <Checkbox k="q4y" c={q4.yes} checked={q4v === "yes"} onClick={() => setQ4v("yes")} />
+            <Checkbox k="q4n" c={q4.no} checked={q4v === "no"} onClick={() => setQ4v("no")} />
             {/* Q6 */}
-            <Checkbox c={q6.yes} checked={q6v === "yes"} onClick={() => setQ6v("yes")} />
-            <Checkbox c={q6.no} checked={q6v === "no"} onClick={() => setQ6v("no")} />
+            <Checkbox k="q6y" c={q6.yes} checked={q6v === "yes"} onClick={() => setQ6v("yes")} />
+            <Checkbox k="q6n" c={q6.no} checked={q6v === "no"} onClick={() => setQ6v("no")} />
             {/* Q7 */}
-            <Checkbox c={q7.commuting} checked={q7v === "commuting"} onClick={() => setQ7v("commuting")} />
-            <Checkbox c={q7.recreation} checked={q7v === "recreation"} onClick={() => setQ7v("recreation")} />
-            <Checkbox c={q7.other} checked={q7v === "other"} onClick={() => setQ7v("other")} />
+            <Checkbox k="q7c" c={q7.commuting} checked={q7v === "commuting"} onClick={() => setQ7v("commuting")} />
+            <Checkbox k="q7r" c={q7.recreation} checked={q7v === "recreation"} onClick={() => setQ7v("recreation")} />
+            <Checkbox k="q7o" c={q7.other} checked={q7v === "other"} onClick={() => setQ7v("other")} />
             {/* Q8 */}
-            <Checkbox c={q8.yes} checked={q8v === "yes"} onClick={() => setQ8v("yes")} />
-            <Checkbox c={q8.no} checked={q8v === "no"} onClick={() => setQ8v("no")} />
+            <Checkbox k="q8y" c={q8.yes} checked={q8v === "yes"} onClick={() => setQ8v("yes")} />
+            <Checkbox k="q8n" c={q8.no} checked={q8v === "no"} onClick={() => setQ8v("no")} />
             {/* Q9 */}
-            <Checkbox c={q9.yes} checked={q9v === "yes"} onClick={() => setQ9v("yes")} />
-            <Checkbox c={q9.no} checked={q9v === "no"} onClick={() => setQ9v("no")} />
+            <Checkbox k="q9y" c={q9.yes} checked={q9v === "yes"} onClick={() => setQ9v("yes")} />
+            <Checkbox k="q9n" c={q9.no} checked={q9v === "no"} onClick={() => setQ9v("no")} />
             {/* Q10 */}
-            <Checkbox c={q10.yes} checked={q10v === "yes"} onClick={() => setQ10v("yes")} />
-            <Checkbox c={q10.no} checked={q10v === "no"} onClick={() => setQ10v("no")} />
+            <Checkbox k="q10y" c={q10.yes} checked={q10v === "yes"} onClick={() => setQ10v("yes")} />
+            <Checkbox k="q10n" c={q10.no} checked={q10v === "no"} onClick={() => setQ10v("no")} />
             {/* Q11 */}
-            <Checkbox c={q11.yes} checked={q11v === "yes"} onClick={() => setQ11v("yes")} />
-            <Checkbox c={q11.no} checked={q11v === "no"} onClick={() => setQ11v("no")} />
+            <Checkbox k="q11y" c={q11.yes} checked={q11v === "yes"} onClick={() => setQ11v("yes")} />
+            <Checkbox k="q11n" c={q11.no} checked={q11v === "no"} onClick={() => setQ11v("no")} />
             {/* Inline typeable blanks (optional) */}
-            {inlineBlanks.map((b, i) => (
-              <input
-                key={"blank" + i}
-                value={b.value}
-                onChange={e => b.onChange(e.target.value)}
-                placeholder={b.placeholder}
-                className="absolute bg-yellow-100/70 border-b border-yellow-600 text-blue-900 outline-none focus:bg-yellow-200 px-1"
-                style={{
-                  left: b.pos.x * renderScale,
-                  top: (b.pos.y - 10) * renderScale,
+            {inlineBlanks.map((b, i) => {
+              const key = "blank_" + ["q3","q5","q6cc","q7other"][i];
+              const o = offsets[key] || { dx: 0, dy: 0 };
+              return (
+                <div key={key} className="absolute" style={{
+                  left: b.pos.x * renderScale + o.dx,
+                  top: (b.pos.y - 10) * renderScale + o.dy,
                   width: b.pos.w * renderScale,
-                  fontSize: `${Math.max(9, 10 * renderScale)}px`,
-                  lineHeight: 1.1,
-                }}
-              />
-            ))}
+                }}>
+                  {calibrate && (
+                    <div onMouseDown={onOverlayMouseDown(key)}
+                      className="absolute -left-4 top-0 w-4 h-full bg-pink-500 cursor-move rounded-l" title="drag" />
+                  )}
+                  <input
+                    value={b.value}
+                    onChange={e => b.onChange(e.target.value)}
+                    placeholder={b.placeholder}
+                    disabled={calibrate}
+                    className={`w-full bg-yellow-100/70 border-b border-yellow-600 text-blue-900 outline-none focus:bg-yellow-200 px-1 ${calibrate ? "ring-2 ring-pink-500" : ""}`}
+                    style={{
+                      fontSize: `${Math.max(9, 10 * renderScale)}px`,
+                      lineHeight: 1.1,
+                    }}
+                  />
+                </div>
+              );
+            })}
           </>
         )}
         {!pdfReady && (
