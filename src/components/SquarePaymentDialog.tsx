@@ -34,6 +34,8 @@ function loadSquareSdk(): Promise<any> {
 
 export type SquareRegion = "ventura" | "high_desert";
 
+export type PaymentDiscount = { source: "returning" | "code"; code?: string };
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -42,11 +44,12 @@ interface Props {
   amountCents: number;
   amountLabel: string; // e.g. "$425"
   bookingPayload: Record<string, unknown>;
+  discount?: PaymentDiscount;
   onSuccess: (paymentId: string) => void;
 }
 
 export const SquarePaymentDialog = ({
-  open, onOpenChange, onSkipPayment, region, amountCents, amountLabel, bookingPayload, onSuccess,
+  open, onOpenChange, onSkipPayment, region, amountCents, amountLabel, bookingPayload, discount, onSuccess,
 }: Props) => {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<any>(null);
