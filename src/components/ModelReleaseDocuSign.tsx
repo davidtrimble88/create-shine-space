@@ -337,6 +337,27 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
         </div>
       </div>
 
+      {calibrate && (
+        <div className="sticky top-16 z-30 bg-pink-100 border-2 border-pink-500 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3 text-sm">
+          <span className="font-bold text-pink-900">CALIBRATE MODE</span>
+          <span className="text-pink-800">Drag the pink-outlined fields/tags into place, then click Copy Layout and paste it to me.</span>
+          <Button type="button" size="sm" variant="outline" onClick={() => {
+            localStorage.setItem("modelReleaseOffsets", JSON.stringify(offsets));
+            const pdfOffsets: Record<string, { dx: number; dy: number }> = {};
+            for (const [k, v] of Object.entries(offsets)) {
+              pdfOffsets[k] = { dx: Math.round((v.dx / renderScale) * 10) / 10, dy: Math.round((v.dy / renderScale) * 10) / 10 };
+            }
+            const payload = { scale: renderScale, screenPixelOffsets: offsets, pdfPointOffsets: pdfOffsets };
+            navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+            toast({ title: "Layout copied", description: "Offsets + scale copied to clipboard and saved locally." });
+          }}>Copy Layout</Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => {
+            setOffsets({ ...DEFAULT_OFFSETS }); localStorage.removeItem("modelReleaseOffsets");
+          }}>Reset</Button>
+          <span className="text-xs text-pink-700">Scale: {renderScale.toFixed(3)}</span>
+        </div>
+      )}
+
       <div ref={containerRef} className="relative rounded-lg border border-border bg-white overflow-hidden" style={{ maxWidth: 900, margin: "0 auto" }}>
         <canvas ref={canvasRef} />
         {pdfReady && (
@@ -349,9 +370,17 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
               </div>
             )}
             {/* Auto-filled overlays */}
-            {AF.concat(GAF).map((f, i) => f.text && (
-              <div key={i} className="absolute text-[10px] text-blue-800 bg-blue-50/70 border border-blue-200 rounded px-1 overflow-hidden"
-                style={{ left: f.x * renderScale, top: f.y * renderScale, width: f.w * renderScale, fontSize: `${Math.max(9, 10 * renderScale)}px`, lineHeight: 1.2 }}
+            {AF.concat(GAF).map((f) => f.text && (
+              <div key={f.k}
+                onMouseDown={onOverlayMouseDown(f.k)}
+                className={`absolute text-[10px] text-blue-800 bg-blue-50/70 border border-blue-200 rounded px-1 overflow-hidden ${calibrate ? "ring-2 ring-pink-500 cursor-move" : ""}`}
+                style={{
+                  left: f.x * renderScale + (offsets[f.k]?.dx || 0),
+                  top: f.y * renderScale + (offsets[f.k]?.dy || 0),
+                  width: f.w * renderScale,
+                  fontSize: `${Math.max(9, 10 * renderScale)}px`,
+                  lineHeight: 1.2,
+                }}
                 title="Auto-filled from your registration">
                 {f.text}
               </div>
@@ -361,10 +390,11 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
               const sig = t.id === "student" ? studentSig : guardianSig;
               return (
                 <div key={t.id} id={`mr-tag-${t.id}`} style={tagStyle(t)}
-                  className={`cursor-pointer flex items-center justify-center rounded ${
+                  className={`flex items-center justify-center rounded ${
                     sig ? "bg-white border border-accent/60" : "bg-yellow-200/80 hover:bg-yellow-300 border-2 border-dashed border-yellow-600 animate-pulse"
-                  }`}
-                  onClick={() => setAdoptOpen(t.id)}>
+                  } ${calibrate ? "ring-2 ring-pink-500 cursor-move" : "cursor-pointer"}`}
+                  onMouseDown={onOverlayMouseDown(`tag_${t.id}`)}
+                  onClick={() => !calibrate && setAdoptOpen(t.id)}>
                   {sig ? (
                     <img src={sig} alt="signature" className="max-h-full max-w-full object-contain" />
                   ) : (
