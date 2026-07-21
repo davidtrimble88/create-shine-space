@@ -304,7 +304,7 @@ const AdminOverview = () => {
                 ))}
               </div>
             )}
-          </div>
+          </Link>
         </div>
       )}
 
