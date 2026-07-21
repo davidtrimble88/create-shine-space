@@ -107,13 +107,22 @@ type AnyData = z.infer<typeof BodySchema>;
 
 // Stamp a text value on the CMSP Model Release template's page 0 using yTop
 // (measured from top of a 792-tall page).
-function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 10, maxW?: number) {
+function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 10, maxW?: number, offset?: { dx: number; dy: number }) {
   if (!text) return;
   let t = text;
   if (maxW) {
     while (font.widthOfTextAtSize(t, size) > maxW && t.length > 1) t = t.slice(0, -1);
   }
-  page.drawText(t, { x, y: 792 - yTop + 2, size, font, color: rgb(0, 0, 0) });
+  const dx = offset?.dx || 0;
+  const dy = offset?.dy || 0;
+  page.drawText(t, { x: x + dx, y: 792 - yTop + 2 + dy, size, font, color: rgb(0, 0, 0) });
+}
+
+function getOffset(offsets: Record<string, { dx: number; dy: number }> | null | undefined, key: string, scale?: number | null): { dx: number; dy: number } {
+  if (!offsets || !offsets[key]) return { dx: 0, dy: 0 };
+  const o = offsets[key];
+  if (!scale) return o;
+  return { dx: o.dx / scale, dy: o.dy / scale };
 }
 
 async function stampReleaseTemplate(
