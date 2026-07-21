@@ -63,8 +63,8 @@ const SignSchema = BaseSchema.extend({
 
 const DeclineSchema = BaseSchema.extend({
   decision: z.literal("decline"),
-  decline_typed: z.string().min(1),
-  decline_drawn: z.string().min(50),
+  signature_typed: z.string().min(1),
+  signature_drawn: z.string().min(50),
   decline_acknowledgments: z.array(z.object({
     key: z.string(), label: z.string(), accepted: z.literal(true),
   })),
