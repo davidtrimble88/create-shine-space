@@ -114,6 +114,23 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Mark a one-time discount code as used (best-effort)
+    if (discountCodeId) {
+      try {
+        await supabase
+          .from("discount_codes")
+          .update({
+            used_at: new Date().toISOString(),
+            used_by_booking_id: booking.id,
+            used_by_email: booking.email,
+          })
+          .eq("id", discountCodeId)
+          .is("used_at", null);
+      } catch (e) {
+        console.warn("Failed to mark discount code used:", e);
+      }
+    }
+
     return new Response(JSON.stringify({ success: true, bookingId: inserted.id, existing: false }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
