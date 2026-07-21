@@ -31,6 +31,8 @@ import SignedWaivers from "@/components/admin/SignedWaivers";
 
 import NotificationBell from "@/components/admin/NotificationBell";
 import MessagingCenter from "@/components/admin/MessagingCenter";
+import { supabase } from "@/integrations/supabase/client";
+
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
@@ -106,6 +108,41 @@ const EmployeeDashboard = () => {
     return () => window.removeEventListener("openRoster", handler);
   }, []);
 
+  // Unread message threads count for sidebar badge
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const recompute = async () => {
+      const { data: parts } = await supabase
+        .from("message_thread_participants")
+        .select("thread_id, last_read_at")
+        .eq("user_id", user.id);
+      if (!parts || parts.length === 0) { if (!cancelled) setUnreadMessages(0); return; }
+      const ids = parts.map((p: any) => p.thread_id);
+      const { data: threads } = await supabase
+        .from("message_threads")
+        .select("id, last_message_at")
+        .in("id", ids);
+      const readMap = new Map(parts.map((p: any) => [p.thread_id, p.last_read_at]));
+      const count = (threads || []).reduce((acc: number, t: any) => {
+        const lr = readMap.get(t.id);
+        if (t.last_message_at && (!lr || new Date(t.last_message_at) > new Date(lr))) return acc + 1;
+        return acc;
+      }, 0);
+      if (!cancelled) setUnreadMessages(count);
+    };
+    recompute();
+    const channel = supabase
+      .channel("sidebar-unread-messages")
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, recompute)
+      .on("postgres_changes", { event: "*", schema: "public", table: "message_thread_participants", filter: `user_id=eq.${user.id}` }, recompute)
+      .on("postgres_changes", { event: "*", schema: "public", table: "message_threads" }, recompute)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [user, activeTab]);
+
+
   // If owner switches to a view that hides the active tab, send them back to overview
   useEffect(() => {
     const stillVisible = tabs.find(t => t.id === activeTab)?.roles.includes(effectiveRole as any);
@@ -173,7 +210,7 @@ const EmployeeDashboard = () => {
           <button
             key={tab.id}
             onClick={() => handleTabSelect(tab.id)}
-            className={`w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
+            className={`relative w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
               collapsed ? "justify-center px-2 py-3" : "px-4 py-3"
             } ${
               activeTab === tab.id
@@ -183,8 +220,18 @@ const EmployeeDashboard = () => {
             title={collapsed ? tab.label : undefined}
           >
             <tab.icon className="w-5 h-5 flex-shrink-0" />
-            {!collapsed && <span>{tab.label}</span>}
+            {!collapsed && <span className="flex-1 text-left">{tab.label}</span>}
+            {tab.id === "messages" && unreadMessages > 0 && (
+              collapsed ? (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent" />
+              ) : (
+                <span className="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold flex items-center justify-center">
+                  {unreadMessages > 99 ? "99+" : unreadMessages}
+                </span>
+              )
+            )}
           </button>
+
         ))}
       </nav>
 
