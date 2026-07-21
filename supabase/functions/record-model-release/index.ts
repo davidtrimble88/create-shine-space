@@ -50,6 +50,8 @@ const BaseSchema = z.object({
   document_text: z.string().min(50),
 });
 
+const OffsetSchema = z.record(z.string(), z.object({ dx: z.number(), dy: z.number() }));
+
 const SignSchema = BaseSchema.extend({
   decision: z.literal("sign"),
   signature_typed: z.string().min(1),
@@ -59,6 +61,8 @@ const SignSchema = BaseSchema.extend({
   consent_acknowledgments: z.array(z.object({
     key: z.string(), label: z.string(), accepted: z.literal(true),
   })),
+  render_scale: z.number().positive().optional().nullable(),
+  offsets: OffsetSchema.optional().nullable(),
 });
 
 const DeclineSchema = BaseSchema.extend({
@@ -68,6 +72,8 @@ const DeclineSchema = BaseSchema.extend({
   decline_acknowledgments: z.array(z.object({
     key: z.string(), label: z.string(), accepted: z.literal(true),
   })),
+  render_scale: z.number().positive().optional().nullable(),
+  offsets: OffsetSchema.optional().nullable(),
 });
 
 const BodySchema = z.discriminatedUnion("decision", [SignSchema, DeclineSchema]);
@@ -101,13 +107,22 @@ type AnyData = z.infer<typeof BodySchema>;
 
 // Stamp a text value on the CMSP Model Release template's page 0 using yTop
 // (measured from top of a 792-tall page).
-function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 10, maxW?: number) {
+function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 10, maxW?: number, offset?: { dx: number; dy: number }) {
   if (!text) return;
   let t = text;
   if (maxW) {
     while (font.widthOfTextAtSize(t, size) > maxW && t.length > 1) t = t.slice(0, -1);
   }
-  page.drawText(t, { x, y: 792 - yTop + 2, size, font, color: rgb(0, 0, 0) });
+  const dx = offset?.dx || 0;
+  const dy = offset?.dy || 0;
+  page.drawText(t, { x: x + dx, y: 792 - yTop + 2 + dy, size, font, color: rgb(0, 0, 0) });
+}
+
+function getOffset(offsets: Record<string, { dx: number; dy: number }> | null | undefined, key: string, scale?: number | null): { dx: number; dy: number } {
+  if (!offsets || !offsets[key]) return { dx: 0, dy: 0 };
+  const o = offsets[key];
+  if (!scale) return o;
+  return { dx: o.dx / scale, dy: o.dy / scale };
 }
 
 async function stampReleaseTemplate(
@@ -120,17 +135,19 @@ async function stampReleaseTemplate(
   const today = new Date(meta.signedAt);
   const dateStr = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
   const addr = data.address_street || "";
+  const scale = data.render_scale || null;
+  const offsets = data.offsets || {};
 
   // Student block
-  stampText(p0, font, fullName, 86, 414.6, 10, 220);
-  stampText(p0, font, data.date_of_birth || "", 446, 414.6, 10, 92);
-  stampText(p0, font, dateStr, 446, 449.4, 10, 92);
-  stampText(p0, font, addr, 86, 485.1, 10, 320);
-  stampText(p0, font, data.phone || "", 446, 487.1, 10, 152);
-  stampText(p0, font, data.address_city || "", 86, 522.6, 10, 145);
-  stampText(p0, font, data.address_state || "", 234, 522.6, 10, 100);
-  stampText(p0, font, data.address_zip || "", 342, 522.6, 10, 65);
-  stampText(p0, font, data.email, 446, 522.6, 10, 152);
+  stampText(p0, font, fullName, 86, 414.6, 10, 220, getOffset(offsets, "af_fullName", scale));
+  stampText(p0, font, data.date_of_birth || "", 446, 414.6, 10, 92, getOffset(offsets, "af_dob", scale));
+  stampText(p0, font, dateStr, 446, 449.4, 10, 92, getOffset(offsets, "af_date", scale));
+  stampText(p0, font, addr, 86, 485.1, 10, 320, getOffset(offsets, "af_address", scale));
+  stampText(p0, font, data.phone || "", 446, 487.1, 10, 152, getOffset(offsets, "af_phone", scale));
+  stampText(p0, font, data.address_city || "", 86, 522.6, 10, 145, getOffset(offsets, "af_city", scale));
+  stampText(p0, font, data.address_state || "", 234, 522.6, 10, 100, getOffset(offsets, "af_state", scale));
+  stampText(p0, font, data.address_zip || "", 342, 522.6, 10, 65, getOffset(offsets, "af_zip", scale));
+  stampText(p0, font, data.email, 446, 522.6, 10, 152, getOffset(offsets, "af_email", scale));
 
   const drawnSig = data.decision === "sign" ? data.signature_drawn : data.signature_drawn;
   if (drawnSig) {
@@ -139,18 +156,19 @@ async function stampReleaseTemplate(
       const img = parsed.mime === "png" ? await pdf.embedPng(parsed.bytes) : await pdf.embedJpg(parsed.bytes);
       const maxW = 220, maxH = 26;
       const s = Math.min(maxW / img.width, maxH / img.height);
-      p0.drawImage(img, { x: 86, y: 792 - 450.4, width: img.width * s, height: img.height * s });
+      const tagOff = getOffset(offsets, "tag_student", scale);
+      p0.drawImage(img, { x: 86 + tagOff.dx, y: 792 - 450.4 + tagOff.dy, width: img.width * s, height: img.height * s });
     }
   }
 
   if (data.is_minor) {
-    stampText(p0, font, dateStr, 449, 583.9, 10, 92);
-    stampText(p0, font, addr, 86, 620.4, 10, 320);
-    stampText(p0, font, data.guardian_phone || data.phone || "", 446, 618.4, 10, 152);
-    stampText(p0, font, data.address_city || "", 86, 656.7, 10, 145);
-    stampText(p0, font, data.address_state || "", 234, 656.7, 10, 100);
-    stampText(p0, font, data.address_zip || "", 342, 656.7, 10, 65);
-    stampText(p0, font, data.guardian_email || data.email, 446, 656.7, 10, 152);
+    stampText(p0, font, dateStr, 449, 583.9, 10, 92, getOffset(offsets, "gaf_date", scale));
+    stampText(p0, font, addr, 86, 620.4, 10, 320, getOffset(offsets, "gaf_address", scale));
+    stampText(p0, font, data.guardian_phone || data.phone || "", 446, 618.4, 10, 152, getOffset(offsets, "gaf_phone", scale));
+    stampText(p0, font, data.address_city || "", 86, 656.7, 10, 145, getOffset(offsets, "gaf_city", scale));
+    stampText(p0, font, data.address_state || "", 234, 656.7, 10, 100, getOffset(offsets, "gaf_state", scale));
+    stampText(p0, font, data.address_zip || "", 342, 656.7, 10, 65, getOffset(offsets, "gaf_zip", scale));
+    stampText(p0, font, data.guardian_email || data.email, 446, 656.7, 10, 152, getOffset(offsets, "gaf_email", scale));
     const gDrawn = data.decision === "sign" ? data.guardian_signature_drawn : null;
     if (gDrawn) {
       const parsed = dataUrlToBytes(gDrawn);
@@ -158,7 +176,8 @@ async function stampReleaseTemplate(
         const img = parsed.mime === "png" ? await pdf.embedPng(parsed.bytes) : await pdf.embedJpg(parsed.bytes);
         const maxW = 220, maxH = 26;
         const s = Math.min(maxW / img.width, maxH / img.height);
-        p0.drawImage(img, { x: 86, y: 792 - 583.9, width: img.width * s, height: img.height * s });
+        const tagOff = getOffset(offsets, "tag_guardian", scale);
+        p0.drawImage(img, { x: 86 + tagOff.dx, y: 792 - 583.9 + tagOff.dy, width: img.width * s, height: img.height * s });
       }
     }
   }

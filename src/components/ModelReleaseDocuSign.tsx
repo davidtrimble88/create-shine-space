@@ -22,6 +22,27 @@ type SigTag = { id: "student" | "guardian"; xPdf: number; yTopPdf: number; wPdf:
 const STUDENT_TAG: SigTag = { id: "student", xPdf: 84, yTopPdf: 432, wPdf: 223, hPdf: 20 };
 const GUARDIAN_TAG: SigTag = { id: "guardian", xPdf: 86, yTopPdf: 565, wPdf: 223, hPdf: 20 };
 
+const DEFAULT_OFFSETS: Record<string, { dx: number; dy: number }> = {
+  af_fullName: { dx: 0, dy: 0 },
+  af_dob: { dx: 0, dy: 0 },
+  af_date: { dx: 0, dy: 0 },
+  af_address: { dx: 0, dy: 0 },
+  af_phone: { dx: 0, dy: 0 },
+  af_city: { dx: 0, dy: 0 },
+  af_state: { dx: 0, dy: 0 },
+  af_zip: { dx: 0, dy: 0 },
+  af_email: { dx: 0, dy: 0 },
+  gaf_date: { dx: 0, dy: 0 },
+  gaf_address: { dx: 0, dy: 0 },
+  gaf_phone: { dx: 0, dy: 0 },
+  gaf_city: { dx: 0, dy: 0 },
+  gaf_state: { dx: 0, dy: 0 },
+  gaf_zip: { dx: 0, dy: 0 },
+  gaf_email: { dx: 0, dy: 0 },
+  tag_student: { dx: 0, dy: 0 },
+  tag_guardian: { dx: 0, dy: 0 },
+};
+
 interface Props {
   prefill: ModelReleasePrefill;
   onBack: () => void;
@@ -43,6 +64,29 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [renderScale, setRenderScale] = useState(1);
   const [pdfReady, setPdfReady] = useState(false);
+
+  const calibrate = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("calibrate") === "1";
+  const [offsets, setOffsets] = useState<Record<string, { dx: number; dy: number }>>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("modelReleaseOffsets") || "{}");
+      return { ...DEFAULT_OFFSETS, ...saved };
+    } catch { return { ...DEFAULT_OFFSETS }; }
+  });
+  const dragRef = useRef<{ key: string; startX: number; startY: number; baseDx: number; baseDy: number } | null>(null);
+  const onOverlayMouseDown = (key: string) => (e: React.MouseEvent) => {
+    if (!calibrate) return;
+    e.preventDefault(); e.stopPropagation();
+    const o = offsets[key] || { dx: 0, dy: 0 };
+    dragRef.current = { key, startX: e.clientX, startY: e.clientY, baseDx: o.dx, baseDy: o.dy };
+    const move = (ev: MouseEvent) => {
+      const d = dragRef.current; if (!d) return;
+      const dx = d.baseDx + (ev.clientX - d.startX);
+      const dy = d.baseDy + (ev.clientY - d.startY);
+      setOffsets(prev => ({ ...prev, [d.key]: { dx, dy } }));
+    };
+    const up = () => { dragRef.current = null; window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+  };
 
   const [studentSig, setStudentSig] = useState<string | null>(null);
   const [studentTyped, setStudentTyped] = useState("");
@@ -135,6 +179,8 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
           { key: "decline", label: "DECLINES permission to be photographed/videoed", accepted: true },
           { key: "esign", label: "Consent to sign electronically (ESIGN Act / UETA)", accepted: true },
         ] : null,
+        render_scale: renderScale,
+        offsets,
       };
       const { data, error } = await supabase.functions.invoke("record-model-release", { body });
       if (error) throw new Error(error.message);
@@ -152,34 +198,38 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
     }
   };
 
-  const tagStyle = (t: SigTag): React.CSSProperties => ({
-    position: "absolute",
-    left: t.xPdf * renderScale,
-    top: t.yTopPdf * renderScale,
-    width: t.wPdf * renderScale,
-    height: t.hPdf * renderScale,
-  });
+  const tagStyle = (t: SigTag): React.CSSProperties => {
+    const key = `tag_${t.id}`;
+    const o = offsets[key] || { dx: 0, dy: 0 };
+    return {
+      position: "absolute",
+      left: t.xPdf * renderScale + o.dx,
+      top: t.yTopPdf * renderScale + o.dy,
+      width: t.wPdf * renderScale,
+      height: t.hPdf * renderScale,
+    };
+  };
 
   // Autofilled overlay label positions (mirrors backend stamping)
-  const AF: { x: number; y: number; w: number; text: string }[] = [
-    { x: 86, y: 398, w: 220, text: fullName },
-    { x: 446, y: 398, w: 92, text: prefill.dateOfBirth || "" },
-    { x: 446, y: 434, w: 92, text: dateStr },
-    { x: 86, y: 469, w: 320, text: addressLine },
-    { x: 446, y: 469, w: 152, text: prefill.phone || "" },
-    { x: 86, y: 506, w: 145, text: prefill.addressCity || "" },
-    { x: 234, y: 506, w: 100, text: prefill.addressState || "" },
-    { x: 342, y: 506, w: 65, text: prefill.addressZip || "" },
-    { x: 446, y: 506, w: 152, text: prefill.email || "" },
+  const AF: { k: string; x: number; y: number; w: number; text: string }[] = [
+    { k: "af_fullName", x: 86, y: 398, w: 220, text: fullName },
+    { k: "af_dob", x: 446, y: 398, w: 92, text: prefill.dateOfBirth || "" },
+    { k: "af_date", x: 446, y: 434, w: 92, text: dateStr },
+    { k: "af_address", x: 86, y: 469, w: 320, text: addressLine },
+    { k: "af_phone", x: 446, y: 469, w: 152, text: prefill.phone || "" },
+    { k: "af_city", x: 86, y: 506, w: 145, text: prefill.addressCity || "" },
+    { k: "af_state", x: 234, y: 506, w: 100, text: prefill.addressState || "" },
+    { k: "af_zip", x: 342, y: 506, w: 65, text: prefill.addressZip || "" },
+    { k: "af_email", x: 446, y: 506, w: 152, text: prefill.email || "" },
   ];
-  const GAF: { x: number; y: number; w: number; text: string }[] = prefill.isMinor ? [
-    { x: 449, y: 568, w: 92, text: dateStr },
-    { x: 86, y: 604, w: 320, text: addressLine },
-    { x: 446, y: 604, w: 152, text: prefill.guardianPhone || prefill.phone || "" },
-    { x: 86, y: 640, w: 145, text: prefill.addressCity || "" },
-    { x: 234, y: 640, w: 100, text: prefill.addressState || "" },
-    { x: 342, y: 640, w: 65, text: prefill.addressZip || "" },
-    { x: 446, y: 640, w: 152, text: prefill.guardianEmail || prefill.email || "" },
+  const GAF: { k: string; x: number; y: number; w: number; text: string }[] = prefill.isMinor ? [
+    { k: "gaf_date", x: 449, y: 568, w: 92, text: dateStr },
+    { k: "gaf_address", x: 86, y: 604, w: 320, text: addressLine },
+    { k: "gaf_phone", x: 446, y: 604, w: 152, text: prefill.guardianPhone || prefill.phone || "" },
+    { k: "gaf_city", x: 86, y: 640, w: 145, text: prefill.addressCity || "" },
+    { k: "gaf_state", x: 234, y: 640, w: 100, text: prefill.addressState || "" },
+    { k: "gaf_zip", x: 342, y: 640, w: 65, text: prefill.addressZip || "" },
+    { k: "gaf_email", x: 446, y: 640, w: 152, text: prefill.guardianEmail || prefill.email || "" },
   ] : [];
 
   if (result) {
@@ -287,6 +337,27 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
         </div>
       </div>
 
+      {calibrate && (
+        <div className="sticky top-16 z-30 bg-pink-100 border-2 border-pink-500 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3 text-sm">
+          <span className="font-bold text-pink-900">CALIBRATE MODE</span>
+          <span className="text-pink-800">Drag the pink-outlined fields/tags into place, then click Copy Layout and paste it to me.</span>
+          <Button type="button" size="sm" variant="outline" onClick={() => {
+            localStorage.setItem("modelReleaseOffsets", JSON.stringify(offsets));
+            const pdfOffsets: Record<string, { dx: number; dy: number }> = {};
+            for (const [k, v] of Object.entries(offsets)) {
+              pdfOffsets[k] = { dx: Math.round((v.dx / renderScale) * 10) / 10, dy: Math.round((v.dy / renderScale) * 10) / 10 };
+            }
+            const payload = { scale: renderScale, screenPixelOffsets: offsets, pdfPointOffsets: pdfOffsets };
+            navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+            toast({ title: "Layout copied", description: "Offsets + scale copied to clipboard and saved locally." });
+          }}>Copy Layout</Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => {
+            setOffsets({ ...DEFAULT_OFFSETS }); localStorage.removeItem("modelReleaseOffsets");
+          }}>Reset</Button>
+          <span className="text-xs text-pink-700">Scale: {renderScale.toFixed(3)}</span>
+        </div>
+      )}
+
       <div ref={containerRef} className="relative rounded-lg border border-border bg-white overflow-hidden" style={{ maxWidth: 900, margin: "0 auto" }}>
         <canvas ref={canvasRef} />
         {pdfReady && (
@@ -299,9 +370,17 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
               </div>
             )}
             {/* Auto-filled overlays */}
-            {AF.concat(GAF).map((f, i) => f.text && (
-              <div key={i} className="absolute text-[10px] text-blue-800 bg-blue-50/70 border border-blue-200 rounded px-1 overflow-hidden"
-                style={{ left: f.x * renderScale, top: f.y * renderScale, width: f.w * renderScale, fontSize: `${Math.max(9, 10 * renderScale)}px`, lineHeight: 1.2 }}
+            {AF.concat(GAF).map((f) => f.text && (
+              <div key={f.k}
+                onMouseDown={onOverlayMouseDown(f.k)}
+                className={`absolute text-[10px] text-blue-800 bg-blue-50/70 border border-blue-200 rounded px-1 overflow-hidden ${calibrate ? "ring-2 ring-pink-500 cursor-move" : ""}`}
+                style={{
+                  left: f.x * renderScale + (offsets[f.k]?.dx || 0),
+                  top: f.y * renderScale + (offsets[f.k]?.dy || 0),
+                  width: f.w * renderScale,
+                  fontSize: `${Math.max(9, 10 * renderScale)}px`,
+                  lineHeight: 1.2,
+                }}
                 title="Auto-filled from your registration">
                 {f.text}
               </div>
@@ -311,10 +390,11 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
               const sig = t.id === "student" ? studentSig : guardianSig;
               return (
                 <div key={t.id} id={`mr-tag-${t.id}`} style={tagStyle(t)}
-                  className={`cursor-pointer flex items-center justify-center rounded ${
+                  className={`flex items-center justify-center rounded ${
                     sig ? "bg-white border border-accent/60" : "bg-yellow-200/80 hover:bg-yellow-300 border-2 border-dashed border-yellow-600 animate-pulse"
-                  }`}
-                  onClick={() => setAdoptOpen(t.id)}>
+                  } ${calibrate ? "ring-2 ring-pink-500 cursor-move" : "cursor-pointer"}`}
+                  onMouseDown={onOverlayMouseDown(`tag_${t.id}`)}
+                  onClick={() => !calibrate && setAdoptOpen(t.id)}>
                   {sig ? (
                     <img src={sig} alt="signature" className="max-h-full max-w-full object-contain" />
                   ) : (
