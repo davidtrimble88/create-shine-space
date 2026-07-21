@@ -1359,6 +1359,7 @@ const RegisterPage = () => {
           amountCents={paymentAmountCents}
           amountLabel={paymentAmountLabel}
           bookingPayload={pendingBooking}
+          discount={discountApplied ? { source: discountApplied.source, code: discountApplied.code } : undefined}
           onSuccess={handlePaymentSuccess}
         />
       )}
