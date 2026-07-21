@@ -242,12 +242,14 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
   ];
   const GAF: { k: string; x: number; y: number; w: number; text: string }[] = prefill.isMinor ? [
     { k: "gaf_date", x: 449, y: 568, w: 92, text: dateStr },
-    { k: "gaf_address", x: 86, y: 604, w: 320, text: gAddress },
-    { k: "gaf_phone", x: 446, y: 604, w: 152, text: gPhone },
-    { k: "gaf_city", x: 86, y: 640, w: 145, text: gCity },
-    { k: "gaf_state", x: 234, y: 640, w: 100, text: gState },
-    { k: "gaf_zip", x: 342, y: 640, w: 65, text: gZip },
-    { k: "gaf_email", x: 446, y: 640, w: 152, text: gEmail },
+  ] : [];
+  const GAF_INPUTS: { k: string; x: number; y: number; w: number; value: string; setter: (v: string) => void; placeholder: string; type?: string }[] = prefill.isMinor ? [
+    { k: "gaf_address", x: 86, y: 604, w: 320, value: gAddress, setter: setGAddress, placeholder: "Address *" },
+    { k: "gaf_phone", x: 446, y: 604, w: 152, value: gPhone, setter: setGPhone, placeholder: "Phone *" },
+    { k: "gaf_city", x: 86, y: 640, w: 145, value: gCity, setter: setGCity, placeholder: "City *" },
+    { k: "gaf_state", x: 234, y: 640, w: 100, value: gState, setter: setGState, placeholder: "State *" },
+    { k: "gaf_zip", x: 342, y: 640, w: 65, value: gZip, setter: setGZip, placeholder: "ZIP *" },
+    { k: "gaf_email", x: 446, y: 640, w: 152, value: gEmail, setter: setGEmail, placeholder: "Email *", type: "email" },
   ] : [];
 
 
@@ -370,15 +372,10 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
             <input value={gFirst} onChange={e => setGFirst(e.target.value)} placeholder="Guardian first name *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
             <input value={gLast} onChange={e => setGLast(e.target.value)} placeholder="Guardian last name *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
             <input value={gRelationship} onChange={e => setGRelationship(e.target.value)} placeholder="Relationship to student (e.g. Parent) *" className="px-3 py-2 rounded-md border border-border bg-background text-sm md:col-span-2" />
-            <input value={gAddress} onChange={e => setGAddress(e.target.value)} placeholder="Street address *" className="px-3 py-2 rounded-md border border-border bg-background text-sm md:col-span-2" />
-            <input value={gCity} onChange={e => setGCity(e.target.value)} placeholder="City *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
-            <div className="grid grid-cols-2 gap-3">
-              <input value={gState} onChange={e => setGState(e.target.value)} placeholder="State *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
-              <input value={gZip} onChange={e => setGZip(e.target.value)} placeholder="ZIP *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
-            </div>
-            <input value={gPhone} onChange={e => setGPhone(e.target.value)} placeholder="Phone *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
-            <input value={gEmail} onChange={e => setGEmail(e.target.value)} placeholder="Email *" type="email" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
           </div>
+          <p className="text-xs text-muted-foreground pt-1">
+            Fill in the guardian address, city, state, ZIP, phone, and email directly in the yellow boxes on the form below.
+          </p>
           {!guardianComplete && (
             <p className="text-xs text-destructive">All guardian fields are required before signing.</p>
           )}
@@ -433,6 +430,24 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
                 title="Auto-filled from your registration">
                 {f.text}
               </div>
+            ))}
+            {/* Guardian typeable inputs (minor only) */}
+            {GAF_INPUTS.map((f) => (
+              <input key={f.k}
+                type={f.type || "text"}
+                value={f.value}
+                onChange={(e) => f.setter(e.target.value)}
+                placeholder={f.placeholder}
+                onMouseDown={(e) => calibrate && onOverlayMouseDown(f.k)(e)}
+                className={`absolute text-[11px] text-black bg-yellow-100 border border-yellow-500 rounded px-1 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-500 ${calibrate ? "ring-2 ring-pink-500 cursor-move" : ""}`}
+                style={{
+                  left: f.x * renderScale + (offsets[f.k]?.dx || 0),
+                  top: f.y * renderScale + (offsets[f.k]?.dy || 0),
+                  width: f.w * renderScale,
+                  height: 18 * renderScale,
+                  fontSize: `${Math.max(10, 11 * renderScale)}px`,
+                }}
+              />
             ))}
             {/* Signature tags */}
             {requiredSigs.map(t => {
