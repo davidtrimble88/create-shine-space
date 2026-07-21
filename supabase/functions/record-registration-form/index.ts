@@ -145,16 +145,20 @@ function getOffset(fieldKey?: string) {
 }
 
 // Stamp text at yTop (from page top, 792-tall). Clips to maxW.
+// Frontend positions text with the TOP of the box at yTop, so backend must
+// shift the baseline down by the font ascent to match what the user sees.
 function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 9, maxW?: number, fieldKey?: string) {
   if (!text) return;
   let t = String(text);
   if (maxW) while (font.widthOfTextAtSize(t, size) > maxW && t.length > 1) t = t.slice(0, -1);
   const off = getOffset(fieldKey);
-  page.drawText(t, { x: x + off.dx, y: 792 - yTop + 2 - off.dy, size, font, color: rgb(0, 0, 0) });
+  // baseline = topOfText + ascent; ~7pt for size 9 Helvetica
+  page.drawText(t, { x: x + off.dx, y: 792 - yTop - 7 - off.dy, size, font, color: rgb(0, 0, 0) });
 }
 function stampX(page: any, font: any, xCenter: number, yTop: number, fieldKey?: string) {
   const off = getOffset(fieldKey);
-  page.drawText("X", { x: xCenter - 3 + off.dx, y: 792 - yTop - off.dy, size: 11, font, color: rgb(0, 0, 0) });
+  // Frontend checkbox visual center sits at (xCenter+5, yTop+1). Align X to that center.
+  page.drawText("X", { x: xCenter + 2 + off.dx, y: 792 - yTop - 3 - off.dy, size: 11, font, color: rgb(0, 0, 0) });
 }
 
 async function stampRegistrationTemplate(
