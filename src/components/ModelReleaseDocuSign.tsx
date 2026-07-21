@@ -198,34 +198,38 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
     }
   };
 
-  const tagStyle = (t: SigTag): React.CSSProperties => ({
-    position: "absolute",
-    left: t.xPdf * renderScale,
-    top: t.yTopPdf * renderScale,
-    width: t.wPdf * renderScale,
-    height: t.hPdf * renderScale,
-  });
+  const tagStyle = (t: SigTag): React.CSSProperties => {
+    const key = `tag_${t.id}`;
+    const o = offsets[key] || { dx: 0, dy: 0 };
+    return {
+      position: "absolute",
+      left: t.xPdf * renderScale + o.dx,
+      top: t.yTopPdf * renderScale + o.dy,
+      width: t.wPdf * renderScale,
+      height: t.hPdf * renderScale,
+    };
+  };
 
   // Autofilled overlay label positions (mirrors backend stamping)
-  const AF: { x: number; y: number; w: number; text: string }[] = [
-    { x: 86, y: 398, w: 220, text: fullName },
-    { x: 446, y: 398, w: 92, text: prefill.dateOfBirth || "" },
-    { x: 446, y: 434, w: 92, text: dateStr },
-    { x: 86, y: 469, w: 320, text: addressLine },
-    { x: 446, y: 469, w: 152, text: prefill.phone || "" },
-    { x: 86, y: 506, w: 145, text: prefill.addressCity || "" },
-    { x: 234, y: 506, w: 100, text: prefill.addressState || "" },
-    { x: 342, y: 506, w: 65, text: prefill.addressZip || "" },
-    { x: 446, y: 506, w: 152, text: prefill.email || "" },
+  const AF: { k: string; x: number; y: number; w: number; text: string }[] = [
+    { k: "af_fullName", x: 86, y: 398, w: 220, text: fullName },
+    { k: "af_dob", x: 446, y: 398, w: 92, text: prefill.dateOfBirth || "" },
+    { k: "af_date", x: 446, y: 434, w: 92, text: dateStr },
+    { k: "af_address", x: 86, y: 469, w: 320, text: addressLine },
+    { k: "af_phone", x: 446, y: 469, w: 152, text: prefill.phone || "" },
+    { k: "af_city", x: 86, y: 506, w: 145, text: prefill.addressCity || "" },
+    { k: "af_state", x: 234, y: 506, w: 100, text: prefill.addressState || "" },
+    { k: "af_zip", x: 342, y: 506, w: 65, text: prefill.addressZip || "" },
+    { k: "af_email", x: 446, y: 506, w: 152, text: prefill.email || "" },
   ];
-  const GAF: { x: number; y: number; w: number; text: string }[] = prefill.isMinor ? [
-    { x: 449, y: 568, w: 92, text: dateStr },
-    { x: 86, y: 604, w: 320, text: addressLine },
-    { x: 446, y: 604, w: 152, text: prefill.guardianPhone || prefill.phone || "" },
-    { x: 86, y: 640, w: 145, text: prefill.addressCity || "" },
-    { x: 234, y: 640, w: 100, text: prefill.addressState || "" },
-    { x: 342, y: 640, w: 65, text: prefill.addressZip || "" },
-    { x: 446, y: 640, w: 152, text: prefill.guardianEmail || prefill.email || "" },
+  const GAF: { k: string; x: number; y: number; w: number; text: string }[] = prefill.isMinor ? [
+    { k: "gaf_date", x: 449, y: 568, w: 92, text: dateStr },
+    { k: "gaf_address", x: 86, y: 604, w: 320, text: addressLine },
+    { k: "gaf_phone", x: 446, y: 604, w: 152, text: prefill.guardianPhone || prefill.phone || "" },
+    { k: "gaf_city", x: 86, y: 640, w: 145, text: prefill.addressCity || "" },
+    { k: "gaf_state", x: 234, y: 640, w: 100, text: prefill.addressState || "" },
+    { k: "gaf_zip", x: 342, y: 640, w: 65, text: prefill.addressZip || "" },
+    { k: "gaf_email", x: 446, y: 640, w: 152, text: prefill.guardianEmail || prefill.email || "" },
   ] : [];
 
   if (result) {
