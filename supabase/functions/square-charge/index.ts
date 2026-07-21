@@ -110,16 +110,59 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Server is authoritative: charge the schedule's price, not the client's value.
-    // A ±$1 tolerance mismatch on the client is logged for visibility.
-    if (Math.abs(clientAmountCents - expectedCents) > 100) {
+    // Server is authoritative: charge the schedule's price minus any verified discount.
+    let discountCents = 0;
+    let discountReason: string | null = null;
+    let discountCodeStr: string | null = null;
+    let discountCodeId: string | null = null;
+
+    if (discount && booking.course === "intermediate") {
+      const { data: settings } = await supabaseAdmin
+        .from("discount_settings")
+        .select("returning_student_amount_cents")
+        .eq("id", 1)
+        .maybeSingle();
+      const defaultAmount = settings?.returning_student_amount_cents ?? 7500;
+
+      if (discount.source === "code" && discount.code) {
+        const { data: dc } = await supabaseAdmin
+          .from("discount_codes")
+          .select("id, code, amount_cents, used_at, expires_at")
+          .ilike("code", discount.code)
+          .maybeSingle();
+        if (dc && !dc.used_at && (!dc.expires_at || new Date(dc.expires_at) >= new Date())) {
+          discountCents = dc.amount_cents ?? defaultAmount;
+          discountReason = "code";
+          discountCodeStr = dc.code;
+          discountCodeId = dc.id;
+        }
+      } else if (discount.source === "returning") {
+        // Verify a prior booking exists for this license number or email.
+        const lic = typeof booking.license_number === "string" ? booking.license_number : null;
+        const em = typeof booking.email === "string" ? booking.email : null;
+        let q = supabaseAdmin.from("bookings").select("id", { count: "exact", head: true }).neq("payment_status", "cancelled");
+        if (lic && em) q = q.or(`license_number.ilike.${lic},email.ilike.${em}`);
+        else if (lic) q = q.ilike("license_number", lic);
+        else if (em) q = q.ilike("email", em);
+        else q = q.eq("id", "00000000-0000-0000-0000-000000000000");
+        const { count } = await q;
+        if (count && count > 0) {
+          discountCents = defaultAmount;
+          discountReason = "returning_student";
+        }
+      }
+    }
+
+    const amountCents = Math.max(expectedCents - discountCents, 100);
+    if (Math.abs(clientAmountCents - amountCents) > 100) {
       console.warn("[square-charge] client amountCents mismatch", {
         scheduleId,
         clientAmountCents,
         expectedCents,
+        discountCents,
+        amountCents,
       });
     }
-    const amountCents = expectedCents;
 
     // Charge the card via Square Payments API (production)
     const idempotencyKey = crypto.randomUUID();
