@@ -381,7 +381,7 @@ async function drawAuditPage(
     ["Document SHA-256", meta.hash],
     ["Typed", decision === "SIGNED"
       ? (data as SignData).signature_typed
-      : (data as DeclineData).decline_typed],
+      : (data as DeclineData).signature_typed],
   ];
   for (const [k, v] of audit) {
     page.drawText(`${k}:`, { x: 50, y, size: 10, font: bold });
