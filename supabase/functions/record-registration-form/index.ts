@@ -234,6 +234,30 @@ async function stampRegistrationTemplate(
   if (data.q11_cmsp_contact_future === "yes") stampX(p0, font, 202, 663.9);
   if (data.q11_cmsp_contact_future === "no") stampX(p0, font, 232, 663.9);
 
+  // Q9 "How did you hear about this course?" — 12 multi-select checkboxes + Other blank
+  const HEAR_POS: Record<string, { x: number; y: number }> = {
+    hear_Friend:        { x: 48,  y: 597 },
+    hear_Tradeshow:     { x: 108, y: 597 },
+    hear_Catalog:       { x: 175, y: 597 },
+    hear_School:        { x: 240, y: 597 },
+    hear_Online_Search: { x: 305, y: 597 },
+    hear_DMV:           { x: 385, y: 597 },
+    hear_Dealer:        { x: 48,  y: 611 },
+    hear_Insurance:     { x: 108, y: 611 },
+    hear_Courts:        { x: 175, y: 611 },
+    hear_Magazine:      { x: 240, y: 611 },
+    hear_CMSP_website:  { x: 305, y: 611 },
+    hear_Brochure:      { x: 385, y: 611 },
+  };
+  for (const opt of data.q9_hear_about_sources || []) {
+    const key = "hear_" + String(opt).replace(/\s+/g, "_");
+    const pos = HEAR_POS[key];
+    if (pos) stampX(p0, font, pos.x, pos.y, key);
+  }
+  if (data.q9_hear_other) {
+    stampText(p0, font, data.q9_hear_other, 130, 625.5, 9, 220, "hearOther");
+  }
+
   // Signature image on template — place at the "Verified Government Issued Photo ID By"
   // spot is for staff; instead, stamp the signature at bottom margin near date/name area.
   const parsed = dataUrlToBytes(data.signature_drawn);
