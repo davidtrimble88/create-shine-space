@@ -71,6 +71,11 @@ export default function MessagingCenter() {
       .not("user_id", "is", null)
       .order("full_name");
     setEmployees((data as Employee[]) || []);
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("user_id, role")
+      .in("role", ["owner", "admin"]);
+    setStaffIds(new Set((roles || []).map((r: any) => r.user_id)));
   };
 
   useEffect(() => {
