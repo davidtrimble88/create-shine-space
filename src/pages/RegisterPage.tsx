@@ -521,7 +521,12 @@ const RegisterPage = () => {
         locationLabel: locationLabels[location] || location,
         scheduleId: scheduleId,
         scheduleDate: scheduleDate,
+        isMinor: isUnder18,
+        guardianFirstName: isUnder18 ? data.guardianFirstName : undefined,
+        guardianLastName: isUnder18 ? data.guardianLastName : undefined,
+        guardianRelationship: isUnder18 ? data.guardianRelationship : undefined,
       });
+
       setModelReleasePrefill({
         firstName: data.firstName,
         middleName: data.middleName,
