@@ -179,6 +179,8 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
           { key: "decline", label: "DECLINES permission to be photographed/videoed", accepted: true },
           { key: "esign", label: "Consent to sign electronically (ESIGN Act / UETA)", accepted: true },
         ] : null,
+        render_scale: renderScale,
+        offsets,
       };
       const { data, error } = await supabase.functions.invoke("record-model-release", { body });
       if (error) throw new Error(error.message);
