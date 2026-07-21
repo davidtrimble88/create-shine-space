@@ -95,12 +95,16 @@ const CertStatusSummary = ({ scope, userId }: Props) => {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {cards.map(({ key, label, value, Icon, cls }) => (
-          <div key={key} className="bg-card border border-border rounded-xl p-4">
+          <Link
+            key={key}
+            to="/employee-dashboard?tab=certifications"
+            className="block bg-card border border-border rounded-xl p-4 transition-all hover:border-accent hover:shadow-md hover:shadow-accent/10"
+          >
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Icon className={`w-4 h-4 ${cls}`} /> {label}
             </div>
             <div className="text-2xl font-bold mt-1 text-foreground">{loading ? "…" : value}</div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
