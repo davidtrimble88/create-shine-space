@@ -512,12 +512,18 @@ const RegisterPage = () => {
       };
 
       const scheduleCents = parsePriceCents(schedulePrice);
-      const feeLabel = scheduleCents != null
-        ? (schedulePrice as string)
-        : (isUnder21 ? "$395" : "$425");
-      const feeCents = scheduleCents != null
+      const baseFeeCents = scheduleCents != null
         ? scheduleCents
         : (isUnder21 ? 39500 : 42500);
+
+      // Apply discount only for the Intermediate Course.
+      const discountCents = (course === "intermediate" && discountApplied)
+        ? Math.min(discountApplied.amountCents, Math.max(baseFeeCents - 100, 0))
+        : 0;
+      const feeCents = Math.max(baseFeeCents - discountCents, 100);
+      const feeLabel = discountCents > 0
+        ? formatCents(feeCents)
+        : (scheduleCents != null ? (schedulePrice as string) : (isUnder21 ? "$395" : "$425"));
       const region: SquareRegion = location.startsWith("high-desert") ? "high_desert" : "ventura";
 
       const bookingPayload = {
@@ -550,6 +556,9 @@ const RegisterPage = () => {
         license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
         id_photo_path: data.idPhotoPath || null,
         guardian_id_photo_path: isUnder18 ? (data.guardianIdPhotoPath || null) : null,
+        discount_amount_cents: discountCents,
+        discount_reason: discountCents > 0 ? (discountApplied?.source === "code" ? "code" : "returning_student") : null,
+        discount_code: discountCents > 0 && discountApplied?.source === "code" ? (discountApplied.code || null) : null,
       };
 
       if (skipPaymentRef.current) {
