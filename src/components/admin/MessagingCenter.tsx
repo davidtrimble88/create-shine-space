@@ -335,11 +335,15 @@ function ComposeDialog({
   onOpenChange,
   employees,
   onCreated,
+  broadcastAllowed = true,
+  restrictedNotice = null,
 }: {
   open: boolean;
   onOpenChange: (b: boolean) => void;
   employees: Employee[];
   onCreated: (id: string) => void;
+  broadcastAllowed?: boolean;
+  restrictedNotice?: string | null;
 }) {
   const { user } = useAuth();
   const { toast } = useToast();
