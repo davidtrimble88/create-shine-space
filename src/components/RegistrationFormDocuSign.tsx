@@ -141,16 +141,16 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
     { x: 495, y: idY, w: 70, text: prefill.idExpiration || "" },
   ];
 
-  const cbStyle = (c: CB, checked: boolean, onClick: () => void, disabled = false): React.CSSProperties => ({
+  const cbStyle = (c: CB): React.CSSProperties => ({
     position: "absolute",
     left: (c.x - 1) * renderScale,
-    top: (c.y - 8) * renderScale,
+    top: (c.y - 5) * renderScale,
     width: (CB_SIZE + 4) * renderScale,
     height: (CB_SIZE + 4) * renderScale,
   });
 
   const Checkbox = ({ c, checked, onClick }: { c: CB; checked: boolean; onClick: () => void }) => (
-    <div style={cbStyle(c, checked, onClick)} onClick={onClick}
+    <div style={cbStyle(c)} onClick={onClick}
       className={`cursor-pointer flex items-center justify-center rounded ${
         checked ? "bg-accent/80 text-white" : "bg-yellow-200/70 border border-yellow-600 border-dashed hover:bg-yellow-300"
       }`}>
@@ -158,7 +158,17 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
     </div>
   );
 
-  const allAnswered = q1v && q2v && q3v && q4v && q5v && q6v && (q6v === "no" || q6cc) && q7v && (q7v !== "other" || q7other) && q8v && q9v && q10v && q11v;
+  // Inline text inputs overlaid on the PDF blank lines (optional).
+  // Coordinates use the same top-left origin as checkboxes (yTop from pdfplumber).
+  type BlankPos = { x: number; y: number; w: number };
+  const inlineBlanks: Array<{ pos: BlankPos; value: string; onChange: (v: string) => void; placeholder?: string }> = [
+    { pos: { x: 230, y: 491, w: 60 }, value: q3v, onChange: setQ3v, placeholder: "years" },       // Q3 __ years
+    { pos: { x: 350, y: 527, w: 90 }, value: q5v, onChange: setQ5v, placeholder: "miles" },        // Q5 __ miles
+    { pos: { x: 486, y: 539, w: 45 }, value: q6cc, onChange: setQ6cc, placeholder: "cc" },         // Q6 cc size
+    { pos: { x: 200, y: 575, w: 240 }, value: q7other, onChange: setQ7other, placeholder: "other" }, // Q7 other
+  ];
+
+  const allAnswered = q1v && q2v && q4v && q6v && q7v && (q7v !== "other" || q7other) && q8v && q9v && q10v && q11v;
   const canSubmit = allAnswered && sig;
 
   const submit = async () => {
