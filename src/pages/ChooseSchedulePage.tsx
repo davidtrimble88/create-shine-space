@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { CalendarDays, Clock, MapPin, Users, ArrowRight, Loader2 } from "lucide-react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ const ChooseSchedulePage = () => {
   const location = searchParams.get("location") || "ventura-county";
   const [classes, setClasses] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [otherLocations, setOtherLocations] = useState<{ location: string; label: string; count: number }[]>([]);
 
   const courseLabels: Record<string, string> = {
     basic: "Motorcycle Training Course",
@@ -42,8 +43,31 @@ const ChooseSchedulePage = () => {
         .gt("spots_available", 0)
         .is("cancelled_at", null)
         .order("date", { ascending: true });
-      setClasses(data ?? []);
+      const rows = data ?? [];
+      setClasses(rows);
       setLoading(false);
+
+      if (rows.length === 0) {
+        const { data: others } = await supabase
+          .from("schedules")
+          .select("location, location_label")
+          .eq("course", course)
+          .neq("location", location)
+          .gte("date", today)
+          .gt("spots_available", 0)
+          .is("cancelled_at", null);
+        const tally = new Map<string, { label: string; count: number }>();
+        for (const r of others ?? []) {
+          const existing = tally.get(r.location);
+          if (existing) existing.count += 1;
+          else tally.set(r.location, { label: r.location_label, count: 1 });
+        }
+        setOtherLocations(
+          Array.from(tally.entries()).map(([loc, v]) => ({ location: loc, label: v.label, count: v.count }))
+        );
+      } else {
+        setOtherLocations([]);
+      }
     };
     fetchClasses();
   }, [course, location]);
@@ -169,8 +193,36 @@ const ChooseSchedulePage = () => {
                 </div>
                 <h2 className="text-xl font-bold text-foreground mb-2">No Classes Scheduled</h2>
                 <p className="text-muted-foreground mb-6">
-                  There are currently no upcoming classes for this course and location. Contact us to learn about future availability.
+                  There are currently no upcoming classes for {courseLabels[course] || course} at {locationLabels[location] || location}.
                 </p>
+
+                {otherLocations.length > 0 && (
+                  <div className="mb-8 text-left">
+                    <p className="text-sm font-semibold text-foreground mb-3 text-center">
+                      Available at other locations:
+                    </p>
+                    <div className="space-y-2">
+                      {otherLocations.map((o) => (
+                        <Link
+                          key={o.location}
+                          to={`/choose-schedule?course=${course}&location=${o.location}`}
+                          className="flex items-center justify-between gap-3 p-4 rounded-xl border border-accent/30 bg-gradient-to-r from-accent/10 to-accent/5 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all group"
+                        >
+                          <span className="flex items-center gap-2 text-foreground font-medium">
+                            <MapPin className="w-4 h-4 text-accent" />
+                            {o.label}
+                          </span>
+                          <span className="flex items-center gap-2 text-sm text-accent font-medium">
+                            {o.count} class{o.count === 1 ? "" : "es"}
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-sm text-muted-foreground mb-3">Or contact us about future availability:</p>
                 <span className="flex flex-col sm:flex-row gap-2 justify-center">
                   <a href="tel:+18058270075" className="text-accent hover:underline font-medium">Ventura: (805) 827-0075</a>
                   <span className="hidden sm:inline text-muted-foreground">|</span>
