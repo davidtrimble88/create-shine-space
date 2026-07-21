@@ -317,7 +317,9 @@ export default function MessagingCenter() {
         <ComposeDialog
           open={composeOpen}
           onOpenChange={setComposeOpen}
-          employees={employees.filter((e) => e.user_id !== user?.id)}
+          employees={employees.filter((e) => e.user_id !== user?.id && (!staffOnly || staffIds.has(e.user_id)))}
+          broadcastAllowed={!staffOnly}
+          restrictedNotice={staffOnly ? "You can only start new messages to owners and admins. You can reply to any message sent to you." : null}
           onCreated={(id) => {
             setActiveId(id);
             loadThreads();
@@ -333,11 +335,15 @@ function ComposeDialog({
   onOpenChange,
   employees,
   onCreated,
+  broadcastAllowed = true,
+  restrictedNotice = null,
 }: {
   open: boolean;
   onOpenChange: (b: boolean) => void;
   employees: Employee[];
   onCreated: (id: string) => void;
+  broadcastAllowed?: boolean;
+  restrictedNotice?: string | null;
 }) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -409,16 +415,23 @@ function ComposeDialog({
           <DialogTitle>New Message</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
-          <div className="flex items-center gap-2 p-3 border border-border rounded-lg bg-secondary/40">
-            <Checkbox
-              id="broadcast"
-              checked={broadcast}
-              onCheckedChange={(v) => setBroadcast(!!v)}
-            />
-            <label htmlFor="broadcast" className="text-sm font-medium flex items-center gap-2 cursor-pointer">
-              <Users className="w-4 h-4" /> Send to all employees ({employees.length})
-            </label>
-          </div>
+          {restrictedNotice && (
+            <div className="text-xs text-muted-foreground p-2 rounded-md bg-secondary/40 border border-border">
+              {restrictedNotice}
+            </div>
+          )}
+          {broadcastAllowed && (
+            <div className="flex items-center gap-2 p-3 border border-border rounded-lg bg-secondary/40">
+              <Checkbox
+                id="broadcast"
+                checked={broadcast}
+                onCheckedChange={(v) => setBroadcast(!!v)}
+              />
+              <label htmlFor="broadcast" className="text-sm font-medium flex items-center gap-2 cursor-pointer">
+                <Users className="w-4 h-4" /> Send to all employees ({employees.length})
+              </label>
+            </div>
+          )}
 
           {!broadcast && (
             <div className="space-y-2">
