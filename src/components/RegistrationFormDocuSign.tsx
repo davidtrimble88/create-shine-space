@@ -50,6 +50,30 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [pdfReady, setPdfReady] = useState(false);
   const [renderScale, setRenderScale] = useState(1);
+  const calibrate = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("calibrate") === "1";
+  const [offsets, setOffsets] = useState<Record<string, { dx: number; dy: number }>>(() => {
+    try { return JSON.parse(localStorage.getItem("regFormOffsets") || "{}"); } catch { return {}; }
+  });
+  const dragRef = useRef<{ key: string; startX: number; startY: number; baseDx: number; baseDy: number } | null>(null);
+  const applyOffset = (key: string, x: number, y: number) => {
+    const o = offsets[key] || { dx: 0, dy: 0 };
+    return { x: x + o.dx / renderScale, y: y + o.dy / renderScale };
+  };
+  const onOverlayMouseDown = (key: string) => (e: React.MouseEvent) => {
+    if (!calibrate) return;
+    e.preventDefault(); e.stopPropagation();
+    const o = offsets[key] || { dx: 0, dy: 0 };
+    dragRef.current = { key, startX: e.clientX, startY: e.clientY, baseDx: o.dx, baseDy: o.dy };
+    const move = (ev: MouseEvent) => {
+      const d = dragRef.current; if (!d) return;
+      const dx = d.baseDx + (ev.clientX - d.startX);
+      const dy = d.baseDy + (ev.clientY - d.startY);
+      setOffsets(prev => ({ ...prev, [d.key]: { dx, dy } }));
+    };
+    const up = () => { dragRef.current = null; window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+  };
+
 
   const [q1v, setQ1v] = useState<"yes" | "no" | "">("");
   const [q2v, setQ2v] = useState<"lt_500" | "500_2000" | "gt_2000" | "">("");
