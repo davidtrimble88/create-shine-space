@@ -215,7 +215,7 @@ const AdminOverview = () => {
 
       {canSeeAnalytics && (
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-card border border-border rounded-xl p-6">
+          <Link to="/employee-dashboard?tab=bookings" className="block bg-card border border-border rounded-xl p-6 transition-all hover:border-accent hover:shadow-md hover:shadow-accent/10">
             <div className="flex items-center justify-between mb-4">
               <ClipboardList className="w-8 h-8 text-blue-400" />
               <span className="text-xs text-muted-foreground font-medium bg-blue-400/10 px-2 py-1 rounded-full">Today</span>
