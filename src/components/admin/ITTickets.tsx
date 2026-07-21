@@ -742,7 +742,7 @@ function TicketComments({ ticketId, isAdmin }: { ticketId: string; isAdmin: bool
       ticket_id: ticketId,
       user_id: user.id,
       author_name: (user.user_metadata?.full_name as string) ?? user.email ?? null,
-      author_role: isAdmin ? "staff" : "creator",
+      // author_role is set server-side by a trigger based on the caller's role
       body: body.trim(),
     });
     setSubmitting(false);
