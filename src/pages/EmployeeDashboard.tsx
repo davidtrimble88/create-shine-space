@@ -151,6 +151,22 @@ const EmployeeDashboard = () => {
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [user, activeTab]);
 
+  // Fetch the logged-in employee's name for the welcome header
+  const [employeeName, setEmployeeName] = useState("");
+  useEffect(() => {
+    if (!user) return;
+    const loadName = async () => {
+      const { data } = await supabase
+        .from("employees")
+        .select("full_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data?.full_name) {
+        setEmployeeName(data.full_name);
+      }
+    };
+    loadName();
+  }, [user]);
 
   // If owner switches to a view that hides the active tab, send them back to overview
   useEffect(() => {
@@ -378,8 +394,22 @@ const EmployeeDashboard = () => {
 
         <div className={isMobile ? "p-4" : "p-8"}>
           {!isMobile && (
-            <div className="flex justify-end mb-4">
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">
+                  Welcome, {employeeName || user?.email || "Rider"}
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">Here's what's happening today.</p>
+              </div>
               <NotificationBell onNavigate={(t) => setActiveTab(t as typeof activeTab)} />
+            </div>
+          )}
+          {isMobile && (
+            <div className="mb-5">
+              <h1 className="text-xl font-bold tracking-tight">
+                Welcome, {employeeName || user?.email || "Rider"}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">Here's what's happening today.</p>
             </div>
           )}
           {activeTab === "overview" && <AdminOverview />}
