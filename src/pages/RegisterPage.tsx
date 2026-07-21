@@ -1467,6 +1467,27 @@ const RegisterPage = () => {
           onSuccess={handlePaymentSuccess}
         />
       )}
+
+      <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel payment and lose your spot?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your spot in this class will <strong>not be reserved</strong> until payment is completed.
+              If you cancel now, no registration will be created and you'll need to start over to sign up.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleGoBackToPayment}>Go back to payment</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmCancelPayment}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, cancel registration
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
