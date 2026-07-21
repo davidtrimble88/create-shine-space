@@ -131,6 +131,10 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const [q9v, setQ9v] = useState<"yes" | "no" | "">("");
   const [q10v, setQ10v] = useState<"yes" | "no" | "">("");
   const [q11v, setQ11v] = useState<"yes" | "no" | "">("");
+  const [hearSel, setHearSel] = useState<Record<HearOpt, boolean>>(() =>
+    HEAR_OPTIONS.reduce((a, k) => ({ ...a, [k]: false }), {} as Record<HearOpt, boolean>));
+  const [hearOther, setHearOther] = useState("");
+  const toggleHear = (k: HearOpt) => setHearSel(prev => ({ ...prev, [k]: !prev[k] }));
 
   const [sig, setSig] = useState<string | null>(null);
   const [typed, setTyped] = useState("");
