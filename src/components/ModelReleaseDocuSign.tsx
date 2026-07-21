@@ -52,7 +52,18 @@ interface Props {
 const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
   const fullName = [prefill.firstName, prefill.middleName, prefill.lastName]
     .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
-  const guardianFullName = [prefill.guardianFirstName, prefill.guardianLastName].filter(Boolean).join(" ").trim();
+  // Guardian info is entered fresh on this step, NOT auto-filled from registration
+  const [gFirst, setGFirst] = useState(prefill.guardianFirstName || "");
+  const [gLast, setGLast] = useState(prefill.guardianLastName || "");
+  const [gRelationship, setGRelationship] = useState(prefill.guardianRelationship || "");
+  const [gAddress, setGAddress] = useState("");
+  const [gCity, setGCity] = useState("");
+  const [gState, setGState] = useState("");
+  const [gZip, setGZip] = useState("");
+  const [gPhone, setGPhone] = useState("");
+  const [gEmail, setGEmail] = useState("");
+  const guardianFullName = [gFirst, gLast].filter(Boolean).join(" ").trim();
+
 
   const [decision, setDecision] = useState<"sign" | "decline" | null>(null);
   const [bikeModel, setBikeModel] = useState("");
