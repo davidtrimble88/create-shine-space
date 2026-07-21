@@ -8,11 +8,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const DiscountSchema = z
+  .object({
+    source: z.enum(["returning", "code"]),
+    code: z.string().trim().min(1).max(50).optional(),
+  })
+  .optional();
+
 const BodySchema = z.object({
   sourceId: z.string().min(1),
   region: z.enum(["ventura", "high_desert"]),
   amountCents: z.number().int().positive().max(100000), // max $1000 sanity cap
   booking: z.record(z.any()),
+  discount: DiscountSchema,
 });
 
 function regionCreds(region: "ventura" | "high_desert") {
