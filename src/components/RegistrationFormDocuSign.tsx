@@ -112,8 +112,13 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const [sig, setSig] = useState<string | null>(null);
   const [typed, setTyped] = useState("");
   const [adoptOpen, setAdoptOpen] = useState(false);
+  const [guardianSig, setGuardianSig] = useState<string | null>(null);
+  const [guardianTyped, setGuardianTyped] = useState("");
+  const [guardianAdoptOpen, setGuardianAdoptOpen] = useState(false);
+  const guardianFullName = [prefill.guardianFirstName, prefill.guardianLastName].filter(Boolean).join(" ").trim();
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ recordId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -222,7 +227,8 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   ];
 
   const allAnswered = q1v && q2v && q4v && q6v && q7v && (q7v !== "other" || q7other) && q8v && q9v && q10v && q11v;
-  const canSubmit = allAnswered && sig;
+  const canSubmit = allAnswered && sig && (!prefill.isMinor || guardianSig);
+
 
   const submit = async () => {
     if (!canSubmit) return;
@@ -262,11 +268,18 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         q11_cmsp_contact_future: q11v,
         signature_typed: typed || fullName,
         signature_drawn: sig,
+        guardian_name: prefill.isMinor ? guardianFullName : null,
+        guardian_relationship: prefill.isMinor ? (prefill.guardianRelationship || null) : null,
+        guardian_signature_typed: prefill.isMinor ? (guardianTyped || guardianFullName) : null,
+        guardian_signature_drawn: prefill.isMinor ? guardianSig : null,
+        is_minor: !!prefill.isMinor,
         consent_acknowledgments: [
           { key: "truthful", label: "Answers are true and complete", accepted: true },
           { key: "id_match", label: "ID at check-in will match name on this form", accepted: true },
           { key: "esign", label: "Consent to sign electronically (ESIGN Act / UETA)", accepted: true },
+          ...(prefill.isMinor ? [{ key: "guardian", label: `Parent/guardian (${prefill.guardianRelationship || "guardian"}) signed on behalf of the minor`, accepted: true as const }] : []),
         ],
+
         course: prefill.course || null,
         location: prefill.location || null,
         location_label: prefill.locationLabel || null,
@@ -453,6 +466,37 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         </div>
       )}
 
+      {prefill.isMinor && (
+        <div className="bg-card border-2 border-accent/40 rounded-2xl p-4 md:p-6 space-y-3">
+          <div className="flex items-center gap-2">
+            <FileSignature className="w-5 h-5 text-accent" />
+            <h3 className="font-bold text-foreground">Parent / Legal Guardian Signature</h3>
+            <span className="text-xs font-semibold uppercase tracking-wide bg-accent/15 text-accent px-2 py-0.5 rounded">Required — Minor</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Because the student is under 18, a parent or legal guardian must also sign this Registration Form on the minor's behalf.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div><span className="text-muted-foreground">Guardian name: </span><span className="font-medium">{guardianFullName || "—"}</span></div>
+            <div><span className="text-muted-foreground">Relationship: </span><span className="font-medium">{prefill.guardianRelationship || "—"}</span></div>
+          </div>
+          {guardianSig ? (
+            <div className="bg-accent/5 border border-accent/40 rounded-xl p-4 flex items-center gap-3">
+              <img src={guardianSig} alt="guardian signature" className="h-12 bg-white border border-border rounded" />
+              <div className="text-sm flex-1">
+                <div className="font-semibold text-foreground">Guardian signature ({guardianTyped || guardianFullName})</div>
+                <div className="text-muted-foreground">Signed on {dateStr}</div>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={() => setGuardianAdoptOpen(true)}>Re-sign</Button>
+            </div>
+          ) : (
+            <Button type="button" variant="hero" size="sm" onClick={() => setGuardianAdoptOpen(true)}>
+              Adopt Guardian Signature
+            </Button>
+          )}
+        </div>
+      )}
+
       <Dialog open={adoptOpen} onOpenChange={setAdoptOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>Adopt your signature</DialogTitle></DialogHeader>
@@ -464,6 +508,19 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           />
         </DialogContent>
       </Dialog>
+
+      <Dialog open={guardianAdoptOpen} onOpenChange={setGuardianAdoptOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Adopt guardian signature</DialogTitle></DialogHeader>
+          <SharedDocuSignPad
+            mode="signature" defaultTyped={guardianFullName}
+            prompt="This signature will be applied on behalf of the minor. Legally binding under ESIGN / UETA."
+            onCancel={() => setGuardianAdoptOpen(false)}
+            onSave={(url, t) => { setGuardianSig(url); setGuardianTyped(t); setGuardianAdoptOpen(false); }}
+          />
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
