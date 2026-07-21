@@ -206,7 +206,10 @@ const AdminEmployees = () => {
       }
 
       const emp = employees.find(e => e.id === editingId);
-      if (emp?.user_id) {
+      const originalRole = emp?.role ?? "employee";
+      const roleChanged = form.role !== originalRole;
+      const canAssignNewRole = assignableRoles.some(r => r.value === form.role);
+      if (emp?.user_id && canManageRoles && roleChanged && canAssignNewRole) {
         await supabase.from("user_roles").delete().eq("user_id", emp.user_id);
         await supabase.from("user_roles").insert({ user_id: emp.user_id, role: form.role as any });
       }
