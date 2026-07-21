@@ -155,10 +155,10 @@ const AdminOverview = () => {
   }, [canSeeEarnings, fetchEarnings]);
 
   const stats = [
-    { label: "Total Classes", value: scheduleCount, icon: BookOpen, color: "text-accent" },
-    { label: "Upcoming Classes", value: upcomingClasses, icon: CalendarDays, color: "text-green-400" },
-    { label: "Employees", value: employeeCount, icon: Users, color: "text-blue-400" },
-  ];
+    { label: "Total Classes", value: scheduleCount, icon: BookOpen, color: "text-accent", to: "/employee-dashboard?tab=full-schedule" },
+    { label: "Upcoming Classes", value: upcomingClasses, icon: CalendarDays, color: "text-green-400", to: "/employee-dashboard?tab=my-schedule" },
+    { label: "Employees", value: employeeCount, icon: Users, color: "text-blue-400", to: canSeeAnalytics ? "/employee-dashboard?tab=employees" : null },
+  ] as const;
 
   const allLocations = Array.from(new Set([...Object.keys(todayByLocation), ...Object.keys(yesterdayByLocation)])).sort();
 
@@ -184,16 +184,25 @@ const AdminOverview = () => {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-card border border-border rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <stat.icon className={`w-8 h-8 ${stat.color}`} />
-            </div>
-            <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-            <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-          </div>
-        ))}
+        {stats.map((stat) => {
+          const inner = (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <stat.icon className={`w-8 h-8 ${stat.color}`} />
+              </div>
+              <p className="text-3xl font-bold text-foreground">{stat.value}</p>
+              <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+            </>
+          );
+          const cls = "block bg-card border border-border rounded-xl p-6 transition-all hover:border-accent hover:shadow-md hover:shadow-accent/10";
+          return stat.to ? (
+            <Link key={stat.label} to={stat.to} className={cls}>{inner}</Link>
+          ) : (
+            <div key={stat.label} className={cls.replace("block ", "")}>{inner}</div>
+          );
+        })}
       </div>
+
 
       {user && (
         <CertStatusSummary
@@ -206,7 +215,7 @@ const AdminOverview = () => {
 
       {canSeeAnalytics && (
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-card border border-border rounded-xl p-6">
+          <Link to="/employee-dashboard?tab=bookings" className="block bg-card border border-border rounded-xl p-6 transition-all hover:border-accent hover:shadow-md hover:shadow-accent/10">
             <div className="flex items-center justify-between mb-4">
               <ClipboardList className="w-8 h-8 text-blue-400" />
               <span className="text-xs text-muted-foreground font-medium bg-blue-400/10 px-2 py-1 rounded-full">Today</span>
@@ -225,8 +234,8 @@ const AdminOverview = () => {
                 ))}
               </div>
             )}
-          </div>
-          <div className="bg-card border border-border rounded-xl p-6">
+          </Link>
+          <Link to="/employee-dashboard?tab=bookings" className="block bg-card border border-border rounded-xl p-6 transition-all hover:border-accent hover:shadow-md hover:shadow-accent/10">
             <div className="flex items-center justify-between mb-4">
               <ClipboardList className="w-8 h-8 text-accent" />
               <span className="text-xs text-muted-foreground font-medium bg-accent/10 px-2 py-1 rounded-full">Yesterday</span>
@@ -245,7 +254,7 @@ const AdminOverview = () => {
                 ))}
               </div>
             )}
-          </div>
+          </Link>
         </div>
       )}
 
@@ -253,7 +262,7 @@ const AdminOverview = () => {
       {canSeeEarnings && (
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Today */}
-          <div className="bg-card border border-border rounded-xl p-6">
+          <Link to="/employee-dashboard?tab=earnings" className="block bg-card border border-border rounded-xl p-6 transition-all hover:border-accent hover:shadow-md hover:shadow-accent/10">
             <div className="flex items-center justify-between mb-4">
               <DollarSign className="w-8 h-8 text-green-400" />
               <span className="text-xs text-muted-foreground font-medium bg-green-400/10 px-2 py-1 rounded-full">Today</span>
@@ -273,9 +282,9 @@ const AdminOverview = () => {
                 ))}
               </div>
             )}
-          </div>
+          </Link>
           {/* Yesterday */}
-          <div className="bg-card border border-border rounded-xl p-6">
+          <Link to="/employee-dashboard?tab=earnings" className="block bg-card border border-border rounded-xl p-6 transition-all hover:border-accent hover:shadow-md hover:shadow-accent/10">
             <div className="flex items-center justify-between mb-4">
               <DollarSign className="w-8 h-8 text-accent" />
               <span className="text-xs text-muted-foreground font-medium bg-accent/10 px-2 py-1 rounded-full">Yesterday</span>
@@ -295,7 +304,7 @@ const AdminOverview = () => {
                 ))}
               </div>
             )}
-          </div>
+          </Link>
         </div>
       )}
 
