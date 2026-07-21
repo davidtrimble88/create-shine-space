@@ -524,8 +524,11 @@ const RegisterPage = () => {
         ? scheduleCents
         : (isUnder21 ? 39500 : 42500);
 
-      // Apply discount only for the Intermediate Course.
-      const discountCents = (isDiscountEligibleCourse && discountApplied)
+      // Apply discount codes for any course; returning-student discount only for Intermediate/Advanced.
+      const canApplyDiscount =
+        discountApplied &&
+        (discountApplied.source === "code" || isDiscountEligibleCourse);
+      const discountCents = canApplyDiscount
         ? Math.min(discountApplied.amountCents, Math.max(baseFeeCents - 100, 0))
         : 0;
       const feeCents = Math.max(baseFeeCents - discountCents, 100);
@@ -1166,75 +1169,77 @@ const RegisterPage = () => {
                     )}
                   </div>
 
-                  {isDiscountEligibleCourse && (
-                    <div className="rounded-lg border border-accent/40 bg-accent/5 p-4 mb-6 space-y-4">
-                      <div>
-                        <h3 className="text-sm font-bold text-accent">Returning-Student Discount</h3>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Prior students of Learn to Ride VC receive {formatCents(defaultDiscountCents)} off the {course === "advanced" ? "Advanced Riding Clinic" : "Intermediate Course"}.
-                        </p>
-                      </div>
+                  <div className="rounded-lg border border-accent/40 bg-accent/5 p-4 mb-6 space-y-4">
+                    {isDiscountEligibleCourse && (
+                      <>
+                        <div>
+                          <h3 className="text-sm font-bold text-accent">Returning-Student Discount</h3>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Prior students of Learn to Ride VC receive {formatCents(defaultDiscountCents)} off the {course === "advanced" ? "Advanced Riding Clinic" : "Intermediate Course"}.
+                          </p>
+                        </div>
 
-                      <label className="flex items-start gap-3 text-sm">
-                        <Checkbox
-                          checked={returningStudent}
-                          disabled={discountBusy !== null}
-                          onCheckedChange={(v) => {
-                            const checked = !!v;
-                            setReturningStudent(checked);
-                            if (checked) {
-                              validateReturningDiscount();
-                            }
-                          }}
-                        />
-                        <span className="leading-snug">
-                          I've taken a class with Learn to Ride VC before — look up my ID number and apply my returning-student discount.
-                          {discountBusy === "returning" && (
-                            <span className="block text-xs text-muted-foreground mt-1">Checking your ID number…</span>
-                          )}
-                        </span>
-                      </label>
-
-                      <div className="pt-3 border-t border-border/60">
-                        <p className="text-xs font-medium text-foreground mb-2">Have a discount code?</p>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Input
-                            placeholder="Enter code"
-                            value={discountCodeInput}
-                            onChange={(e) => setDiscountCodeInput(e.target.value)}
-                            className="max-w-xs"
+                        <label className="flex items-start gap-3 text-sm">
+                          <Checkbox
+                            checked={returningStudent}
+                            disabled={discountBusy !== null}
+                            onCheckedChange={(v) => {
+                              const checked = !!v;
+                              setReturningStudent(checked);
+                              if (checked) {
+                                validateReturningDiscount();
+                              }
+                            }}
                           />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={validateDiscountCode}
-                            disabled={discountBusy !== null || !discountCodeInput.trim()}
-                          >
-                            {discountBusy === "code" ? "Checking..." : "Apply code"}
-                          </Button>
-                        </div>
-                      </div>
-
-                      {discountApplied && (
-                        <div className="rounded-md bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-500 flex items-center justify-between gap-3">
-                          <span>
-                            ✓ {formatCents(discountApplied.amountCents)} discount applied
-                            {discountApplied.source === "code" && discountApplied.code ? ` (code: ${discountApplied.code})` : " (returning student)"}
+                          <span className="leading-snug">
+                            I've taken a class with Learn to Ride VC before — look up my ID number and apply my returning-student discount.
+                            {discountBusy === "returning" && (
+                              <span className="block text-xs text-muted-foreground mt-1">Checking your ID number…</span>
+                            )}
                           </span>
-                          <Button type="button" variant="ghost" size="sm" onClick={clearDiscount} className="h-7 text-xs">
-                            Remove
-                          </Button>
-                        </div>
-                      )}
+                        </label>
+                      </>
+                    )}
 
-                      {discountNotice && !discountApplied && (
-                        <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-xs text-destructive">
-                          {discountNotice}
-                        </div>
-                      )}
+                    <div className={isDiscountEligibleCourse ? "pt-3 border-t border-border/60" : ""}>
+                      <p className="text-xs font-medium text-foreground mb-2">Have a discount code?</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Input
+                          placeholder="Enter code"
+                          value={discountCodeInput}
+                          onChange={(e) => setDiscountCodeInput(e.target.value)}
+                          className="max-w-xs"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={validateDiscountCode}
+                          disabled={discountBusy !== null || !discountCodeInput.trim()}
+                        >
+                          {discountBusy === "code" ? "Checking..." : "Apply code"}
+                        </Button>
+                      </div>
                     </div>
-                  )}
+
+                    {discountApplied && (
+                      <div className="rounded-md bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-500 flex items-center justify-between gap-3">
+                        <span>
+                          ✓ {formatCents(discountApplied.amountCents)} discount applied
+                          {discountApplied.source === "code" && discountApplied.code ? ` (code: ${discountApplied.code})` : " (returning student)"}
+                        </span>
+                        <Button type="button" variant="ghost" size="sm" onClick={clearDiscount} className="h-7 text-xs">
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+
+                    {discountNotice && !discountApplied && (
+                      <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-xs text-destructive">
+                        {discountNotice}
+                      </div>
+                    )}
+                  </div>
 
 
                   <FormField
