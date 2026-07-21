@@ -2087,6 +2087,7 @@ const ClassRosters = () => {
                     <th>Last</th>
                     <th>Phone No.</th>
                     <th>DL #</th>
+                    <th className="id-verify-col">ID Verification</th>
                     <th>Birthdate</th>
                     <th>Retake Knowledge?</th>
                     <th>Retake Skills?</th>
