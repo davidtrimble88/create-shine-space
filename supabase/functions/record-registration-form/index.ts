@@ -192,20 +192,20 @@ async function stampRegistrationTemplate(
   if (data.q2_experience_bucket === "500_2000") stampX(p0, font, 144, 479.7);
   if (data.q2_experience_bucket === "gt_2000") stampX(p0, font, 252, 479.7);
   // Q3
-  stampText(p0, font, data.q3_years_riding || "", 180, 491.7, 9, 35);
+  stampText(p0, font, data.q3_years_riding || "", 180, 491.7, 9, 35, "q3");
   // Q4
   if (data.q4_off_road === "yes") stampX(p0, font, 152, 503.7);
   if (data.q4_off_road === "no") stampX(p0, font, 182, 503.7);
   // Q5
-  stampText(p0, font, data.q5_miles_past_year || "", 290, 527.7, 9, 68);
+  stampText(p0, font, data.q5_miles_past_year || "", 290, 527.7, 9, 68, "q5");
   // Q6
   if (data.q6_owns_motorcycle === "yes") stampX(p0, font, 244, 539.7);
   if (data.q6_owns_motorcycle === "no") stampX(p0, font, 284, 539.7);
-  stampText(p0, font, data.q6_engine_cc || "", 380, 539.7, 9, 50);
+  stampText(p0, font, data.q6_engine_cc || "", 380, 539.7, 9, 50, "q6cc");
   // Q7
   if (data.q7_primary_reason === "commuting") stampX(p0, font, 36, 563.7);
   if (data.q7_primary_reason === "recreation") stampX(p0, font, 97, 563.7);
-  if (data.q7_primary_reason === "other") { stampX(p0, font, 156, 563.7); stampText(p0, font, data.q7_other || "", 195, 563.7, 9, 145); }
+  if (data.q7_primary_reason === "other") { stampX(p0, font, 156, 563.7); stampText(p0, font, data.q7_other || "", 195, 563.7, 9, 145, "q7other"); }
   // Q8
   if (data.q8_prior_accident === "yes") stampX(p0, font, 366, 575.7);
   if (data.q8_prior_accident === "no") stampX(p0, font, 396, 575.7);
