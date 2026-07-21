@@ -177,16 +177,19 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
     };
   };
 
-  const Checkbox = ({ c, checked, onClick, k }: { c: CB; checked: boolean; onClick: () => void; k: string }) => (
-    <div style={cbStyle(c, k)}
-      onMouseDown={onOverlayMouseDown(k)}
-      onClick={calibrate ? undefined : onClick}
-      className={`flex items-center justify-center rounded ${
-        checked ? "bg-accent/80 text-white" : "bg-yellow-200/70 border border-yellow-600 border-dashed hover:bg-yellow-300"
-      } ${calibrate ? "ring-2 ring-pink-500" : ""}`}>
-      {checked ? <span className="text-xs font-black leading-none">✓</span> : null}
-    </div>
-  );
+  const Checkbox = ({ c, checked, onClick, k }: { c: CB; checked: boolean; onClick: () => void; k?: string }) => {
+    const key = k || `cb_${c.x}_${c.y}`;
+    return (
+      <div style={cbStyle(c, key)}
+        onMouseDown={onOverlayMouseDown(key)}
+        onClick={calibrate ? undefined : onClick}
+        className={`flex items-center justify-center rounded ${
+          checked ? "bg-accent/80 text-white" : "bg-yellow-200/70 border border-yellow-600 border-dashed hover:bg-yellow-300"
+        } ${calibrate ? "ring-2 ring-pink-500" : ""}`}>
+        {checked ? <span className="text-xs font-black leading-none">✓</span> : null}
+      </div>
+    );
+  };
 
   // Inline text inputs overlaid on the PDF blank lines (optional).
   // Coordinates use the same top-left origin as checkboxes (yTop from pdfplumber).
