@@ -141,16 +141,16 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
     { x: 495, y: idY, w: 70, text: prefill.idExpiration || "" },
   ];
 
-  const cbStyle = (c: CB, checked: boolean, onClick: () => void, disabled = false): React.CSSProperties => ({
+  const cbStyle = (c: CB): React.CSSProperties => ({
     position: "absolute",
     left: (c.x - 1) * renderScale,
-    top: (c.y - 8) * renderScale,
+    top: (c.y - 5) * renderScale,
     width: (CB_SIZE + 4) * renderScale,
     height: (CB_SIZE + 4) * renderScale,
   });
 
   const Checkbox = ({ c, checked, onClick }: { c: CB; checked: boolean; onClick: () => void }) => (
-    <div style={cbStyle(c, checked, onClick)} onClick={onClick}
+    <div style={cbStyle(c)} onClick={onClick}
       className={`cursor-pointer flex items-center justify-center rounded ${
         checked ? "bg-accent/80 text-white" : "bg-yellow-200/70 border border-yellow-600 border-dashed hover:bg-yellow-300"
       }`}>
@@ -158,7 +158,17 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
     </div>
   );
 
-  const allAnswered = q1v && q2v && q3v && q4v && q5v && q6v && (q6v === "no" || q6cc) && q7v && (q7v !== "other" || q7other) && q8v && q9v && q10v && q11v;
+  // Inline text inputs overlaid on the PDF blank lines (optional).
+  // Coordinates use the same top-left origin as checkboxes (yTop from pdfplumber).
+  type BlankPos = { x: number; y: number; w: number };
+  const inlineBlanks: Array<{ pos: BlankPos; value: string; onChange: (v: string) => void; placeholder?: string }> = [
+    { pos: { x: 230, y: 491, w: 60 }, value: q3v, onChange: setQ3v, placeholder: "years" },       // Q3 __ years
+    { pos: { x: 350, y: 527, w: 90 }, value: q5v, onChange: setQ5v, placeholder: "miles" },        // Q5 __ miles
+    { pos: { x: 486, y: 539, w: 45 }, value: q6cc, onChange: setQ6cc, placeholder: "cc" },         // Q6 cc size
+    { pos: { x: 200, y: 575, w: 240 }, value: q7other, onChange: setQ7other, placeholder: "other" }, // Q7 other
+  ];
+
+  const allAnswered = q1v && q2v && q4v && q6v && q7v && (q7v !== "other" || q7other) && q8v && q9v && q10v && q11v;
   const canSubmit = allAnswered && sig;
 
   const submit = async () => {
@@ -314,6 +324,23 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             {/* Q11 */}
             <Checkbox c={q11.yes} checked={q11v === "yes"} onClick={() => setQ11v("yes")} />
             <Checkbox c={q11.no} checked={q11v === "no"} onClick={() => setQ11v("no")} />
+            {/* Inline typeable blanks (optional) */}
+            {inlineBlanks.map((b, i) => (
+              <input
+                key={"blank" + i}
+                value={b.value}
+                onChange={e => b.onChange(e.target.value)}
+                placeholder={b.placeholder}
+                className="absolute bg-yellow-100/70 border-b border-yellow-600 text-blue-900 outline-none focus:bg-yellow-200 px-1"
+                style={{
+                  left: b.pos.x * renderScale,
+                  top: (b.pos.y - 10) * renderScale,
+                  width: b.pos.w * renderScale,
+                  fontSize: `${Math.max(9, 10 * renderScale)}px`,
+                  lineHeight: 1.1,
+                }}
+              />
+            ))}
           </>
         )}
         {!pdfReady && (
@@ -321,36 +348,6 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Loading document…
           </div>
         )}
-      </div>
-
-      <div className="bg-card border border-border rounded-2xl p-4 md:p-6 space-y-3">
-        <h3 className="font-semibold text-sm">Short text answers</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-          <label className="flex flex-col gap-1">
-            Q3. Years riding a street motorcycle:
-            <input value={q3v} onChange={e => setQ3v(e.target.value)}
-              className="px-3 py-2 rounded-md border border-border bg-background" placeholder="e.g. 0" />
-          </label>
-          <label className="flex flex-col gap-1">
-            Q5. Miles on-street in past year:
-            <input value={q5v} onChange={e => setQ5v(e.target.value)}
-              className="px-3 py-2 rounded-md border border-border bg-background" placeholder="e.g. 0" />
-          </label>
-          {q6v === "yes" && (
-            <label className="flex flex-col gap-1">
-              Q6. If yes, engine size (cc):
-              <input value={q6cc} onChange={e => setQ6cc(e.target.value)}
-                className="px-3 py-2 rounded-md border border-border bg-background" placeholder="e.g. 250" />
-            </label>
-          )}
-          {q7v === "other" && (
-            <label className="flex flex-col gap-1">
-              Q7. Other primary reason:
-              <input value={q7other} onChange={e => setQ7other(e.target.value)}
-                className="px-3 py-2 rounded-md border border-border bg-background" placeholder="describe" />
-            </label>
-          )}
-        </div>
       </div>
 
       {sig && (
