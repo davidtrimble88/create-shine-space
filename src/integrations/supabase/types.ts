@@ -518,6 +518,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "instructor_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "public_instructors"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "instructor_assignments_schedule_id_fkey"
             columns: ["schedule_id"]
             isOneToOne: false
@@ -1280,7 +1287,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_instructors: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          photo_position_x: number | null
+          photo_position_y: number | null
+          photo_url: string | null
+          photo_zoom: number | null
+          position: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          photo_position_x?: number | null
+          photo_position_y?: number | null
+          photo_url?: string | null
+          photo_zoom?: number | null
+          position?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          photo_position_x?: number | null
+          photo_position_y?: number | null
+          photo_url?: string | null
+          photo_zoom?: number | null
+          position?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_start_thread: { Args: { _user: string }; Returns: boolean }
