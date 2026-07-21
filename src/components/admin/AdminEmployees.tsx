@@ -162,6 +162,28 @@ const AdminEmployees = () => {
         if (url) photoUrl = url;
       }
 
+      const existing = employees.find(e => e.id === editingId);
+      const emailChanged = existing && existing.email?.toLowerCase() !== form.email.toLowerCase();
+
+      // If the email is changing and this employee has a linked auth account,
+      // update the auth account email first so their password keeps working
+      // and they log in with the new address.
+      if (emailChanged && existing?.user_id) {
+        const { data: emailRes, error: emailErr } = await supabase.functions.invoke(
+          "update-employee-email",
+          { body: { user_id: existing.user_id, new_email: form.email } },
+        );
+        if (emailErr || (emailRes as any)?.error) {
+          toast({
+            title: "Could not update login email",
+            description: emailErr?.message || (emailRes as any)?.error || "Auth email update failed.",
+            variant: "destructive",
+          });
+          setUploading(false);
+          return;
+        }
+      }
+
       const updateData: any = {
         full_name: form.full_name,
         email: form.email,
