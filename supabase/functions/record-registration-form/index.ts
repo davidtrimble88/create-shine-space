@@ -157,13 +157,13 @@ async function stampRegistrationTemplate(
   // Header
   stampText(p0, font, dateStr, 420, 142.9, 10, 120);
   // Personal data
-  stampText(p0, font, data.first_name, 90, 186.1, 9, 140);
-  if (data.middle_name) stampText(p0, font, data.middle_name, 240, 186.1, 9, 140);
-  stampText(p0, font, data.last_name, 400, 186.1, 9, 170);
-  stampText(p0, font, data.address_street || "", 90, 218.5, 9, 180);
-  stampText(p0, font, data.address_city || "", 280, 218.5, 9, 100);
-  stampText(p0, font, data.address_state || "", 390, 218.5, 9, 90);
-  stampText(p0, font, data.address_zip || "", 490, 218.5, 9, 80);
+  stampText(p0, font, data.first_name, 90, 186.1, 9, 140, "first");
+  if (data.middle_name) stampText(p0, font, data.middle_name, 240, 186.1, 9, 140, "middle");
+  stampText(p0, font, data.last_name, 400, 186.1, 9, 170, "last");
+  stampText(p0, font, data.address_street || "", 90, 218.5, 9, 180, "street");
+  stampText(p0, font, data.address_city || "", 280, 218.5, 9, 100, "city");
+  stampText(p0, font, data.address_state || "", 390, 218.5, 9, 90, "state");
+  stampText(p0, font, data.address_zip || "", 490, 218.5, 9, 80, "zip");
   stampText(p0, font, dob, 107, 250.9, 9, 100);
   if (data.age != null) stampText(p0, font, String(data.age), 236, 250.9, 9, 30);
   if (data.sex === "M") stampX(p0, font, 289, 250.9);
@@ -180,9 +180,9 @@ async function stampRegistrationTemplate(
   const y = rowY[data.id_type] ?? 338.1;
   stampX(p0, font, 36, y);
   if (data.id_type === "permit") stampX(p0, font, 143, y);
-  stampText(p0, font, data.id_number || "", 250, y, 9, 150);
-  stampText(p0, font, data.id_state || data.id_country || "", 410, y, 9, 60);
-  stampText(p0, font, data.id_expiration || "", 495, y, 9, 70);
+  stampText(p0, font, data.id_number || "", 250, y, 9, 150, "idNumber");
+  stampText(p0, font, data.id_state || data.id_country || "", 410, y, 9, 60, "idState");
+  stampText(p0, font, data.id_expiration || "", 495, y, 9, 70, "idExp");
 
   // Q1
   if (data.q1_ridden_regularly_5yr === "yes") stampX(p0, font, 316, 455.7);
