@@ -663,6 +663,94 @@ export type Database = {
         }
         Relationships: []
       }
+      message_thread_participants: {
+        Row: {
+          added_at: string
+          last_read_at: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          last_read_at?: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          last_read_at?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_thread_participants_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_threads: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          is_broadcast: boolean
+          last_message_at: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          is_broadcast?: boolean
+          last_message_at?: string
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_broadcast?: boolean
+          last_message_at?: string
+          subject?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender_id: string
+          thread_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          thread_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -1195,6 +1283,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_start_thread: { Args: { _user: string }; Returns: boolean }
       can_view_min_role: {
         Args: {
           _min: Database["public"]["Enums"]["app_role"]
@@ -1219,6 +1308,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_thread_participant: {
+        Args: { _thread: string; _user: string }
         Returns: boolean
       }
       move_to_dlq: {

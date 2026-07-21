@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail, ChevronLeft, ChevronRight, Wrench, Menu } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail, ChevronLeft, ChevronRight, Wrench, Menu, MessageSquare } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -29,6 +29,7 @@ import InstructorCertifications from "@/components/admin/InstructorCertification
 import SignedWaivers from "@/components/admin/SignedWaivers";
 import StudentIds from "@/components/admin/StudentIds";
 import NotificationBell from "@/components/admin/NotificationBell";
+import MessagingCenter from "@/components/admin/MessagingCenter";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
@@ -41,6 +42,7 @@ const tabs = [
   { id: "rosters", label: "Class Rosters", icon: ListChecks, roles: ["owner", "admin", "manager", "employee"] },
   { id: "files", label: "Files", icon: FolderOpen, roles: ["owner", "admin", "manager", "employee"] },
   { id: "it-tickets", label: "IT Tickets", icon: Wrench, roles: ["owner", "admin", "manager", "employee"] },
+  { id: "messages", label: "Messages", icon: MessageSquare, roles: ["owner", "admin", "manager", "employee"] },
   { id: "certifications", label: "Certifications", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
   
   
@@ -331,6 +333,7 @@ const EmployeeDashboard = () => {
           {activeTab === "files" && <AdminFiles />}
           {activeTab === "it-tickets" && <ITTickets />}
           {activeTab === "certifications" && <InstructorCertifications />}
+          {activeTab === "messages" && <MessagingCenter />}
           {activeTab === "signed-waivers" && <SignedWaivers />}
           {activeTab === "student-ids" && <StudentIds />}
           {activeTab === "auto-emails" && <AutoEmails />}
