@@ -32,12 +32,16 @@ const BookingSchema = z.object({
   waiver_id: z.string().uuid().nullable().optional(),
   id_photo_path: NullableString,
   guardian_id_photo_path: NullableString,
+  discount_amount_cents: z.number().int().min(0).optional(),
+  discount_reason: z.string().trim().min(1).nullable().optional(),
+  discount_code: z.string().trim().min(1).nullable().optional(),
 });
 
 const BodySchema = z.object({
   booking: BookingSchema,
   paymentStatus: z.enum(["skipped", "unpaid"]),
   paymentProvider: z.string().trim().min(1).optional(),
+  discountCodeId: z.string().uuid().optional(),
 });
 
 Deno.serve(async (req) => {
