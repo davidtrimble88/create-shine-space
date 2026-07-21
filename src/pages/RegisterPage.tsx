@@ -262,16 +262,14 @@ const RegisterPage = () => {
 
   useEffect(() => {
     (supabase as any)
-      .from("discount_settings")
-      .select("intermediate_returning_amount_cents, advanced_returning_amount_cents")
-      .eq("id", 1)
-      .maybeSingle()
+      .rpc("get_returning_discount_defaults")
       .then(({ data }: any) => {
-        if (data?.intermediate_returning_amount_cents != null) {
-          setIntReturnCents(data.intermediate_returning_amount_cents);
+        const row = Array.isArray(data) ? data[0] : data;
+        if (row?.intermediate_returning_amount_cents != null) {
+          setIntReturnCents(row.intermediate_returning_amount_cents);
         }
-        if (data?.advanced_returning_amount_cents != null) {
-          setAdvReturnCents(data.advanced_returning_amount_cents);
+        if (row?.advanced_returning_amount_cents != null) {
+          setAdvReturnCents(row.advanced_returning_amount_cents);
         }
       });
   }, []);
