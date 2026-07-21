@@ -165,19 +165,25 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
     { x: 495, y: idY, w: 70, text: prefill.idExpiration || "" },
   ];
 
-  const cbStyle = (c: CB): React.CSSProperties => ({
-    position: "absolute",
-    left: (c.x - 1) * renderScale,
-    top: (c.y - 5) * renderScale,
-    width: (CB_SIZE + 4) * renderScale,
-    height: (CB_SIZE + 4) * renderScale,
-  });
+  const cbStyle = (c: CB, key: string): React.CSSProperties => {
+    const o = offsets[key] || { dx: 0, dy: 0 };
+    return {
+      position: "absolute",
+      left: (c.x - 1) * renderScale + o.dx,
+      top: (c.y - 5) * renderScale + o.dy,
+      width: (CB_SIZE + 4) * renderScale,
+      height: (CB_SIZE + 4) * renderScale,
+      cursor: calibrate ? "move" : "pointer",
+    };
+  };
 
-  const Checkbox = ({ c, checked, onClick }: { c: CB; checked: boolean; onClick: () => void }) => (
-    <div style={cbStyle(c)} onClick={onClick}
-      className={`cursor-pointer flex items-center justify-center rounded ${
+  const Checkbox = ({ c, checked, onClick, k }: { c: CB; checked: boolean; onClick: () => void; k: string }) => (
+    <div style={cbStyle(c, k)}
+      onMouseDown={onOverlayMouseDown(k)}
+      onClick={calibrate ? undefined : onClick}
+      className={`flex items-center justify-center rounded ${
         checked ? "bg-accent/80 text-white" : "bg-yellow-200/70 border border-yellow-600 border-dashed hover:bg-yellow-300"
-      }`}>
+      } ${calibrate ? "ring-2 ring-pink-500" : ""}`}>
       {checked ? <span className="text-xs font-black leading-none">✓</span> : null}
     </div>
   );
