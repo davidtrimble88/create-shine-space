@@ -132,7 +132,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   ];
   // ID row stamping - row y based on id_type
   const idRowY: Record<string, number> = {
-    drivers_license: 324, permit: 324, state_id: 344, foreign_license: 364, passport: 384, other: 384,
+    drivers_license: 344, permit: 344, state_id: 364, foreign_license: 384, passport: 404, other: 404,
   };
   const idY = idRowY[prefill.idType] ?? 324;
   const idAF = [
