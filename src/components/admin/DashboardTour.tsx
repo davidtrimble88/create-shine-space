@@ -118,6 +118,48 @@ export default function DashboardTour({ role, userId, open, onOpenChange, onNavi
     : null;
 
   return (
+    <>
+      {/* Spotlight overlay */}
+      {spot && (
+        <div className="pointer-events-none fixed inset-0 z-40" aria-hidden="true">
+          <svg className="absolute inset-0 w-full h-full">
+            <defs>
+              <mask id="tour-spot-mask">
+                <rect width="100%" height="100%" fill="white" />
+                <rect
+                  x={spot.x}
+                  y={spot.y}
+                  width={spot.w}
+                  height={spot.h}
+                  rx={12}
+                  ry={12}
+                  fill="black"
+                  style={{ transition: "all 300ms ease" }}
+                />
+              </mask>
+            </defs>
+            <rect
+              width="100%"
+              height="100%"
+              fill="rgba(0,0,0,0.55)"
+              mask="url(#tour-spot-mask)"
+            />
+          </svg>
+          {/* Pulsing ring around the target */}
+          <div
+            className="absolute rounded-xl ring-2 ring-accent animate-pulse"
+            style={{
+              left: spot.x,
+              top: spot.y,
+              width: spot.w,
+              height: spot.h,
+              boxShadow: "0 0 0 4px hsl(var(--accent) / 0.35), 0 0 30px 6px hsl(var(--accent) / 0.45)",
+              transition: "all 300ms ease",
+            }}
+          />
+        </div>
+      )}
+
     <div className="fixed bottom-6 right-6 z-50 w-[min(26rem,calc(100vw-2rem))] animate-in slide-in-from-bottom-4 fade-in zoom-in duration-300">
       <div className="rounded-2xl border-2 border-accent/40 bg-card shadow-[0_0_40px_-8px_hsl(var(--accent)/0.35)] ring-1 ring-accent/20 overflow-hidden">
         <div className="bg-accent/10 px-5 py-3 border-b border-accent/20">
