@@ -35,8 +35,12 @@ const BaseSchema = z.object({
   guardian_name: z.string().optional().nullable(),
   guardian_relationship: z.string().optional().nullable(),
   guardian_address: z.string().optional().nullable(),
+  guardian_city: z.string().optional().nullable(),
+  guardian_state: z.string().optional().nullable(),
+  guardian_zip: z.string().optional().nullable(),
   guardian_phone: z.string().optional().nullable(),
   guardian_email: z.string().optional().nullable(),
+
   bike_model: z.string().optional().nullable(),
   helmet_color: z.string().optional().nullable(),
   jacket_color: z.string().optional().nullable(),
