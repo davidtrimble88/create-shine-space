@@ -73,7 +73,16 @@ const roleLabels: Record<string, { label: string; icon: typeof Shield }> = {
 
 const EmployeeDashboard = () => {
   const { user, isAdmin, userRole, effectiveRole, viewAsRole, setViewAsRole, loading, mustChangePassword, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as TabId) || "overview";
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
+
+  // Sync tab from URL when it changes (deep links / notification nav)
+  useEffect(() => {
+    const t = searchParams.get("tab") as TabId | null;
+    if (t && t !== activeTab && tabs.some((x) => x.id === t)) setActiveTab(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const isMobile = useIsMobile();
