@@ -53,6 +53,8 @@ const ResponseSchema = z.object({
   q9_called_for_info: z.enum(["yes", "no", ""]).optional().nullable(),
   q10_taken_before: z.enum(["yes", "no", ""]).optional().nullable(),
   q11_cmsp_contact_future: z.enum(["yes", "no", ""]).optional().nullable(),
+  q9_hear_about_sources: z.array(z.string()).optional().nullable(),
+  q9_hear_other: z.string().optional().nullable(),
   // Signature + acknowledgments
   signature_typed: z.string().min(1),
   signature_drawn: z.string().min(50),
