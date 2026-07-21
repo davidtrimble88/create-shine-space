@@ -227,7 +227,8 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   ];
 
   const allAnswered = q1v && q2v && q4v && q6v && q7v && (q7v !== "other" || q7other) && q8v && q9v && q10v && q11v;
-  const canSubmit = allAnswered && sig;
+  const canSubmit = allAnswered && sig && (!prefill.isMinor || guardianSig);
+
 
   const submit = async () => {
     if (!canSubmit) return;
