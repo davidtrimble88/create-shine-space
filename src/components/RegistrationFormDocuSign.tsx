@@ -449,7 +449,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             <Checkbox k="q11n" c={q11.no} checked={q11v === "no"} onClick={() => setQ11v("no")} />
             {/* Inline typeable blanks (optional) */}
             {inlineBlanks.map((b, i) => {
-              const key = "blank_" + ["q3","q5","q6cc","q7other"][i];
+              const key = "blank_" + ["q3","q5","q6cc","q7other","hearOther"][i];
               const o = offsets[key] || { dx: 0, dy: 0 };
               return (
                 <div key={key} className="absolute" style={{
