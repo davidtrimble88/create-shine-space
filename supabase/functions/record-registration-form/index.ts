@@ -106,15 +106,40 @@ const Q7_LABELS: Record<string, string> = {
 
 type RegData = z.infer<typeof ResponseSchema>;
 
+// Calibration offsets (PDF points). Frontend calibration sends screen-pixel deltas;
+// these are converted by dividing by the render scale shown in the calibration bar.
+const FIELD_OFFSETS: Record<string, { dx: number; dy: number }> = {
+  first: { dx: -23.8, dy: -4.6 },
+  middle: { dx: -0.8, dy: -4.6 },
+  last: { dx: -0.8, dy: -4.6 },
+  street: { dx: -2.3, dy: -2.3 },
+  city: { dx: 0.8, dy: -3.8 },
+  state: { dx: 3.1, dy: -2.3 },
+  zip: { dx: 0.8, dy: -3.8 },
+  idNumber: { dx: -53.8, dy: -3.8 },
+  idState: { dx: -60.8, dy: -3.1 },
+  idExp: { dx: 5.4, dy: -3.1 },
+  q3: { dx: -2.3, dy: 4.6 },
+  q5: { dx: 7.7, dy: 1.5 },
+  q6cc: { dx: 5.4, dy: 3.1 },
+  q7other: { dx: 0, dy: 4.6 },
+};
+
+function getOffset(fieldKey?: string) {
+  return FIELD_OFFSETS[fieldKey || ""] || { dx: 0, dy: 0 };
+}
+
 // Stamp text at yTop (from page top, 792-tall). Clips to maxW.
-function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 9, maxW?: number) {
+function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 9, maxW?: number, fieldKey?: string) {
   if (!text) return;
   let t = String(text);
   if (maxW) while (font.widthOfTextAtSize(t, size) > maxW && t.length > 1) t = t.slice(0, -1);
-  page.drawText(t, { x, y: 792 - yTop + 2, size, font, color: rgb(0, 0, 0) });
+  const off = getOffset(fieldKey);
+  page.drawText(t, { x: x + off.dx, y: 792 - yTop + 2 - off.dy, size, font, color: rgb(0, 0, 0) });
 }
-function stampX(page: any, font: any, xCenter: number, yTop: number) {
-  page.drawText("X", { x: xCenter - 3, y: 792 - yTop, size: 11, font, color: rgb(0, 0, 0) });
+function stampX(page: any, font: any, xCenter: number, yTop: number, fieldKey?: string) {
+  const off = getOffset(fieldKey);
+  page.drawText("X", { x: xCenter - 3 + off.dx, y: 792 - yTop - off.dy, size: 11, font, color: rgb(0, 0, 0) });
 }
 
 async function stampRegistrationTemplate(
