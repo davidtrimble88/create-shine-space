@@ -62,12 +62,12 @@ const AdminEmployees = () => {
         { value: "owner", label: "Owner — Full access + analytics" },
         { value: "admin", label: "Admin — Full access to everything" },
         { value: "manager", label: "Manager — Can manage schedules" },
-        { value: "employee", label: "Viewer — View-only access" },
+        { value: "employee", label: "Instructor — View-only access" },
       ]
     : userRole === "admin"
     ? [
         { value: "manager", label: "Manager — Can manage schedules" },
-        { value: "employee", label: "Viewer — View-only access" },
+        { value: "employee", label: "Instructor — View-only access" },
       ]
     : [];
 
