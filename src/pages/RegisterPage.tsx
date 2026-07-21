@@ -394,6 +394,7 @@ const RegisterPage = () => {
         booking,
         paymentStatus,
         paymentProvider,
+        discountCodeId: discountApplied?.source === "code" ? discountApplied.codeId : undefined,
       },
     });
 
@@ -407,6 +408,72 @@ const RegisterPage = () => {
 
     return data;
   };
+
+  const formatCents = (cents: number) =>
+    `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: cents % 100 === 0 ? 0 : 2, maximumFractionDigits: 2 })}`;
+
+  const validateReturningDiscount = async () => {
+    const licenseNumber = form.getValues("licenseNumber")?.trim();
+    const email = form.getValues("email")?.trim();
+    if (!licenseNumber && !email) {
+      setDiscountNotice("Fill in your ID number or email first so we can look up your prior class.");
+      return;
+    }
+    setDiscountBusy("returning");
+    setDiscountNotice(null);
+    try {
+      const { data } = await supabase.functions.invoke("validate-discount", {
+        body: { course, source: "returning", licenseNumber, email },
+      });
+      const res = data as any;
+      if (res?.valid) {
+        setDiscountApplied({ source: "returning", amountCents: res.amountCents });
+        setDiscountNotice(null);
+        toast({ title: "Returning-student discount applied", description: `${formatCents(res.amountCents)} off your Intermediate Course.` });
+      } else {
+        setDiscountApplied((prev) => (prev?.source === "returning" ? null : prev));
+        setDiscountNotice(res?.error || "We couldn't find a prior registration.");
+      }
+    } catch (e) {
+      setDiscountNotice(e instanceof Error ? e.message : "Could not verify prior registration.");
+    }
+    setDiscountBusy(null);
+  };
+
+  const validateDiscountCode = async () => {
+    const code = discountCodeInput.trim();
+    if (!code) {
+      setDiscountNotice("Enter a discount code.");
+      return;
+    }
+    setDiscountBusy("code");
+    setDiscountNotice(null);
+    try {
+      const { data } = await supabase.functions.invoke("validate-discount", {
+        body: { course, source: "code", code },
+      });
+      const res = data as any;
+      if (res?.valid) {
+        setDiscountApplied({ source: "code", amountCents: res.amountCents, code: res.code, codeId: res.codeId });
+        setDiscountNotice(null);
+        toast({ title: "Discount code applied", description: `${formatCents(res.amountCents)} off your Intermediate Course.` });
+      } else {
+        setDiscountApplied((prev) => (prev?.source === "code" ? null : prev));
+        setDiscountNotice(res?.error || "That code is not valid.");
+      }
+    } catch (e) {
+      setDiscountNotice(e instanceof Error ? e.message : "Could not validate that code.");
+    }
+    setDiscountBusy(null);
+  };
+
+  const clearDiscount = () => {
+    setDiscountApplied(null);
+    setDiscountNotice(null);
+    setReturningStudent(false);
+    setDiscountCodeInput("");
+  };
+
 
 
   const onSubmit = async (data: RegistrationFormData) => {
