@@ -412,6 +412,9 @@ const EmployeeDashboard = () => {
                   Welcome, {employeeName || user?.email || "Rider"}
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">Here's what's happening today.</p>
+                <Button variant="outline" size="sm" className="mt-3" onClick={() => setTourOpen(true)}>
+                  <Sparkles className="w-4 h-4 mr-2" /> Take the portal tour
+                </Button>
               </div>
               <NotificationBell onNavigate={(t) => setActiveTab(t as typeof activeTab)} />
             </div>
@@ -422,8 +425,18 @@ const EmployeeDashboard = () => {
                 Welcome, {employeeName || user?.email || "Rider"}
               </h1>
               <p className="text-sm text-muted-foreground mt-1">Here's what's happening today.</p>
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => setTourOpen(true)}>
+                <Sparkles className="w-4 h-4 mr-2" /> Take the portal tour
+              </Button>
             </div>
           )}
+          <DashboardTour
+            role={effectiveRole as any}
+            userId={user.id}
+            open={tourOpen}
+            onOpenChange={setTourOpen}
+            onNavigateTab={(t) => handleTabSelect(t as TabId)}
+          />
           {activeTab === "overview" && <AdminOverview />}
           {activeTab === "schedule" && <AdminSchedule />}
           {activeTab === "full-schedule" && <ComprehensiveSchedule />}
