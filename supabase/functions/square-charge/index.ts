@@ -231,6 +231,9 @@ Deno.serve(async (req) => {
         payment_status: "paid",
         booking_status: "confirmed",
         payment_provider: "square",
+        discount_amount_cents: discountCents,
+        discount_reason: discountReason,
+        discount_code: discountCodeStr,
       });
 
       if (insertErr) {
@@ -242,6 +245,23 @@ Deno.serve(async (req) => {
           }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
+      }
+    }
+
+    // Mark a one-time discount code as used (best effort — never fail the response here)
+    if (discountCodeId) {
+      try {
+        await supabase
+          .from("discount_codes")
+          .update({
+            used_at: new Date().toISOString(),
+            used_by_booking_id: bookingId,
+            used_by_email: typeof booking.email === "string" ? booking.email : null,
+          })
+          .eq("id", discountCodeId)
+          .is("used_at", null);
+      } catch (e) {
+        console.warn("Failed to mark discount code used:", e);
       }
     }
 
