@@ -73,17 +73,44 @@ const htmlToText = (html: string) =>
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
+    // Require an authenticated admin/owner — this endpoint sends a temporary
+    // password from the company's trusted sender domain and must never be
+    // callable anonymously.
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    if (!token) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userData.user.id, _role: "admin",
+    });
+    const { data: isOwner } = await supabase.rpc("has_role", {
+      _user_id: userData.user.id, _role: "owner",
+    });
+    if (!isAdmin && !isOwner) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+
     const { recipientEmail, fullName, tempPassword, role } = await req.json();
     if (!recipientEmail || !tempPassword) {
       return new Response(JSON.stringify({ error: "recipientEmail and tempPassword required" }), {
         status: 400, headers: { ...cors, "Content-Type": "application/json" },
       });
     }
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
 
     // Load editable template (falls back to hardcoded copy if missing/disabled)
     let subjectTpl = FALLBACK_SUBJECT;
