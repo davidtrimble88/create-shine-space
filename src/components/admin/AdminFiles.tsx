@@ -55,6 +55,7 @@ interface SharedFile {
   uploaded_by: string | null;
   uploaded_by_name: string | null;
   created_at: string;
+  updated_at: string;
   min_role: "owner" | "admin" | "manager" | "employee";
 }
 
