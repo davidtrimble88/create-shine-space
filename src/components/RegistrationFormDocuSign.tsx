@@ -313,6 +313,22 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         </div>
       </div>
 
+      {calibrate && (
+        <div className="sticky top-16 z-30 bg-pink-100 border-2 border-pink-500 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3 text-sm">
+          <span className="font-bold text-pink-900">CALIBRATE MODE</span>
+          <span className="text-pink-800">Drag the pink-outlined fields into place, then click Copy Layout and paste it to me.</span>
+          <Button type="button" size="sm" variant="outline" onClick={() => {
+            localStorage.setItem("regFormOffsets", JSON.stringify(offsets));
+            navigator.clipboard.writeText(JSON.stringify(offsets, null, 2));
+            toast({ title: "Layout copied", description: "Offsets copied to clipboard and saved locally." });
+          }}>Copy Layout</Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => {
+            setOffsets({}); localStorage.removeItem("regFormOffsets");
+          }}>Reset</Button>
+          <span className="text-xs text-pink-700">Scale: {renderScale.toFixed(3)}</span>
+        </div>
+      )}
+
       <div ref={containerRef} className="relative rounded-lg border border-border bg-white overflow-hidden" style={{ maxWidth: 900, margin: "0 auto" }}>
         <canvas ref={canvasRef} />
         {pdfReady && (
