@@ -264,7 +264,7 @@ async function buildSignedPdf(
     heading("Parent / Legal Guardian");
     row("Name", data.guardian_name || "—");
     row("Relationship", data.guardian_relationship || "—");
-    row("Address", data.guardian_address || "—");
+    row("Address", [data.guardian_address, [data.guardian_city, data.guardian_state, data.guardian_zip].filter(Boolean).join(", ")].filter(Boolean).join(" — ") || "—");
     row("Phone", data.guardian_phone || "—");
     row("Email", data.guardian_email || "—");
   }
