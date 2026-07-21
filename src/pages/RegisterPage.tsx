@@ -1166,12 +1166,12 @@ const RegisterPage = () => {
                     )}
                   </div>
 
-                  {course === "intermediate" && (
+                  {isDiscountEligibleCourse && (
                     <div className="rounded-lg border border-accent/40 bg-accent/5 p-4 mb-6 space-y-4">
                       <div>
                         <h3 className="text-sm font-bold text-accent">Returning-Student Discount</h3>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Prior students of Learn to Ride VC receive {formatCents(defaultDiscountCents)} off the Intermediate Course.
+                          Prior students of Learn to Ride VC receive {formatCents(defaultDiscountCents)} off the {course === "advanced" ? "Advanced Riding Clinic" : "Intermediate Course"}.
                         </p>
                       </div>
 
