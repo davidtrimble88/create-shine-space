@@ -339,8 +339,13 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           <span className="text-pink-800">Drag the pink-outlined fields into place, then click Copy Layout and paste it to me.</span>
           <Button type="button" size="sm" variant="outline" onClick={() => {
             localStorage.setItem("regFormOffsets", JSON.stringify(offsets));
-            navigator.clipboard.writeText(JSON.stringify(offsets, null, 2));
-            toast({ title: "Layout copied", description: "Offsets copied to clipboard and saved locally." });
+            const pdfOffsets: Record<string, { dx: number; dy: number }> = {};
+            for (const [k, v] of Object.entries(offsets)) {
+              pdfOffsets[k] = { dx: Math.round((v.dx / renderScale) * 10) / 10, dy: Math.round((v.dy / renderScale) * 10) / 10 };
+            }
+            const payload = { scale: renderScale, screenPixelOffsets: offsets, pdfPointOffsets: pdfOffsets };
+            navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+            toast({ title: "Layout copied", description: "Offsets + scale copied to clipboard and saved locally." });
           }}>Copy Layout</Button>
           <Button type="button" size="sm" variant="outline" onClick={() => {
             setOffsets({ ...DEFAULT_OFFSETS }); localStorage.removeItem("regFormOffsets");
