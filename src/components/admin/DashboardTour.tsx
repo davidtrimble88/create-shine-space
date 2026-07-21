@@ -63,8 +63,10 @@ export default function DashboardTour({ role, userId, open, onOpenChange, onNavi
     onNavigateTab("overview");
   };
 
-  const step = steps[i];
-  const isLast = i === steps.length - 1;
+  const safeIndex = Math.min(Math.max(i, 0), steps.length - 1);
+  const step = steps[safeIndex];
+  if (!step) return null;
+  const isLast = safeIndex === steps.length - 1;
 
   if (minimized) {
     return (
