@@ -31,6 +31,8 @@ import SignedWaivers from "@/components/admin/SignedWaivers";
 
 import NotificationBell from "@/components/admin/NotificationBell";
 import MessagingCenter from "@/components/admin/MessagingCenter";
+import DashboardTour from "@/components/admin/DashboardTour";
+import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -166,6 +168,16 @@ const EmployeeDashboard = () => {
       }
     };
     loadName();
+  }, [user]);
+
+  // Portal tour: auto-open first time per user, and expose "Take tour" button
+  const [tourOpen, setTourOpen] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const seen = localStorage.getItem(`dashboardTourSeen:${user.id}`);
+      if (!seen) setTourOpen(true);
+    } catch {}
   }, [user]);
 
   // If owner switches to a view that hides the active tab, send them back to overview
@@ -400,6 +412,9 @@ const EmployeeDashboard = () => {
                   Welcome, {employeeName || user?.email || "Rider"}
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">Here's what's happening today.</p>
+                <Button variant="outline" size="sm" className="mt-3" onClick={() => setTourOpen(true)}>
+                  <Sparkles className="w-4 h-4 mr-2" /> Take the portal tour
+                </Button>
               </div>
               <NotificationBell onNavigate={(t) => setActiveTab(t as typeof activeTab)} />
             </div>
@@ -410,8 +425,18 @@ const EmployeeDashboard = () => {
                 Welcome, {employeeName || user?.email || "Rider"}
               </h1>
               <p className="text-sm text-muted-foreground mt-1">Here's what's happening today.</p>
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => setTourOpen(true)}>
+                <Sparkles className="w-4 h-4 mr-2" /> Take the portal tour
+              </Button>
             </div>
           )}
+          <DashboardTour
+            role={effectiveRole as any}
+            userId={user.id}
+            open={tourOpen}
+            onOpenChange={setTourOpen}
+            onNavigateTab={(t) => handleTabSelect(t as TabId)}
+          />
           {activeTab === "overview" && <AdminOverview />}
           {activeTab === "schedule" && <AdminSchedule />}
           {activeTab === "full-schedule" && <ComprehensiveSchedule />}
