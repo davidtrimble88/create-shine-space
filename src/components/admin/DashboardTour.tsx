@@ -68,52 +68,56 @@ export default function DashboardTour({ role, userId, open, onOpenChange, onNavi
 
   if (minimized) {
     return (
-      <div className="fixed bottom-4 right-4 z-50">
-        <Button size="sm" onClick={() => setMinimized(false)} className="shadow-lg">
-          <Sparkles className="w-4 h-4 mr-2" /> Resume tour ({i + 1}/{steps.length})
+      <div className="fixed bottom-6 right-6 z-50 animate-in fade-in zoom-in duration-300">
+        <Button size="lg" onClick={() => setMinimized(false)} className="shadow-2xl ring-2 ring-accent/40 ring-offset-2 ring-offset-background">
+          <Sparkles className="w-5 h-5 mr-2" /> Resume tour ({i + 1}/{steps.length})
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-border bg-card shadow-2xl ring-1 ring-accent/20">
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 text-accent text-[11px] font-semibold uppercase tracking-wide">
-            <Sparkles className="w-3.5 h-3.5" /> Tour · {i + 1} of {steps.length}
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setMinimized(true)}
-              className="text-muted-foreground hover:text-foreground text-[11px] px-1.5 py-0.5 rounded hover:bg-secondary"
-              title="Minimize"
-            >
-              Hide
-            </button>
-            <button
-              onClick={finish}
-              className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-secondary"
-              title="Close tour"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+    <div className="fixed bottom-6 right-6 z-50 w-[min(26rem,calc(100vw-2rem))] animate-in slide-in-from-bottom-4 fade-in zoom-in duration-300">
+      <div className="rounded-2xl border-2 border-accent/40 bg-card shadow-[0_0_40px_-8px_hsl(var(--accent)/0.35)] ring-1 ring-accent/20 overflow-hidden">
+        <div className="bg-accent/10 px-5 py-3 border-b border-accent/20">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 text-accent font-bold uppercase tracking-wider text-xs">
+              <Sparkles className="w-4 h-4" /> Portal Tour · {i + 1} of {steps.length}
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setMinimized(true)}
+                className="text-muted-foreground hover:text-foreground text-xs font-medium px-2 py-1 rounded-md hover:bg-accent/20 transition-colors"
+                title="Minimize"
+              >
+                Hide
+              </button>
+              <button
+                onClick={finish}
+                className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-accent/20 transition-colors"
+                title="Close tour"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
-        <h3 className="mt-2 font-semibold text-base">{step.title}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed mt-1">{step.body}</p>
-        <div className="mt-3 h-1 w-full bg-secondary rounded-full overflow-hidden">
-          <div className="h-full bg-accent transition-all" style={{ width: `${((i + 1) / steps.length) * 100}%` }} />
-        </div>
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <Button variant="ghost" size="sm" onClick={finish}>Skip</Button>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setI(x => Math.max(0, x - 1))} disabled={i === 0}>Back</Button>
-            {isLast ? (
-              <Button size="sm" onClick={finish}>Finish</Button>
-            ) : (
-              <Button size="sm" onClick={() => setI(x => Math.min(steps.length - 1, x + 1))}>Next</Button>
-            )}
+        <div className="p-5">
+          <h3 className="font-bold text-lg text-foreground">{step.title}</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed mt-2">{step.body}</p>
+          <div className="mt-4 h-2 w-full bg-secondary rounded-full overflow-hidden">
+            <div className="h-full bg-accent transition-all duration-300" style={{ width: `${((i + 1) / steps.length) * 100}%` }} />
+          </div>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <Button variant="ghost" size="sm" onClick={finish} className="text-muted-foreground hover:text-foreground">Skip tour</Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setI(x => Math.max(0, x - 1))} disabled={i === 0}>Back</Button>
+              {isLast ? (
+                <Button size="sm" onClick={finish}>Finish</Button>
+              ) : (
+                <Button size="sm" onClick={() => setI(x => Math.min(steps.length - 1, x + 1))}>Next</Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
