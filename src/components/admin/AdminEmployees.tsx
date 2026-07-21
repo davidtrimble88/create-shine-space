@@ -493,7 +493,15 @@ const AdminEmployees = () => {
                 </div>
                 <div>
                   <Label>Position</Label>
-                  <Input value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))} placeholder="Instructor" />
+                  <Select value={form.position} onValueChange={v => setForm(f => ({ ...f, position: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Select position" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Instructor">Instructor</SelectItem>
+                      <SelectItem value="Manager">Manager</SelectItem>
+                      <SelectItem value="Admin">Admin</SelectItem>
+                      <SelectItem value="Owner">Owner</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
