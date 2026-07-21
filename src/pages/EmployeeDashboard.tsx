@@ -64,7 +64,7 @@ const roleLabels: Record<string, { label: string; icon: typeof Shield }> = {
   owner: { label: "Owner", icon: Crown },
   admin: { label: "Admin", icon: Shield },
   manager: { label: "Manager", icon: UserCog },
-  employee: { label: "Viewer", icon: Eye },
+  employee: { label: "Instructor", icon: Eye },
 };
 
 const EmployeeDashboard = () => {
@@ -217,7 +217,7 @@ const EmployeeDashboard = () => {
                 <SelectItem value="owner">Owner (default)</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="manager">Manager</SelectItem>
-                <SelectItem value="employee">Employee / Viewer</SelectItem>
+                <SelectItem value="employee">Instructor</SelectItem>
               </SelectContent>
             </Select>
             {isImpersonating && (

@@ -30,7 +30,7 @@ const roleLabels: Record<string, string> = {
   owner: "Owner",
   admin: "Admin",
   manager: "Manager",
-  employee: "Viewer",
+  employee: "Instructor",
 };
 
 const roleColors: Record<string, string> = {
@@ -62,12 +62,12 @@ const AdminEmployees = () => {
         { value: "owner", label: "Owner — Full access + analytics" },
         { value: "admin", label: "Admin — Full access to everything" },
         { value: "manager", label: "Manager — Can manage schedules" },
-        { value: "employee", label: "Viewer — View-only access" },
+        { value: "employee", label: "Instructor — View-only access" },
       ]
     : userRole === "admin"
     ? [
         { value: "manager", label: "Manager — Can manage schedules" },
-        { value: "employee", label: "Viewer — View-only access" },
+        { value: "employee", label: "Instructor — View-only access" },
       ]
     : [];
 
@@ -570,7 +570,7 @@ const AdminEmployees = () => {
             <SelectItem value="owner">Owner</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="manager">Manager</SelectItem>
-            <SelectItem value="employee">Viewer</SelectItem>
+            <SelectItem value="employee">Instructor</SelectItem>
           </SelectContent>
         </Select>
       </div>
