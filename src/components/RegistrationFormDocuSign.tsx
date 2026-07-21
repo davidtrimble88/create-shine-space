@@ -294,6 +294,8 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         q9_called_for_info: q9v,
         q10_taken_before: q10v,
         q11_cmsp_contact_future: q11v,
+        q9_hear_about_sources: HEAR_OPTIONS.filter(o => hearSel[o]),
+        q9_hear_other: hearOther || null,
         signature_typed: typed || fullName,
         signature_drawn: sig,
         guardian_name: prefill.isMinor ? guardianFullName : null,
