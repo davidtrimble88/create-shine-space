@@ -564,30 +564,34 @@ const RegisterPage = () => {
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   };
 
-  const jumpToModelReleaseCalibration = () => {
+  const jumpToModelReleaseCalibration = (asMinor = false) => {
     setRegFormOpen(false);
     setWaiverOpen(false);
     setModelReleasePrefill({
-      firstName: "John",
+      firstName: asMinor ? "Jamie" : "John",
       middleName: "A",
       lastName: "Doe",
       email: "test@example.com",
       phone: "(805) 555-1234",
-      dateOfBirth: "1990-05-15",
+      dateOfBirth: asMinor ? "2010-05-15" : "1990-05-15",
       addressStreet: "123 Main St",
       addressCity: "Ventura",
       addressState: "CA",
       addressZip: "93001",
-      isMinor: false,
+      isMinor: asMinor,
+      guardianFirstName: asMinor ? "Pat" : undefined,
+      guardianLastName: asMinor ? "Doe" : undefined,
+      guardianRelationship: asMinor ? "Parent" : undefined,
       course,
       location,
       locationLabel: locationLabels[location] || location,
       scheduleId: schedule || "calibrate-schedule",
       scheduleDate: "2026-08-01",
-    });
+    } as any);
     setModelReleaseOpen(true);
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   };
+
 
   const handleModelReleaseComplete = (_recordId: string, _decision: "sign" | "decline") => {
     setModelReleaseOpen(false);
