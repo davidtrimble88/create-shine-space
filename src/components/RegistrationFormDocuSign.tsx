@@ -251,6 +251,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
     { pos: { x: 290, y: 527.7, w: 68 }, value: q5v, onChange: setQ5v, placeholder: "miles" },        // Q5 __ miles
     { pos: { x: 380, y: 539.7, w: 50 }, value: q6cc, onChange: setQ6cc, placeholder: "cc" },         // Q6 cc size
     { pos: { x: 195, y: 563.7, w: 145 }, value: q7other, onChange: setQ7other, placeholder: "other" }, // Q7 other
+    { pos: HEAR_OTHER_BLANK, value: hearOther, onChange: setHearOther, placeholder: "other" }, // Q9 Other explain
   ];
 
   const allAnswered = q1v && q2v && q4v && q6v && q7v && (q7v !== "other" || q7other) && q8v && q9v && q10v && q11v;
