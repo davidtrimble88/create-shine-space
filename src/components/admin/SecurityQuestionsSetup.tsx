@@ -38,13 +38,13 @@ const SecurityQuestionsSetup = () => {
     const fetch = async () => {
       const { data } = await supabase
         .from("security_questions")
-        .select("*")
+        .select("question, question_number")
         .eq("user_id", user.id)
         .order("question_number");
       
       if (data && data.length === 3) {
         setHasQuestions(true);
-        setQuestions(data.map((q: any) => ({ question: q.question, answer: q.answer })));
+        setQuestions(data.map((q: any) => ({ question: q.question, answer: "" })));
       }
       setLoading(false);
     };
