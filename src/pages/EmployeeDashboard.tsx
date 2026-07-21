@@ -31,6 +31,8 @@ import SignedWaivers from "@/components/admin/SignedWaivers";
 
 import NotificationBell from "@/components/admin/NotificationBell";
 import MessagingCenter from "@/components/admin/MessagingCenter";
+import DashboardTour from "@/components/admin/DashboardTour";
+import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 
