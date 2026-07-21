@@ -19,6 +19,14 @@ const render = (tpl: string, vars: Record<string, string>) =>
     return v === undefined || v === null ? "" : String(v);
   });
 
+// Only these triggers may be invoked anonymously (e.g. from the public
+// registration/waiver flow). All others require an authenticated staff caller.
+const PUBLIC_TRIGGERS = new Set<string>([
+  "registration_confirmation",
+  "waiver_signed",
+  "model_release_signed",
+]);
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
@@ -33,6 +41,40 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Auth / abuse-prevention: staff callers may send anything they choose.
+    // Anonymous callers may only invoke a whitelisted trigger AND only to a
+    // recipient address we can already prove is in our system (booking,
+    // signed waiver, or employee). This blocks using the function as an
+    // open email relay to arbitrary addresses.
+    const authHeader = req.headers.get("Authorization") || "";
+    const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    let callerIsStaff = false;
+    if (bearer) {
+      const { data: u } = await supabase.auth.getUser(bearer);
+      if (u?.user) {
+        const { data: hasAny } = await supabase.rpc("has_any_role", { _user_id: u.user.id });
+        callerIsStaff = !!hasAny;
+      }
+    }
+    if (!callerIsStaff) {
+      if (!PUBLIC_TRIGGERS.has(String(trigger_event))) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { ...cors, "Content-Type": "application/json" },
+        });
+      }
+      const rcpt = String(recipientEmail).trim().toLowerCase();
+      const [{ count: bkCount }, { count: wvCount }, { count: emCount }] = await Promise.all([
+        supabase.from("bookings").select("id", { count: "exact", head: true }).ilike("email", rcpt),
+        supabase.from("signed_waivers").select("id", { count: "exact", head: true }).ilike("signer_email", rcpt),
+        supabase.from("employees").select("id", { count: "exact", head: true }).ilike("email", rcpt),
+      ]);
+      if ((bkCount ?? 0) + (wvCount ?? 0) + (emCount ?? 0) === 0) {
+        return new Response(JSON.stringify({ error: "Recipient not recognized" }), {
+          status: 403, headers: { ...cors, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     // Fetch all enabled templates for this trigger, pick the most specific match.
     const { data: candidates, error } = await supabase
