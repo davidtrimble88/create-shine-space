@@ -427,29 +427,30 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // Load template for both sign and decline
+    let templateBytes: Uint8Array | null = null;
+    let lastTplErr: unknown = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const tpl = await supabase.storage.from("waiver-templates").download(TEMPLATE_PATH);
+      if (!tpl.error && tpl.data) {
+        templateBytes = new Uint8Array(await tpl.data.arrayBuffer());
+        break;
+      }
+      lastTplErr = tpl.error;
+      await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+    }
+    if (!templateBytes) {
+      console.error("model release template download failed", lastTplErr);
+      return new Response(JSON.stringify({ error: "Model release template unavailable, please try again" }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     let pdfBytes: Uint8Array;
     if (data.decision === "sign") {
-      // Load template
-      let templateBytes: Uint8Array | null = null;
-      let lastTplErr: unknown = null;
-      for (let attempt = 0; attempt < 3; attempt++) {
-        const tpl = await supabase.storage.from("waiver-templates").download(TEMPLATE_PATH);
-        if (!tpl.error && tpl.data) {
-          templateBytes = new Uint8Array(await tpl.data.arrayBuffer());
-          break;
-        }
-        lastTplErr = tpl.error;
-        await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
-      }
-      if (!templateBytes) {
-        console.error("model release template download failed", lastTplErr);
-        return new Response(JSON.stringify({ error: "Model release template unavailable, please try again" }), {
-          status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       pdfBytes = await buildSignedPdf(templateBytes, data, { ip, userAgent, signedAt, hash: docHash, recordId });
     } else {
-      pdfBytes = await buildDeclinePdf(data, { ip, userAgent, signedAt, hash: docHash, recordId });
+      pdfBytes = await buildDeclinePdf(templateBytes, data, { ip, userAgent, signedAt, hash: docHash, recordId });
     }
 
     const safeName = `${data.last_name}_${data.first_name}`.replace(/[^a-z0-9_-]/gi, "");
@@ -462,9 +463,7 @@ Deno.serve(async (req) => {
     });
     if (up.error) console.error("model release pdf upload failed", up.error);
 
-    const signaturePayload = data.decision === "sign"
-      ? { typed: data.signature_typed, drawn: data.signature_drawn }
-      : { typed: data.decline_typed, drawn: data.decline_drawn };
+    const signaturePayload = { typed: data.signature_typed, drawn: data.signature_drawn };
 
     const acks = data.decision === "sign"
       ? data.consent_acknowledgments
