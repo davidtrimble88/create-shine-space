@@ -324,6 +324,23 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             {/* Q11 */}
             <Checkbox c={q11.yes} checked={q11v === "yes"} onClick={() => setQ11v("yes")} />
             <Checkbox c={q11.no} checked={q11v === "no"} onClick={() => setQ11v("no")} />
+            {/* Inline typeable blanks (optional) */}
+            {inlineBlanks.map((b, i) => (
+              <input
+                key={"blank" + i}
+                value={b.value}
+                onChange={e => b.onChange(e.target.value)}
+                placeholder={b.placeholder}
+                className="absolute bg-yellow-100/70 border-b border-yellow-600 text-blue-900 outline-none focus:bg-yellow-200 px-1"
+                style={{
+                  left: b.pos.x * renderScale,
+                  top: (b.pos.y - 10) * renderScale,
+                  width: b.pos.w * renderScale,
+                  fontSize: `${Math.max(9, 10 * renderScale)}px`,
+                  lineHeight: 1.1,
+                }}
+              />
+            ))}
           </>
         )}
         {!pdfReady && (
@@ -333,8 +350,6 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         )}
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-4 md:p-6 space-y-3">
-        <h3 className="font-semibold text-sm">Short text answers</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <label className="flex flex-col gap-1">
             Q3. Years riding a street motorcycle:
