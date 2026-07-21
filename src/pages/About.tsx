@@ -23,11 +23,9 @@ const About = () => {
 
   useEffect(() => {
     const fetchInstructors = async () => {
-      const { data } = await supabase
-        .from("employees")
+      const { data } = await (supabase as any)
+        .from("public_instructors")
         .select("id, full_name, position, photo_url, bio, photo_position_x, photo_position_y, photo_zoom")
-        .eq("show_on_website", true)
-        .eq("is_active", true)
         .order("created_at");
       setInstructors(data ?? []);
     };
