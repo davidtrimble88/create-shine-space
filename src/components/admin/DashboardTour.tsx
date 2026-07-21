@@ -205,5 +205,6 @@ export default function DashboardTour({ role, userId, open, onOpenChange, onNavi
         </div>
       </div>
     </div>
+    </>
   );
 }
