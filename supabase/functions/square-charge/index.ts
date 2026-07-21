@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    const { sourceId, region, amountCents: clientAmountCents, booking } = parsed.data;
+    const { sourceId, region, amountCents: clientAmountCents, booking, discount } = parsed.data;
 
     const { token, locationId } = regionCreds(region);
     if (!token || !locationId) {
