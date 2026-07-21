@@ -350,34 +350,6 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         )}
       </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-          <label className="flex flex-col gap-1">
-            Q3. Years riding a street motorcycle:
-            <input value={q3v} onChange={e => setQ3v(e.target.value)}
-              className="px-3 py-2 rounded-md border border-border bg-background" placeholder="e.g. 0" />
-          </label>
-          <label className="flex flex-col gap-1">
-            Q5. Miles on-street in past year:
-            <input value={q5v} onChange={e => setQ5v(e.target.value)}
-              className="px-3 py-2 rounded-md border border-border bg-background" placeholder="e.g. 0" />
-          </label>
-          {q6v === "yes" && (
-            <label className="flex flex-col gap-1">
-              Q6. If yes, engine size (cc):
-              <input value={q6cc} onChange={e => setQ6cc(e.target.value)}
-                className="px-3 py-2 rounded-md border border-border bg-background" placeholder="e.g. 250" />
-            </label>
-          )}
-          {q7v === "other" && (
-            <label className="flex flex-col gap-1">
-              Q7. Other primary reason:
-              <input value={q7other} onChange={e => setQ7other(e.target.value)}
-                className="px-3 py-2 rounded-md border border-border bg-background" placeholder="describe" />
-            </label>
-          )}
-        </div>
-      </div>
-
       {sig && (
         <div className="bg-accent/5 border border-accent/40 rounded-xl p-4 flex items-center gap-3">
           <img src={sig} alt="signature" className="h-12 bg-white border border-border rounded" />
