@@ -804,7 +804,8 @@ const ClassRosters = () => {
             .roster-table th { background: #e8e8e8; font-weight: 600; font-size: 10px; }
             .roster-table td.center { text-align: center; }
             .roster-table .check-col { width: 28px; text-align: center; }
-            .roster-table .score-col { width: 50px; text-align: center; }
+            .roster-table .score-col { width: 28px; text-align: center; }
+            .roster-table .id-verify-col { width: 90px; text-align: center; }
             .count { font-size: 11px; margin-bottom: 6px; font-weight: 600; }
             .section-title { font-size: 13px; font-weight: 700; margin: 16px 0 6px; }
             .office-tracking { margin-top: 16px; font-size: 11px; font-weight: 600; }
@@ -830,7 +831,7 @@ const ClassRosters = () => {
           <td>{startNum + i}</td>
           <td></td><td></td>
           <td className="center"></td><td className="center"></td><td className="center"></td>
-          <td></td><td></td><td></td>
+          <td></td><td></td><td className="center"></td><td></td>
           <td className="center"></td><td className="center"></td><td className="center"></td><td className="center"></td>
           <td></td>
           <td className="center"></td><td className="center"></td>
@@ -846,7 +847,7 @@ const ClassRosters = () => {
       rows.push(
         <tr key={`retest-empty-${i}`} className="empty-rows">
           <td>{startNum + i}</td>
-          <td></td><td></td><td></td><td></td><td></td>
+          <td></td><td></td><td></td><td></td><td></td><td></td>
           <td></td><td></td><td></td><td></td><td></td>
         </tr>
       );
@@ -2028,6 +2029,7 @@ const ClassRosters = () => {
                     <th className="check-col">Model</th>
                     <th>Phone No.</th>
                     <th>DL #</th>
+                    <th className="id-verify-col">ID Verification</th>
                     <th>Birthdate</th>
                     <th className="check-col">C1</th>
                     <th className="check-col">R1</th>
@@ -2061,6 +2063,7 @@ const ClassRosters = () => {
                       </td>
                       <td>{b.phone}</td>
                       <td>{b.license_number || ""}</td>
+                      <td className="center"></td>
                       <td>{b.date_of_birth || ""}</td>
                       <td className="center"></td>
                       <td className="center"></td>
@@ -2084,6 +2087,7 @@ const ClassRosters = () => {
                     <th>Last</th>
                     <th>Phone No.</th>
                     <th>DL #</th>
+                    <th className="id-verify-col">ID Verification</th>
                     <th>Birthdate</th>
                     <th>Retake Knowledge?</th>
                     <th>Retake Skills?</th>
@@ -2100,6 +2104,7 @@ const ClassRosters = () => {
                       <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
                       <td>{b.phone}</td>
                       <td>{b.license_number || ""}</td>
+                      <td className="center"></td>
                       <td>{b.date_of_birth || ""}</td>
                       <td className="center"></td>
                       <td className="center"></td>
