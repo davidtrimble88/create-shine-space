@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    const { sourceId, region, amountCents, booking } = parsed.data;
+    const { sourceId, region, amountCents: clientAmountCents, booking } = parsed.data;
 
     const { token, locationId } = regionCreds(region);
     if (!token || !locationId) {
@@ -57,6 +57,61 @@ Deno.serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Server-side price validation — never trust client-supplied amountCents.
+    // Look up the booking's schedule and derive the expected charge from its
+    // stored price. If a request tries to submit a lower amount, reject it.
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const scheduleId = typeof booking.schedule_id === "string" ? booking.schedule_id : null;
+    if (!scheduleId) {
+      return new Response(
+        JSON.stringify({ error: "schedule_id is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: sched, error: schedErr } = await supabaseAdmin
+      .from("schedules")
+      .select("id, price")
+      .eq("id", scheduleId)
+      .is("cancelled_at", null)
+      .maybeSingle();
+
+    if (schedErr || !sched) {
+      return new Response(
+        JSON.stringify({ error: "Schedule not found or cancelled" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const parsePriceCents = (p: string | null | undefined): number | null => {
+      if (!p) return null;
+      const n = Number(String(p).replace(/[^0-9.]/g, ""));
+      if (!isFinite(n) || n <= 0) return null;
+      return Math.round(n * 100);
+    };
+    const expectedCents = parsePriceCents(sched.price as any);
+    if (expectedCents == null) {
+      return new Response(
+        JSON.stringify({ error: "This class has no price configured" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Server is authoritative: charge the schedule's price, not the client's value.
+    // A ±$1 tolerance mismatch on the client is logged for visibility.
+    if (Math.abs(clientAmountCents - expectedCents) > 100) {
+      console.warn("[square-charge] client amountCents mismatch", {
+        scheduleId,
+        clientAmountCents,
+        expectedCents,
+      });
+    }
+    const amountCents = expectedCents;
 
     // Charge the card via Square Payments API (production)
     const idempotencyKey = crypto.randomUUID();
