@@ -44,6 +44,28 @@ const q9 = { yes: { x: 281, y: 639.9 } as CB, no: { x: 311, y: 639.9 } as CB };
 const q10 = { yes: { x: 214, y: 651.9 } as CB, no: { x: 244, y: 651.9 } as CB };
 const q11 = { yes: { x: 202, y: 663.9 } as CB, no: { x: 232, y: 663.9 } as CB };
 
+// PDF Question 9 "How did you hear about this course?" — 12 options + Other explain
+const HEAR_OPTIONS = [
+  "Friend", "Tradeshow", "Catalog", "School", "Online Search", "DMV",
+  "Dealer", "Insurance", "Courts", "Magazine", "CMSP website", "Brochure",
+] as const;
+type HearOpt = typeof HEAR_OPTIONS[number];
+const HEAR_POS: Record<HearOpt, CB> = {
+  "Friend":         { x: 48,  y: 597 },
+  "Tradeshow":      { x: 108, y: 597 },
+  "Catalog":        { x: 175, y: 597 },
+  "School":         { x: 240, y: 597 },
+  "Online Search":  { x: 305, y: 597 },
+  "DMV":            { x: 385, y: 597 },
+  "Dealer":         { x: 48,  y: 611 },
+  "Insurance":      { x: 108, y: 611 },
+  "Courts":         { x: 175, y: 611 },
+  "Magazine":       { x: 240, y: 611 },
+  "CMSP website":   { x: 305, y: 611 },
+  "Brochure":       { x: 385, y: 611 },
+};
+const HEAR_OTHER_BLANK = { x: 130, y: 625.5, w: 220 };
+
 const DEFAULT_OFFSETS: Record<string, { dx: number; dy: number }> = {
   af_first: { dx: -31, dy: -6 },
   af_middle: { dx: -1, dy: -6 },
@@ -59,6 +81,7 @@ const DEFAULT_OFFSETS: Record<string, { dx: number; dy: number }> = {
   blank_q5: { dx: 10, dy: 2 },
   blank_q6cc: { dx: 7, dy: 4 },
   blank_q7other: { dx: 0, dy: 6 },
+  blank_hearOther: { dx: 0, dy: 4 },
 };
 
 const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
@@ -108,6 +131,10 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const [q9v, setQ9v] = useState<"yes" | "no" | "">("");
   const [q10v, setQ10v] = useState<"yes" | "no" | "">("");
   const [q11v, setQ11v] = useState<"yes" | "no" | "">("");
+  const [hearSel, setHearSel] = useState<Record<HearOpt, boolean>>(() =>
+    HEAR_OPTIONS.reduce((a, k) => ({ ...a, [k]: false }), {} as Record<HearOpt, boolean>));
+  const [hearOther, setHearOther] = useState("");
+  const toggleHear = (k: HearOpt) => setHearSel(prev => ({ ...prev, [k]: !prev[k] }));
 
   const [sig, setSig] = useState<string | null>(null);
   const [typed, setTyped] = useState("");
@@ -224,6 +251,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
     { pos: { x: 290, y: 527.7, w: 68 }, value: q5v, onChange: setQ5v, placeholder: "miles" },        // Q5 __ miles
     { pos: { x: 380, y: 539.7, w: 50 }, value: q6cc, onChange: setQ6cc, placeholder: "cc" },         // Q6 cc size
     { pos: { x: 195, y: 563.7, w: 145 }, value: q7other, onChange: setQ7other, placeholder: "other" }, // Q7 other
+    { pos: HEAR_OTHER_BLANK, value: hearOther, onChange: setHearOther, placeholder: "other" }, // Q9 Other explain
   ];
 
   const allAnswered = q1v && q2v && q4v && q6v && q7v && (q7v !== "other" || q7other) && q8v && q9v && q10v && q11v;
@@ -266,6 +294,8 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         q9_called_for_info: q9v,
         q10_taken_before: q10v,
         q11_cmsp_contact_future: q11v,
+        q9_hear_about_sources: HEAR_OPTIONS.filter(o => hearSel[o]),
+        q9_hear_other: hearOther || null,
         signature_typed: typed || fullName,
         signature_drawn: sig,
         guardian_name: prefill.isMinor ? guardianFullName : null,
@@ -419,9 +449,19 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             {/* Q11 */}
             <Checkbox k="q11y" c={q11.yes} checked={q11v === "yes"} onClick={() => setQ11v("yes")} />
             <Checkbox k="q11n" c={q11.no} checked={q11v === "no"} onClick={() => setQ11v("no")} />
+            {/* PDF Q9 "How did you hear about this course?" — multi-select */}
+            {HEAR_OPTIONS.map((opt) => (
+              <Checkbox
+                key={"hear_" + opt}
+                k={"hear_" + opt.replace(/\s+/g, "_")}
+                c={HEAR_POS[opt]}
+                checked={!!hearSel[opt]}
+                onClick={() => toggleHear(opt)}
+              />
+            ))}
             {/* Inline typeable blanks (optional) */}
             {inlineBlanks.map((b, i) => {
-              const key = "blank_" + ["q3","q5","q6cc","q7other"][i];
+              const key = "blank_" + ["q3","q5","q6cc","q7other","hearOther"][i];
               const o = offsets[key] || { dx: 0, dy: 0 };
               return (
                 <div key={key} className="absolute" style={{
