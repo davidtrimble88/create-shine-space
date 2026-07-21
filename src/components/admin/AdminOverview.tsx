@@ -155,10 +155,10 @@ const AdminOverview = () => {
   }, [canSeeEarnings, fetchEarnings]);
 
   const stats = [
-    { label: "Total Classes", value: scheduleCount, icon: BookOpen, color: "text-accent" },
-    { label: "Upcoming Classes", value: upcomingClasses, icon: CalendarDays, color: "text-green-400" },
-    { label: "Employees", value: employeeCount, icon: Users, color: "text-blue-400" },
-  ];
+    { label: "Total Classes", value: scheduleCount, icon: BookOpen, color: "text-accent", to: "/employee-dashboard?tab=full-schedule" },
+    { label: "Upcoming Classes", value: upcomingClasses, icon: CalendarDays, color: "text-green-400", to: "/employee-dashboard?tab=my-schedule" },
+    { label: "Employees", value: employeeCount, icon: Users, color: "text-blue-400", to: canSeeAnalytics ? "/employee-dashboard?tab=employees" : null },
+  ] as const;
 
   const allLocations = Array.from(new Set([...Object.keys(todayByLocation), ...Object.keys(yesterdayByLocation)])).sort();
 
