@@ -343,7 +343,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             toast({ title: "Layout copied", description: "Offsets copied to clipboard and saved locally." });
           }}>Copy Layout</Button>
           <Button type="button" size="sm" variant="outline" onClick={() => {
-            setOffsets({}); localStorage.removeItem("regFormOffsets");
+            setOffsets({ ...DEFAULT_OFFSETS }); localStorage.removeItem("regFormOffsets");
           }}>Reset</Button>
           <span className="text-xs text-pink-700">Scale: {renderScale.toFixed(3)}</span>
         </div>
