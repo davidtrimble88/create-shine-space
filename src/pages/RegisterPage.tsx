@@ -244,20 +244,28 @@ const RegisterPage = () => {
   >(null);
   const [discountBusy, setDiscountBusy] = useState<null | "returning" | "code">(null);
   const [discountNotice, setDiscountNotice] = useState<string | null>(null);
-  const [defaultDiscountCents, setDefaultDiscountCents] = useState<number>(7500);
+  const [intReturnCents, setIntReturnCents] = useState<number>(7500);
+  const [advReturnCents, setAdvReturnCents] = useState<number>(7500);
+
+  const isDiscountEligibleCourse = course === "intermediate" || course === "advanced";
+  const defaultDiscountCents = course === "advanced" ? advReturnCents : intReturnCents;
 
   useEffect(() => {
-    supabase
+    (supabase as any)
       .from("discount_settings")
-      .select("returning_student_amount_cents")
+      .select("intermediate_returning_amount_cents, advanced_returning_amount_cents")
       .eq("id", 1)
       .maybeSingle()
-      .then(({ data }) => {
-        if (data?.returning_student_amount_cents != null) {
-          setDefaultDiscountCents(data.returning_student_amount_cents);
+      .then(({ data }: any) => {
+        if (data?.intermediate_returning_amount_cents != null) {
+          setIntReturnCents(data.intermediate_returning_amount_cents);
+        }
+        if (data?.advanced_returning_amount_cents != null) {
+          setAdvReturnCents(data.advanced_returning_amount_cents);
         }
       });
   }, []);
+
 
   // Clear any applied discount if the checkbox is turned off
   useEffect(() => {
