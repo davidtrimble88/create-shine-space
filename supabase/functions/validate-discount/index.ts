@@ -94,27 +94,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!licenseNumber && !email) {
+    if (!licenseNumber) {
       return json({
         valid: false,
-        error: "Provide an ID number or email to look up a prior class.",
+        error: "Enter your driver's license / ID number above so we can look up your prior class.",
       });
     }
 
-    let query = supabase
+    const { count, error: qErr } = await supabase
       .from("bookings")
       .select("id", { count: "exact", head: true })
-      .neq("payment_status", "cancelled");
+      .neq("payment_status", "cancelled")
+      .ilike("license_number", licenseNumber);
 
-    if (licenseNumber && email) {
-      query = query.or(`license_number.ilike.${licenseNumber},email.ilike.${email}`);
-    } else if (licenseNumber) {
-      query = query.ilike("license_number", licenseNumber);
-    } else if (email) {
-      query = query.ilike("email", email);
-    }
-
-    const { count, error: qErr } = await query;
     if (qErr) {
       console.error("validate-discount lookup error", qErr);
       return json({ valid: false, error: "Could not verify prior registration." }, 500);
@@ -124,7 +116,7 @@ Deno.serve(async (req) => {
       return json({
         valid: false,
         notFound: true,
-        error: "We couldn't find a past registration for that ID or email. If you believe this is a mistake, please contact the office and we'll apply the discount for you.",
+        error: "We couldn't find your ID number in our past student records. Please call the office and we'll verify your history and issue you a discount code.",
       });
     }
 
