@@ -1377,36 +1377,30 @@ export type Database = {
       public_instructors: {
         Row: {
           bio: string | null
-          created_at: string | null
           full_name: string | null
           id: string | null
-          photo_position_x: number | null
-          photo_position_y: number | null
+          is_active: boolean | null
           photo_url: string | null
-          photo_zoom: number | null
           position: string | null
+          show_on_website: boolean | null
         }
         Insert: {
           bio?: string | null
-          created_at?: string | null
           full_name?: string | null
           id?: string | null
-          photo_position_x?: number | null
-          photo_position_y?: number | null
+          is_active?: boolean | null
           photo_url?: string | null
-          photo_zoom?: number | null
           position?: string | null
+          show_on_website?: boolean | null
         }
         Update: {
           bio?: string | null
-          created_at?: string | null
           full_name?: string | null
           id?: string | null
-          photo_position_x?: number | null
-          photo_position_y?: number | null
+          is_active?: boolean | null
           photo_url?: string | null
-          photo_zoom?: number | null
           position?: string | null
+          show_on_website?: boolean | null
         }
         Relationships: []
       }
@@ -1431,6 +1425,13 @@ export type Database = {
         Returns: number
       }
       get_active_payment_provider: { Args: never; Returns: string }
+      get_returning_discount_defaults: {
+        Args: never
+        Returns: {
+          advanced_returning_amount_cents: number
+          intermediate_returning_amount_cents: number
+        }[]
+      }
       has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
