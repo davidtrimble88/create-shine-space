@@ -55,6 +55,7 @@ interface SharedFile {
   uploaded_by: string | null;
   uploaded_by_name: string | null;
   created_at: string;
+  updated_at: string;
   min_role: "owner" | "admin" | "manager" | "employee";
 }
 
@@ -351,6 +352,7 @@ const AdminFiles = () => {
                     <div className="text-xs text-muted-foreground/70 mt-1 flex flex-wrap gap-x-3">
                       <span>{formatBytes(f.file_size)}</span>
                       <span>Added {formatDate(f.created_at)}</span>
+                      <span>Updated {formatDate(f.updated_at)}</span>
                       {f.uploaded_by_name && (
                         <span className="truncate">by {f.uploaded_by_name}</span>
                       )}
