@@ -134,6 +134,7 @@ const RegisterPage = () => {
   const course = searchParams.get("course") || "basic";
   const location = searchParams.get("location") || "ventura-county";
   const schedule = searchParams.get("schedule") || sessionStorage.getItem("selectedScheduleId") || "";
+  const isCalibrate = searchParams.get("calibrate") === "1";
   const [referralOptions, setReferralOptions] = useState<string[]>(FALLBACK_REFERRALS);
   const [scheduleLabel, setScheduleLabel] = useState<string>("");
 
