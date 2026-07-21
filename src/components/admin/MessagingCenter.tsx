@@ -33,11 +33,13 @@ type Participant = { thread_id: string; user_id: string; last_read_at: string };
 export default function MessagingCenter() {
   const { user, userRole } = useAuth();
   const { toast } = useToast();
-  const canCompose = userRole === "owner" || userRole === "admin";
+  const canCompose = userRole === "owner" || userRole === "admin" || userRole === "manager" || userRole === "employee" || userRole === "moderator";
+  const staffOnly = !(userRole === "owner" || userRole === "admin");
 
   const [threads, setThreads] = useState<Thread[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [staffIds, setStaffIds] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [reply, setReply] = useState("");
