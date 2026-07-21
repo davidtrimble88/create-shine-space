@@ -350,11 +350,41 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
         </div>
         <div className="flex gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => { setDecision(null); setStudentSig(null); setGuardianSig(null); }}>Change decision</Button>
-          <Button type="button" variant="hero" size="sm" disabled={!allSigned || submitting} onClick={submit}>
+          <Button type="button" variant="hero" size="sm" disabled={!allSigned || !guardianComplete || submitting} onClick={submit}>
             {submitting ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Saving…</> : "Finish and Save"}
           </Button>
         </div>
       </div>
+
+      {prefill.isMinor && decision === "sign" && (
+        <div className="bg-card border-2 border-accent/40 rounded-2xl p-4 md:p-6 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <ShieldCheck className="w-5 h-5 text-accent" />
+            <h3 className="font-bold text-foreground">Parent / Legal Guardian Information</h3>
+            <span className="text-xs font-semibold uppercase tracking-wide bg-accent/15 text-accent px-2 py-0.5 rounded">Required — Minor</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            The parent or legal guardian must complete their own information below. Nothing here is copied from the student's registration.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input value={gFirst} onChange={e => setGFirst(e.target.value)} placeholder="Guardian first name *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+            <input value={gLast} onChange={e => setGLast(e.target.value)} placeholder="Guardian last name *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+            <input value={gRelationship} onChange={e => setGRelationship(e.target.value)} placeholder="Relationship to student (e.g. Parent) *" className="px-3 py-2 rounded-md border border-border bg-background text-sm md:col-span-2" />
+            <input value={gAddress} onChange={e => setGAddress(e.target.value)} placeholder="Street address *" className="px-3 py-2 rounded-md border border-border bg-background text-sm md:col-span-2" />
+            <input value={gCity} onChange={e => setGCity(e.target.value)} placeholder="City *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+            <div className="grid grid-cols-2 gap-3">
+              <input value={gState} onChange={e => setGState(e.target.value)} placeholder="State *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+              <input value={gZip} onChange={e => setGZip(e.target.value)} placeholder="ZIP *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+            </div>
+            <input value={gPhone} onChange={e => setGPhone(e.target.value)} placeholder="Phone *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+            <input value={gEmail} onChange={e => setGEmail(e.target.value)} placeholder="Email *" type="email" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
+          </div>
+          {!guardianComplete && (
+            <p className="text-xs text-destructive">All guardian fields are required before signing.</p>
+          )}
+        </div>
+      )}
+
 
       {calibrate && (
         <div className="sticky top-16 z-30 bg-pink-100 border-2 border-pink-500 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3 text-sm">
