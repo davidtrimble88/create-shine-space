@@ -184,16 +184,25 @@ const AdminOverview = () => {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-card border border-border rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <stat.icon className={`w-8 h-8 ${stat.color}`} />
-            </div>
-            <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-            <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-          </div>
-        ))}
+        {stats.map((stat) => {
+          const inner = (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <stat.icon className={`w-8 h-8 ${stat.color}`} />
+              </div>
+              <p className="text-3xl font-bold text-foreground">{stat.value}</p>
+              <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+            </>
+          );
+          const cls = "block bg-card border border-border rounded-xl p-6 transition-all hover:border-accent hover:shadow-md hover:shadow-accent/10";
+          return stat.to ? (
+            <Link key={stat.label} to={stat.to} className={cls}>{inner}</Link>
+          ) : (
+            <div key={stat.label} className={cls.replace("block ", "")}>{inner}</div>
+          );
+        })}
       </div>
+
 
       {user && (
         <CertStatusSummary
