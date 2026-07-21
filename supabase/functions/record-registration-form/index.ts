@@ -53,6 +53,8 @@ const ResponseSchema = z.object({
   q9_called_for_info: z.enum(["yes", "no", ""]).optional().nullable(),
   q10_taken_before: z.enum(["yes", "no", ""]).optional().nullable(),
   q11_cmsp_contact_future: z.enum(["yes", "no", ""]).optional().nullable(),
+  q9_hear_about_sources: z.array(z.string()).optional().nullable(),
+  q9_hear_other: z.string().optional().nullable(),
   // Signature + acknowledgments
   signature_typed: z.string().min(1),
   signature_drawn: z.string().min(50),
@@ -109,20 +111,33 @@ type RegData = z.infer<typeof ResponseSchema>;
 // Calibration offsets (PDF points). Frontend calibration sends screen-pixel deltas;
 // these are converted by dividing by the render scale shown in the calibration bar.
 const FIELD_OFFSETS: Record<string, { dx: number; dy: number }> = {
-  first: { dx: -23.8, dy: -4.6 },
-  middle: { dx: -0.8, dy: -4.6 },
-  last: { dx: -0.8, dy: -4.6 },
-  street: { dx: -2.3, dy: -2.3 },
-  city: { dx: 0.8, dy: -3.8 },
-  state: { dx: 3.1, dy: -2.3 },
-  zip: { dx: 0.8, dy: -3.8 },
-  idNumber: { dx: -53.8, dy: -3.8 },
-  idState: { dx: -60.8, dy: -3.1 },
-  idExp: { dx: 5.4, dy: -3.1 },
-  q3: { dx: -2.3, dy: 4.6 },
-  q5: { dx: 7.7, dy: 1.5 },
-  q6cc: { dx: 5.4, dy: 3.1 },
-  q7other: { dx: 0, dy: 4.6 },
+  first: { dx: -22.5, dy: -4.4 },
+  middle: { dx: -0.7, dy: -4.4 },
+  last: { dx: -0.7, dy: -4.4 },
+  street: { dx: -2.2, dy: -2.2 },
+  city: { dx: 0.7, dy: -3.6 },
+  state: { dx: 2.9, dy: -2.2 },
+  zip: { dx: 0.7, dy: -3.6 },
+  idNumber: { dx: -50.9, dy: -3.6 },
+  idState: { dx: -57.4, dy: -2.9 },
+  idExp: { dx: 5.1, dy: -2.9 },
+  q3: { dx: -2.2, dy: 4.4 },
+  q5: { dx: 7.3, dy: 1.5 },
+  q6cc: { dx: 5.1, dy: 2.9 },
+  q7other: { dx: 0, dy: 4.4 },
+  hearOther: { dx: -26.2, dy: 6.5 },
+  hear_Dealer: { dx: -14.5, dy: 8.7 },
+  hear_Friend: { dx: -14.5, dy: 13.1 },
+  hear_Insurance: { dx: -1.5, dy: 8.7 },
+  hear_Tradeshow: { dx: -0.7, dy: 13.8 },
+  hear_Courts: { dx: 3.6, dy: 8.7 },
+  hear_Catalog: { dx: 2.2, dy: 13.8 },
+  hear_Magazine: { dx: 10.9, dy: 9.4 },
+  hear_School: { dx: 10.9, dy: 13.8 },
+  hear_CMSP_website: { dx: 22.5, dy: 11.6 },
+  hear_Online_Search: { dx: 22.5, dy: 15.3 },
+  hear_Brochure: { dx: 46.5, dy: 10.9 },
+  hear_DMV: { dx: 46.5, dy: 15.3 },
 };
 
 function getOffset(fieldKey?: string) {
@@ -218,6 +233,30 @@ async function stampRegistrationTemplate(
   // Q11
   if (data.q11_cmsp_contact_future === "yes") stampX(p0, font, 202, 663.9);
   if (data.q11_cmsp_contact_future === "no") stampX(p0, font, 232, 663.9);
+
+  // Q9 "How did you hear about this course?" — 12 multi-select checkboxes + Other blank
+  const HEAR_POS: Record<string, { x: number; y: number }> = {
+    hear_Friend:        { x: 48,  y: 597 },
+    hear_Tradeshow:     { x: 108, y: 597 },
+    hear_Catalog:       { x: 175, y: 597 },
+    hear_School:        { x: 240, y: 597 },
+    hear_Online_Search: { x: 305, y: 597 },
+    hear_DMV:           { x: 385, y: 597 },
+    hear_Dealer:        { x: 48,  y: 611 },
+    hear_Insurance:     { x: 108, y: 611 },
+    hear_Courts:        { x: 175, y: 611 },
+    hear_Magazine:      { x: 240, y: 611 },
+    hear_CMSP_website:  { x: 305, y: 611 },
+    hear_Brochure:      { x: 385, y: 611 },
+  };
+  for (const opt of data.q9_hear_about_sources || []) {
+    const key = "hear_" + String(opt).replace(/\s+/g, "_");
+    const pos = HEAR_POS[key];
+    if (pos) stampX(p0, font, pos.x, pos.y, key);
+  }
+  if (data.q9_hear_other) {
+    stampText(p0, font, data.q9_hear_other, 130, 625.5, 9, 220, "hearOther");
+  }
 
   // Signature image on template — place at the "Verified Government Issued Photo ID By"
   // spot is for staff; instead, stamp the signature at bottom margin near date/name area.

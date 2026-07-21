@@ -81,7 +81,19 @@ const DEFAULT_OFFSETS: Record<string, { dx: number; dy: number }> = {
   blank_q5: { dx: 10, dy: 2 },
   blank_q6cc: { dx: 7, dy: 4 },
   blank_q7other: { dx: 0, dy: 6 },
-  blank_hearOther: { dx: 0, dy: 4 },
+  blank_hearOther: { dx: -36, dy: 9 },
+  hear_Dealer: { dx: -20, dy: 12 },
+  hear_Friend: { dx: -20, dy: 18 },
+  hear_Insurance: { dx: -2, dy: 12 },
+  hear_Tradeshow: { dx: -1, dy: 19 },
+  hear_Courts: { dx: 5, dy: 12 },
+  hear_Catalog: { dx: 3, dy: 19 },
+  hear_Magazine: { dx: 15, dy: 13 },
+  hear_School: { dx: 15, dy: 19 },
+  hear_CMSP_website: { dx: 31, dy: 16 },
+  hear_Online_Search: { dx: 31, dy: 21 },
+  hear_Brochure: { dx: 64, dy: 15 },
+  hear_DMV: { dx: 64, dy: 21 },
 };
 
 const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
