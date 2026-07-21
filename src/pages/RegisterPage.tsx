@@ -422,25 +422,25 @@ const RegisterPage = () => {
 
   const validateReturningDiscount = async () => {
     const licenseNumber = form.getValues("licenseNumber")?.trim();
-    const email = form.getValues("email")?.trim();
-    if (!licenseNumber && !email) {
-      setDiscountNotice("Fill in your ID number or email first so we can look up your prior class.");
+    if (!licenseNumber) {
+      setDiscountNotice("Enter your driver's license / ID number above, then check the box again.");
+      setReturningStudent(false);
       return;
     }
     setDiscountBusy("returning");
     setDiscountNotice(null);
     try {
       const { data } = await supabase.functions.invoke("validate-discount", {
-        body: { course, source: "returning", licenseNumber, email },
+        body: { course, source: "returning", licenseNumber },
       });
       const res = data as any;
       if (res?.valid) {
         setDiscountApplied({ source: "returning", amountCents: res.amountCents });
         setDiscountNotice(null);
-        toast({ title: "Returning-student discount applied", description: `${formatCents(res.amountCents)} off your Intermediate Course.` });
+        toast({ title: "Returning-student discount applied", description: `${formatCents(res.amountCents)} off.` });
       } else {
         setDiscountApplied((prev) => (prev?.source === "returning" ? null : prev));
-        setDiscountNotice(res?.error || "We couldn't find a prior registration.");
+        setDiscountNotice(res?.error || "We couldn't find your ID number in our past student records. Please call the office and we'll verify your history and issue you a discount code.");
       }
     } catch (e) {
       setDiscountNotice(e instanceof Error ? e.message : "Could not verify prior registration.");
