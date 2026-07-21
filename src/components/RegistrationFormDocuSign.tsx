@@ -44,6 +44,28 @@ const q9 = { yes: { x: 281, y: 639.9 } as CB, no: { x: 311, y: 639.9 } as CB };
 const q10 = { yes: { x: 214, y: 651.9 } as CB, no: { x: 244, y: 651.9 } as CB };
 const q11 = { yes: { x: 202, y: 663.9 } as CB, no: { x: 232, y: 663.9 } as CB };
 
+// PDF Question 9 "How did you hear about this course?" — 12 options + Other explain
+const HEAR_OPTIONS = [
+  "Friend", "Tradeshow", "Catalog", "School", "Online Search", "DMV",
+  "Dealer", "Insurance", "Courts", "Magazine", "CMSP website", "Brochure",
+] as const;
+type HearOpt = typeof HEAR_OPTIONS[number];
+const HEAR_POS: Record<HearOpt, CB> = {
+  "Friend":         { x: 48,  y: 597 },
+  "Tradeshow":      { x: 108, y: 597 },
+  "Catalog":        { x: 175, y: 597 },
+  "School":         { x: 240, y: 597 },
+  "Online Search":  { x: 305, y: 597 },
+  "DMV":            { x: 385, y: 597 },
+  "Dealer":         { x: 48,  y: 611 },
+  "Insurance":      { x: 108, y: 611 },
+  "Courts":         { x: 175, y: 611 },
+  "Magazine":       { x: 240, y: 611 },
+  "CMSP website":   { x: 305, y: 611 },
+  "Brochure":       { x: 385, y: 611 },
+};
+const HEAR_OTHER_BLANK = { x: 130, y: 625.5, w: 220 };
+
 const DEFAULT_OFFSETS: Record<string, { dx: number; dy: number }> = {
   af_first: { dx: -31, dy: -6 },
   af_middle: { dx: -1, dy: -6 },
@@ -59,6 +81,7 @@ const DEFAULT_OFFSETS: Record<string, { dx: number; dy: number }> = {
   blank_q5: { dx: 10, dy: 2 },
   blank_q6cc: { dx: 7, dy: 4 },
   blank_q7other: { dx: 0, dy: 6 },
+  blank_hearOther: { dx: 0, dy: 4 },
 };
 
 const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
