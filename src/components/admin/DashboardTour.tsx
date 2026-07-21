@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 
 type Role = "owner" | "admin" | "manager" | "employee";
 
@@ -48,12 +47,15 @@ interface Props {
 export default function DashboardTour({ role, userId, open, onOpenChange, onNavigateTab }: Props) {
   const steps = useMemo(() => STEPS.filter(s => s.roles.includes(role)), [role]);
   const [i, setI] = useState(0);
+  const [minimized, setMinimized] = useState(false);
 
-  useEffect(() => { if (open) setI(0); }, [open]);
+  useEffect(() => { if (open) { setI(0); setMinimized(false); } }, [open]);
 
   useEffect(() => {
     if (open && steps[i]) onNavigateTab(steps[i].tab);
   }, [i, open, steps, onNavigateTab]);
+
+  if (!open || !steps.length) return null;
 
   const finish = () => {
     try { localStorage.setItem(`dashboardTourSeen:${userId}`, "1"); } catch {}
@@ -61,27 +63,50 @@ export default function DashboardTour({ role, userId, open, onOpenChange, onNavi
     onNavigateTab("overview");
   };
 
-  if (!steps.length) return null;
   const step = steps[i];
   const isLast = i === steps.length - 1;
 
+  if (minimized) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button size="sm" onClick={() => setMinimized(false)} className="shadow-lg">
+          <Sparkles className="w-4 h-4 mr-2" /> Resume tour ({i + 1}/{steps.length})
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) finish(); else onOpenChange(v); }}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-2 text-accent text-xs font-semibold uppercase tracking-wide">
-            <Sparkles className="w-4 h-4" /> Portal Tour · Step {i + 1} of {steps.length}
+    <div className="fixed bottom-4 right-4 z-50 w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-border bg-card shadow-2xl ring-1 ring-accent/20">
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 text-accent text-[11px] font-semibold uppercase tracking-wide">
+            <Sparkles className="w-3.5 h-3.5" /> Tour · {i + 1} of {steps.length}
           </div>
-          <DialogTitle className="mt-2">{step.title}</DialogTitle>
-          <DialogDescription className="text-sm leading-relaxed pt-1">
-            {step.body}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setMinimized(true)}
+              className="text-muted-foreground hover:text-foreground text-[11px] px-1.5 py-0.5 rounded hover:bg-secondary"
+              title="Minimize"
+            >
+              Hide
+            </button>
+            <button
+              onClick={finish}
+              className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-secondary"
+              title="Close tour"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+        <h3 className="mt-2 font-semibold text-base">{step.title}</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed mt-1">{step.body}</p>
+        <div className="mt-3 h-1 w-full bg-secondary rounded-full overflow-hidden">
           <div className="h-full bg-accent transition-all" style={{ width: `${((i + 1) / steps.length) * 100}%` }} />
         </div>
-        <DialogFooter className="gap-2 sm:gap-2 flex-row justify-between sm:justify-between">
-          <Button variant="ghost" size="sm" onClick={finish}>Skip tour</Button>
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <Button variant="ghost" size="sm" onClick={finish}>Skip</Button>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setI(x => Math.max(0, x - 1))} disabled={i === 0}>Back</Button>
             {isLast ? (
@@ -90,8 +115,8 @@ export default function DashboardTour({ role, userId, open, onOpenChange, onNavi
               <Button size="sm" onClick={() => setI(x => Math.min(steps.length - 1, x + 1))}>Next</Button>
             )}
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </div>
   );
 }
