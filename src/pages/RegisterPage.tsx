@@ -37,6 +37,16 @@ import { type ModelReleasePrefill } from "@/components/ModelReleaseStep";
 import RegistrationFormDocuSign from "@/components/RegistrationFormDocuSign";
 import ModelReleaseDocuSign from "@/components/ModelReleaseDocuSign";
 import WaiverDocuSign from "@/components/WaiverDocuSign";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 const registrationSchema = z.object({
