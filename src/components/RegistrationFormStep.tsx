@@ -35,7 +35,12 @@ export interface RegistrationFormPrefill {
   locationLabel?: string;
   scheduleId?: string | null;
   scheduleDate?: string | null;
+  isMinor?: boolean;
+  guardianFirstName?: string;
+  guardianLastName?: string;
+  guardianRelationship?: string;
 }
+
 
 const ACKS = [
   { key: "truthful", label: "I certify that the information I have provided on this registration form is true, accurate, and complete to the best of my knowledge." },
