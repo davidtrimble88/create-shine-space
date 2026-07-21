@@ -242,13 +242,14 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
   ];
   const GAF: { k: string; x: number; y: number; w: number; text: string }[] = prefill.isMinor ? [
     { k: "gaf_date", x: 449, y: 568, w: 92, text: dateStr },
-    { k: "gaf_address", x: 86, y: 604, w: 320, text: addressLine },
-    { k: "gaf_phone", x: 446, y: 604, w: 152, text: prefill.guardianPhone || prefill.phone || "" },
-    { k: "gaf_city", x: 86, y: 640, w: 145, text: prefill.addressCity || "" },
-    { k: "gaf_state", x: 234, y: 640, w: 100, text: prefill.addressState || "" },
-    { k: "gaf_zip", x: 342, y: 640, w: 65, text: prefill.addressZip || "" },
-    { k: "gaf_email", x: 446, y: 640, w: 152, text: prefill.guardianEmail || prefill.email || "" },
+    { k: "gaf_address", x: 86, y: 604, w: 320, text: gAddress },
+    { k: "gaf_phone", x: 446, y: 604, w: 152, text: gPhone },
+    { k: "gaf_city", x: 86, y: 640, w: 145, text: gCity },
+    { k: "gaf_state", x: 234, y: 640, w: 100, text: gState },
+    { k: "gaf_zip", x: 342, y: 640, w: 65, text: gZip },
+    { k: "gaf_email", x: 446, y: 640, w: 152, text: gEmail },
   ] : [];
+
 
   if (result) {
     return (
