@@ -564,33 +564,6 @@ const RegisterPage = () => {
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   };
 
-  const jumpToModelReleaseCalibration = (asMinor = false) => {
-    setRegFormOpen(false);
-    setWaiverOpen(false);
-    setModelReleasePrefill({
-      firstName: asMinor ? "Jamie" : "John",
-      middleName: "A",
-      lastName: "Doe",
-      email: "test@example.com",
-      phone: "(805) 555-1234",
-      dateOfBirth: asMinor ? "2010-05-15" : "1990-05-15",
-      addressStreet: "123 Main St",
-      addressCity: "Ventura",
-      addressState: "CA",
-      addressZip: "93001",
-      isMinor: asMinor,
-      guardianFirstName: asMinor ? "Pat" : undefined,
-      guardianLastName: asMinor ? "Doe" : undefined,
-      guardianRelationship: asMinor ? "Parent" : undefined,
-      course,
-      location,
-      locationLabel: locationLabels[location] || location,
-      scheduleId: schedule || "calibrate-schedule",
-      scheduleDate: "2026-08-01",
-    } as any);
-    setModelReleaseOpen(true);
-    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
-  };
 
 
   const handleModelReleaseComplete = (_recordId: string, _decision: "sign" | "decline") => {
@@ -687,26 +660,6 @@ const RegisterPage = () => {
                 : regFormOpen ? "Step 5 of 7 — Sign Registration Form"
                 : "Step 4 of 7"}
             </span>
-            {isCalibrate && !modelReleaseOpen && (
-              <div className="mb-4 flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="border-destructive text-destructive hover:bg-destructive/10"
-                  onClick={() => jumpToModelReleaseCalibration(false)}
-                >
-                  Debug: Model Release (Adult)
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="border-destructive text-destructive hover:bg-destructive/10"
-                  onClick={() => jumpToModelReleaseCalibration(true)}
-                >
-                  Debug: Model Release (Minor + Guardian)
-                </Button>
-              </div>
-            )}
 
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Student <span className="text-accent">Registration</span>
