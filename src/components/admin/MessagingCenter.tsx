@@ -317,7 +317,9 @@ export default function MessagingCenter() {
         <ComposeDialog
           open={composeOpen}
           onOpenChange={setComposeOpen}
-          employees={employees.filter((e) => e.user_id !== user?.id)}
+          employees={employees.filter((e) => e.user_id !== user?.id && (!staffOnly || staffIds.has(e.user_id)))}
+          broadcastAllowed={!staffOnly}
+          restrictedNotice={staffOnly ? "You can only start new messages to owners and admins. You can reply to any message sent to you." : null}
           onCreated={(id) => {
             setActiveId(id);
             loadThreads();
