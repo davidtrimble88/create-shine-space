@@ -559,6 +559,31 @@ const RegisterPage = () => {
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   };
 
+  const jumpToModelReleaseCalibration = () => {
+    setRegFormOpen(false);
+    setWaiverOpen(false);
+    setModelReleasePrefill({
+      firstName: "John",
+      middleName: "A",
+      lastName: "Doe",
+      email: "test@example.com",
+      phone: "(805) 555-1234",
+      dateOfBirth: "1990-05-15",
+      addressStreet: "123 Main St",
+      addressCity: "Ventura",
+      addressState: "CA",
+      addressZip: "93001",
+      isMinor: false,
+      course,
+      location,
+      locationLabel: locationLabels[location] || location,
+      scheduleId: schedule || "calibrate-schedule",
+      scheduleDate: "2026-08-01",
+    });
+    setModelReleaseOpen(true);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+  };
+
   const handleModelReleaseComplete = (_recordId: string, _decision: "sign" | "decline") => {
     setModelReleaseOpen(false);
     setWaiverOpen(true);
