@@ -283,7 +283,7 @@ const guideSections: GuideSection[] = [
           "Owner — full access to everything, including Earnings, Payment Settings, and Role Permissions.",
           "Admin — manages staff, schedules, bookings, and employees. Can assign Manager / Employee roles.",
           "Manager — creates and manages schedules, views staff availability.",
-          "Employee / Viewer — views schedules, marks personal availability, sees shared files.",
+          "Instructor — views schedules, marks personal availability, sees shared files.",
         ],
       },
     ],

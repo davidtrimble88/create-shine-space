@@ -61,9 +61,9 @@ interface SharedFile {
 type MinRole = "owner" | "admin" | "manager" | "employee";
 
 const ROLE_OPTIONS: { value: MinRole; label: string; description: string }[] = [
-  { value: "employee", label: "All staff (Viewers and up)", description: "Everyone signed in can see this file" },
-  { value: "manager", label: "Managers and up", description: "Hidden from Viewers" },
-  { value: "admin", label: "Admins and Owners only", description: "Hidden from Viewers and Managers" },
+  { value: "employee", label: "All staff (Instructors and up)", description: "Everyone signed in can see this file" },
+  { value: "manager", label: "Managers and up", description: "Hidden from Instructors" },
+  { value: "admin", label: "Admins and Owners only", description: "Hidden from Instructors and Managers" },
   { value: "owner", label: "Owners only", description: "Hidden from everyone except Owners" },
 ];
 

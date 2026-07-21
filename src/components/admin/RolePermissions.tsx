@@ -4,7 +4,7 @@ const roles = [
   { key: "owner", label: "Owner", icon: Crown, description: "Full access to everything. Cannot be assigned — set by system." },
   { key: "admin", label: "Admin", icon: Shield, description: "Manages staff (up to manager level), schedules, bookings, and employees." },
   { key: "manager", label: "Manager", icon: UserCog, description: "Manages schedules and views staff availability." },
-  { key: "employee", label: "Employee / Viewer", icon: Eye, description: "Views schedule and marks personal availability." },
+  { key: "employee", label: "Instructor", icon: Eye, description: "Views schedule and marks personal availability." },
 ];
 
 const permissions = [
