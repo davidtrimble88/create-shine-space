@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { booking, paymentStatus, paymentProvider } = parsed.data;
+    const { booking, paymentStatus, paymentProvider, discountCodeId } = parsed.data;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
