@@ -104,9 +104,111 @@ const Q7_LABELS: Record<string, string> = {
   other: "Other",
 };
 
+type RegData = z.infer<typeof ResponseSchema>;
+
+// Stamp text at yTop (from page top, 792-tall). Clips to maxW.
+function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 9, maxW?: number) {
+  if (!text) return;
+  let t = String(text);
+  if (maxW) while (font.widthOfTextAtSize(t, size) > maxW && t.length > 1) t = t.slice(0, -1);
+  page.drawText(t, { x, y: 792 - yTop + 2, size, font, color: rgb(0, 0, 0) });
+}
+function stampX(page: any, font: any, xCenter: number, yTop: number) {
+  page.drawText("X", { x: xCenter - 3, y: 792 - yTop, size: 11, font, color: rgb(0, 0, 0) });
+}
+
+async function stampRegistrationTemplate(
+  pdf: PDFDocument, font: any, data: RegData, meta: { signedAt: string },
+) {
+  const p0 = pdf.getPages()[0];
+  const today = new Date(meta.signedAt);
+  const dateStr = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
+  const dob = (() => {
+    if (!data.date_of_birth) return "";
+    const [y, m, d] = data.date_of_birth.split("-");
+    return `${m}/${d}/${y.slice(2)}`;
+  })();
+
+  // Header
+  stampText(p0, font, dateStr, 420, 142.9, 10, 120);
+  // Personal data
+  stampText(p0, font, data.first_name, 90, 186.1, 9, 140);
+  if (data.middle_name) stampText(p0, font, data.middle_name, 240, 186.1, 9, 140);
+  stampText(p0, font, data.last_name, 400, 186.1, 9, 170);
+  stampText(p0, font, data.address_street || "", 90, 218.5, 9, 180);
+  stampText(p0, font, data.address_city || "", 280, 218.5, 9, 100);
+  stampText(p0, font, data.address_state || "", 390, 218.5, 9, 90);
+  stampText(p0, font, data.address_zip || "", 490, 218.5, 9, 80);
+  stampText(p0, font, dob, 107, 250.9, 9, 100);
+  if (data.age != null) stampText(p0, font, String(data.age), 236, 250.9, 9, 30);
+  if (data.sex === "M") stampX(p0, font, 289, 250.9);
+  if (data.sex === "F") stampX(p0, font, 322, 250.9);
+  stampText(p0, font, data.phone_work || "", 82, 272.5, 9, 145);
+  stampText(p0, font, data.phone_home || "", 275, 272.5, 9, 120);
+  stampText(p0, font, data.phone_mobile || "", 434, 272.5, 9, 140);
+  stampText(p0, font, data.email, 67, 294.1, 9, 255);
+
+  // Photo ID row selection
+  const rowY: Record<string, number> = {
+    drivers_license: 338.1, permit: 338.1, state_id: 358.1, foreign_license: 378.1, passport: 398.1, other: 398.1,
+  };
+  const y = rowY[data.id_type] ?? 338.1;
+  stampX(p0, font, 36, y);
+  if (data.id_type === "permit") stampX(p0, font, 143, y);
+  stampText(p0, font, data.id_number || "", 250, y, 9, 150);
+  stampText(p0, font, data.id_state || data.id_country || "", 410, y, 9, 60);
+  stampText(p0, font, data.id_expiration || "", 495, y, 9, 70);
+
+  // Q1
+  if (data.q1_ridden_regularly_5yr === "yes") stampX(p0, font, 316, 455.7);
+  if (data.q1_ridden_regularly_5yr === "no") stampX(p0, font, 346, 455.7);
+  // Q2
+  if (data.q2_experience_bucket === "lt_500") stampX(p0, font, 36, 479.7);
+  if (data.q2_experience_bucket === "500_2000") stampX(p0, font, 144, 479.7);
+  if (data.q2_experience_bucket === "gt_2000") stampX(p0, font, 252, 479.7);
+  // Q3
+  stampText(p0, font, data.q3_years_riding || "", 180, 491.7, 9, 35);
+  // Q4
+  if (data.q4_off_road === "yes") stampX(p0, font, 152, 503.7);
+  if (data.q4_off_road === "no") stampX(p0, font, 182, 503.7);
+  // Q5
+  stampText(p0, font, data.q5_miles_past_year || "", 290, 527.7, 9, 68);
+  // Q6
+  if (data.q6_owns_motorcycle === "yes") stampX(p0, font, 244, 539.7);
+  if (data.q6_owns_motorcycle === "no") stampX(p0, font, 284, 539.7);
+  stampText(p0, font, data.q6_engine_cc || "", 380, 539.7, 9, 50);
+  // Q7
+  if (data.q7_primary_reason === "commuting") stampX(p0, font, 36, 563.7);
+  if (data.q7_primary_reason === "recreation") stampX(p0, font, 97, 563.7);
+  if (data.q7_primary_reason === "other") { stampX(p0, font, 156, 563.7); stampText(p0, font, data.q7_other || "", 195, 563.7, 9, 145); }
+  // Q8
+  if (data.q8_prior_accident === "yes") stampX(p0, font, 366, 575.7);
+  if (data.q8_prior_accident === "no") stampX(p0, font, 396, 575.7);
+  // Q9 (called for info)
+  if (data.q9_called_for_info === "yes") stampX(p0, font, 281, 639.9);
+  if (data.q9_called_for_info === "no") stampX(p0, font, 311, 639.9);
+  // Q10
+  if (data.q10_taken_before === "yes") stampX(p0, font, 214, 651.9);
+  if (data.q10_taken_before === "no") stampX(p0, font, 244, 651.9);
+  // Q11
+  if (data.q11_cmsp_contact_future === "yes") stampX(p0, font, 202, 663.9);
+  if (data.q11_cmsp_contact_future === "no") stampX(p0, font, 232, 663.9);
+
+  // Signature image on template — place at the "Verified Government Issued Photo ID By"
+  // spot is for staff; instead, stamp the signature at bottom margin near date/name area.
+  const parsed = dataUrlToBytes(data.signature_drawn);
+  if (parsed) {
+    const img = parsed.mime === "png" ? await pdf.embedPng(parsed.bytes) : await pdf.embedJpg(parsed.bytes);
+    const maxW = 180, maxH = 24;
+    const s = Math.min(maxW / img.width, maxH / img.height);
+    // Overlay on the top-right corner date line (visual acknowledgment on the template)
+    p0.drawImage(img, { x: 420, y: 792 - 158, width: img.width * s, height: img.height * s });
+  }
+}
+
 async function buildPdf(
   templateBytes: Uint8Array,
-  data: z.infer<typeof ResponseSchema>,
+  data: RegData,
   meta: { ip: string; userAgent: string; signedAt: string; hash: string; recordId: string },
 ): Promise<Uint8Array> {
   const pdf = await PDFDocument.load(templateBytes);
@@ -136,6 +238,10 @@ async function buildPdf(
     if (data.id_expiration) parts.push(`Exp: ${data.id_expiration}`);
     return parts.join("  •  ");
   })();
+
+  // ===== Stamp the ORIGINAL template's page 0 (in-place, DocuSign style) =====
+  await stampRegistrationTemplate(pdf, font, data, meta);
+
 
   // ===== Page 1: Completed Responses =====
   const page = pdf.addPage([612, 792]);

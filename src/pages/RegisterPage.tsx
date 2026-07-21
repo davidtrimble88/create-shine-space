@@ -32,8 +32,10 @@ import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
-import RegistrationFormStep, { type RegistrationFormPrefill } from "@/components/RegistrationFormStep";
-import ModelReleaseStep, { type ModelReleasePrefill } from "@/components/ModelReleaseStep";
+import { type RegistrationFormPrefill } from "@/components/RegistrationFormStep";
+import { type ModelReleasePrefill } from "@/components/ModelReleaseStep";
+import RegistrationFormDocuSign from "@/components/RegistrationFormDocuSign";
+import ModelReleaseDocuSign from "@/components/ModelReleaseDocuSign";
 import WaiverDocuSign from "@/components/WaiverDocuSign";
 
 
@@ -672,13 +674,13 @@ const RegisterPage = () => {
             className={(waiverOpen && waiverPrefill) || (regFormOpen && regFormPrefill) || (modelReleaseOpen && modelReleasePrefill) ? "max-w-5xl mx-auto" : "max-w-2xl mx-auto"}
           >
             {regFormOpen && regFormPrefill ? (
-              <RegistrationFormStep
+              <RegistrationFormDocuSign
                 prefill={regFormPrefill}
                 onBack={() => setRegFormOpen(false)}
                 onSigned={handleRegistrationFormSigned}
               />
             ) : modelReleaseOpen && modelReleasePrefill ? (
-              <ModelReleaseStep
+              <ModelReleaseDocuSign
                 prefill={modelReleasePrefill}
                 onBack={() => setModelReleaseOpen(false)}
                 onComplete={handleModelReleaseComplete}

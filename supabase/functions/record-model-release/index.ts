@@ -63,8 +63,8 @@ const SignSchema = BaseSchema.extend({
 
 const DeclineSchema = BaseSchema.extend({
   decision: z.literal("decline"),
-  decline_typed: z.string().min(1),
-  decline_drawn: z.string().min(50),
+  signature_typed: z.string().min(1),
+  signature_drawn: z.string().min(50),
   decline_acknowledgments: z.array(z.object({
     key: z.string(), label: z.string(), accepted: z.literal(true),
   })),
@@ -99,6 +99,79 @@ type SignData = z.infer<typeof SignSchema>;
 type DeclineData = z.infer<typeof DeclineSchema>;
 type AnyData = z.infer<typeof BodySchema>;
 
+// Stamp a text value on the CMSP Model Release template's page 0 using yTop
+// (measured from top of a 792-tall page).
+function stampText(page: any, font: any, text: string, x: number, yTop: number, size = 10, maxW?: number) {
+  if (!text) return;
+  let t = text;
+  if (maxW) {
+    while (font.widthOfTextAtSize(t, size) > maxW && t.length > 1) t = t.slice(0, -1);
+  }
+  page.drawText(t, { x, y: 792 - yTop + 2, size, font, color: rgb(0, 0, 0) });
+}
+
+async function stampReleaseTemplate(
+  pdf: PDFDocument, font: any, data: AnyData, meta: { signedAt: string },
+) {
+  const pages = pdf.getPages();
+  const p0 = pages[0];
+  const fullName = [data.first_name, data.middle_name || "", data.last_name]
+    .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+  const today = new Date(meta.signedAt);
+  const dateStr = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
+  const addr = data.address_street || "";
+
+  // Student block
+  stampText(p0, font, fullName, 86, 414.6, 10, 220);
+  stampText(p0, font, data.date_of_birth || "", 446, 414.6, 10, 92);
+  stampText(p0, font, dateStr, 446, 449.4, 10, 92);
+  stampText(p0, font, addr, 86, 485.1, 10, 320);
+  stampText(p0, font, data.phone || "", 446, 487.1, 10, 152);
+  stampText(p0, font, data.address_city || "", 86, 522.6, 10, 145);
+  stampText(p0, font, data.address_state || "", 234, 522.6, 10, 100);
+  stampText(p0, font, data.address_zip || "", 342, 522.6, 10, 65);
+  stampText(p0, font, data.email, 446, 522.6, 10, 152);
+
+  const drawnSig = data.decision === "sign" ? data.signature_drawn : data.signature_drawn;
+  if (drawnSig) {
+    const parsed = dataUrlToBytes(drawnSig);
+    if (parsed) {
+      const img = parsed.mime === "png" ? await pdf.embedPng(parsed.bytes) : await pdf.embedJpg(parsed.bytes);
+      const maxW = 220, maxH = 26;
+      const s = Math.min(maxW / img.width, maxH / img.height);
+      p0.drawImage(img, { x: 86, y: 792 - 450.4, width: img.width * s, height: img.height * s });
+    }
+  }
+
+  if (data.is_minor) {
+    stampText(p0, font, dateStr, 449, 583.9, 10, 92);
+    stampText(p0, font, addr, 86, 620.4, 10, 320);
+    stampText(p0, font, data.guardian_phone || data.phone || "", 446, 618.4, 10, 152);
+    stampText(p0, font, data.address_city || "", 86, 656.7, 10, 145);
+    stampText(p0, font, data.address_state || "", 234, 656.7, 10, 100);
+    stampText(p0, font, data.address_zip || "", 342, 656.7, 10, 65);
+    stampText(p0, font, data.guardian_email || data.email, 446, 656.7, 10, 152);
+    const gDrawn = data.decision === "sign" ? data.guardian_signature_drawn : null;
+    if (gDrawn) {
+      const parsed = dataUrlToBytes(gDrawn);
+      if (parsed) {
+        const img = parsed.mime === "png" ? await pdf.embedPng(parsed.bytes) : await pdf.embedJpg(parsed.bytes);
+        const maxW = 220, maxH = 26;
+        const s = Math.min(maxW / img.width, maxH / img.height);
+        p0.drawImage(img, { x: 86, y: 792 - 583.9, width: img.width * s, height: img.height * s });
+      }
+    }
+  }
+
+  if (data.decision === "decline") {
+    // Big diagonal DECLINED watermark
+    p0.drawText("DECLINED", {
+      x: 90, y: 380, size: 90, font, color: rgb(0.85, 0.15, 0.15),
+      rotate: { type: "degrees", angle: 22 } as any, opacity: 0.35,
+    });
+  }
+}
+
 async function buildSignedPdf(
   templateBytes: Uint8Array,
   data: SignData,
@@ -107,6 +180,8 @@ async function buildSignedPdf(
   const pdf = await PDFDocument.load(templateBytes);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+
+  await stampReleaseTemplate(pdf, font, data, meta);
 
   const fullName = [data.first_name, data.middle_name || "", data.last_name]
     .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
@@ -196,12 +271,16 @@ async function buildSignedPdf(
 }
 
 async function buildDeclinePdf(
+  templateBytes: Uint8Array,
   data: DeclineData,
   meta: { ip: string; userAgent: string; signedAt: string; hash: string; recordId: string },
 ): Promise<Uint8Array> {
-  const pdf = await PDFDocument.create();
+  const pdf = await PDFDocument.load(templateBytes);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+
+  await stampReleaseTemplate(pdf, font, data, meta);
+
   const page = pdf.addPage([612, 792]);
   const today = new Date(meta.signedAt);
   const dateStr = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
@@ -217,10 +296,7 @@ async function buildDeclinePdf(
     "record, or otherwise capture this participant's likeness for any media use,",
     "and MUST NOT use any incidental image of this participant in any media.",
   ];
-  for (const line of intro) {
-    page.drawText(line, { x: 50, y, size: 11, font });
-    y -= 14;
-  }
+  for (const line of intro) { page.drawText(line, { x: 50, y, size: 11, font }); y -= 14; }
   y -= 10;
 
   const rows: Array<[string, string]> = [
@@ -258,12 +334,11 @@ async function buildDeclinePdf(
   y -= 16;
   page.drawText("Participant signature (declining):", { x: 60, y, size: 10, font: bold });
   y -= 60;
-  await embedSig(pdf, page, data.decline_drawn, 60, y + 14, 240, 56);
+  await embedSig(pdf, page, data.signature_drawn, 60, y + 14, 240, 56);
   page.drawLine({ start: { x: 60, y: y + 10 }, end: { x: 320, y: y + 10 }, thickness: 0.5 });
-  page.drawText(`Typed: ${data.decline_typed}`, { x: 60, y, size: 10, font });
+  page.drawText(`Typed: ${data.signature_typed}`, { x: 60, y, size: 10, font });
   page.drawText(`Date: ${dateStr}`, { x: 340, y: y + 30, size: 10, font });
 
-  // Build an equivalent audit page by reusing helper. Treat as a generic AnyData.
   await drawAuditPage(pdf, font, bold, data, meta, "DECLINED");
   return await pdf.save();
 }
@@ -306,7 +381,7 @@ async function drawAuditPage(
     ["Document SHA-256", meta.hash],
     ["Typed", decision === "SIGNED"
       ? (data as SignData).signature_typed
-      : (data as DeclineData).decline_typed],
+      : (data as DeclineData).signature_typed],
   ];
   for (const [k, v] of audit) {
     page.drawText(`${k}:`, { x: 50, y, size: 10, font: bold });
@@ -352,29 +427,30 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // Load template for both sign and decline
+    let templateBytes: Uint8Array | null = null;
+    let lastTplErr: unknown = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const tpl = await supabase.storage.from("waiver-templates").download(TEMPLATE_PATH);
+      if (!tpl.error && tpl.data) {
+        templateBytes = new Uint8Array(await tpl.data.arrayBuffer());
+        break;
+      }
+      lastTplErr = tpl.error;
+      await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+    }
+    if (!templateBytes) {
+      console.error("model release template download failed", lastTplErr);
+      return new Response(JSON.stringify({ error: "Model release template unavailable, please try again" }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     let pdfBytes: Uint8Array;
     if (data.decision === "sign") {
-      // Load template
-      let templateBytes: Uint8Array | null = null;
-      let lastTplErr: unknown = null;
-      for (let attempt = 0; attempt < 3; attempt++) {
-        const tpl = await supabase.storage.from("waiver-templates").download(TEMPLATE_PATH);
-        if (!tpl.error && tpl.data) {
-          templateBytes = new Uint8Array(await tpl.data.arrayBuffer());
-          break;
-        }
-        lastTplErr = tpl.error;
-        await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
-      }
-      if (!templateBytes) {
-        console.error("model release template download failed", lastTplErr);
-        return new Response(JSON.stringify({ error: "Model release template unavailable, please try again" }), {
-          status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       pdfBytes = await buildSignedPdf(templateBytes, data, { ip, userAgent, signedAt, hash: docHash, recordId });
     } else {
-      pdfBytes = await buildDeclinePdf(data, { ip, userAgent, signedAt, hash: docHash, recordId });
+      pdfBytes = await buildDeclinePdf(templateBytes, data, { ip, userAgent, signedAt, hash: docHash, recordId });
     }
 
     const safeName = `${data.last_name}_${data.first_name}`.replace(/[^a-z0-9_-]/gi, "");
@@ -387,9 +463,7 @@ Deno.serve(async (req) => {
     });
     if (up.error) console.error("model release pdf upload failed", up.error);
 
-    const signaturePayload = data.decision === "sign"
-      ? { typed: data.signature_typed, drawn: data.signature_drawn }
-      : { typed: data.decline_typed, drawn: data.decline_drawn };
+    const signaturePayload = { typed: data.signature_typed, drawn: data.signature_drawn };
 
     const acks = data.decision === "sign"
       ? data.consent_acknowledgments
