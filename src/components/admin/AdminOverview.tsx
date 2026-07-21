@@ -234,8 +234,8 @@ const AdminOverview = () => {
                 ))}
               </div>
             )}
-          </div>
-          <div className="bg-card border border-border rounded-xl p-6">
+          </Link>
+          <Link to="/employee-dashboard?tab=bookings" className="block bg-card border border-border rounded-xl p-6 transition-all hover:border-accent hover:shadow-md hover:shadow-accent/10">
             <div className="flex items-center justify-between mb-4">
               <ClipboardList className="w-8 h-8 text-accent" />
               <span className="text-xs text-muted-foreground font-medium bg-accent/10 px-2 py-1 rounded-full">Yesterday</span>
