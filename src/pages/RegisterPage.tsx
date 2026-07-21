@@ -35,7 +35,7 @@ import { type WaiverPrefill } from "@/components/WaiverStep";
 import RegistrationFormStep, { type RegistrationFormPrefill } from "@/components/RegistrationFormStep";
 import ModelReleaseStep, { type ModelReleasePrefill } from "@/components/ModelReleaseStep";
 import WaiverDocuSign from "@/components/WaiverDocuSign";
-import IdPhotoUpload from "@/components/IdPhotoUpload";
+
 
 const registrationSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(100),
@@ -61,7 +61,7 @@ const registrationSchema = z.object({
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
   parentGuardianAck: z.boolean().optional(),
-  idPhotoPath: z.string().min(1, "Please upload a photo of your ID"),
+  idPhotoPath: z.string().optional(),
   guardianFirstName: z.string().trim().max(100).optional(),
   guardianLastName: z.string().trim().max(100).optional(),
   guardianRelationship: z.string().trim().max(50).optional(),
@@ -101,7 +101,6 @@ const registrationSchema = z.object({
       ["guardianPhone", "Parent/guardian phone is required"],
       ["guardianLicenseNumber", "Parent/guardian ID number is required"],
       ["guardianLicenseState", "Parent/guardian ID issuing state is required"],
-      ["guardianIdPhotoPath", "Please upload a photo of the parent/guardian's ID"],
     ];
     for (const [key, msg] of required) {
       const v = (data as any)[key];
@@ -1021,25 +1020,6 @@ const RegisterPage = () => {
                     )}
                   </div>
 
-                  <div className="mt-6">
-                    <FormField
-                      control={form.control}
-                      name="idPhotoPath"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <IdPhotoUpload
-                              label="Photo of your ID"
-                              hint="Upload a clear photo of the front of the ID you entered above. We'll match it at check-in."
-                              value={field.value || null}
-                              onChange={(p) => field.onChange(p || "")}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
                 </div>
 
                 {/* Fee & Referral */}
@@ -1220,19 +1200,6 @@ const RegisterPage = () => {
                         )} />
                       </div>
 
-                      <FormField control={form.control} name="guardianIdPhotoPath" render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <IdPhotoUpload
-                              label="Photo of Parent / Guardian ID"
-                              hint="Upload a clear photo of the front of the parent or legal guardian's ID. We'll match it at check-in."
-                              value={field.value || null}
-                              onChange={(p) => field.onChange(p || "")}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
 
                       <FormField control={form.control} name="parentGuardianAck" render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-accent/40 bg-background/40 p-3">
