@@ -220,8 +220,18 @@ const EmployeeDashboard = () => {
             title={collapsed ? tab.label : undefined}
           >
             <tab.icon className="w-5 h-5 flex-shrink-0" />
-            {!collapsed && <span>{tab.label}</span>}
+            {!collapsed && <span className="flex-1 text-left">{tab.label}</span>}
+            {tab.id === "messages" && unreadMessages > 0 && (
+              collapsed ? (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent" />
+              ) : (
+                <span className="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold flex items-center justify-center">
+                  {unreadMessages > 99 ? "99+" : unreadMessages}
+                </span>
+              )
+            )}
           </button>
+
         ))}
       </nav>
 
