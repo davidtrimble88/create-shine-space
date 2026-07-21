@@ -170,6 +170,16 @@ const EmployeeDashboard = () => {
     loadName();
   }, [user]);
 
+  // Portal tour: auto-open first time per user, and expose "Take tour" button
+  const [tourOpen, setTourOpen] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const seen = localStorage.getItem(`dashboardTourSeen:${user.id}`);
+      if (!seen) setTourOpen(true);
+    } catch {}
+  }, [user]);
+
   // If owner switches to a view that hides the active tab, send them back to overview
   useEffect(() => {
     const stillVisible = tabs.find(t => t.id === activeTab)?.roles.includes(effectiveRole as any);
