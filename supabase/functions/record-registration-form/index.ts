@@ -137,6 +137,10 @@ async function buildPdf(
     return parts.join("  •  ");
   })();
 
+  // ===== Stamp the ORIGINAL template's page 0 (in-place, DocuSign style) =====
+  await stampRegistrationTemplate(pdf, font, data, meta);
+
+
   // ===== Page 1: Completed Responses =====
   const page = pdf.addPage([612, 792]);
   let y = 760;
