@@ -847,7 +847,7 @@ const ClassRosters = () => {
       rows.push(
         <tr key={`retest-empty-${i}`} className="empty-rows">
           <td>{startNum + i}</td>
-          <td></td><td></td><td></td><td></td><td></td>
+          <td></td><td></td><td></td><td></td><td></td><td></td>
           <td></td><td></td><td></td><td></td><td></td>
         </tr>
       );
