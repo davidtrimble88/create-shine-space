@@ -268,11 +268,18 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         q11_cmsp_contact_future: q11v,
         signature_typed: typed || fullName,
         signature_drawn: sig,
+        guardian_name: prefill.isMinor ? guardianFullName : null,
+        guardian_relationship: prefill.isMinor ? (prefill.guardianRelationship || null) : null,
+        guardian_signature_typed: prefill.isMinor ? (guardianTyped || guardianFullName) : null,
+        guardian_signature_drawn: prefill.isMinor ? guardianSig : null,
+        is_minor: !!prefill.isMinor,
         consent_acknowledgments: [
           { key: "truthful", label: "Answers are true and complete", accepted: true },
           { key: "id_match", label: "ID at check-in will match name on this form", accepted: true },
           { key: "esign", label: "Consent to sign electronically (ESIGN Act / UETA)", accepted: true },
+          ...(prefill.isMinor ? [{ key: "guardian", label: `Parent/guardian (${prefill.guardianRelationship || "guardian"}) signed on behalf of the minor`, accepted: true as const }] : []),
         ],
+
         course: prefill.course || null,
         location: prefill.location || null,
         location_label: prefill.locationLabel || null,
