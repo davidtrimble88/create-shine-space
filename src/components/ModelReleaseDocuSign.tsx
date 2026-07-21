@@ -370,15 +370,10 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
             <input value={gFirst} onChange={e => setGFirst(e.target.value)} placeholder="Guardian first name *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
             <input value={gLast} onChange={e => setGLast(e.target.value)} placeholder="Guardian last name *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
             <input value={gRelationship} onChange={e => setGRelationship(e.target.value)} placeholder="Relationship to student (e.g. Parent) *" className="px-3 py-2 rounded-md border border-border bg-background text-sm md:col-span-2" />
-            <input value={gAddress} onChange={e => setGAddress(e.target.value)} placeholder="Street address *" className="px-3 py-2 rounded-md border border-border bg-background text-sm md:col-span-2" />
-            <input value={gCity} onChange={e => setGCity(e.target.value)} placeholder="City *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
-            <div className="grid grid-cols-2 gap-3">
-              <input value={gState} onChange={e => setGState(e.target.value)} placeholder="State *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
-              <input value={gZip} onChange={e => setGZip(e.target.value)} placeholder="ZIP *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
-            </div>
-            <input value={gPhone} onChange={e => setGPhone(e.target.value)} placeholder="Phone *" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
-            <input value={gEmail} onChange={e => setGEmail(e.target.value)} placeholder="Email *" type="email" className="px-3 py-2 rounded-md border border-border bg-background text-sm" />
           </div>
+          <p className="text-xs text-muted-foreground pt-1">
+            Fill in the guardian address, city, state, ZIP, phone, and email directly in the yellow boxes on the form below.
+          </p>
           {!guardianComplete && (
             <p className="text-xs text-destructive">All guardian fields are required before signing.</p>
           )}
