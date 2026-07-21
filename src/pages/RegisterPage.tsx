@@ -422,25 +422,25 @@ const RegisterPage = () => {
 
   const validateReturningDiscount = async () => {
     const licenseNumber = form.getValues("licenseNumber")?.trim();
-    const email = form.getValues("email")?.trim();
-    if (!licenseNumber && !email) {
-      setDiscountNotice("Fill in your ID number or email first so we can look up your prior class.");
+    if (!licenseNumber) {
+      setDiscountNotice("Enter your driver's license / ID number above, then check the box again.");
+      setReturningStudent(false);
       return;
     }
     setDiscountBusy("returning");
     setDiscountNotice(null);
     try {
       const { data } = await supabase.functions.invoke("validate-discount", {
-        body: { course, source: "returning", licenseNumber, email },
+        body: { course, source: "returning", licenseNumber },
       });
       const res = data as any;
       if (res?.valid) {
         setDiscountApplied({ source: "returning", amountCents: res.amountCents });
         setDiscountNotice(null);
-        toast({ title: "Returning-student discount applied", description: `${formatCents(res.amountCents)} off your Intermediate Course.` });
+        toast({ title: "Returning-student discount applied", description: `${formatCents(res.amountCents)} off.` });
       } else {
         setDiscountApplied((prev) => (prev?.source === "returning" ? null : prev));
-        setDiscountNotice(res?.error || "We couldn't find a prior registration.");
+        setDiscountNotice(res?.error || "We couldn't find your ID number in our past student records. Please call the office and we'll verify your history and issue you a discount code.");
       }
     } catch (e) {
       setDiscountNotice(e instanceof Error ? e.message : "Could not verify prior registration.");
@@ -1178,29 +1178,22 @@ const RegisterPage = () => {
                       <label className="flex items-start gap-3 text-sm">
                         <Checkbox
                           checked={returningStudent}
-                          onCheckedChange={(v) => setReturningStudent(!!v)}
+                          disabled={discountBusy !== null}
+                          onCheckedChange={(v) => {
+                            const checked = !!v;
+                            setReturningStudent(checked);
+                            if (checked) {
+                              validateReturningDiscount();
+                            }
+                          }}
                         />
                         <span className="leading-snug">
-                          I've taken a class with Learn to Ride VC before — apply my returning-student discount.
+                          I've taken a class with Learn to Ride VC before — look up my ID number and apply my returning-student discount.
+                          {discountBusy === "returning" && (
+                            <span className="block text-xs text-muted-foreground mt-1">Checking your ID number…</span>
+                          )}
                         </span>
                       </label>
-
-                      {returningStudent && (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={validateReturningDiscount}
-                            disabled={discountBusy !== null}
-                          >
-                            {discountBusy === "returning" ? "Checking..." : "Look up my prior class"}
-                          </Button>
-                          <span className="text-xs text-muted-foreground">
-                            Uses the ID number and email you entered above.
-                          </span>
-                        </div>
-                      )}
 
                       <div className="pt-3 border-t border-border/60">
                         <p className="text-xs font-medium text-foreground mb-2">Have a discount code?</p>
