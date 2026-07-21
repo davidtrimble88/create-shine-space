@@ -183,7 +183,11 @@ const EmployeeDashboard = () => {
   const handleTabSelect = (id: TabId) => {
     setActiveTab(id);
     setMobileNavOpen(false);
+    const next = new URLSearchParams(searchParams);
+    if (id === "overview") next.delete("tab"); else next.set("tab", id);
+    setSearchParams(next, { replace: true });
   };
+
 
   const sidebarInner = (collapsed: boolean) => (
     <>
