@@ -32,8 +32,10 @@ import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
-import RegistrationFormStep, { type RegistrationFormPrefill } from "@/components/RegistrationFormStep";
-import ModelReleaseStep, { type ModelReleasePrefill } from "@/components/ModelReleaseStep";
+import { type RegistrationFormPrefill } from "@/components/RegistrationFormStep";
+import { type ModelReleasePrefill } from "@/components/ModelReleaseStep";
+import RegistrationFormDocuSign from "@/components/RegistrationFormDocuSign";
+import ModelReleaseDocuSign from "@/components/ModelReleaseDocuSign";
 import WaiverDocuSign from "@/components/WaiverDocuSign";
 
 
