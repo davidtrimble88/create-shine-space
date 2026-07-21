@@ -33,11 +33,13 @@ type Participant = { thread_id: string; user_id: string; last_read_at: string };
 export default function MessagingCenter() {
   const { user, userRole } = useAuth();
   const { toast } = useToast();
-  const canCompose = userRole === "owner" || userRole === "admin";
+  const canCompose = userRole === "owner" || userRole === "admin" || userRole === "manager" || userRole === "employee" || userRole === "moderator";
+  const staffOnly = !(userRole === "owner" || userRole === "admin");
 
   const [threads, setThreads] = useState<Thread[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [staffIds, setStaffIds] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [reply, setReply] = useState("");
@@ -69,6 +71,11 @@ export default function MessagingCenter() {
       .not("user_id", "is", null)
       .order("full_name");
     setEmployees((data as Employee[]) || []);
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("user_id, role")
+      .in("role", ["owner", "admin"]);
+    setStaffIds(new Set((roles || []).map((r: any) => r.user_id)));
   };
 
   useEffect(() => {
