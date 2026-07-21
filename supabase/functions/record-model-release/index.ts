@@ -271,12 +271,16 @@ async function buildSignedPdf(
 }
 
 async function buildDeclinePdf(
+  templateBytes: Uint8Array,
   data: DeclineData,
   meta: { ip: string; userAgent: string; signedAt: string; hash: string; recordId: string },
 ): Promise<Uint8Array> {
-  const pdf = await PDFDocument.create();
+  const pdf = await PDFDocument.load(templateBytes);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+
+  await stampReleaseTemplate(pdf, font, data, meta);
+
   const page = pdf.addPage([612, 792]);
   const today = new Date(meta.signedAt);
   const dateStr = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
@@ -292,10 +296,7 @@ async function buildDeclinePdf(
     "record, or otherwise capture this participant's likeness for any media use,",
     "and MUST NOT use any incidental image of this participant in any media.",
   ];
-  for (const line of intro) {
-    page.drawText(line, { x: 50, y, size: 11, font });
-    y -= 14;
-  }
+  for (const line of intro) { page.drawText(line, { x: 50, y, size: 11, font }); y -= 14; }
   y -= 10;
 
   const rows: Array<[string, string]> = [
@@ -333,12 +334,11 @@ async function buildDeclinePdf(
   y -= 16;
   page.drawText("Participant signature (declining):", { x: 60, y, size: 10, font: bold });
   y -= 60;
-  await embedSig(pdf, page, data.decline_drawn, 60, y + 14, 240, 56);
+  await embedSig(pdf, page, data.signature_drawn, 60, y + 14, 240, 56);
   page.drawLine({ start: { x: 60, y: y + 10 }, end: { x: 320, y: y + 10 }, thickness: 0.5 });
-  page.drawText(`Typed: ${data.decline_typed}`, { x: 60, y, size: 10, font });
+  page.drawText(`Typed: ${data.signature_typed}`, { x: 60, y, size: 10, font });
   page.drawText(`Date: ${dateStr}`, { x: 340, y: y + 30, size: 10, font });
 
-  // Build an equivalent audit page by reusing helper. Treat as a generic AnyData.
   await drawAuditPage(pdf, font, bold, data, meta, "DECLINED");
   return await pdf.save();
 }
