@@ -85,7 +85,7 @@ const AdminEmployees = () => {
       return;
     }
 
-    const empsWithRoles: EmployeeWithRole[] = (empData ?? []).map(e => ({ ...e, role: "employee" }));
+    const empsWithRoles: EmployeeWithRole[] = (empData ?? []).map(e => ({ ...e, role: "employee", last_login_at: null, login_count: 0 }));
     
     const userIds = empsWithRoles.filter(e => e.user_id).map(e => e.user_id!);
     if (userIds.length > 0) {
@@ -94,6 +94,19 @@ const AdminEmployees = () => {
         for (const role of roles) {
           const emp = empsWithRoles.find(e => e.user_id === role.user_id);
           if (emp) emp.role = role.role;
+        }
+      }
+      const { data: logins } = await supabase
+        .from("employee_logins")
+        .select("user_id, created_at")
+        .in("user_id", userIds)
+        .order("created_at", { ascending: false });
+      if (logins) {
+        for (const l of logins) {
+          const emp = empsWithRoles.find(e => e.user_id === l.user_id);
+          if (!emp) continue;
+          emp.login_count = (emp.login_count ?? 0) + 1;
+          if (!emp.last_login_at) emp.last_login_at = l.created_at;
         }
       }
     }
