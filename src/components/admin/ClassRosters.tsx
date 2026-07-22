@@ -2367,8 +2367,60 @@ const ClassRosters = () => {
         saving={savingWaiverStatus}
         onSave={(flags) => waiverEditFor && handleSaveWaiverStatus(waiverEditFor, flags)}
       />
+
+      <Dialog open={!!editStudentFor} onOpenChange={(o) => { if (!o) setEditStudentFor(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Student Information</DialogTitle>
+            <DialogDescription>
+              Update this student's roster details. Changes apply to this booking only.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground">First name *</label>
+              <Input value={editStudentForm.first_name} onChange={e => setEditStudentForm(f => ({ ...f, first_name: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Last name *</label>
+              <Input value={editStudentForm.last_name} onChange={e => setEditStudentForm(f => ({ ...f, last_name: e.target.value }))} />
+            </div>
+            <div className="col-span-2">
+              <label className="text-xs text-muted-foreground">Preferred name</label>
+              <Input value={editStudentForm.preferred_name} onChange={e => setEditStudentForm(f => ({ ...f, preferred_name: e.target.value }))} />
+            </div>
+            <div className="col-span-2">
+              <label className="text-xs text-muted-foreground">Email</label>
+              <Input type="email" value={editStudentForm.email} onChange={e => setEditStudentForm(f => ({ ...f, email: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Phone</label>
+              <Input value={editStudentForm.phone} onChange={e => setEditStudentForm(f => ({ ...f, phone: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Date of birth</label>
+              <Input type="date" value={editStudentForm.date_of_birth} onChange={e => setEditStudentForm(f => ({ ...f, date_of_birth: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">License / ID number</label>
+              <Input value={editStudentForm.license_number} onChange={e => setEditStudentForm(f => ({ ...f, license_number: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Issuing state</label>
+              <Input maxLength={4} value={editStudentForm.issuing_state} onChange={e => setEditStudentForm(f => ({ ...f, issuing_state: e.target.value.toUpperCase() }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditStudentFor(null)} disabled={savingStudent}>Cancel</Button>
+            <Button onClick={handleSaveStudentEdit} disabled={savingStudent}>
+              {savingStudent ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
+
 };
 
 export default ClassRosters;
