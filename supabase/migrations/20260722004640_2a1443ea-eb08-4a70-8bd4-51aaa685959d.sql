@@ -1,0 +1,1 @@
+DELETE FROM public.bookings WHERE created_at < '2026-07-22'::date; UPDATE public.bookings SET manually_added = true WHERE created_at >= '2026-07-22'::date;
