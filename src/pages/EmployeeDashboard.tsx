@@ -211,7 +211,52 @@ const EmployeeDashboard = () => {
     return <Navigate to="/employee-login" replace />;
   }
 
-  const visibleTabs = tabs.filter(t => t.roles.includes(effectiveRole as any));
+  const baseVisibleTabs = tabs.filter(t => t.roles.includes(effectiveRole as any));
+
+  // Per-user custom tab ordering (persisted in localStorage)
+  const orderKey = user ? `dashboardTabOrder:${user.id}` : "";
+  const [tabOrder, setTabOrder] = useState<string[]>([]);
+  const [reorderMode, setReorderMode] = useState(false);
+  const dragId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!orderKey) return;
+    try {
+      const saved = localStorage.getItem(orderKey);
+      if (saved) setTabOrder(JSON.parse(saved));
+    } catch {}
+  }, [orderKey]);
+
+  const persistOrder = (order: string[]) => {
+    setTabOrder(order);
+    try { if (orderKey) localStorage.setItem(orderKey, JSON.stringify(order)); } catch {}
+  };
+
+  const visibleTabs = (() => {
+    if (!tabOrder.length) return baseVisibleTabs;
+    const map = new Map(baseVisibleTabs.map(t => [t.id, t] as const));
+    const ordered = tabOrder.map(id => map.get(id as any)).filter(Boolean) as typeof baseVisibleTabs;
+    const rest = baseVisibleTabs.filter(t => !tabOrder.includes(t.id));
+    return [...ordered, ...rest];
+  })();
+
+  const handleDragStart = (id: string) => { dragId.current = id; };
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); };
+  const handleDrop = (targetId: string) => {
+    const src = dragId.current;
+    dragId.current = null;
+    if (!src || src === targetId) return;
+    const ids = visibleTabs.map(t => t.id as string);
+    const from = ids.indexOf(src);
+    const to = ids.indexOf(targetId);
+    if (from < 0 || to < 0) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    persistOrder(ids);
+  };
+  const resetOrder = () => {
+    try { if (orderKey) localStorage.removeItem(orderKey); } catch {}
+    setTabOrder([]);
+  };
   const roleInfo = roleLabels[effectiveRole] || roleLabels.employee;
   const RoleIcon = roleInfo.icon;
   const isOwner = userRole === "owner";
