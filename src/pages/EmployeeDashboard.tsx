@@ -211,7 +211,52 @@ const EmployeeDashboard = () => {
     return <Navigate to="/employee-login" replace />;
   }
 
-  const visibleTabs = tabs.filter(t => t.roles.includes(effectiveRole as any));
+  const baseVisibleTabs = tabs.filter(t => t.roles.includes(effectiveRole as any));
+
+  // Per-user custom tab ordering (persisted in localStorage)
+  const orderKey = user ? `dashboardTabOrder:${user.id}` : "";
+  const [tabOrder, setTabOrder] = useState<string[]>([]);
+  const [reorderMode, setReorderMode] = useState(false);
+  const dragId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!orderKey) return;
+    try {
+      const saved = localStorage.getItem(orderKey);
+      if (saved) setTabOrder(JSON.parse(saved));
+    } catch {}
+  }, [orderKey]);
+
+  const persistOrder = (order: string[]) => {
+    setTabOrder(order);
+    try { if (orderKey) localStorage.setItem(orderKey, JSON.stringify(order)); } catch {}
+  };
+
+  const visibleTabs = (() => {
+    if (!tabOrder.length) return baseVisibleTabs;
+    const map = new Map(baseVisibleTabs.map(t => [t.id, t] as const));
+    const ordered = tabOrder.map(id => map.get(id as any)).filter(Boolean) as typeof baseVisibleTabs;
+    const rest = baseVisibleTabs.filter(t => !tabOrder.includes(t.id));
+    return [...ordered, ...rest];
+  })();
+
+  const handleDragStart = (id: string) => { dragId.current = id; };
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); };
+  const handleDrop = (targetId: string) => {
+    const src = dragId.current;
+    dragId.current = null;
+    if (!src || src === targetId) return;
+    const ids = visibleTabs.map(t => t.id as string);
+    const from = ids.indexOf(src);
+    const to = ids.indexOf(targetId);
+    if (from < 0 || to < 0) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    persistOrder(ids);
+  };
+  const resetOrder = () => {
+    try { if (orderKey) localStorage.removeItem(orderKey); } catch {}
+    setTabOrder([]);
+  };
   const roleInfo = roleLabels[effectiveRole] || roleLabels.employee;
   const RoleIcon = roleInfo.icon;
   const isOwner = userRole === "owner";
@@ -256,18 +301,41 @@ const EmployeeDashboard = () => {
 
       {/* Nav items */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+        {!collapsed && (
+          <div className="flex items-center justify-between px-2 pb-2">
+            <button
+              onClick={() => setReorderMode(v => !v)}
+              className={`text-[11px] font-medium px-2 py-1 rounded ${reorderMode ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
+              title="Drag tabs to reorder"
+            >
+              {reorderMode ? "Done" : "Reorder"}
+            </button>
+            {reorderMode && (
+              <button
+                onClick={resetOrder}
+                className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-secondary"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        )}
         {visibleTabs.map((tab) => (
           <button
             key={tab.id}
             data-tour-target={tab.id}
-            onClick={() => handleTabSelect(tab.id)}
+            draggable={reorderMode}
+            onDragStart={() => handleDragStart(tab.id)}
+            onDragOver={handleDragOver}
+            onDrop={() => handleDrop(tab.id)}
+            onClick={() => { if (!reorderMode) handleTabSelect(tab.id); }}
             className={`relative w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
               collapsed ? "justify-center px-2 py-3" : "px-4 py-3"
             } ${
               activeTab === tab.id
                 ? "bg-accent/10 text-accent"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-            }`}
+            } ${reorderMode ? "cursor-grab active:cursor-grabbing ring-1 ring-dashed ring-border" : ""}`}
             title={collapsed ? tab.label : undefined}
           >
             <tab.icon className="w-5 h-5 flex-shrink-0" />
