@@ -512,7 +512,37 @@ const EmployeeDashboard = () => {
           </div>
         )}
 
+        {isOwner && (
+          <div className={`flex items-center gap-2 flex-wrap border-b border-border bg-card/60 ${isMobile ? "px-3 py-2" : "px-8 py-3"}`}>
+            <Eye className="w-4 h-4 text-accent" />
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">View as</span>
+            <Select
+              value={viewAsRole ?? "owner"}
+              onValueChange={(v) => setViewAsRole(v === "owner" ? null : (v as any))}
+            >
+              <SelectTrigger className="h-8 w-40 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="owner">Owner (default)</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="manager">Manager</SelectItem>
+                <SelectItem value="employee">Instructor</SelectItem>
+              </SelectContent>
+            </Select>
+            {isImpersonating && (
+              <button
+                type="button"
+                onClick={() => setViewAsRole(null)}
+                className="text-xs text-accent hover:text-accent/80 flex items-center gap-1"
+              >
+                <EyeOff className="w-3 h-3" /> Exit preview
+              </button>
+            )}
+          </div>
+        )}
         <div className={isMobile ? "p-4" : "p-8"}>
+
           {!isMobile && (
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
