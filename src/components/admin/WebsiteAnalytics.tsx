@@ -560,7 +560,7 @@ const WebsiteAnalytics = () => {
               <tbody>
                 {logins.slice(0, 50).map(l => (
                   <tr key={l.id} className="border-b border-border/50">
-                    <td className="p-4 text-foreground">{new Date(l.created_at).toLocaleString()}</td>
+                    <td className="p-4 text-foreground">{formatPST(l.created_at)}</td>
                     <td className="p-4 text-muted-foreground">{l.email}</td>
                   </tr>
                 ))}
