@@ -327,22 +327,28 @@ async function buildPdf(
   };
   const row = (label: string, value: string) => {
     if (y < 60) return;
-    page.drawText(`${label}:`, { x: 60, y, size: 9, font: bold });
-    const wrapWidth = 380;
+    const labelText = `${label}:`;
+    const labelWidth = bold.widthOfTextAtSize(labelText, 9);
+    const labelColX = 60;
+    const minValueX = 320;
+    // If label is too long, put value on its own indented line below the label
+    const inline = labelColX + labelWidth + 8 <= minValueX;
+    page.drawText(labelText, { x: labelColX, y, size: 9, font: bold });
+    const valueX = inline ? minValueX : labelColX + 12;
+    if (!inline) newLine(11);
+    const wrapWidth = 612 - valueX - 50;
     const words = String(value || "—").split(" ");
     let line = "";
-    let first = true;
     for (const w of words) {
       const test = line ? `${line} ${w}` : w;
       if (font.widthOfTextAtSize(test, 9) > wrapWidth) {
-        page.drawText(line, { x: 200, y, size: 9, font });
+        page.drawText(line, { x: valueX, y, size: 9, font });
         newLine(11);
         line = w;
-        first = false;
       } else line = test;
       if (y < 60) return;
     }
-    if (line) page.drawText(line, { x: 200, y, size: 9, font });
+    if (line) page.drawText(line, { x: valueX, y, size: 9, font });
     newLine(13);
   };
 
@@ -399,6 +405,7 @@ async function buildPdf(
   } else {
     newLine(10);
     heading("Signature");
+    newLine(55);
     await drawSignatureBlockOnPage(page, pdf, data, fullName, dateStr, font, bold, y, (nh) => { y -= nh; });
   }
 
