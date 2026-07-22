@@ -1,61 +1,54 @@
-# Add Face ID / Biometric Login (iOS + Android)
+## Guided Question Wizard for CMSP Registration Form
 
-Wrap the existing web app with **Capacitor** so it runs as a real native app, then add **biometric unlock** (Face ID on iPhone, Touch ID / fingerprint / face unlock on Android) for the employee dashboard login.
+Replace the current "overlay-on-PDF" approach with a clean step-by-step wizard. Each question appears one at a time in a card, the user answers, hits Next, and moves on. When they finish, the answers are stamped into the PDF server-side (same code path we already have) and they sign the completed document.
 
-## How it will work for the user
+### User flow
 
-1. Employee installs the native app (one-time, from TestFlight / Play Store / dev build).
-2. First launch → logs in normally with email + password.
-3. App asks: *"Use Face ID to sign in next time?"* → yes.
-4. Credentials are stored encrypted in the device's **Keychain (iOS)** / **Keystore (Android)** — never in plain text, never on our servers.
-5. Every future launch → Face ID prompt → instant login. Password fallback always available.
+1. User reaches the "CMSP Registration Form" step in registration.
+2. A card shows **Question 1 of 12** with a progress bar.
+3. User picks/types the answer, clicks **Next** (or **Back**).
+4. After the last question, a **Review** screen lists all answers with edit links.
+5. User clicks **Generate & Sign** → the filled PDF renders (read-only preview) → they sign with the existing SharedDocuSignPad → PDF is stamped and stored.
 
-## What I'll build
+### Questions covered (matches the current PDF)
 
-### 1. Capacitor setup
-- Install `@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`, `@capacitor/android`
-- Create `capacitor.config.ts` with:
-  - appId: `app.lovable.b03b40e402014016b119ee4d336cfb7b`
-  - appName: `LTR Employee`
-  - Hot-reload pointing at the Lovable sandbox URL (for dev)
+- Autofilled shown for confirmation only (name, address, DOB, phone, email, ID row) — user can tap to correct any field.
+- Q1 Have you ridden before? (Yes/No)
+- Q2 Miles ridden last year (<500 / 500–2000 / >2000)
+- Q3 Type of bike (optional text)
+- Q4 Have a permit? (Yes/No)
+- Q5 Permit number (optional text)
+- Q6 Own a street bike? (Yes/No + optional cc)
+- Q7 Primary reason (Commuting / Recreation / Other + optional text)
+- Q8 On-street accident? (Yes/No)
+- Q9a Called for MTC info? (Yes/No)
+- Q9b How did you hear? (multi-select from the 10 real PDF options + Other explain)
+- Q10 Called DMV? (Yes/No)
+- Q11 Taken course before? (Yes/No)
+- Q12 May CMSP contact you? (Yes/No)
+- Guardian block (only if minor) — same fields as today.
 
-### 2. Biometric plugin
-- Install `capacitor-native-biometric` (handles Face ID, Touch ID, Android fingerprint/face)
-- Wraps iOS Keychain + Android Keystore for secure credential storage
+### What stays the same
 
-### 3. Auth UI changes (employee login page only)
-- After successful password login → prompt "Enable Face ID for faster sign-in?"
-- On next app launch → if biometrics enrolled, auto-prompt and sign in
-- Settings toggle to disable biometric login + clear stored credentials
-- Graceful fallback to password if biometrics fail / unavailable / web browser
+- The stamped PDF template and server function (`record-registration-form`) — offsets stay locked; we just feed answers into it.
+- Signature capture (`SharedDocuSignPad`), storage bucket, download link, and post-sign dialog.
+- Model Release DocuSign flow — untouched.
 
-### 4. Platform detection
-- Use `Capacitor.isNativePlatform()` so biometric code only runs in the native app — web users see the normal login unchanged.
+### What gets removed
 
-## What you'll need to do (one-time, on your own machine)
+- The interactive yellow overlay on top of the PDF preview.
+- The `?calibrate=1` UI in this component (still available on Model Release).
+- Fake PDF options **DMV** and **Brochure** (not on the physical form).
 
-I can't build the iOS/Android binaries from Lovable — Apple and Google require local tooling. After I push the code:
+### Files
 
-1. Click **Export to GitHub** → `git clone` your repo
-2. `npm install`
-3. `npx cap add ios && npx cap add android`
-4. `npm run build && npx cap sync`
-5. iOS: `npx cap run ios` (needs **Mac + Xcode**, free; **Apple Developer $99/yr** to install on real devices or ship to App Store)
-6. Android: `npx cap run android` (needs **Android Studio**, free; **Google Play $25 one-time** to publish)
+- `src/components/RegistrationFormDocuSign.tsx` — rewrite as a wizard (`step` state 0–N, one `<Card>` per step, Back/Next buttons, review screen, then sign).
+- `supabase/functions/record-registration-form/index.ts` — remove DMV/Brochure from allowed hear-about values; otherwise unchanged.
+- No DB migration needed.
 
-Full walkthrough: https://lovable.dev/blog/2025-03-25-capacitor-guide
+### Out of scope
 
-## Technical details
+- No changes to Model Release, Waiver, payment, or roster.
+- No new tables, secrets, or edge functions.
 
-- `BiometricAuth.isAvailable()` → check device support + enrollment
-- `BiometricAuth.setCredentials({ username, password, server: 'ltrvc' })` → save to Keychain/Keystore
-- `BiometricAuth.verifyIdentity({ reason: 'Sign in to LTR' })` → trigger Face ID prompt
-- `BiometricAuth.getCredentials({ server: 'ltrvc' })` → retrieve after successful biometric
-- Then call existing `supabase.auth.signInWithPassword(...)` with retrieved creds
-- iOS `Info.plist` needs `NSFaceIDUsageDescription` — handled in Capacitor config
-
-## Out of scope (ask if you want these)
-
-- Magic-link / passwordless biometric (would need a refresh-token flow instead of stored password)
-- Push notifications, camera, etc. — easy to add later, just more plugins
-- App Store / Play Store submission assets (icons, screenshots, listing copy)
+Approve and I'll build it.
