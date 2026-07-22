@@ -1912,6 +1912,16 @@ const ClassRosters = () => {
                                 <UserCheck className="w-3.5 h-3.5" />
                               </button>
                             )}
+                            {canEditStudents && (b as any).manually_added && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteManual(b)}
+                                title="Delete manually added student"
+                                className="ml-1 text-muted-foreground hover:text-destructive inline-flex items-center"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                         </td>
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
