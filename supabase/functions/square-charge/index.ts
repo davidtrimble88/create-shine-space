@@ -171,14 +171,22 @@ Deno.serve(async (req) => {
 
 
     const amountCents = Math.max(expectedCents - discountCents, 100);
+    // Reject any client-supplied amount that doesn't match the server-derived
+    // charge (allow a $1 rounding tolerance). This prevents undercharging via
+    // a tampered client request. The server-computed amount is always used
+    // for the actual Square charge below.
     if (Math.abs(clientAmountCents - amountCents) > 100) {
-      console.warn("[square-charge] client amountCents mismatch", {
+      console.warn("[square-charge] client amountCents mismatch — rejecting", {
         scheduleId,
         clientAmountCents,
         expectedCents,
         discountCents,
         amountCents,
       });
+      return new Response(
+        JSON.stringify({ error: "Payment amount mismatch. Please refresh and try again." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Charge the card via Square Payments API (production)
