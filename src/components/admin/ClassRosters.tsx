@@ -1913,9 +1913,9 @@ const ClassRosters = () => {
                                 type="button"
                                 onClick={() => openEditStudent(b)}
                                 title="Edit student information"
-                                className="ml-1 text-muted-foreground hover:text-accent inline-flex items-center"
+                                className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-accent/40 bg-accent/10 text-accent text-[10px] font-semibold hover:bg-accent/20"
                               >
-                                <UserCheck className="w-3.5 h-3.5" />
+                                <Pencil className="w-3 h-3" /> Edit
                               </button>
                             )}
                             {canEditStudents && (b as any).manually_added && (
@@ -1923,9 +1923,9 @@ const ClassRosters = () => {
                                 type="button"
                                 onClick={() => handleDeleteManual(b)}
                                 title="Delete manually added student"
-                                className="ml-1 text-muted-foreground hover:text-destructive inline-flex items-center"
+                                className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-destructive/40 bg-destructive/10 text-destructive text-[10px] font-semibold hover:bg-destructive/20"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-3 h-3" /> Delete
                               </button>
                             )}
                           </div>
