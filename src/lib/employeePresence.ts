@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 const TOPIC = "employee-presence";
+const HEARTBEAT_MS = 25_000;
 
 type PresenceListener = (s: Set<string>) => void;
 
@@ -13,6 +14,11 @@ type PresenceStore = {
   listeners: Set<PresenceListener>;
   pending: Array<() => void>;
   initializing: Promise<RealtimeChannel> | null;
+  // userIds actively being tracked from this browser tab. On every
+  // (re)SUBSCRIBED we re-track them so a reconnect doesn't silently
+  // drop this user from presence.
+  activeTrackers: Set<string>;
+  heartbeat: ReturnType<typeof setInterval> | null;
 };
 
 const store: PresenceStore = ((globalThis as typeof globalThis & {
@@ -25,6 +31,8 @@ const store: PresenceStore = ((globalThis as typeof globalThis & {
   listeners: new Set<PresenceListener>(),
   pending: [],
   initializing: null,
+  activeTrackers: new Set<string>(),
+  heartbeat: null,
 });
 
 const waitForChannelRemoval = async (channelToRemove: RealtimeChannel) => {
@@ -34,6 +42,30 @@ const waitForChannelRemoval = async (channelToRemove: RealtimeChannel) => {
     // A stale channel should not take down the Employees page.
   }
 };
+
+function retrackAll() {
+  if (!store.channel || !store.joined) return;
+  if (document.visibilityState === "hidden") return;
+  for (const userId of store.activeTrackers) {
+    try {
+      void store.channel.track({
+        user_id: userId,
+        online_at: new Date().toISOString(),
+      });
+    } catch {
+      // ignore transient track failures; heartbeat will retry
+    }
+  }
+}
+
+function ensureHeartbeat() {
+  if (store.heartbeat) return;
+  store.heartbeat = setInterval(() => {
+    // Refresh our own presence so observers on other clients see us
+    // even after a Realtime reconnect or brief network blip.
+    retrackAll();
+  }, HEARTBEAT_MS);
+}
 
 async function ensureChannel(presenceKey?: string) {
   if (store.channel && (!presenceKey || store.currentKey === presenceKey)) {
@@ -86,6 +118,10 @@ async function ensureChannel(presenceKey?: string) {
         store.joined = true;
         const queued = store.pending.splice(0);
         queued.forEach((fn) => fn());
+        // Reconnect-safe: always re-broadcast our track state on join.
+        retrackAll();
+      } else if (status === "CHANNEL_ERROR" || status === "CLOSED" || status === "TIMED_OUT") {
+        store.joined = false;
       }
     });
 
@@ -119,27 +155,49 @@ export function subscribePresence(cb: (s: Set<string>) => void) {
 }
 
 export function trackPresence(userId: string) {
-  let tracked = false;
+  store.activeTrackers.add(userId);
+  ensureHeartbeat();
+
   const doTrack = () => {
-    if (document.visibilityState !== "hidden") {
-      void ensureChannel(userId).then((ch) => whenJoined(() => {
-        ch.track({ user_id: userId, online_at: new Date().toISOString() });
-        tracked = true;
-      })).catch(() => undefined);
-    } else if (tracked) {
-      store.channel?.untrack();
-      tracked = false;
+    if (document.visibilityState === "hidden") return;
+    void ensureChannel(userId)
+      .then(() => whenJoined(() => retrackAll()))
+      .catch(() => undefined);
+  };
+
+  doTrack();
+
+  const onVis = () => {
+    if (document.visibilityState === "hidden") {
+      // Keep them in activeTrackers so we auto re-track on return,
+      // but stop broadcasting now.
+      try {
+        store.channel?.untrack();
+      } catch {
+        // ignore
+      }
+    } else {
+      doTrack();
     }
   };
-  doTrack();
-  const onVis = () => doTrack();
+
   document.addEventListener("visibilitychange", onVis);
   window.addEventListener("focus", doTrack);
   window.addEventListener("pageshow", doTrack);
+
   return () => {
     document.removeEventListener("visibilitychange", onVis);
     window.removeEventListener("focus", doTrack);
     window.removeEventListener("pageshow", doTrack);
-    if (tracked) store.channel?.untrack();
+    store.activeTrackers.delete(userId);
+    try {
+      store.channel?.untrack();
+    } catch {
+      // ignore
+    }
+    if (store.activeTrackers.size === 0 && store.heartbeat) {
+      clearInterval(store.heartbeat);
+      store.heartbeat = null;
+    }
   };
 }
