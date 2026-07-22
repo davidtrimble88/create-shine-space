@@ -21,9 +21,11 @@ type PresenceStore = {
   heartbeat: ReturnType<typeof setInterval> | null;
 };
 
-const store: PresenceStore = ((globalThis as typeof globalThis & {
+const globalRef = globalThis as typeof globalThis & {
   __employeePresenceStore?: PresenceStore;
-}).__employeePresenceStore ??= {
+};
+const existing = globalRef.__employeePresenceStore;
+const store: PresenceStore = existing ?? {
   channel: null,
   currentKey: "",
   joined: false,
@@ -33,7 +35,15 @@ const store: PresenceStore = ((globalThis as typeof globalThis & {
   initializing: null,
   activeTrackers: new Set<string>(),
   heartbeat: null,
-});
+};
+// Backfill fields added in later versions when reusing a store from a prior HMR session.
+store.activeTrackers ??= new Set<string>();
+store.listeners ??= new Set<PresenceListener>();
+store.online ??= new Set<string>();
+store.pending ??= [];
+if (store.heartbeat === undefined) store.heartbeat = null;
+globalRef.__employeePresenceStore = store;
+
 
 const waitForChannelRemoval = async (channelToRemove: RealtimeChannel) => {
   try {
