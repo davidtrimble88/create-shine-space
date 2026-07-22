@@ -226,7 +226,9 @@ const AdminBookings = () => {
       date_of_birth: retestForm.date_of_birth || null,
       is_retest: true,
       fee: sched.price,
+      manually_added: true,
     };
+
 
     if (retestPaymentCollected && retestPaymentMethod === "charge_card") {
       const cents = parseFeeCents(sched.price);
