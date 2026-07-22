@@ -301,18 +301,41 @@ const EmployeeDashboard = () => {
 
       {/* Nav items */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+        {!collapsed && (
+          <div className="flex items-center justify-between px-2 pb-2">
+            <button
+              onClick={() => setReorderMode(v => !v)}
+              className={`text-[11px] font-medium px-2 py-1 rounded ${reorderMode ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
+              title="Drag tabs to reorder"
+            >
+              {reorderMode ? "Done" : "Reorder"}
+            </button>
+            {reorderMode && (
+              <button
+                onClick={resetOrder}
+                className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-secondary"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        )}
         {visibleTabs.map((tab) => (
           <button
             key={tab.id}
             data-tour-target={tab.id}
-            onClick={() => handleTabSelect(tab.id)}
+            draggable={reorderMode}
+            onDragStart={() => handleDragStart(tab.id)}
+            onDragOver={handleDragOver}
+            onDrop={() => handleDrop(tab.id)}
+            onClick={() => { if (!reorderMode) handleTabSelect(tab.id); }}
             className={`relative w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
               collapsed ? "justify-center px-2 py-3" : "px-4 py-3"
             } ${
               activeTab === tab.id
                 ? "bg-accent/10 text-accent"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-            }`}
+            } ${reorderMode ? "cursor-grab active:cursor-grabbing ring-1 ring-dashed ring-border" : ""}`}
             title={collapsed ? tab.label : undefined}
           >
             <tab.icon className="w-5 h-5 flex-shrink-0" />
