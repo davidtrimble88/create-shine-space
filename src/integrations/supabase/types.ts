@@ -608,13 +608,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "instructor_assignments_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "public_instructors"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "instructor_assignments_schedule_id_fkey"
             columns: ["schedule_id"]
             isOneToOne: false
@@ -712,6 +705,51 @@ export type Database = {
           id?: string
           location?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      instructor_public_profiles: {
+        Row: {
+          bio: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          photo_position_x: number | null
+          photo_position_y: number | null
+          photo_url: string | null
+          photo_zoom: number | null
+          position: string | null
+          show_on_website: boolean
+          source_created_at: string
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          full_name: string
+          id: string
+          is_active?: boolean
+          photo_position_x?: number | null
+          photo_position_y?: number | null
+          photo_url?: string | null
+          photo_zoom?: number | null
+          position?: string | null
+          show_on_website?: boolean
+          source_created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          photo_position_x?: number | null
+          photo_position_y?: number | null
+          photo_url?: string | null
+          photo_zoom?: number | null
+          position?: string | null
+          show_on_website?: boolean
+          source_created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1380,28 +1418,40 @@ export type Database = {
       public_instructors: {
         Row: {
           bio: string | null
+          created_at: string | null
           full_name: string | null
           id: string | null
           is_active: boolean | null
+          photo_position_x: number | null
+          photo_position_y: number | null
           photo_url: string | null
+          photo_zoom: number | null
           position: string | null
           show_on_website: boolean | null
         }
         Insert: {
           bio?: string | null
+          created_at?: string | null
           full_name?: string | null
           id?: string | null
           is_active?: boolean | null
+          photo_position_x?: number | null
+          photo_position_y?: number | null
           photo_url?: string | null
+          photo_zoom?: number | null
           position?: string | null
           show_on_website?: boolean | null
         }
         Update: {
           bio?: string | null
+          created_at?: string | null
           full_name?: string | null
           id?: string | null
           is_active?: boolean | null
+          photo_position_x?: number | null
+          photo_position_y?: number | null
           photo_url?: string | null
+          photo_zoom?: number | null
           position?: string | null
           show_on_website?: boolean | null
         }
