@@ -1545,6 +1545,11 @@ const ClassRosters = () => {
               </Button>
             </>
           )}
+          {view === "evaluation_pending" && selectedScheduleId && (
+            <Button variant="outline" onClick={() => setSelectedScheduleId("")}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Evaluation Pending
+            </Button>
+          )}
           {view !== "active" && (
             <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("active"); }}>
               <ArrowLeft className="w-4 h-4 mr-2" /> Back to Class Rosters
