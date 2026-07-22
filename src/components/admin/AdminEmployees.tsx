@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound, Search, Mail, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { subscribePresence } from "@/lib/employeePresence";
 
 type Employee = Tables<"employees">;
 
