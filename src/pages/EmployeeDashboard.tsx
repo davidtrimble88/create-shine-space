@@ -421,7 +421,7 @@ const EmployeeDashboard = () => {
                 <h1 className="text-2xl font-bold tracking-tight">
                   Welcome, {employeeName || user?.email || "Rider"}
                 </h1>
-                <p className="text-sm text-muted-foreground mt-1">Here's what's happening today.</p>
+                <p className="text-sm text-muted-foreground mt-1">We Train with Purpose. We Lead with Safety.</p>
                 <Button variant="outline" size="sm" className="mt-3" onClick={() => setTourOpen(true)}>
                   <Sparkles className="w-4 h-4 mr-2" /> Take the portal tour
                 </Button>
@@ -434,7 +434,7 @@ const EmployeeDashboard = () => {
               <h1 className="text-xl font-bold tracking-tight">
                 Welcome, {employeeName || user?.email || "Rider"}
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">Here's what's happening today.</p>
+              <p className="text-sm text-muted-foreground mt-1">We Train with Purpose. We Lead with Safety.</p>
               <Button variant="outline" size="sm" className="mt-3" onClick={() => setTourOpen(true)}>
                 <Sparkles className="w-4 h-4 mr-2" /> Take the portal tour
               </Button>
