@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Printer, Mail, CalendarDays, History, ArrowLeft } from "lucide-react";
 import { roleLabelMap } from "./InstructorAssignment";
+import { formatPST, formatPSTDate } from "@/lib/formatDate";
 
 interface ScheduleRow {
   id: string;
