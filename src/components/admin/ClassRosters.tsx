@@ -88,6 +88,16 @@ const ClassRosters = () => {
   const [savingStudent, setSavingStudent] = useState(false);
   const canEditStudents = effectiveRole === "owner" || effectiveRole === "admin";
 
+  const handleDeleteManual = async (b: Booking) => {
+    if (!(b as any).manually_added) return;
+    if (!confirm(`Delete ${b.first_name} ${b.last_name} from this roster? This cannot be undone.`)) return;
+    const { error } = await supabase.from("bookings").delete().eq("id", b.id);
+    if (error) { toast.error("Failed to delete: " + error.message); return; }
+    setBookings(prev => prev.filter(x => x.id !== b.id));
+    toast.success("Student removed");
+  };
+
+
   const openEditStudent = (b: Booking) => {
     setEditStudentForm({
       first_name: b.first_name || "",
