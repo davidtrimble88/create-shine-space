@@ -2,73 +2,132 @@ import { supabase } from "@/integrations/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 const TOPIC = "employee-presence";
-let channel: RealtimeChannel | null = null;
-let joined = false;
-let currentKey = "";
-let online = new Set<string>();
-const listeners = new Set<(s: Set<string>) => void>();
-const pending: Array<() => void> = [];
 
-function ensureChannel(presenceKey?: string) {
-  // Recreate the channel if we need a real presence key but the existing one
-  // was created with an empty key (observer mounted before tracker).
-  if (channel && presenceKey && currentKey !== presenceKey) {
-    try { supabase.removeChannel(channel); } catch {}
-    channel = null;
-    joined = false;
+type PresenceListener = (s: Set<string>) => void;
+
+type PresenceStore = {
+  channel: RealtimeChannel | null;
+  currentKey: string;
+  joined: boolean;
+  online: Set<string>;
+  listeners: Set<PresenceListener>;
+  pending: Array<() => void>;
+  initializing: Promise<RealtimeChannel> | null;
+};
+
+const store: PresenceStore = ((globalThis as typeof globalThis & {
+  __employeePresenceStore?: PresenceStore;
+}).__employeePresenceStore ??= {
+  channel: null,
+  currentKey: "",
+  joined: false,
+  online: new Set<string>(),
+  listeners: new Set<PresenceListener>(),
+  pending: [],
+  initializing: null,
+});
+
+const waitForChannelRemoval = async (channelToRemove: RealtimeChannel) => {
+  try {
+    await supabase.removeChannel(channelToRemove);
+  } catch {
+    // A stale channel should not take down the Employees page.
   }
-  if (channel) return channel;
+};
 
-  currentKey = presenceKey ?? "";
-  const ch = supabase.channel(TOPIC, {
-    config: { presence: { key: currentKey } },
-  });
-  ch.on("presence", { event: "sync" }, () => {
-    const state = ch.presenceState() as Record<string, Array<{ user_id?: string }>>;
-    const next = new Set<string>();
-    for (const [key, metas] of Object.entries(state)) {
-      if (key) next.add(key);
-      for (const m of metas || []) {
-        if (m?.user_id) next.add(m.user_id);
+async function ensureChannel(presenceKey?: string) {
+  if (store.channel && (!presenceKey || store.currentKey === presenceKey)) {
+    return store.channel;
+  }
+
+  if (store.initializing) {
+    await store.initializing;
+    if (store.channel && (!presenceKey || store.currentKey === presenceKey)) {
+      return store.channel;
+    }
+  }
+
+  store.initializing = (async () => {
+    const staleChannels = supabase
+      .getChannels()
+      .filter((ch) => ch.topic === `realtime:${TOPIC}` && ch !== store.channel);
+
+    await Promise.all(staleChannels.map(waitForChannelRemoval));
+
+    if (store.channel && presenceKey && store.currentKey !== presenceKey) {
+      await waitForChannelRemoval(store.channel);
+      store.channel = null;
+      store.joined = false;
+      store.online = new Set<string>();
+    }
+
+    if (store.channel) return store.channel;
+
+    store.currentKey = presenceKey ?? "";
+    const ch = supabase.channel(TOPIC, {
+      config: { presence: { key: store.currentKey } },
+    });
+
+    ch.on("presence", { event: "sync" }, () => {
+      const state = ch.presenceState() as Record<string, Array<{ user_id?: string }>>;
+      const next = new Set<string>();
+      for (const [key, metas] of Object.entries(state)) {
+        if (key) next.add(key);
+        for (const m of metas || []) {
+          if (m?.user_id) next.add(m.user_id);
+        }
       }
-    }
-    online = next;
-    listeners.forEach((l) => l(online));
-  });
-  ch.subscribe((status) => {
-    if (status === "SUBSCRIBED") {
-      joined = true;
-      const q = pending.splice(0);
-      q.forEach((fn) => fn());
-    }
-  });
-  channel = ch;
-  return channel;
+      store.online = next;
+      store.listeners.forEach((listener) => listener(store.online));
+    });
+
+    ch.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        store.joined = true;
+        const queued = store.pending.splice(0);
+        queued.forEach((fn) => fn());
+      }
+    });
+
+    store.channel = ch;
+    return ch;
+  })();
+
+  try {
+    return await store.initializing;
+  } finally {
+    store.initializing = null;
+  }
 }
 
 function whenJoined(fn: () => void) {
-  if (joined) fn();
-  else pending.push(fn);
+  if (store.joined) fn();
+  else store.pending.push(fn);
 }
 
 export function subscribePresence(cb: (s: Set<string>) => void) {
-  ensureChannel();
-  listeners.add(cb);
-  cb(online);
-  return () => { listeners.delete(cb); };
+  let active = true;
+  store.listeners.add(cb);
+  cb(store.online);
+  void ensureChannel().catch(() => {
+    if (active) cb(new Set<string>());
+  });
+  return () => {
+    active = false;
+    store.listeners.delete(cb);
+  };
 }
 
 export function trackPresence(userId: string) {
-  const ch = ensureChannel(userId);
   let tracked = false;
   const doTrack = () => {
     if (document.visibilityState !== "hidden") {
-      whenJoined(() => {
+      void ensureChannel(userId).then((ch) => whenJoined(() => {
         ch.track({ user_id: userId, online_at: new Date().toISOString() });
         tracked = true;
-      });
+      })).catch(() => undefined);
     } else if (tracked) {
-      ch.untrack();
+      store.channel?.untrack();
       tracked = false;
     }
   };
@@ -81,6 +140,6 @@ export function trackPresence(userId: string) {
     document.removeEventListener("visibilitychange", onVis);
     window.removeEventListener("focus", doTrack);
     window.removeEventListener("pageshow", doTrack);
-    if (tracked) ch.untrack();
+    if (tracked) store.channel?.untrack();
   };
 }
