@@ -119,6 +119,38 @@ const EmployeeDashboard = () => {
     return () => window.removeEventListener("openRoster", handler);
   }, []);
 
+  // Presence: broadcast that this user is actively on the site (only while tab is visible)
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase.channel("employee-presence", {
+      config: { presence: { key: user.id } },
+    });
+    let subscribed = false;
+    const track = () => { if (subscribed) channel.track({ online_at: new Date().toISOString() }); };
+    const untrack = () => { if (subscribed) channel.untrack(); };
+    channel.subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        subscribed = true;
+        if (document.visibilityState === "visible") track();
+      }
+    });
+    const onVis = () => {
+      if (document.visibilityState === "visible") track();
+      else untrack();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", track);
+    window.addEventListener("blur", untrack);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", track);
+      window.removeEventListener("blur", untrack);
+      untrack();
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+
   // Unread message threads count for sidebar badge
   const [unreadMessages, setUnreadMessages] = useState(0);
   useEffect(() => {
