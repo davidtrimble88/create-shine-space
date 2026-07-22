@@ -55,6 +55,18 @@ const AdminEmployees = () => {
   const [tempPasswordInfo, setTempPasswordInfo] = useState<{ name: string; email: string; password: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const channel = supabase.channel("employee-presence");
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        setOnlineUsers(new Set(Object.keys(state)));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const tempPasswordInputRef = useRef<HTMLInputElement>(null);
@@ -656,16 +668,19 @@ const AdminEmployees = () => {
           <div className="grid gap-4">
             {filteredEmployees.map((emp) => {
             const RoleIcon = roleIcons[emp.role ?? "employee"] ?? Eye;
+            const isOnline = !!emp.user_id && onlineUsers.has(emp.user_id);
             return (
               <div key={emp.id} className="bg-card border border-border rounded-xl p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  {(emp as any).photo_url ? (
-                    <img src={(emp as any).photo_url} alt={emp.full_name} className="w-10 h-10 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold text-sm">
-                      {emp.full_name.split(" ").map(n => n[0]).join("").toUpperCase()}
-                    </div>
-                  )}
+                  <div className={`relative rounded-full ${isOnline ? "ring-2 ring-green-500 shadow-[0_0_16px_4px_rgba(34,197,94,0.6)] animate-pulse" : ""}`} title={isOnline ? "Currently on the site" : undefined}>
+                    {(emp as any).photo_url ? (
+                      <img src={(emp as any).photo_url} alt={emp.full_name} className="w-10 h-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-semibold text-sm">
+                        {emp.full_name.split(" ").map(n => n[0]).join("").toUpperCase()}
+                      </div>
+                    )}
+                  </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-foreground">{emp.full_name}</p>
