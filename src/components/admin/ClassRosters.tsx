@@ -13,6 +13,7 @@ import { roleLabelMap } from "@/components/admin/InstructorAssignment";
 import { WaiverStatusEditor } from "@/components/admin/WaiverStatusEditor";
 
 import type { Tables } from "@/integrations/supabase/types";
+import { formatPSTDate } from "@/lib/formatDate";
 
 type Schedule = Tables<"schedules">;
 type Booking = Tables<"bookings"> & {
@@ -2010,7 +2011,7 @@ const ClassRosters = () => {
                           <td className="p-3 text-muted-foreground">{b.phone}</td>
                           <td className="p-3 text-foreground italic">{b.dropped_reason || "—"}</td>
                           <td className="p-3 text-muted-foreground text-xs">
-                            {b.dropped_at ? new Date(b.dropped_at).toLocaleDateString() : "—"}
+                            {b.dropped_at ? formatPSTDate(b.dropped_at) : "—"}
                           </td>
                           <td className="p-3 text-center">
                             <Button size="sm" variant="outline" onClick={() => handleUndropStudent(b)}>

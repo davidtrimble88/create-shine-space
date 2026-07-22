@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound, Search, Mail, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { subscribePresence } from "@/lib/employeePresence";
+import { formatPST } from "@/lib/formatDate";
 
 type Employee = Tables<"employees">;
 
@@ -690,7 +691,7 @@ const AdminEmployees = () => {
                           );
                         }
                         if ((emp.login_count ?? 0) > 0 && !emp.must_change_password) {
-                          const when = emp.last_login_at ? new Date(emp.last_login_at).toLocaleString() : "";
+                          const when = emp.last_login_at ? formatPST(emp.last_login_at) : "";
                           return (
                             <span className="flex items-center gap-1 text-[10px] bg-green-500/10 text-green-500 px-1.5 py-0.5 rounded-full" title={when ? `Last login: ${when}` : "Active"}>
                               <CheckCircle2 className="w-3 h-3" /> Active
@@ -715,7 +716,7 @@ const AdminEmployees = () => {
                     {emp.user_id && (
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {emp.last_login_at
-                          ? `Last login: ${new Date(emp.last_login_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
+                          ? `Last login: ${formatPST(emp.last_login_at)}`
                           : "Never logged in"}
                       </p>
                     )}

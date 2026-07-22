@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { CreditCard, CheckCircle2, AlertTriangle, Loader2, Save, ShieldAlert, KeyRound, ExternalLink, Copy } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
+import { formatPST } from "@/lib/formatDate";
 
 type Provider = "square" | "paypal" | "stripe";
 type Mode = "sandbox" | "live";
@@ -418,7 +419,7 @@ const PaymentSettings = () => {
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
-        Last updated: {new Date(settings.updated_at).toLocaleString()}
+        Last updated: {formatPST(settings.updated_at)}
       </p>
     </div>
   );

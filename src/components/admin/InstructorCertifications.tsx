@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { ShieldCheck, Save, Loader2, AlertTriangle, CheckCircle2, XCircle, Pencil, BarChart3 } from "lucide-react";
 import CertificationStatusReport from "./CertificationStatusReport";
+import { formatPSTDate } from "@/lib/formatDate";
 
 type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires";
 
@@ -331,7 +332,7 @@ const AdminAllView = () => {
                     ))}
                     <td className="px-4 py-3 text-xs text-muted-foreground">
                       {c?.updated_at
-                        ? new Date(c.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+                        ? formatPSTDate(c.updated_at)
                         : "—"}
                     </td>
                     <td className="px-4 py-3 text-right">
