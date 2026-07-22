@@ -23,17 +23,22 @@ const ForgotPassword = () => {
     if (!email.trim()) return;
     setIsLoading(true);
 
-    const { data, error } = await supabase.functions.invoke("self-reset-password", {
+    const { data } = await supabase.functions.invoke("self-reset-password", {
       body: { mode: "get-questions", email: email.trim() },
     });
 
-    if (error || !data?.questions || data.questions.length < 3) {
-      toast({ title: "Unable to proceed", description: "Security questions not found for this email. Contact an administrator.", variant: "destructive" });
-      setIsLoading(false);
-      return;
-    }
-
-    setQuestions(data.questions);
+    // Always advance to the questions step regardless of whether the email
+    // matches an account — this prevents account enumeration via the
+    // forgot-password flow. Verification of the answers on the next step
+    // returns a generic failure for both invalid emails and wrong answers.
+    const qs = Array.isArray(data?.questions) && data.questions.length >= 3
+      ? data.questions
+      : [
+          "Answer the security question set on your account (1 of 3)",
+          "Answer the security question set on your account (2 of 3)",
+          "Answer the security question set on your account (3 of 3)",
+        ];
+    setQuestions(qs);
     setAnswers(["", "", ""]);
     setStep("questions");
     setIsLoading(false);
