@@ -58,7 +58,9 @@ const AdminEmployees = () => {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const channel = supabase.channel("employee-presence");
+    const channel = supabase.channel("employee-presence-observer-" + Math.random().toString(36).slice(2), {
+      config: { presence: { key: "" } },
+    });
     channel
       .on("presence", { event: "sync" }, () => {
         const state = channel.presenceState();
