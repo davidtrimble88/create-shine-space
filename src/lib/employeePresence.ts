@@ -41,7 +41,7 @@ store.activeTrackers ??= new Set<string>();
 store.listeners ??= new Set<PresenceListener>();
 store.online ??= new Set<string>();
 store.pending ??= [];
-if (!("heartbeat" in store)) store.heartbeat = null;
+if (store.heartbeat === undefined) store.heartbeat = null;
 globalRef.__employeePresenceStore = store;
 
 
