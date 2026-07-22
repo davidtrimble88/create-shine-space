@@ -215,6 +215,20 @@ const EmployeeDashboard = () => {
     if (!stillVisible) setActiveTab("overview");
   }, [effectiveRole, activeTab]);
 
+  // Per-user custom tab ordering (persisted in localStorage) — declared before any early returns
+  const orderKey = user ? `dashboardTabOrder:${user.id}` : "";
+  const [tabOrder, setTabOrder] = useState<string[]>([]);
+  const [reorderMode, setReorderMode] = useState(false);
+  const dragId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!orderKey) return;
+    try {
+      const saved = localStorage.getItem(orderKey);
+      if (saved) setTabOrder(JSON.parse(saved));
+    } catch {}
+  }, [orderKey]);
+
   if (!loading && user && mustChangePassword) {
     return <Navigate to="/change-password" replace />;
   }
@@ -233,19 +247,6 @@ const EmployeeDashboard = () => {
 
   const baseVisibleTabs = tabs.filter(t => t.roles.includes(effectiveRole as any));
 
-  // Per-user custom tab ordering (persisted in localStorage)
-  const orderKey = user ? `dashboardTabOrder:${user.id}` : "";
-  const [tabOrder, setTabOrder] = useState<string[]>([]);
-  const [reorderMode, setReorderMode] = useState(false);
-  const dragId = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!orderKey) return;
-    try {
-      const saved = localStorage.getItem(orderKey);
-      if (saved) setTabOrder(JSON.parse(saved));
-    } catch {}
-  }, [orderKey]);
 
   const persistOrder = (order: string[]) => {
     setTabOrder(order);
