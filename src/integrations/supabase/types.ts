@@ -1493,6 +1493,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_strict: { Args: { _user_id: string }; Returns: boolean }
+      is_owner: { Args: { _user_id: string }; Returns: boolean }
       is_thread_participant: {
         Args: { _thread: string; _user: string }
         Returns: boolean
