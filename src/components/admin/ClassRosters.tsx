@@ -1053,7 +1053,9 @@ const ClassRosters = () => {
         : src.retest_type === "both"
           ? "Skill & Knowledge retest"
           : "Knowledge retest",
-    }).select().single();
+      manually_added: true,
+    } as any).select().single();
+
 
     if (error || !data) {
       setSchedulingRetest(false);
