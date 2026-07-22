@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Copy, Trash2, Ticket, DollarSign, Megaphone } from "lucide-react";
+import { formatPSTDate } from "@/lib/formatDate";
 
 const COURSE_OPTIONS = [
   { id: "basic", label: "Motorcycle Training Course" },
@@ -475,9 +476,9 @@ function CodesTable({
                       {courses.length === 0 ? <span className="text-muted-foreground">Any</span> : courses.map(courseLabel).join(", ")}
                     </td>
                     <td className="py-2 pr-3 text-xs">
-                      {c.starts_at ? new Date(c.starts_at).toLocaleDateString() : "—"}
+                      {c.starts_at ? formatPSTDate(c.starts_at) : "—"}
                       {" → "}
-                      {c.expires_at ? new Date(c.expires_at).toLocaleDateString() : "—"}
+                      {c.expires_at ? formatPSTDate(c.expires_at) : "—"}
                     </td>
                     <td className={`py-2 pr-3 text-xs ${status.cls}`}>{status.label}</td>
                     <td className="py-2 pr-3 max-w-xs truncate text-xs" title={c.notes ?? ""}>{c.notes || "—"}</td>

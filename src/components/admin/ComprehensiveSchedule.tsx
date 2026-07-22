@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Printer, Mail, CalendarDays, History, ArrowLeft } from "lucide-react";
 import { roleLabelMap } from "./InstructorAssignment";
+import { formatPST, formatPSTDate } from "@/lib/formatDate";
 
 interface ScheduleRow {
   id: string;
@@ -115,7 +116,7 @@ const ComprehensiveSchedule = () => {
         @media print { body { padding: 0; } }
       </style></head><body>
       <h1>Learn to Ride VC — Comprehensive Schedule</h1>
-      <p class="subtitle">Generated ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+      <p class="subtitle">Generated ${formatPSTDate(new Date(), { month: "long", day: "numeric", year: "numeric" })}</p>
       ${content.innerHTML}
       </body></html>
     `);

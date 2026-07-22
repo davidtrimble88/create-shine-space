@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, AlertTriangle, Ban, CalendarClock, RotateCcw, CheckCircle2 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { formatPST } from "@/lib/formatDate";
 
 type Schedule = Tables<"schedules">;
 type Booking = Tables<"bookings">;
@@ -469,7 +470,7 @@ const AdminCancellations = ({ onBack }: Props) => {
                     </div>
                     {c.reason && <div className="text-sm mt-2 italic">"{c.reason}"</div>}
                     <div className="text-xs text-muted-foreground mt-1">
-                      Cancelled {new Date(c.cancelled_at).toLocaleString()}
+                      Cancelled {formatPST(c.cancelled_at)}
                     </div>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => undoCancellation(c)}>

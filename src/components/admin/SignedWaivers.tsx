@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, ShieldCheck, Download, Search, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { formatPST } from "@/lib/formatDate";
 
 interface SignedWaiver {
   id: string;
@@ -217,7 +218,7 @@ const SignedWaivers = () => {
           <tbody>
             {filtered.map(w => (
               <tr key={w.id} className="border-t border-border hover:bg-muted/30">
-                <td className="px-3 py-2 whitespace-nowrap">{new Date(w.signed_at).toLocaleString()}</td>
+                <td className="px-3 py-2 whitespace-nowrap">{formatPST(w.signed_at)}</td>
                 <td className="px-3 py-2 whitespace-nowrap">
                   <span className="inline-flex items-center rounded-md bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent ring-1 ring-inset ring-accent/20">
                     {w.document_type
@@ -260,7 +261,7 @@ const SignedWaivers = () => {
               <DialogHeader className="shrink-0">
                 <DialogTitle className="text-base sm:text-lg">Signed Waiver — {selected.signer_first_name} {selected.signer_last_name}</DialogTitle>
                 <DialogDescription className="text-xs">
-                  Electronically signed {new Date(selected.signed_at).toLocaleString()} (ESIGN Act / UETA) · IP {selected.ip_address || "—"} · SHA-256 {selected.document_hash?.slice(0, 16)}…
+                  Electronically signed {formatPST(selected.signed_at)} (ESIGN Act / UETA) · IP {selected.ip_address || "—"} · SHA-256 {selected.document_hash?.slice(0, 16)}…
                 </DialogDescription>
               </DialogHeader>
 

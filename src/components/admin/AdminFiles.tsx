@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
+import { formatPST, formatPSTDate } from "@/lib/formatDate";
   FolderOpen,
   Upload,
   Download,
@@ -85,12 +86,7 @@ const formatBytes = (bytes: number) => {
   return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 };
 
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+const formatDate = (iso: string) => formatPSTDate(iso);
 
 const iconForMime = (mime: string | null) => {
   if (!mime) return FileIcon;

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Loader2, MessageSquare, Send } from "lucide-react";
+import { formatPST } from "@/lib/formatDate";
 
 type Ticket = {
   id: string;
@@ -644,7 +645,7 @@ export default function ITTickets() {
                       <div className="min-w-0">
                         <CardTitle className="text-base">{t.title}</CardTitle>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {t.submitter_name || t.submitter_email} · {new Date(t.created_at).toLocaleString()}
+                          {t.submitter_name || t.submitter_email} · {formatPST(t.created_at)}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
@@ -790,7 +791,7 @@ function TicketComments({ ticketId, isAdmin }: { ticketId: string; isAdmin: bool
                     {c.author_role === "staff" ? "IT" : "you"}
                   </span>
                 </span>
-                <span className="text-[10px] text-muted-foreground">{new Date(c.created_at).toLocaleString()}</span>
+                <span className="text-[10px] text-muted-foreground">{formatPST(c.created_at)}</span>
               </div>
               <p className="whitespace-pre-wrap">{c.body}</p>
             </div>

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from "@/components/ui/label";
 import { Loader2, IdCard, Download, Search, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { formatPST } from "@/lib/formatDate";
 
 interface BookingRow {
   id: string;
@@ -198,7 +199,7 @@ const StudentIds = () => {
           <tbody>
             {filtered.map(r => (
               <tr key={r.id} className="border-t border-border hover:bg-muted/30">
-                <td className="px-3 py-2 whitespace-nowrap">{new Date(r.created_at).toLocaleString()}</td>
+                <td className="px-3 py-2 whitespace-nowrap">{formatPST(r.created_at)}</td>
                 <td className="px-3 py-2">
                   <div className="font-medium">{r.first_name} {r.last_name}</div>
                   <div className="text-xs text-muted-foreground">{r.email}</div>

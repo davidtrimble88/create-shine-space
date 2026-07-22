@@ -12,6 +12,7 @@ import {
   PieChart, Pie, Cell, LineChart, Line, Legend
 } from "recharts";
 import { Button } from "@/components/ui/button";
+import { formatPST, formatPSTDate } from "@/lib/formatDate";
 
 const COLORS = ["hsl(var(--accent))", "#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444", "#06b6d4", "#ec4899"];
 
@@ -161,7 +162,7 @@ const WebsiteAnalytics = () => {
         visitor_id: p.visitor_id?.substring(0, 8) + "…",
         full_visitor_id: p.visitor_id,
         page: p.page_name || p.page_path,
-        time: new Date(p.created_at).toLocaleString(),
+        time: formatPST(p.created_at),
       }));
     // Group by visitor
     const visitorMap = new Map<string, { visitor_id: string; visits: number; lastVisit: string }>();
@@ -422,7 +423,7 @@ const WebsiteAnalytics = () => {
                 <tbody>
                   {bookings.slice(-20).reverse().map(b => (
                     <tr key={b.id} className="border-b border-border/50">
-                      <td className="p-3 text-muted-foreground text-xs">{new Date(b.created_at).toLocaleDateString()}</td>
+                      <td className="p-3 text-muted-foreground text-xs">{formatPSTDate(b.created_at)}</td>
                       <td className="p-3 text-foreground">{b.first_name} {b.last_name}</td>
                       <td className="p-3"><span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent">{courseLabels[b.course] || b.course}</span></td>
                       <td className="p-3 text-muted-foreground text-xs">{b.location_label}</td>
@@ -559,7 +560,7 @@ const WebsiteAnalytics = () => {
               <tbody>
                 {logins.slice(0, 50).map(l => (
                   <tr key={l.id} className="border-b border-border/50">
-                    <td className="p-4 text-foreground">{new Date(l.created_at).toLocaleString()}</td>
+                    <td className="p-4 text-foreground">{formatPST(l.created_at)}</td>
                     <td className="p-4 text-muted-foreground">{l.email}</td>
                   </tr>
                 ))}

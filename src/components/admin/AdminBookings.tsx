@@ -13,6 +13,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import AdminCancellations from "./AdminCancellations";
 import { PaymentDialog, type PaymentProvider } from "@/components/PaymentDialog";
 import type { SquareRegion } from "@/components/SquarePaymentDialog";
+import { formatPSTDate } from "@/lib/formatDate";
 
 const regionFor = (location: string): SquareRegion =>
   location.startsWith("high-desert") ? "high_desert" : "ventura";
@@ -849,7 +850,7 @@ const AdminBookings = () => {
                   </div>
                   <div>
                     <p className="text-muted-foreground text-xs">Booked On</p>
-                    <p className="font-medium text-foreground">{new Date(selectedBooking.created_at).toLocaleDateString()}</p>
+                    <p className="font-medium text-foreground">{formatPSTDate(selectedBooking.created_at)}</p>
                   </div>
                 </div>
               </div>
