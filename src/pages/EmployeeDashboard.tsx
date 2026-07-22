@@ -162,6 +162,26 @@ const EmployeeDashboard = () => {
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [user, activeTab]);
 
+  // Open IT tickets count for sidebar badge
+  const [openTickets, setOpenTickets] = useState(0);
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const isStaff = effectiveRole === "owner" || effectiveRole === "admin" || effectiveRole === "manager";
+    const recompute = async () => {
+      let q = supabase.from("it_tickets").select("id", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
+      if (!isStaff) q = q.eq("user_id", user.id);
+      const { count } = await q;
+      if (!cancelled) setOpenTickets(count || 0);
+    };
+    recompute();
+    const channel = supabase
+      .channel("sidebar-open-tickets")
+      .on("postgres_changes", { event: "*", schema: "public", table: "it_tickets" }, recompute)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [user, effectiveRole, activeTab]);
+
   // Fetch the logged-in employee's name for the welcome header
   const [employeeName, setEmployeeName] = useState("");
   useEffect(() => {
