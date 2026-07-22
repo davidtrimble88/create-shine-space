@@ -1889,6 +1889,16 @@ const ClassRosters = () => {
                             >
                               <Pencil className="w-3 h-3" />
                             </button>
+                            {canEditStudents && (
+                              <button
+                                type="button"
+                                onClick={() => openEditStudent(b)}
+                                title="Edit student information"
+                                className="ml-1 text-muted-foreground hover:text-accent inline-flex items-center"
+                              >
+                                <UserCheck className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                         </td>
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
