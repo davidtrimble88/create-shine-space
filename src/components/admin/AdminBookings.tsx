@@ -164,7 +164,9 @@ const AdminBookings = () => {
       license_expiration: form.license_expiration || null,
       referral_source: form.referral_source || "Phone Call",
       fee: sched.price,
+      manually_added: true,
     };
+
 
     // Take real card payment via Square
     if (studentPaymentCollected && studentPaymentMethod === "charge_card") {
