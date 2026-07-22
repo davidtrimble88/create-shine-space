@@ -389,16 +389,9 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         </div>
       </div>
 
-      {!isReview && (
-        <div className="bg-card border border-border rounded-2xl p-5 md:p-6 space-y-4">
-          <div>
-            <h3 className="text-lg md:text-xl font-bold text-foreground">{steps[stepIdx].title}</h3>
-            {steps[stepIdx].subtitle && (
-              <p className="text-sm text-muted-foreground mt-1">{steps[stepIdx].subtitle}</p>
-            )}
-          </div>
-          <div>{steps[stepIdx].render()}</div>
-          <div className="flex items-center justify-between pt-2">
+      {!isReview && (() => {
+        const NavRow = () => (
+          <div className="flex items-center justify-between">
             <Button
               type="button" variant="outline"
               onClick={() => (stepIdx === 0 ? onBack() : setStepIdx(stepIdx - 1))}
@@ -411,12 +404,26 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
               disabled={!steps[stepIdx].valid()}
               onClick={() => setStepIdx(stepIdx + 1)}
             >
-              {stepIdx === steps.length - 1 ? "Review" : "Next"}
+              {stepIdx === steps.length - 1 ? "Review" : "Save & Continue"}
               <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
-        </div>
-      )}
+        );
+        return (
+          <div className="bg-card border border-border rounded-2xl p-5 md:p-6 space-y-4">
+            <div>
+              <h3 className="text-lg md:text-xl font-bold text-foreground">{steps[stepIdx].title}</h3>
+              {steps[stepIdx].subtitle && (
+                <p className="text-sm text-muted-foreground mt-1">{steps[stepIdx].subtitle}</p>
+              )}
+            </div>
+            <NavRow />
+            <div>{steps[stepIdx].render()}</div>
+            <div className="pt-2"><NavRow /></div>
+          </div>
+        );
+      })()}
+
 
       {isReview && (
         <div className="space-y-4">
