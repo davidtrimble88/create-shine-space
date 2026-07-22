@@ -1380,28 +1380,40 @@ export type Database = {
       public_instructors: {
         Row: {
           bio: string | null
+          created_at: string | null
           full_name: string | null
           id: string | null
           is_active: boolean | null
+          photo_position_x: number | null
+          photo_position_y: number | null
           photo_url: string | null
+          photo_zoom: number | null
           position: string | null
           show_on_website: boolean | null
         }
         Insert: {
           bio?: string | null
+          created_at?: string | null
           full_name?: string | null
           id?: string | null
           is_active?: boolean | null
+          photo_position_x?: number | null
+          photo_position_y?: number | null
           photo_url?: string | null
+          photo_zoom?: number | null
           position?: string | null
           show_on_website?: boolean | null
         }
         Update: {
           bio?: string | null
+          created_at?: string | null
           full_name?: string | null
           id?: string | null
           is_active?: boolean | null
+          photo_position_x?: number | null
+          photo_position_y?: number | null
           photo_url?: string | null
+          photo_zoom?: number | null
           position?: string | null
           show_on_website?: boolean | null
         }
