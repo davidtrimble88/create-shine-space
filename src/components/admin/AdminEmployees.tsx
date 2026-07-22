@@ -55,6 +55,18 @@ const AdminEmployees = () => {
   const [tempPasswordInfo, setTempPasswordInfo] = useState<{ name: string; email: string; password: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const channel = supabase.channel("employee-presence");
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        setOnlineUsers(new Set(Object.keys(state)));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const tempPasswordInputRef = useRef<HTMLInputElement>(null);
