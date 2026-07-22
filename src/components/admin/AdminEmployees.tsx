@@ -712,6 +712,13 @@ const AdminEmployees = () => {
                       })()}
                     </div>
                     <p className="text-sm text-muted-foreground">{emp.email}</p>
+                    {emp.user_id && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {emp.last_login_at
+                          ? `Last login: ${new Date(emp.last_login_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
+                          : "Never logged in"}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
