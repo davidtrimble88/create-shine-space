@@ -691,7 +691,8 @@ const ClassRosters = () => {
       payment_status: "paid",
       is_retest: true,
       roster_comment: retestForm.comment.trim() || null,
-    }).select().single();
+      manually_added: true,
+    } as any).select().single();
 
     if (error) {
       toast.error("Failed to add retest student");
