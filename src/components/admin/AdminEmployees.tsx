@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound, Search, Mail, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { subscribePresence } from "@/lib/employeePresence";
 
 type Employee = Tables<"employees">;
 
@@ -58,14 +59,7 @@ const AdminEmployees = () => {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const channel = supabase.channel("employee-presence");
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState();
-        setOnlineUsers(new Set(Object.keys(state)));
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return subscribePresence(setOnlineUsers);
   }, []);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
