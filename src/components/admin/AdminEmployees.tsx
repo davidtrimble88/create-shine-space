@@ -10,13 +10,15 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound, Search, Mail } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Shield, UserCog, Eye, Crown, Upload, X, KeyRound, Search, Mail, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Employee = Tables<"employees">;
 
 interface EmployeeWithRole extends Employee {
   role?: string;
+  last_login_at?: string | null;
+  login_count?: number;
 }
 
 const roleIcons: Record<string, typeof Shield> = {
@@ -83,7 +85,7 @@ const AdminEmployees = () => {
       return;
     }
 
-    const empsWithRoles: EmployeeWithRole[] = (empData ?? []).map(e => ({ ...e, role: "employee" }));
+    const empsWithRoles: EmployeeWithRole[] = (empData ?? []).map(e => ({ ...e, role: "employee", last_login_at: null, login_count: 0 }));
     
     const userIds = empsWithRoles.filter(e => e.user_id).map(e => e.user_id!);
     if (userIds.length > 0) {
@@ -92,6 +94,19 @@ const AdminEmployees = () => {
         for (const role of roles) {
           const emp = empsWithRoles.find(e => e.user_id === role.user_id);
           if (emp) emp.role = role.role;
+        }
+      }
+      const { data: logins } = await supabase
+        .from("employee_logins")
+        .select("user_id, created_at")
+        .in("user_id", userIds)
+        .order("created_at", { ascending: false });
+      if (logins) {
+        for (const l of logins) {
+          const emp = empsWithRoles.find(e => e.user_id === l.user_id);
+          if (!emp) continue;
+          emp.login_count = (emp.login_count ?? 0) + 1;
+          if (!emp.last_login_at) emp.last_login_at = l.created_at;
         }
       }
     }
@@ -652,11 +667,40 @@ const AdminEmployees = () => {
                     </div>
                   )}
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-foreground">{emp.full_name}</p>
                       {(emp as any).show_on_website && (
                         <span className="text-[10px] bg-green-500/10 text-green-500 px-1.5 py-0.5 rounded-full">On Website</span>
                       )}
+                      {(() => {
+                        if (!emp.user_id) {
+                          return (
+                            <span className="flex items-center gap-1 text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full" title="No login account">
+                              <AlertCircle className="w-3 h-3" /> No account
+                            </span>
+                          );
+                        }
+                        if ((emp.login_count ?? 0) > 0 && !emp.must_change_password) {
+                          const when = emp.last_login_at ? new Date(emp.last_login_at).toLocaleString() : "";
+                          return (
+                            <span className="flex items-center gap-1 text-[10px] bg-green-500/10 text-green-500 px-1.5 py-0.5 rounded-full" title={when ? `Last login: ${when}` : "Active"}>
+                              <CheckCircle2 className="w-3 h-3" /> Active
+                            </span>
+                          );
+                        }
+                        if ((emp.login_count ?? 0) > 0 && emp.must_change_password) {
+                          return (
+                            <span className="flex items-center gap-1 text-[10px] bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded-full" title="Logged in but hasn't set a new password">
+                              <Clock className="w-3 h-3" /> Password not set
+                            </span>
+                          );
+                        }
+                        return (
+                          <span className="flex items-center gap-1 text-[10px] bg-orange-500/10 text-orange-400 px-1.5 py-0.5 rounded-full" title="Invited but never logged in">
+                            <Clock className="w-3 h-3" /> Never logged in
+                          </span>
+                        );
+                      })()}
                     </div>
                     <p className="text-sm text-muted-foreground">{emp.email}</p>
                   </div>
