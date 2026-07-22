@@ -405,6 +405,7 @@ async function buildPdf(
   } else {
     newLine(10);
     heading("Signature");
+    newLine(55);
     await drawSignatureBlockOnPage(page, pdf, data, fullName, dateStr, font, bold, y, (nh) => { y -= nh; });
   }
 
