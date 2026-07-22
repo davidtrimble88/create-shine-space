@@ -101,6 +101,7 @@ export type Database = {
           license_number: string | null
           location: string
           location_label: string
+          manually_added: boolean
           middle_name: string | null
           needs_reschedule: boolean
           original_course: string | null
@@ -158,6 +159,7 @@ export type Database = {
           license_number?: string | null
           location: string
           location_label: string
+          manually_added?: boolean
           middle_name?: string | null
           needs_reschedule?: boolean
           original_course?: string | null
@@ -215,6 +217,7 @@ export type Database = {
           license_number?: string | null
           location?: string
           location_label?: string
+          manually_added?: boolean
           middle_name?: string | null
           needs_reschedule?: boolean
           original_course?: string | null
