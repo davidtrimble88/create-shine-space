@@ -34,6 +34,7 @@ import MessagingCenter from "@/components/admin/MessagingCenter";
 import DashboardTour from "@/components/admin/DashboardTour";
 import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { trackPresence } from "@/lib/employeePresence";
 
 
 const tabs = [
