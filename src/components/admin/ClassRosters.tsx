@@ -83,6 +83,50 @@ const ClassRosters = () => {
   const [modelReleaseByEmail, setModelReleaseByEmail] = useState<Map<string, "signed" | "declined">>(new Map());
   const [waiverEditFor, setWaiverEditFor] = useState<Booking | null>(null);
   const [savingWaiverStatus, setSavingWaiverStatus] = useState(false);
+  const [editStudentFor, setEditStudentFor] = useState<Booking | null>(null);
+  const [editStudentForm, setEditStudentForm] = useState({ first_name: "", last_name: "", preferred_name: "", email: "", phone: "", license_number: "", issuing_state: "", date_of_birth: "" });
+  const [savingStudent, setSavingStudent] = useState(false);
+  const canEditStudents = effectiveRole === "owner" || effectiveRole === "admin";
+
+  const openEditStudent = (b: Booking) => {
+    setEditStudentForm({
+      first_name: b.first_name || "",
+      last_name: b.last_name || "",
+      preferred_name: (b as any).preferred_name || "",
+      email: b.email || "",
+      phone: b.phone || "",
+      license_number: b.license_number || "",
+      issuing_state: (b as any).issuing_state || "",
+      date_of_birth: b.date_of_birth || "",
+    });
+    setEditStudentFor(b);
+  };
+
+  const handleSaveStudentEdit = async () => {
+    if (!editStudentFor) return;
+    if (!editStudentForm.first_name.trim() || !editStudentForm.last_name.trim()) {
+      toast.error("First and last name are required");
+      return;
+    }
+    setSavingStudent(true);
+    const updates: any = {
+      first_name: editStudentForm.first_name.trim(),
+      last_name: editStudentForm.last_name.trim(),
+      preferred_name: editStudentForm.preferred_name.trim() || null,
+      email: editStudentForm.email.trim() || null,
+      phone: editStudentForm.phone.trim() || null,
+      license_number: editStudentForm.license_number.trim() || null,
+      issuing_state: editStudentForm.issuing_state.trim() || null,
+      date_of_birth: editStudentForm.date_of_birth || null,
+    };
+    const { error } = await supabase.from("bookings").update(updates).eq("id", editStudentFor.id);
+    setSavingStudent(false);
+    if (error) { toast.error("Could not save: " + error.message); return; }
+    setBookings(prev => prev.map(b => b.id === editStudentFor.id ? { ...b, ...updates } as Booking : b));
+    toast.success("Student info updated");
+    setEditStudentFor(null);
+  };
+
   const [loading, setLoading] = useState(false);
   const [locationFilter, setLocationFilter] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("");
