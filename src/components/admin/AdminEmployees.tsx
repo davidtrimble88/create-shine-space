@@ -17,6 +17,8 @@ type Employee = Tables<"employees">;
 
 interface EmployeeWithRole extends Employee {
   role?: string;
+  last_login_at?: string | null;
+  login_count?: number;
 }
 
 const roleIcons: Record<string, typeof Shield> = {
