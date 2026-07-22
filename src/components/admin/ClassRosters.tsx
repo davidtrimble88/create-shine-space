@@ -88,6 +88,16 @@ const ClassRosters = () => {
   const [savingStudent, setSavingStudent] = useState(false);
   const canEditStudents = effectiveRole === "owner" || effectiveRole === "admin";
 
+  const handleDeleteManual = async (b: Booking) => {
+    if (!(b as any).manually_added) return;
+    if (!confirm(`Delete ${b.first_name} ${b.last_name} from this roster? This cannot be undone.`)) return;
+    const { error } = await supabase.from("bookings").delete().eq("id", b.id);
+    if (error) { toast.error("Failed to delete: " + error.message); return; }
+    setBookings(prev => prev.filter(x => x.id !== b.id));
+    toast.success("Student removed");
+  };
+
+
   const openEditStudent = (b: Booking) => {
     setEditStudentForm({
       first_name: b.first_name || "",
@@ -691,7 +701,8 @@ const ClassRosters = () => {
       payment_status: "paid",
       is_retest: true,
       roster_comment: retestForm.comment.trim() || null,
-    }).select().single();
+      manually_added: true,
+    } as any).select().single();
 
     if (error) {
       toast.error("Failed to add retest student");
@@ -1052,7 +1063,9 @@ const ClassRosters = () => {
         : src.retest_type === "both"
           ? "Skill & Knowledge retest"
           : "Knowledge retest",
-    }).select().single();
+      manually_added: true,
+    } as any).select().single();
+
 
     if (error || !data) {
       setSchedulingRetest(false);
@@ -1897,6 +1910,16 @@ const ClassRosters = () => {
                                 className="ml-1 text-muted-foreground hover:text-accent inline-flex items-center"
                               >
                                 <UserCheck className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            {canEditStudents && (b as any).manually_added && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteManual(b)}
+                                title="Delete manually added student"
+                                className="ml-1 text-muted-foreground hover:text-destructive inline-flex items-center"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
