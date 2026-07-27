@@ -96,9 +96,11 @@ const iconForMime = (mime: string | null) => {
   return FileIcon;
 };
 
+const ROLE_TIER: Record<string, number> = { owner: 4, admin: 3, manager: 2, employee: 1 };
+
 const AdminFiles = () => {
-  const { user, userRole } = useAuth();
-  const canManage = userRole === "owner" || userRole === "admin";
+  const { user, userRole, effectiveRole } = useAuth();
+  const canManage = effectiveRole === "owner" || effectiveRole === "admin";
   const [files, setFiles] = useState<SharedFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -311,17 +313,25 @@ const AdminFiles = () => {
           <div className="p-12 text-center text-muted-foreground flex items-center justify-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" /> Loading files...
           </div>
-        ) : files.length === 0 ? (
-          <div className="p-12 text-center">
-            <FolderOpen className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-muted-foreground text-sm">
-              No files yet.
-              {canManage && " Click \"Upload File\" to add one."}
-            </p>
-          </div>
-        ) : (
+        ) : (() => {
+          const viewerTier = ROLE_TIER[effectiveRole] ?? 1;
+          const visibleFiles = files.filter(
+            (f) => viewerTier >= (ROLE_TIER[f.min_role] ?? 1)
+          );
+          if (visibleFiles.length === 0) {
+            return (
+              <div className="p-12 text-center">
+                <FolderOpen className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+                <p className="text-muted-foreground text-sm">
+                  No files yet.
+                  {canManage && " Click \"Upload File\" to add one."}
+                </p>
+              </div>
+            );
+          }
+          return (
           <div className="divide-y divide-border">
-            {files.map((f) => {
+            {visibleFiles.map((f) => {
               const Icon = iconForMime(f.mime_type);
               return (
                 <div
@@ -395,7 +405,8 @@ const AdminFiles = () => {
               );
             })}
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Upload dialog */}
