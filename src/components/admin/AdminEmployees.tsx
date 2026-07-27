@@ -304,7 +304,7 @@ const AdminEmployees = () => {
 
     setDialogOpen(false);
     setEditingId(null);
-    setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
+    setForm({ full_name: "", email: "", phone: "", position: "", instructor_number: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
     setPhotoFile(null);
     setPhotoPreview(null);
     setUploading(false);
