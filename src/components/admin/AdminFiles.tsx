@@ -96,9 +96,11 @@ const iconForMime = (mime: string | null) => {
   return FileIcon;
 };
 
+const ROLE_TIER: Record<string, number> = { owner: 4, admin: 3, manager: 2, employee: 1 };
+
 const AdminFiles = () => {
-  const { user, userRole } = useAuth();
-  const canManage = userRole === "owner" || userRole === "admin";
+  const { user, userRole, effectiveRole } = useAuth();
+  const canManage = effectiveRole === "owner" || effectiveRole === "admin";
   const [files, setFiles] = useState<SharedFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadOpen, setUploadOpen] = useState(false);
