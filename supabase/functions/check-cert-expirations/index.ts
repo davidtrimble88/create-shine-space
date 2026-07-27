@@ -1,5 +1,8 @@
 // Daily job: sends 30/10/1 day expiration warnings and expired notice for
 // instructor certifications. Notifies both the instructor and the office.
+// Restricted: only callers presenting the service role key (or a valid
+// service_role JWT) may invoke this endpoint. Response body omits per-employee
+// details to prevent staff email/certification harvesting.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const cors = {
@@ -16,7 +19,6 @@ const CERT_LABELS: Record<string, string> = {
   cpr_expires: "CPR",
 };
 
-// Milestones: positive = days before expiration; 0 = day of; negative = days after
 const MILESTONES: { key: string; days: number; label: string }[] = [
   { key: "30d", days: 30, label: "30 days" },
   { key: "10d", days: 10, label: "10 days" },
@@ -31,13 +33,32 @@ function daysBetween(target: Date, today: Date): number {
   return Math.round((a - b) / ms);
 }
 
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return out === 0;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+
+  // Require caller to present the service role key as a bearer token. This
+  // matches how process-email-queue is invoked from cron/pg_net.
+  const authHeader = req.headers.get("Authorization") || "";
+  const bearer = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!bearer || !timingSafeEqual(bearer, serviceRoleKey)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
+
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const { data: certs, error } = await supabase
       .from("instructor_certifications")
@@ -52,7 +73,7 @@ Deno.serve(async (req) => {
     const empMap = new Map((emps || []).map((e) => [e.user_id, e]));
 
     const today = new Date();
-    const results: any[] = [];
+    let processed = 0;
 
     for (const cert of certs || []) {
       const emp = empMap.get(cert.user_id);
@@ -71,7 +92,6 @@ Deno.serve(async (req) => {
         else if (delta === -1) milestone = MILESTONES[3];
         if (!milestone) continue;
 
-        // Dedupe: check if we've already sent this milestone
         const { data: existing } = await supabase
           .from("certification_notifications_sent")
           .select("id")
@@ -149,16 +169,16 @@ Deno.serve(async (req) => {
           milestone: milestone.key,
         });
 
-        results.push({ user: emp.email, cert: field, milestone: milestone.key });
+        processed += 1;
       }
     }
 
-    return new Response(JSON.stringify({ processed: results.length, results }), {
+    return new Response(JSON.stringify({ processed }), {
       headers: { ...cors, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("[check-cert-expirations] error:", e);
-    return new Response(JSON.stringify({ error: (e as Error).message }), {
+    return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500, headers: { ...cors, "Content-Type": "application/json" },
     });
   }
