@@ -205,8 +205,8 @@ const ClassRosters = () => {
           pendingDate = parsed.date ?? null;
           if (pendingDate) {
             const wantPast = pendingDate < today;
-            if (wantPast && view !== "past" && view !== "evaluation_pending") { setView("past"); return; }
-            if (!wantPast && view !== "active") { setView("active"); return; }
+            if (wantPast && canManageEvaluations && view !== "past" && view !== "evaluation_pending") { setView("past"); return; }
+            if ((!wantPast || !canManageEvaluations) && view !== "active") { setView("active"); return; }
           }
         } catch { /* ignore */ }
       }
