@@ -2101,23 +2101,6 @@ const ClassRosters = () => {
           {/* Hidden printable roster */}
           <div className="hidden">
             <div ref={printRef}>
-              <div className="header">
-                <h1>CLASS ROSTER</h1>
-                <h2>{selectedSchedule.location_label}</h2>
-                <h2>{selectedSchedule.date} &nbsp;—&nbsp; {selectedSchedule.schedule}</h2>
-              </div>
-
-              {selectedAssignments.length > 0 && (
-                <div className="instructors">
-                  <span>Instructors: </span>
-                  {selectedAssignments.map((a, i) => (
-                    <span key={i}>{a.name} ({a.role}){i < selectedAssignments.length - 1 ? " / " : ""}</span>
-                  ))}
-                </div>
-              )}
-
-              <div className="count">{regularBookings.length} Student{regularBookings.length !== 1 ? "s" : ""} Enrolled</div>
-
               <table className="roster-table">
                 <thead>
                   <tr>
