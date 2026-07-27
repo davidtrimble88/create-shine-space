@@ -2278,8 +2278,8 @@ const ClassRosters = () => {
                       <td className="center"></td>
                       <td className="center"></td>
                       <td style={{ fontSize: 10, whiteSpace: "normal" }}>{b.roster_comment || ""}</td>
-                      <td className="center"></td>
-                      <td className="center"></td>
+                      <td className="center">{(b as any).ks_score || ""}</td>
+                      <td className="center">{(b as any).ss_score || ""}</td>
                     </tr>
                   ))}
                   {emptyRetestRows(Math.max(0, 5 - retestBookings.length), retestBookings.length + 1)}
