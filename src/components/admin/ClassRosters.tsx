@@ -213,7 +213,7 @@ const ClassRosters = () => {
       if (!pendingId) setSelectedScheduleId("");
 
       const [empRes, assignRes] = await Promise.all([
-        supabase.from("employees").select("id, full_name, user_id").eq("is_active", true),
+        supabase.from("employees").select("id, full_name, user_id, instructor_number").eq("is_active", true),
         supabase.from("instructor_assignments").select("schedule_id, employee_id, assignment_role"),
       ]);
       if (empRes.data) setEmployees(empRes.data);
