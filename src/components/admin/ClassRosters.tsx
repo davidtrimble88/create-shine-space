@@ -974,30 +974,31 @@ const ClassRosters = () => {
           <button
             type="button"
             onClick={() => handleSetResult(b.id, result === "pass" ? null : "pass")}
-            className={`p-1.5 rounded-full transition-colors ${
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold border transition-colors ${
               result === "pass"
-                ? "bg-green-500/20 text-green-500"
-                : "text-muted-foreground hover:text-green-500 hover:bg-green-500/10"
+                ? "bg-green-500/20 text-green-500 border-green-500/40"
+                : "text-muted-foreground border-border hover:text-green-500 hover:bg-green-500/10 hover:border-green-500/40"
             }`}
             title={result === "pass" ? "Click to clear" : "Mark as Pass"}
             aria-label="Mark as Pass"
           >
-            <Smile className="w-4 h-4" />
+            <Smile className="w-4 h-4" /> Pass
           </button>
           <button
             type="button"
             onClick={() => handleSetResult(b.id, result === "fail" ? null : "fail")}
-            className={`p-1.5 rounded-full transition-colors ${
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold border transition-colors ${
               result === "fail"
-                ? "bg-destructive/20 text-destructive"
-                : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                ? "bg-destructive/20 text-destructive border-destructive/40"
+                : "text-muted-foreground border-border hover:text-destructive hover:bg-destructive/10 hover:border-destructive/40"
             }`}
             title={result === "fail" ? "Click to clear" : "Mark as Fail"}
             aria-label="Mark as Fail"
           >
-            <Frown className="w-4 h-4" />
+            <Frown className="w-4 h-4" /> Fail
           </button>
         </div>
+
         {result === "fail" && retest && (
           <div className="text-[10px] text-center mt-1 text-muted-foreground">
             {retest === "skill" ? "Skill retest"
