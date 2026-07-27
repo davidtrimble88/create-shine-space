@@ -211,6 +211,7 @@ const AdminEmployees = () => {
         email: form.email,
         phone: form.phone || null,
         position: form.position || null,
+        instructor_number: form.instructor_number.trim() || null,
         bio: form.bio || null,
         show_on_website: form.show_on_website,
         photo_position_x: form.photo_position_x,
