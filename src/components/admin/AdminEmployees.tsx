@@ -318,6 +318,7 @@ const AdminEmployees = () => {
       email: e.email,
       phone: e.phone ?? "",
       position: e.position ?? "",
+      instructor_number: (e as any).instructor_number ?? "",
       role: e.role ?? "employee",
       bio: (e as any).bio ?? "",
       show_on_website: (e as any).show_on_website ?? false,
