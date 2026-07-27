@@ -2284,7 +2284,7 @@ const ClassRosters = () => {
                       <td className="center">{(b as any).checkpoint_r1 ? "✓" : ""}</td>
                       <td className="center">{(b as any).checkpoint_c2 ? "✓" : ""}</td>
                       <td className="center">{(b as any).checkpoint_r2 ? "✓" : ""}</td>
-                      <td style={{ fontSize: 10, whiteSpace: "normal" }}>{b.roster_comment || ""}</td>
+                      <td style={{ fontSize: 10, whiteSpace: "normal" }}>{displayComment(b, selectedSchedule.date)}</td>
                       <td className="center">{(b as any).ks_score || ""}</td>
                       <td className="center">{(b as any).ss_score || ""}</td>
                     </tr>
