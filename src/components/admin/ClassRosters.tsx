@@ -2127,7 +2127,7 @@ const ClassRosters = () => {
                     <th className="check-col">R1</th>
                     <th className="check-col">C2</th>
                     <th className="check-col">R2</th>
-                    <th>Comments</th>
+                    <th className="comment-col">Comments</th>
                     <th className="score-col">KS Score</th>
                     <th className="score-col">SS Score</th>
                   </tr>
