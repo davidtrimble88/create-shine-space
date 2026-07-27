@@ -1914,7 +1914,7 @@ const ClassRosters = () => {
               <p className="text-muted-foreground py-4 text-center">No students enrolled in this class yet.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-xs [&_th]:!p-2 [&_td]:!p-2 [&_.min-w-\[180px\]]:!min-w-[110px]">
                   <thead>
                     <tr className="border-b border-border bg-secondary/50">
                       <th className="text-left p-3 font-medium text-muted-foreground">#</th>
@@ -2077,7 +2077,7 @@ const ClassRosters = () => {
                   <span className="text-xs font-normal text-muted-foreground">(visible to admin & owner only)</span>
                 </h3>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-xs [&_th]:!p-2 [&_td]:!p-2 [&_.min-w-\[180px\]]:!min-w-[110px]">
                     <thead>
                       <tr className="border-b border-border bg-secondary/50">
                         <th className="text-left p-3 font-medium text-muted-foreground">Student</th>
@@ -2118,7 +2118,7 @@ const ClassRosters = () => {
                 <p className="text-muted-foreground text-sm text-center py-3">No retest students added. Use the "Add Retest Student" button above.</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-xs [&_th]:!p-2 [&_td]:!p-2 [&_.min-w-\[180px\]]:!min-w-[110px]">
                     <thead>
                       <tr className="border-b border-border bg-secondary/50">
                         <th className="text-left p-3 font-medium text-muted-foreground">#</th>
