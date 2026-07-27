@@ -1057,8 +1057,8 @@ const ClassRosters = () => {
           className="flex items-center gap-1 cursor-pointer group"
           onClick={() => { setEditingCommentId(b.id); setCommentDraft(b.roster_comment || ""); }}
         >
-          <span className={b.roster_comment ? "text-foreground text-xs" : "text-muted-foreground text-xs italic"}>
-            {b.roster_comment || "Add comment..."}
+          <span className={displayComment(b) ? "text-foreground text-xs" : "text-muted-foreground text-xs italic"}>
+            {displayComment(b) || "Add comment..."}
           </span>
           <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
