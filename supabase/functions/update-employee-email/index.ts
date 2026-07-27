@@ -49,6 +49,19 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Protect owner accounts: only owners may change an owner's login email.
+    const { data: targetRoles } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user_id);
+    const targetIsOwner = (targetRoles || []).some((r: any) => r.role === "owner");
+    if (targetIsOwner && !callerRoles.includes("owner")) {
+      return new Response(JSON.stringify({ error: "Admins cannot modify owner accounts" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Update auth account email and auto-confirm so no verification email is required
     const resp = await fetch(`${supabaseUrl}/auth/v1/admin/users/${user_id}`, {
       method: "PUT",
