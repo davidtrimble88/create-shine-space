@@ -2149,8 +2149,8 @@ const ClassRosters = () => {
                           <td className="p-3 text-muted-foreground">{b.license_number || "—"}</td>
                           <td className="p-3 text-muted-foreground">{b.date_of_birth || "—"}</td>
                           {renderCommentCell(b)}
-                          <td className="p-3 text-center text-muted-foreground">—</td>
-                          <td className="p-3 text-center text-muted-foreground">—</td>
+                          {renderScoreCell(b, "ks_score")}
+                          {renderScoreCell(b, "ss_score")}
                           {canManageEvaluations && renderResultCell(b)}
                           <td className="p-3 text-center">
                             <button onClick={() => handleRemoveRetest(b.id)} className="text-destructive hover:text-destructive/80">
