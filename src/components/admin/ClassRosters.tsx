@@ -526,13 +526,14 @@ const ClassRosters = () => {
   const DUTY_ORDER = ["c1", "r1", "c2", "r2"];
   const selectedAssignments = (() => {
     const rows = allAssignments.filter(a => a.schedule_id === selectedScheduleId);
-    const grouped = new Map<string, { name: string; role: string; duties: string[] }>();
+    const grouped = new Map<string, { name: string; number: string | null; role: string; duties: string[] }>();
     rows.forEach(a => {
       const emp = employees.find(e => e.id === a.employee_id);
       const name = emp?.full_name ?? "Unknown";
+      const number = emp?.instructor_number ?? null;
       let entry = grouped.get(a.employee_id);
       if (!entry) {
-        entry = { name, role: "instructor_1", duties: [] };
+        entry = { name, number, role: "instructor_1", duties: [] };
         grouped.set(a.employee_id, entry);
       }
       if (DUTY_CODES_SET.has(a.assignment_role)) entry.duties.push(a.assignment_role);
@@ -542,7 +543,8 @@ const ClassRosters = () => {
       const roleLabel = roleLabelMap[e.role] ?? e.role;
       const dutyLabels = DUTY_ORDER.filter(d => e.duties.includes(d)).map(d => (roleLabelMap[d] ?? d).toUpperCase());
       const role = dutyLabels.length > 0 ? `${roleLabel}: ${dutyLabels.join("/")}` : roleLabel;
-      return { name: e.name, role };
+      const displayName = e.number ? `${e.name} #${e.number}` : e.name;
+      return { name: displayName, role };
     });
   })();
 
