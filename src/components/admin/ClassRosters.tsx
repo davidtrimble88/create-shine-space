@@ -863,7 +863,8 @@ const ClassRosters = () => {
             .roster-table td.center { text-align: center; }
             .roster-table .check-col { width: 28px; text-align: center; }
             .roster-table .score-col { width: 28px; text-align: center; }
-            .roster-table .id-verify-col { width: 90px; text-align: center; }
+            .roster-table .id-verify-col { width: 42px; text-align: center; }
+            .roster-table .comment-col { min-width: 180px; }
             .count { font-size: 11px; margin-bottom: 6px; font-weight: 600; }
             .section-title { font-size: 13px; font-weight: 700; margin: 16px 0 6px; }
             .office-tracking { margin-top: 16px; font-size: 11px; font-weight: 600; }
