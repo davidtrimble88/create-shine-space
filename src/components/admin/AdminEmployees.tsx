@@ -50,7 +50,7 @@ const AdminEmployees = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", position: "", instructor_number: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
