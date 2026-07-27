@@ -2018,13 +2018,13 @@ const ClassRosters = () => {
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
                         <td className="p-3 text-muted-foreground">{b.license_number || "—"}</td>
                         <td className="p-3 text-muted-foreground">{b.date_of_birth || "—"}</td>
-                        <td className="p-3 text-center text-muted-foreground">☐</td>
-                        <td className="p-3 text-center text-muted-foreground">☐</td>
-                        <td className="p-3 text-center text-muted-foreground">☐</td>
-                        <td className="p-3 text-center text-muted-foreground">☐</td>
+                        {renderCheckpointCell(b, "checkpoint_c1")}
+                        {renderCheckpointCell(b, "checkpoint_r1")}
+                        {renderCheckpointCell(b, "checkpoint_c2")}
+                        {renderCheckpointCell(b, "checkpoint_r2")}
                         {renderCommentCell(b)}
-                        <td className="p-3 text-center text-muted-foreground">—</td>
-                        <td className="p-3 text-center text-muted-foreground">—</td>
+                        {renderScoreCell(b, "ks_score")}
+                        {renderScoreCell(b, "ss_score")}
                         {canManageEvaluations && renderResultCell(b)}
                         {selectedScheduleId === "__cancelled_eval__" && canManageEvaluations && (
                           <td className="p-3 text-center">
