@@ -1012,6 +1012,27 @@ const ClassRosters = () => {
     );
   };
 
+  const isMinorOnClass = (b: Booking, classDate?: string | null): boolean => {
+    const dob = b.date_of_birth;
+    const cls = classDate || b.schedule_date;
+    if (!dob || !cls) return false;
+    const d = new Date(dob + "T00:00:00");
+    const c = new Date(cls + "T00:00:00");
+    if (isNaN(d.getTime()) || isNaN(c.getTime())) return false;
+    let age = c.getFullYear() - d.getFullYear();
+    const m = c.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && c.getDate() < d.getDate())) age--;
+    return age < 18;
+  };
+
+  const displayComment = (b: Booking, classDate?: string | null): string => {
+    const minor = isMinorOnClass(b, classDate);
+    const base = b.roster_comment || "";
+    if (!minor) return base;
+    if (/\bminor\b/i.test(base)) return base;
+    return base ? `Minor — ${base}` : "Minor";
+  };
+
   const renderCommentCell = (b: Booking) => (
     <td className="p-3">
       {editingCommentId === b.id ? (
