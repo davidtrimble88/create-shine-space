@@ -405,7 +405,8 @@ const AdminFiles = () => {
               );
             })}
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Upload dialog */}
