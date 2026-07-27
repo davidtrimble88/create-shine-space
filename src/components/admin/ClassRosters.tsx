@@ -858,15 +858,23 @@ const ClassRosters = () => {
             .instructors { font-size: 11px; margin-bottom: 6px; }
             .instructors span { font-weight: 600; }
             .roster-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+            .roster-table thead { display: table-header-group; }
+            .roster-table tfoot { display: table-footer-group; }
+            .roster-table tr { page-break-inside: avoid; }
             .roster-table th, .roster-table td { border: 1px solid #999; padding: 4px 6px; text-align: left; }
             .roster-table th { background: #e8e8e8; font-weight: 600; font-size: 10px; }
+            .roster-table th.class-info-cell { background: #fff; border: none; padding: 6px 0 8px; text-align: center; }
+            .roster-table th.class-info-cell .title { font-size: 16px; font-weight: 700; }
+            .roster-table th.class-info-cell .sub { font-size: 12px; font-weight: normal; color: #555; margin-top: 2px; }
+            .roster-table th.class-info-cell .instructors { font-size: 11px; margin-top: 4px; font-weight: normal; }
+            .roster-table th.class-info-cell .count { font-size: 11px; margin-top: 4px; font-weight: 600; }
             .roster-table td.center { text-align: center; }
             .roster-table .check-col { width: 28px; text-align: center; }
             .roster-table .score-col { width: 28px; text-align: center; }
             .roster-table .id-verify-col { width: 42px; text-align: center; }
             .roster-table .comment-col { min-width: 180px; }
             .count { font-size: 11px; margin-bottom: 6px; font-weight: 600; }
-            .section-title { font-size: 13px; font-weight: 700; margin: 16px 0 6px; }
+            .section-title { font-size: 13px; font-weight: 700; margin: 16px 0 6px; page-break-after: avoid; }
             .office-tracking { margin-top: 16px; font-size: 11px; font-weight: 600; }
             .empty-rows td { height: 22px; }
             @media print { body { padding: 0; } @page { margin: 0.5in; size: landscape; } }
