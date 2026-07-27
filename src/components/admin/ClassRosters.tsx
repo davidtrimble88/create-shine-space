@@ -1053,6 +1053,21 @@ const ClassRosters = () => {
     setBookings(prev => prev.map(x => x.id === b.id ? { ...x, [key]: next } as any : x));
   };
 
+  const bulkToggleCheckpoint = async (
+    rows: Booking[],
+    key: "checkpoint_c1" | "checkpoint_r1" | "checkpoint_c2" | "checkpoint_r2",
+  ) => {
+    if (rows.length === 0) return;
+    const allChecked = rows.every(r => Boolean((r as any)[key]));
+    const next = !allChecked;
+    const ids = rows.map(r => r.id);
+    const { error } = await supabase.from("bookings").update({ [key]: next } as any).in("id", ids);
+    if (error) { toast.error("Failed to update column"); return; }
+    setBookings(prev => prev.map(x => ids.includes(x.id) ? { ...x, [key]: next } as any : x));
+    toast.success(next ? `All ${key.slice(-2).toUpperCase()} checked` : `All ${key.slice(-2).toUpperCase()} cleared`);
+  };
+
+
   const renderCheckpointCell = (b: Booking, key: "checkpoint_c1" | "checkpoint_r1" | "checkpoint_c2" | "checkpoint_r2") => {
     const checked = Boolean((b as any)[key]);
     if (!canManageEvaluations) {
@@ -1923,10 +1938,26 @@ const ClassRosters = () => {
                       <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">DL #</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">DOB</th>
-                      <th className="text-center p-3 font-medium text-muted-foreground w-10">C1</th>
-                      <th className="text-center p-3 font-medium text-muted-foreground w-10">R1</th>
-                      <th className="text-center p-3 font-medium text-muted-foreground w-10">C2</th>
-                      <th className="text-center p-3 font-medium text-muted-foreground w-10">R2</th>
+                      {(["checkpoint_c1","checkpoint_r1","checkpoint_c2","checkpoint_r2"] as const).map((k) => {
+                        const label = k.slice(-2).toUpperCase();
+                        const allChecked = regularBookings.length > 0 && regularBookings.every(r => Boolean((r as any)[k]));
+                        return (
+                          <th key={k} className="text-center p-3 font-medium text-muted-foreground w-10">
+                            {canManageEvaluations ? (
+                              <button
+                                type="button"
+                                onClick={() => bulkToggleCheckpoint(regularBookings, k)}
+                                title={allChecked ? `Uncheck all ${label}` : `Check all ${label}`}
+                                className={`inline-flex flex-col items-center leading-tight px-1 py-0.5 rounded hover:bg-secondary transition-colors ${allChecked ? "text-green-500" : ""}`}
+                              >
+                                <span>{label}</span>
+                                <span className="text-[9px] font-normal opacity-70">{allChecked ? "clear all" : "all"}</span>
+                              </button>
+                            ) : label}
+                          </th>
+                        );
+                      })}
+
                       <th className="text-left p-3 font-medium text-muted-foreground min-w-[180px]">Comments</th>
                       <th className="text-center p-3 font-medium text-muted-foreground">KS</th>
                       <th className="text-center p-3 font-medium text-muted-foreground">SS</th>
