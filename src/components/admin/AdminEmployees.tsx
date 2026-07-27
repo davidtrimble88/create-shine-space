@@ -552,7 +552,16 @@ const AdminEmployees = () => {
                       <SelectItem value="Owner">Owner</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+              </div>
+
+              <div>
+                <Label>Instructor # <span className="text-xs text-muted-foreground font-normal">(optional — appears next to name on rosters)</span></Label>
+                <Input
+                  value={form.instructor_number}
+                  onChange={e => setForm(f => ({ ...f, instructor_number: e.target.value }))}
+                  placeholder="e.g. 12345"
+                />
+              </div>
               </div>
 
               {/* Bio */}
