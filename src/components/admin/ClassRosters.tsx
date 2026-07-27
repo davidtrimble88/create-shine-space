@@ -2177,6 +2177,12 @@ const ClassRosters = () => {
               <table className="roster-table">
                 <thead>
                   <tr>
+                    <th className="class-info-cell" colSpan={12}>
+                      <div className="title">RETESTS — {selectedSchedule.location_label}</div>
+                      <div className="sub">{selectedSchedule.date} — {selectedSchedule.schedule}</div>
+                    </th>
+                  </tr>
+                  <tr>
                     <th>#</th>
                     <th>First</th>
                     <th>Last</th>
