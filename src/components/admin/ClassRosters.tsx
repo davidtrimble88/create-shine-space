@@ -2183,7 +2183,7 @@ const ClassRosters = () => {
                     <th>Birthdate</th>
                     <th>Retake Knowledge?</th>
                     <th>Retake Skills?</th>
-                    <th>Comments</th>
+                    <th className="comment-col">Comments</th>
                     <th className="score-col">KS Score</th>
                     <th className="score-col">SS Score</th>
                   </tr>
