@@ -1713,7 +1713,7 @@ const ClassRosters = () => {
             <SelectItem value="all">All Instructors</SelectItem>
             <SelectItem value="my-classes">My Assigned Classes</SelectItem>
             {employees.map(e => (
-              <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>
+              <SelectItem key={e.id} value={e.id}>{e.instructor_number ? `${e.full_name} #${e.instructor_number}` : e.full_name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
