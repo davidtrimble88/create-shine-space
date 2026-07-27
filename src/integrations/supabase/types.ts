@@ -72,6 +72,10 @@ export type Database = {
         Row: {
           address: string | null
           booking_status: string
+          checkpoint_c1: boolean
+          checkpoint_c2: boolean
+          checkpoint_r1: boolean
+          checkpoint_r2: boolean
           city: string | null
           course: string
           created_at: string
@@ -96,6 +100,7 @@ export type Database = {
           is_retest: boolean
           issuing_country: string | null
           issuing_state: string | null
+          ks_score: string | null
           last_name: string
           license_expiration: string | null
           license_number: string | null
@@ -122,6 +127,7 @@ export type Database = {
           roster_comment: string | null
           schedule_date: string | null
           schedule_id: string | null
+          ss_score: string | null
           state: string | null
           updated_at: string
           waiver_id: string | null
@@ -130,6 +136,10 @@ export type Database = {
         Insert: {
           address?: string | null
           booking_status?: string
+          checkpoint_c1?: boolean
+          checkpoint_c2?: boolean
+          checkpoint_r1?: boolean
+          checkpoint_r2?: boolean
           city?: string | null
           course: string
           created_at?: string
@@ -154,6 +164,7 @@ export type Database = {
           is_retest?: boolean
           issuing_country?: string | null
           issuing_state?: string | null
+          ks_score?: string | null
           last_name: string
           license_expiration?: string | null
           license_number?: string | null
@@ -180,6 +191,7 @@ export type Database = {
           roster_comment?: string | null
           schedule_date?: string | null
           schedule_id?: string | null
+          ss_score?: string | null
           state?: string | null
           updated_at?: string
           waiver_id?: string | null
@@ -188,6 +200,10 @@ export type Database = {
         Update: {
           address?: string | null
           booking_status?: string
+          checkpoint_c1?: boolean
+          checkpoint_c2?: boolean
+          checkpoint_r1?: boolean
+          checkpoint_r2?: boolean
           city?: string | null
           course?: string
           created_at?: string
@@ -212,6 +228,7 @@ export type Database = {
           is_retest?: boolean
           issuing_country?: string | null
           issuing_state?: string | null
+          ks_score?: string | null
           last_name?: string
           license_expiration?: string | null
           license_number?: string | null
@@ -238,6 +255,7 @@ export type Database = {
           roster_comment?: string | null
           schedule_date?: string | null
           schedule_id?: string | null
+          ss_score?: string | null
           state?: string | null
           updated_at?: string
           waiver_id?: string | null

@@ -1045,6 +1045,72 @@ const ClassRosters = () => {
     </td>
   );
 
+  // ---- Checkpoint & Score cells (owner/admin only writes) ----
+  const toggleCheckpoint = async (b: Booking, key: "checkpoint_c1" | "checkpoint_r1" | "checkpoint_c2" | "checkpoint_r2") => {
+    const next = !(b as any)[key];
+    const { error } = await supabase.from("bookings").update({ [key]: next } as any).eq("id", b.id);
+    if (error) { toast.error("Failed to update"); return; }
+    setBookings(prev => prev.map(x => x.id === b.id ? { ...x, [key]: next } as any : x));
+  };
+
+  const renderCheckpointCell = (b: Booking, key: "checkpoint_c1" | "checkpoint_r1" | "checkpoint_c2" | "checkpoint_r2") => {
+    const checked = Boolean((b as any)[key]);
+    if (!canManageEvaluations) {
+      return <td className="p-3 text-center text-muted-foreground">{checked ? "✓" : "☐"}</td>;
+    }
+    return (
+      <td className="p-3 text-center">
+        <button
+          type="button"
+          onClick={() => toggleCheckpoint(b, key)}
+          className={`inline-flex items-center justify-center w-6 h-6 rounded border transition-colors ${
+            checked
+              ? "bg-green-500/20 text-green-500 border-green-500/50"
+              : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+          }`}
+          aria-label={checked ? "Uncheck" : "Check"}
+          title={checked ? "Click to uncheck" : "Click to check"}
+        >
+          {checked ? <Check className="w-3.5 h-3.5" /> : ""}
+        </button>
+      </td>
+    );
+  };
+
+  const [scoreDraft, setScoreDraft] = useState<Record<string, string>>({});
+  const commitScore = async (b: Booking, key: "ks_score" | "ss_score", raw: string) => {
+    const v = raw.trim().slice(0, 3);
+    const current = ((b as any)[key] || "") as string;
+    if (v === current) return;
+    const { error } = await supabase.from("bookings").update({ [key]: v || null } as any).eq("id", b.id);
+    if (error) { toast.error("Failed to save score"); return; }
+    setBookings(prev => prev.map(x => x.id === b.id ? { ...x, [key]: v || null } as any : x));
+  };
+
+  const renderScoreCell = (b: Booking, key: "ks_score" | "ss_score") => {
+    const stored = ((b as any)[key] || "") as string;
+    if (!canManageEvaluations) {
+      return <td className="p-3 text-center text-muted-foreground">{stored || "—"}</td>;
+    }
+    const draftKey = `${b.id}:${key}`;
+    const value = scoreDraft[draftKey] ?? stored;
+    return (
+      <td className="p-3 text-center">
+        <input
+          type="text"
+          maxLength={3}
+          value={value}
+          onChange={e => setScoreDraft(prev => ({ ...prev, [draftKey]: e.target.value.slice(0, 3) }))}
+          onBlur={e => commitScore(b, key, e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+          className="w-12 text-center bg-background border border-border rounded px-1 py-0.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          placeholder="—"
+        />
+      </td>
+    );
+  };
+
+
   const handleScheduleRetest = async () => {
     if (!scheduleRetestFor || !retestTargetScheduleId) {
       toast.error("Please choose a class");
@@ -1952,13 +2018,13 @@ const ClassRosters = () => {
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
                         <td className="p-3 text-muted-foreground">{b.license_number || "—"}</td>
                         <td className="p-3 text-muted-foreground">{b.date_of_birth || "—"}</td>
-                        <td className="p-3 text-center text-muted-foreground">☐</td>
-                        <td className="p-3 text-center text-muted-foreground">☐</td>
-                        <td className="p-3 text-center text-muted-foreground">☐</td>
-                        <td className="p-3 text-center text-muted-foreground">☐</td>
+                        {renderCheckpointCell(b, "checkpoint_c1")}
+                        {renderCheckpointCell(b, "checkpoint_r1")}
+                        {renderCheckpointCell(b, "checkpoint_c2")}
+                        {renderCheckpointCell(b, "checkpoint_r2")}
                         {renderCommentCell(b)}
-                        <td className="p-3 text-center text-muted-foreground">—</td>
-                        <td className="p-3 text-center text-muted-foreground">—</td>
+                        {renderScoreCell(b, "ks_score")}
+                        {renderScoreCell(b, "ss_score")}
                         {canManageEvaluations && renderResultCell(b)}
                         {selectedScheduleId === "__cancelled_eval__" && canManageEvaluations && (
                           <td className="p-3 text-center">
@@ -2083,8 +2149,8 @@ const ClassRosters = () => {
                           <td className="p-3 text-muted-foreground">{b.license_number || "—"}</td>
                           <td className="p-3 text-muted-foreground">{b.date_of_birth || "—"}</td>
                           {renderCommentCell(b)}
-                          <td className="p-3 text-center text-muted-foreground">—</td>
-                          <td className="p-3 text-center text-muted-foreground">—</td>
+                          {renderScoreCell(b, "ks_score")}
+                          {renderScoreCell(b, "ss_score")}
                           {canManageEvaluations && renderResultCell(b)}
                           <td className="p-3 text-center">
                             <button onClick={() => handleRemoveRetest(b.id)} className="text-destructive hover:text-destructive/80">
@@ -2162,13 +2228,13 @@ const ClassRosters = () => {
                       <td>{b.license_number || ""}</td>
                       <td className="center"></td>
                       <td>{b.date_of_birth || ""}</td>
-                      <td className="center"></td>
-                      <td className="center"></td>
-                      <td className="center"></td>
-                      <td className="center"></td>
+                      <td className="center">{(b as any).checkpoint_c1 ? "✓" : ""}</td>
+                      <td className="center">{(b as any).checkpoint_r1 ? "✓" : ""}</td>
+                      <td className="center">{(b as any).checkpoint_c2 ? "✓" : ""}</td>
+                      <td className="center">{(b as any).checkpoint_r2 ? "✓" : ""}</td>
                       <td style={{ fontSize: 10, whiteSpace: "normal" }}>{b.roster_comment || ""}</td>
-                      <td className="center"></td>
-                      <td className="center"></td>
+                      <td className="center">{(b as any).ks_score || ""}</td>
+                      <td className="center">{(b as any).ss_score || ""}</td>
                     </tr>
                   ))}
                   {emptyRosterRows(Math.max(0, 12 - regularBookings.length), regularBookings.length + 1)}
@@ -2212,8 +2278,8 @@ const ClassRosters = () => {
                       <td className="center"></td>
                       <td className="center"></td>
                       <td style={{ fontSize: 10, whiteSpace: "normal" }}>{b.roster_comment || ""}</td>
-                      <td className="center"></td>
-                      <td className="center"></td>
+                      <td className="center">{(b as any).ks_score || ""}</td>
+                      <td className="center">{(b as any).ss_score || ""}</td>
                     </tr>
                   ))}
                   {emptyRetestRows(Math.max(0, 5 - retestBookings.length), retestBookings.length + 1)}
