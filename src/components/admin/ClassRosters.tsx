@@ -858,15 +858,23 @@ const ClassRosters = () => {
             .instructors { font-size: 11px; margin-bottom: 6px; }
             .instructors span { font-weight: 600; }
             .roster-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+            .roster-table thead { display: table-header-group; }
+            .roster-table tfoot { display: table-footer-group; }
+            .roster-table tr { page-break-inside: avoid; }
             .roster-table th, .roster-table td { border: 1px solid #999; padding: 4px 6px; text-align: left; }
             .roster-table th { background: #e8e8e8; font-weight: 600; font-size: 10px; }
+            .roster-table th.class-info-cell { background: #fff; border: none; padding: 6px 0 8px; text-align: center; }
+            .roster-table th.class-info-cell .title { font-size: 16px; font-weight: 700; }
+            .roster-table th.class-info-cell .sub { font-size: 12px; font-weight: normal; color: #555; margin-top: 2px; }
+            .roster-table th.class-info-cell .instructors { font-size: 11px; margin-top: 4px; font-weight: normal; }
+            .roster-table th.class-info-cell .count { font-size: 11px; margin-top: 4px; font-weight: 600; }
             .roster-table td.center { text-align: center; }
             .roster-table .check-col { width: 28px; text-align: center; }
             .roster-table .score-col { width: 28px; text-align: center; }
             .roster-table .id-verify-col { width: 42px; text-align: center; }
             .roster-table .comment-col { min-width: 180px; }
             .count { font-size: 11px; margin-bottom: 6px; font-weight: 600; }
-            .section-title { font-size: 13px; font-weight: 700; margin: 16px 0 6px; }
+            .section-title { font-size: 13px; font-weight: 700; margin: 16px 0 6px; page-break-after: avoid; }
             .office-tracking { margin-top: 16px; font-size: 11px; font-weight: 600; }
             .empty-rows td { height: 22px; }
             @media print { body { padding: 0; } @page { margin: 0.5in; size: landscape; } }
@@ -2093,25 +2101,20 @@ const ClassRosters = () => {
           {/* Hidden printable roster */}
           <div className="hidden">
             <div ref={printRef}>
-              <div className="header">
-                <h1>CLASS ROSTER</h1>
-                <h2>{selectedSchedule.location_label}</h2>
-                <h2>{selectedSchedule.date} &nbsp;—&nbsp; {selectedSchedule.schedule}</h2>
-              </div>
-
-              {selectedAssignments.length > 0 && (
-                <div className="instructors">
-                  <span>Instructors: </span>
-                  {selectedAssignments.map((a, i) => (
-                    <span key={i}>{a.name} ({a.role}){i < selectedAssignments.length - 1 ? " / " : ""}</span>
-                  ))}
-                </div>
-              )}
-
-              <div className="count">{regularBookings.length} Student{regularBookings.length !== 1 ? "s" : ""} Enrolled</div>
-
               <table className="roster-table">
                 <thead>
+                  <tr>
+                    <th className="class-info-cell" colSpan={17}>
+                      <div className="title">CLASS ROSTER — {selectedSchedule.location_label}</div>
+                      <div className="sub">{selectedSchedule.date} — {selectedSchedule.schedule}</div>
+                      {selectedAssignments.length > 0 && (
+                        <div className="instructors">
+                          Instructors: {selectedAssignments.map(a => `${a.name} (${a.role})`).join(" / ")}
+                        </div>
+                      )}
+                      <div className="count">{regularBookings.length} Student{regularBookings.length !== 1 ? "s" : ""} Enrolled</div>
+                    </th>
+                  </tr>
                   <tr>
                     <th>#</th>
                     <th>First</th>
@@ -2173,6 +2176,12 @@ const ClassRosters = () => {
               <div className="section-title">RETESTS</div>
               <table className="roster-table">
                 <thead>
+                  <tr>
+                    <th className="class-info-cell" colSpan={12}>
+                      <div className="title">RETESTS — {selectedSchedule.location_label}</div>
+                      <div className="sub">{selectedSchedule.date} — {selectedSchedule.schedule}</div>
+                    </th>
+                  </tr>
                   <tr>
                     <th>#</th>
                     <th>First</th>
