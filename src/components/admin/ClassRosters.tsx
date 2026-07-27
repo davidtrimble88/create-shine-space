@@ -1736,10 +1736,16 @@ const ClassRosters = () => {
           ) : (
             <div className="bg-card border border-border rounded-xl divide-y divide-border overflow-hidden">
               {filteredSchedules.map(s => {
-                const assignedNames = allAssignments
-                  .filter(a => a.schedule_id === s.id)
-                  .map(a => employees.find(e => e.id === a.employee_id)?.full_name)
-                  .filter(Boolean);
+                const assignedNames = Array.from(new Set(
+                  allAssignments
+                    .filter(a => a.schedule_id === s.id)
+                    .map(a => {
+                      const emp = employees.find(e => e.id === a.employee_id);
+                      if (!emp) return null;
+                      return emp.instructor_number ? `${emp.full_name} #${emp.instructor_number}` : emp.full_name;
+                    })
+                    .filter(Boolean) as string[]
+                ));
                 const pending = evalPendingCounts[s.id] || 0;
                 return (
                   <button
