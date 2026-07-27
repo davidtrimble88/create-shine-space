@@ -2164,7 +2164,7 @@ const ClassRosters = () => {
                       <td className="center"></td>
                       <td className="center"></td>
                       <td className="center"></td>
-                      <td></td>
+                      <td style={{ fontSize: 10, whiteSpace: "normal" }}>{b.roster_comment || ""}</td>
                       <td className="center"></td>
                       <td className="center"></td>
                     </tr>
