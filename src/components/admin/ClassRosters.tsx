@@ -863,7 +863,8 @@ const ClassRosters = () => {
             .roster-table td.center { text-align: center; }
             .roster-table .check-col { width: 28px; text-align: center; }
             .roster-table .score-col { width: 28px; text-align: center; }
-            .roster-table .id-verify-col { width: 90px; text-align: center; }
+            .roster-table .id-verify-col { width: 42px; text-align: center; }
+            .roster-table .comment-col { min-width: 180px; }
             .count { font-size: 11px; margin-bottom: 6px; font-weight: 600; }
             .section-title { font-size: 13px; font-weight: 700; margin: 16px 0 6px; }
             .office-tracking { margin-top: 16px; font-size: 11px; font-weight: 600; }
@@ -2126,7 +2127,7 @@ const ClassRosters = () => {
                     <th className="check-col">R1</th>
                     <th className="check-col">C2</th>
                     <th className="check-col">R2</th>
-                    <th>Comments</th>
+                    <th className="comment-col">Comments</th>
                     <th className="score-col">KS Score</th>
                     <th className="score-col">SS Score</th>
                   </tr>
@@ -2182,7 +2183,7 @@ const ClassRosters = () => {
                     <th>Birthdate</th>
                     <th>Retake Knowledge?</th>
                     <th>Retake Skills?</th>
-                    <th>Comments</th>
+                    <th className="comment-col">Comments</th>
                     <th className="score-col">KS Score</th>
                     <th className="score-col">SS Score</th>
                   </tr>
