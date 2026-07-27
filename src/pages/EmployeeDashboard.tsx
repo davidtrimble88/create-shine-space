@@ -295,7 +295,7 @@ const EmployeeDashboard = () => {
   const sidebarInner = (collapsed: boolean) => (
     <>
       {/* Header */}
-      <div className={`border-b border-border flex items-center ${collapsed ? "p-3 justify-center" : "p-6"}`}>
+      <div className={`border-b border-border flex items-start gap-2 ${collapsed ? "p-3 justify-center" : "p-6"}`}>
         {!collapsed && (
           <div className="flex-1 min-w-0">
             <Link to="/" className="text-accent font-bold text-lg">
@@ -318,7 +318,18 @@ const EmployeeDashboard = () => {
             </div>
           </div>
         )}
+        {!isMobile && (
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          </button>
+        )}
       </div>
+
 
       {/* Nav items */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
