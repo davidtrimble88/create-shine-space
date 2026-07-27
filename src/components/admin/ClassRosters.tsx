@@ -74,7 +74,7 @@ const daysBetween = (from: Date, to: Date) => {
 const ClassRosters = () => {
   const { user, effectiveRole, userRole } = useAuth();
   // Evaluation controls follow the real role so "view as" doesn't hide Pass/Fail from owners/admins
-  const canManageEvaluations = userRole === "owner" || userRole === "admin";
+  const canManageEvaluations = effectiveRole === "owner" || effectiveRole === "admin";
   const [view, setView] = useState<ViewMode>("active");
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
@@ -205,8 +205,8 @@ const ClassRosters = () => {
           pendingDate = parsed.date ?? null;
           if (pendingDate) {
             const wantPast = pendingDate < today;
-            if (wantPast && view !== "past" && view !== "evaluation_pending") { setView("past"); return; }
-            if (!wantPast && view !== "active") { setView("active"); return; }
+            if (wantPast && canManageEvaluations && view !== "past" && view !== "evaluation_pending") { setView("past"); return; }
+            if ((!wantPast || !canManageEvaluations) && view !== "active") { setView("active"); return; }
           }
         } catch { /* ignore */ }
       }
@@ -1773,8 +1773,8 @@ const ClassRosters = () => {
                         if (b.schedule_id) {
                           const today = new Date().toISOString().split("T")[0];
                           const isPast = b.schedule_date && b.schedule_date < today;
-                          if (isPast && view === "active") setView("past");
-                          else if (!isPast && view !== "active") setView("active");
+                          if (isPast && canManageEvaluations && view === "active") setView("past");
+                          else if ((!isPast || !canManageEvaluations) && view !== "active") setView("active");
                           setTimeout(() => setSelectedScheduleId(b.schedule_id!), 50);
                           setStudentSearch("");
                         }
