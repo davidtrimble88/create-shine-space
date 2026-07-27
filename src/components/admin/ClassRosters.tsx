@@ -2228,13 +2228,13 @@ const ClassRosters = () => {
                       <td>{b.license_number || ""}</td>
                       <td className="center"></td>
                       <td>{b.date_of_birth || ""}</td>
-                      <td className="center"></td>
-                      <td className="center"></td>
-                      <td className="center"></td>
-                      <td className="center"></td>
+                      <td className="center">{(b as any).checkpoint_c1 ? "✓" : ""}</td>
+                      <td className="center">{(b as any).checkpoint_r1 ? "✓" : ""}</td>
+                      <td className="center">{(b as any).checkpoint_c2 ? "✓" : ""}</td>
+                      <td className="center">{(b as any).checkpoint_r2 ? "✓" : ""}</td>
                       <td style={{ fontSize: 10, whiteSpace: "normal" }}>{b.roster_comment || ""}</td>
-                      <td className="center"></td>
-                      <td className="center"></td>
+                      <td className="center">{(b as any).ks_score || ""}</td>
+                      <td className="center">{(b as any).ss_score || ""}</td>
                     </tr>
                   ))}
                   {emptyRosterRows(Math.max(0, 12 - regularBookings.length), regularBookings.length + 1)}
