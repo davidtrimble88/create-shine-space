@@ -50,7 +50,7 @@ const AdminEmployees = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", position: "", instructor_number: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -211,6 +211,7 @@ const AdminEmployees = () => {
         email: form.email,
         phone: form.phone || null,
         position: form.position || null,
+        instructor_number: form.instructor_number.trim() || null,
         bio: form.bio || null,
         show_on_website: form.show_on_website,
         photo_position_x: form.photo_position_x,
@@ -258,6 +259,7 @@ const AdminEmployees = () => {
         email: form.email,
         phone: form.phone || null,
         position: form.position || null,
+        instructor_number: form.instructor_number.trim() || null,
         bio: form.bio || null,
         show_on_website: form.show_on_website,
         photo_position_x: form.photo_position_x,
@@ -304,7 +306,7 @@ const AdminEmployees = () => {
 
     setDialogOpen(false);
     setEditingId(null);
-    setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
+    setForm({ full_name: "", email: "", phone: "", position: "", instructor_number: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
     setPhotoFile(null);
     setPhotoPreview(null);
     setUploading(false);
@@ -318,6 +320,7 @@ const AdminEmployees = () => {
       email: e.email,
       phone: e.phone ?? "",
       position: e.position ?? "",
+      instructor_number: (e as any).instructor_number ?? "",
       role: e.role ?? "employee",
       bio: (e as any).bio ?? "",
       show_on_website: (e as any).show_on_website ?? false,
@@ -423,7 +426,7 @@ const AdminEmployees = () => {
 
   const openNew = () => {
     setEditingId(null);
-    setForm({ full_name: "", email: "", phone: "", position: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
+    setForm({ full_name: "", email: "", phone: "", position: "", instructor_number: "", role: "employee", bio: "", show_on_website: false, photo_position_x: 50, photo_position_y: 50, photo_zoom: 100 });
     setPhotoFile(null);
     setPhotoPreview(null);
     setDialogOpen(true);
@@ -549,7 +552,16 @@ const AdminEmployees = () => {
                       <SelectItem value="Owner">Owner</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+              </div>
+
+              <div>
+                <Label>Instructor # <span className="text-xs text-muted-foreground font-normal">(optional — appears next to name on rosters)</span></Label>
+                <Input
+                  value={form.instructor_number}
+                  onChange={e => setForm(f => ({ ...f, instructor_number: e.target.value }))}
+                  placeholder="e.g. 12345"
+                />
+              </div>
               </div>
 
               {/* Bio */}

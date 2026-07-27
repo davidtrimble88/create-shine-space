@@ -142,7 +142,7 @@ const ClassRosters = () => {
   const [locationFilter, setLocationFilter] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("");
   const [myAssignedScheduleIds, setMyAssignedScheduleIds] = useState<Set<string>>(new Set());
-  const [employees, setEmployees] = useState<{ id: string; full_name: string; user_id: string | null }[]>([]);
+  const [employees, setEmployees] = useState<{ id: string; full_name: string; user_id: string | null; instructor_number: string | null }[]>([]);
   const [allAssignments, setAllAssignments] = useState<FullAssignment[]>([]);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState("");
@@ -213,7 +213,7 @@ const ClassRosters = () => {
       if (!pendingId) setSelectedScheduleId("");
 
       const [empRes, assignRes] = await Promise.all([
-        supabase.from("employees").select("id, full_name, user_id").eq("is_active", true),
+        supabase.from("employees").select("id, full_name, user_id, instructor_number").eq("is_active", true),
         supabase.from("instructor_assignments").select("schedule_id, employee_id, assignment_role"),
       ]);
       if (empRes.data) setEmployees(empRes.data);
@@ -526,13 +526,14 @@ const ClassRosters = () => {
   const DUTY_ORDER = ["c1", "r1", "c2", "r2"];
   const selectedAssignments = (() => {
     const rows = allAssignments.filter(a => a.schedule_id === selectedScheduleId);
-    const grouped = new Map<string, { name: string; role: string; duties: string[] }>();
+    const grouped = new Map<string, { name: string; number: string | null; role: string; duties: string[] }>();
     rows.forEach(a => {
       const emp = employees.find(e => e.id === a.employee_id);
       const name = emp?.full_name ?? "Unknown";
+      const number = emp?.instructor_number ?? null;
       let entry = grouped.get(a.employee_id);
       if (!entry) {
-        entry = { name, role: "instructor_1", duties: [] };
+        entry = { name, number, role: "instructor_1", duties: [] };
         grouped.set(a.employee_id, entry);
       }
       if (DUTY_CODES_SET.has(a.assignment_role)) entry.duties.push(a.assignment_role);
@@ -542,7 +543,8 @@ const ClassRosters = () => {
       const roleLabel = roleLabelMap[e.role] ?? e.role;
       const dutyLabels = DUTY_ORDER.filter(d => e.duties.includes(d)).map(d => (roleLabelMap[d] ?? d).toUpperCase());
       const role = dutyLabels.length > 0 ? `${roleLabel}: ${dutyLabels.join("/")}` : roleLabel;
-      return { name: e.name, role };
+      const displayName = e.number ? `${e.name} #${e.number}` : e.name;
+      return { name: displayName, role };
     });
   })();
 
@@ -1711,7 +1713,7 @@ const ClassRosters = () => {
             <SelectItem value="all">All Instructors</SelectItem>
             <SelectItem value="my-classes">My Assigned Classes</SelectItem>
             {employees.map(e => (
-              <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>
+              <SelectItem key={e.id} value={e.id}>{e.instructor_number ? `${e.full_name} #${e.instructor_number}` : e.full_name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -1734,10 +1736,16 @@ const ClassRosters = () => {
           ) : (
             <div className="bg-card border border-border rounded-xl divide-y divide-border overflow-hidden">
               {filteredSchedules.map(s => {
-                const assignedNames = allAssignments
-                  .filter(a => a.schedule_id === s.id)
-                  .map(a => employees.find(e => e.id === a.employee_id)?.full_name)
-                  .filter(Boolean);
+                const assignedNames = Array.from(new Set(
+                  allAssignments
+                    .filter(a => a.schedule_id === s.id)
+                    .map(a => {
+                      const emp = employees.find(e => e.id === a.employee_id);
+                      if (!emp) return null;
+                      return emp.instructor_number ? `${emp.full_name} #${emp.instructor_number}` : emp.full_name;
+                    })
+                    .filter(Boolean) as string[]
+                ));
                 const pending = evalPendingCounts[s.id] || 0;
                 return (
                   <button
