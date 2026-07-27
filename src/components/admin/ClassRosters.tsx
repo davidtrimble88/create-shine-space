@@ -1773,8 +1773,8 @@ const ClassRosters = () => {
                         if (b.schedule_id) {
                           const today = new Date().toISOString().split("T")[0];
                           const isPast = b.schedule_date && b.schedule_date < today;
-                          if (isPast && view === "active") setView("past");
-                          else if (!isPast && view !== "active") setView("active");
+                          if (isPast && canManageEvaluations && view === "active") setView("past");
+                          else if ((!isPast || !canManageEvaluations) && view !== "active") setView("active");
                           setTimeout(() => setSelectedScheduleId(b.schedule_id!), 50);
                           setStudentSearch("");
                         }
