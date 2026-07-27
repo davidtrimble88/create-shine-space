@@ -1053,6 +1053,21 @@ const ClassRosters = () => {
     setBookings(prev => prev.map(x => x.id === b.id ? { ...x, [key]: next } as any : x));
   };
 
+  const bulkToggleCheckpoint = async (
+    rows: Booking[],
+    key: "checkpoint_c1" | "checkpoint_r1" | "checkpoint_c2" | "checkpoint_r2",
+  ) => {
+    if (rows.length === 0) return;
+    const allChecked = rows.every(r => Boolean((r as any)[key]));
+    const next = !allChecked;
+    const ids = rows.map(r => r.id);
+    const { error } = await supabase.from("bookings").update({ [key]: next } as any).in("id", ids);
+    if (error) { toast.error("Failed to update column"); return; }
+    setBookings(prev => prev.map(x => ids.includes(x.id) ? { ...x, [key]: next } as any : x));
+    toast.success(next ? `All ${key.slice(-2).toUpperCase()} checked` : `All ${key.slice(-2).toUpperCase()} cleared`);
+  };
+
+
   const renderCheckpointCell = (b: Booking, key: "checkpoint_c1" | "checkpoint_r1" | "checkpoint_c2" | "checkpoint_r2") => {
     const checked = Boolean((b as any)[key]);
     if (!canManageEvaluations) {
