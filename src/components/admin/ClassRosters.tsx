@@ -1012,6 +1012,27 @@ const ClassRosters = () => {
     );
   };
 
+  const isMinorOnClass = (b: Booking, classDate?: string | null): boolean => {
+    const dob = b.date_of_birth;
+    const cls = classDate || b.schedule_date;
+    if (!dob || !cls) return false;
+    const d = new Date(dob + "T00:00:00");
+    const c = new Date(cls + "T00:00:00");
+    if (isNaN(d.getTime()) || isNaN(c.getTime())) return false;
+    let age = c.getFullYear() - d.getFullYear();
+    const m = c.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && c.getDate() < d.getDate())) age--;
+    return age < 18;
+  };
+
+  const displayComment = (b: Booking, classDate?: string | null): string => {
+    const minor = isMinorOnClass(b, classDate);
+    const base = b.roster_comment || "";
+    if (!minor) return base;
+    if (/\bminor\b/i.test(base)) return base;
+    return base ? `Minor — ${base}` : "Minor";
+  };
+
   const renderCommentCell = (b: Booking) => (
     <td className="p-3">
       {editingCommentId === b.id ? (
@@ -1036,8 +1057,8 @@ const ClassRosters = () => {
           className="flex items-center gap-1 cursor-pointer group"
           onClick={() => { setEditingCommentId(b.id); setCommentDraft(b.roster_comment || ""); }}
         >
-          <span className={b.roster_comment ? "text-foreground text-xs" : "text-muted-foreground text-xs italic"}>
-            {b.roster_comment || "Add comment..."}
+          <span className={displayComment(b) ? "text-foreground text-xs" : "text-muted-foreground text-xs italic"}>
+            {displayComment(b) || "Add comment..."}
           </span>
           <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
@@ -2263,7 +2284,7 @@ const ClassRosters = () => {
                       <td className="center">{(b as any).checkpoint_r1 ? "✓" : ""}</td>
                       <td className="center">{(b as any).checkpoint_c2 ? "✓" : ""}</td>
                       <td className="center">{(b as any).checkpoint_r2 ? "✓" : ""}</td>
-                      <td style={{ fontSize: 10, whiteSpace: "normal" }}>{b.roster_comment || ""}</td>
+                      <td style={{ fontSize: 10, whiteSpace: "normal" }}>{displayComment(b, selectedSchedule.date)}</td>
                       <td className="center">{(b as any).ks_score || ""}</td>
                       <td className="center">{(b as any).ss_score || ""}</td>
                     </tr>
@@ -2308,7 +2329,7 @@ const ClassRosters = () => {
                       <td>{b.date_of_birth || ""}</td>
                       <td className="center"></td>
                       <td className="center"></td>
-                      <td style={{ fontSize: 10, whiteSpace: "normal" }}>{b.roster_comment || ""}</td>
+                      <td style={{ fontSize: 10, whiteSpace: "normal" }}>{displayComment(b, selectedSchedule.date)}</td>
                       <td className="center">{(b as any).ks_score || ""}</td>
                       <td className="center">{(b as any).ss_score || ""}</td>
                     </tr>
