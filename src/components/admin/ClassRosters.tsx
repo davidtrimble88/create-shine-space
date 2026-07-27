@@ -2121,6 +2121,18 @@ const ClassRosters = () => {
               <table className="roster-table">
                 <thead>
                   <tr>
+                    <th className="class-info-cell" colSpan={17}>
+                      <div className="title">CLASS ROSTER — {selectedSchedule.location_label}</div>
+                      <div className="sub">{selectedSchedule.date} — {selectedSchedule.schedule}</div>
+                      {selectedAssignments.length > 0 && (
+                        <div className="instructors">
+                          Instructors: {selectedAssignments.map(a => `${a.name} (${a.role})`).join(" / ")}
+                        </div>
+                      )}
+                      <div className="count">{regularBookings.length} Student{regularBookings.length !== 1 ? "s" : ""} Enrolled</div>
+                    </th>
+                  </tr>
+                  <tr>
                     <th>#</th>
                     <th>First</th>
                     <th>Last</th>
