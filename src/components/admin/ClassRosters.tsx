@@ -142,7 +142,7 @@ const ClassRosters = () => {
   const [locationFilter, setLocationFilter] = useState("");
   const [instructorFilter, setInstructorFilter] = useState("");
   const [myAssignedScheduleIds, setMyAssignedScheduleIds] = useState<Set<string>>(new Set());
-  const [employees, setEmployees] = useState<{ id: string; full_name: string; user_id: string | null }[]>([]);
+  const [employees, setEmployees] = useState<{ id: string; full_name: string; user_id: string | null; instructor_number: string | null }[]>([]);
   const [allAssignments, setAllAssignments] = useState<FullAssignment[]>([]);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState("");
