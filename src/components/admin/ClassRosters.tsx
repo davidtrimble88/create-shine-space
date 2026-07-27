@@ -72,8 +72,9 @@ const daysBetween = (from: Date, to: Date) => {
 };
 
 const ClassRosters = () => {
-  const { user, effectiveRole } = useAuth();
-  const canManageEvaluations = effectiveRole === "owner" || effectiveRole === "admin";
+  const { user, effectiveRole, userRole } = useAuth();
+  // Evaluation controls follow the real role so "view as" doesn't hide Pass/Fail from owners/admins
+  const canManageEvaluations = userRole === "owner" || userRole === "admin";
   const [view, setView] = useState<ViewMode>("active");
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
