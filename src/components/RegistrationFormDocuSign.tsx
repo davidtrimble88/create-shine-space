@@ -1,11 +1,9 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, FileSignature, CheckCircle2, ArrowLeft, ArrowRight, Pencil } from "lucide-react";
-import { SharedDocuSignPad } from "./docusign/SharedDocuSignPad";
 import type { RegistrationFormPrefill } from "./RegistrationFormStep";
 import { CMSP_REGISTRATION_FORM_VERSION } from "./RegistrationFormStep";
 import WaiverSignedDialog from "./WaiverSignedDialog";
@@ -48,20 +46,10 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const [hearOther, setHearOther] = useState("");
   const toggleHear = (k: HearOpt) => setHearSel(prev => ({ ...prev, [k]: !prev[k] }));
 
-  const [sig, setSig] = useState<string | null>(null);
-  const [typed, setTyped] = useState("");
-  const [adoptOpen, setAdoptOpen] = useState(false);
-  const [guardianSig, setGuardianSig] = useState<string | null>(null);
-  const [guardianTyped, setGuardianTyped] = useState("");
-  const [guardianAdoptOpen, setGuardianAdoptOpen] = useState(false);
-
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ recordId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
 
-  const dateStr = useMemo(() => {
-    const d = new Date();
-    return `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}/${d.getFullYear()}`;
-  }, []);
+
 
   const age = useMemo(() => {
     if (!prefill.dateOfBirth) return "";
@@ -256,8 +244,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const isReview = stepIdx >= steps.length;
 
   const allValid = steps.every(s => s.valid());
-  const guardianRequired = !!prefill.isMinor && !prefill.guardianInPerson;
-  const canSubmit = allValid && sig && (!guardianRequired || guardianSig);
+  const canSubmit = allValid;
 
   const submit = async () => {
     if (!canSubmit) return;
@@ -297,20 +284,18 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         q11_cmsp_contact_future: q11v,
         q9_hear_about_sources: HEAR_OPTIONS.filter(o => hearSel[o]),
         q9_hear_other: hearOther || null,
-        signature_typed: typed || fullName,
-        signature_drawn: sig,
+        signature_typed: null,
+        signature_drawn: null,
         guardian_name: prefill.isMinor ? guardianFullName : null,
         guardian_relationship: prefill.isMinor ? (prefill.guardianRelationship || null) : null,
-        guardian_signature_typed: guardianRequired ? (guardianTyped || guardianFullName) : null,
-        guardian_signature_drawn: guardianRequired ? guardianSig : null,
+        guardian_signature_typed: null,
+        guardian_signature_drawn: null,
         is_minor: !!prefill.isMinor,
-        guardian_in_person: !!(prefill.isMinor && prefill.guardianInPerson),
+        guardian_in_person: !!prefill.isMinor,
         consent_acknowledgments: [
           { key: "truthful", label: "Answers are true and complete", accepted: true },
           { key: "id_match", label: "ID at check-in will match name on this form", accepted: true },
-          { key: "esign", label: "Consent to sign electronically (ESIGN Act / UETA)", accepted: true },
-          ...(guardianRequired ? [{ key: "guardian", label: `Parent/guardian (${prefill.guardianRelationship || "guardian"}) signed on behalf of the minor`, accepted: true as const }] : []),
-          ...(prefill.isMinor && prefill.guardianInPerson ? [{ key: "guardian_in_person", label: "Parent/guardian will sign this form in person at the first range class", accepted: true as const }] : []),
+          ...(prefill.isMinor ? [{ key: "guardian_in_person", label: "Parent/guardian will sign this form in person at the first range class", accepted: true as const }] : []),
         ],
         course: prefill.course || null,
         location: prefill.location || null,
@@ -454,71 +439,23 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             </div>
           </div>
 
-          {/* Signature */}
-          <div className="bg-card border-2 border-accent/40 rounded-2xl p-5 md:p-6 space-y-3">
-            <h3 className="font-bold text-foreground flex items-center gap-2">
-              <FileSignature className="w-5 h-5 text-accent" /> Your signature
-            </h3>
-            {sig ? (
-              <div className="bg-accent/5 border border-accent/40 rounded-xl p-4 flex items-center gap-3">
-                <img src={sig} alt="signature" className="h-12 bg-white border border-border rounded" />
-                <div className="text-sm flex-1">
-                  <div className="font-semibold text-foreground">{typed || fullName}</div>
-                  <div className="text-muted-foreground">Signed {dateStr}</div>
-                </div>
-                <Button type="button" variant="outline" size="sm" onClick={() => setAdoptOpen(true)}>Re-sign</Button>
-              </div>
-            ) : (
-              <Button type="button" variant="hero" onClick={() => setAdoptOpen(true)}>
-                Adopt signature
-              </Button>
-            )}
+          <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-5 md:p-6 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <FileSignature className="w-5 h-5 text-amber-600" />
+              <h3 className="font-bold text-foreground">Signature not required online</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              No signature is needed here. Your answers will be filled into the official CMSP Student
+              Registration Form and you'll sign the printed copy in person at check-in on the first day
+              of class.
+              {prefill.isMinor && (
+                <> A parent or legal guardian must also be present at the <strong>start of the first
+                range class</strong> to sign in person and confirm permission for the minor to
+                participate.</>
+              )}
+            </p>
           </div>
 
-          {prefill.isMinor && prefill.guardianInPerson && (
-            <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-5 md:p-6 space-y-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <FileSignature className="w-5 h-5 text-amber-600" />
-                <h3 className="font-bold text-foreground">Parent / Legal Guardian will sign in person</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Because the student is under 18, a parent or legal guardian must be present at the
-                <strong> start of the first range class</strong> to sign this form in person and confirm
-                permission for the minor to participate. You may continue without a guardian signature now.
-              </p>
-            </div>
-          )}
-
-          {prefill.isMinor && !prefill.guardianInPerson && (
-            <div className="bg-card border-2 border-accent/40 rounded-2xl p-5 md:p-6 space-y-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <FileSignature className="w-5 h-5 text-accent" />
-                <h3 className="font-bold text-foreground">Parent / Legal Guardian Signature</h3>
-                <span className="text-xs font-semibold uppercase tracking-wide bg-accent/15 text-accent px-2 py-0.5 rounded">Required — Minor</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Because the student is under 18, a parent or legal guardian must also sign.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div><span className="text-muted-foreground">Guardian: </span><span className="font-medium">{guardianFullName || "—"}</span></div>
-                <div><span className="text-muted-foreground">Relationship: </span><span className="font-medium">{prefill.guardianRelationship || "—"}</span></div>
-              </div>
-              {guardianSig ? (
-                <div className="bg-accent/5 border border-accent/40 rounded-xl p-4 flex items-center gap-3">
-                  <img src={guardianSig} alt="guardian signature" className="h-12 bg-white border border-border rounded" />
-                  <div className="text-sm flex-1">
-                    <div className="font-semibold text-foreground">{guardianTyped || guardianFullName}</div>
-                    <div className="text-muted-foreground">Signed {dateStr}</div>
-                  </div>
-                  <Button type="button" variant="outline" size="sm" onClick={() => setGuardianAdoptOpen(true)}>Re-sign</Button>
-                </div>
-              ) : (
-                <Button type="button" variant="hero" onClick={() => setGuardianAdoptOpen(true)}>
-                  Adopt guardian signature
-                </Button>
-              )}
-            </div>
-          )}
 
           <div className="flex items-center justify-between">
             <Button type="button" variant="outline" onClick={() => setStepIdx(steps.length - 1)}>
@@ -530,30 +467,6 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           </div>
         </div>
       )}
-
-      <Dialog open={adoptOpen} onOpenChange={setAdoptOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Adopt your signature</DialogTitle></DialogHeader>
-          <SharedDocuSignPad
-            mode="signature" defaultTyped={fullName}
-            prompt="This signature will be applied to the CMSP Student Registration Form. Legally binding under ESIGN / UETA."
-            onCancel={() => setAdoptOpen(false)}
-            onSave={(url, t) => { setSig(url); setTyped(t); setAdoptOpen(false); }}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={guardianAdoptOpen} onOpenChange={setGuardianAdoptOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Adopt guardian signature</DialogTitle></DialogHeader>
-          <SharedDocuSignPad
-            mode="signature" defaultTyped={guardianFullName}
-            prompt="This signature will be applied on behalf of the minor. Legally binding under ESIGN / UETA."
-            onCancel={() => setGuardianAdoptOpen(false)}
-            onSave={(url, t) => { setGuardianSig(url); setGuardianTyped(t); setGuardianAdoptOpen(false); }}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
