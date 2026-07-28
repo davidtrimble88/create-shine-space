@@ -79,8 +79,6 @@ const registrationSchema = z.object({
   guardianRelationship: z.string().trim().max(50).optional(),
   guardianEmail: z.string().trim().max(255).optional().or(z.literal("")),
   guardianPhone: z.string().trim().max(20).optional(),
-  guardianLicenseNumber: z.string().trim().max(50).optional(),
-  guardianLicenseState: z.string().trim().max(50).optional(),
   guardianIdPhotoPath: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (data.idType === "drivers_license") {
@@ -111,8 +109,6 @@ const registrationSchema = z.object({
       ["guardianLastName", "Parent/guardian last name is required"],
       ["guardianRelationship", "Relationship is required"],
       ["guardianPhone", "Parent/guardian phone is required"],
-      ["guardianLicenseNumber", "Parent/guardian ID number is required"],
-      ["guardianLicenseState", "Parent/guardian ID issuing state is required"],
     ];
     for (const [key, msg] of required) {
       const v = (data as any)[key];
@@ -223,8 +219,6 @@ const RegisterPage = () => {
       guardianRelationship: "",
       guardianEmail: "",
       guardianPhone: "",
-      guardianLicenseNumber: "",
-      guardianLicenseState: "",
       idPhotoPath: "",
       guardianIdPhotoPath: "",
     },
@@ -620,8 +614,6 @@ const RegisterPage = () => {
         guardianRelationship: isUnder18 ? data.guardianRelationship : undefined,
         guardianEmail: isUnder18 ? data.guardianEmail : undefined,
         guardianPhone: isUnder18 ? data.guardianPhone : undefined,
-        guardianLicenseNumber: isUnder18 ? data.guardianLicenseNumber : undefined,
-        guardianLicenseState: isUnder18 ? data.guardianLicenseState : undefined,
         course,
         location,
         locationLabel: locationLabels[location] || location,
@@ -1440,22 +1432,6 @@ const RegisterPage = () => {
                         )} />
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField control={form.control} name="guardianLicenseNumber" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Guardian Driver's License / ID # *</FormLabel>
-                            <FormControl><Input placeholder="D1234567" {...field} /></FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                        <FormField control={form.control} name="guardianLicenseState" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Issuing State *</FormLabel>
-                            <FormControl><Input placeholder="CA" {...field} /></FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                      </div>
 
 
                       <FormField control={form.control} name="parentGuardianAck" render={({ field }) => (
@@ -1465,7 +1441,7 @@ const RegisterPage = () => {
                           </FormControl>
                           <div className="space-y-1 leading-none">
                             <FormLabel className="text-xs leading-relaxed">
-                              I certify that I am the parent or legal guardian of the minor named above. I will sign the CMSP waiver on the next step on the minor's behalf, will be the one making payment, and will present a matching photo ID at check-in. *
+                              I certify that I am the parent or legal guardian of the minor named above. I understand that I must be present at the start of the first range class to sign the CMSP waiver and registration forms in person, and I will present a matching photo ID at check-in. *
                             </FormLabel>
                             <FormMessage />
                           </div>
