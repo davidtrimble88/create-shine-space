@@ -1,11 +1,9 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, FileSignature, CheckCircle2, ArrowLeft, ArrowRight, Pencil } from "lucide-react";
-import { SharedDocuSignPad } from "./docusign/SharedDocuSignPad";
 import type { RegistrationFormPrefill } from "./RegistrationFormStep";
 import { CMSP_REGISTRATION_FORM_VERSION } from "./RegistrationFormStep";
 import WaiverSignedDialog from "./WaiverSignedDialog";
