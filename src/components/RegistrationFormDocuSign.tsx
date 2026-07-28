@@ -479,30 +479,6 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           </div>
         </div>
       )}
-
-      <Dialog open={adoptOpen} onOpenChange={setAdoptOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Adopt your signature</DialogTitle></DialogHeader>
-          <SharedDocuSignPad
-            mode="signature" defaultTyped={fullName}
-            prompt="This signature will be applied to the CMSP Student Registration Form. Legally binding under ESIGN / UETA."
-            onCancel={() => setAdoptOpen(false)}
-            onSave={(url, t) => { setSig(url); setTyped(t); setAdoptOpen(false); }}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={guardianAdoptOpen} onOpenChange={setGuardianAdoptOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Adopt guardian signature</DialogTitle></DialogHeader>
-          <SharedDocuSignPad
-            mode="signature" defaultTyped={guardianFullName}
-            prompt="This signature will be applied on behalf of the minor. Legally binding under ESIGN / UETA."
-            onCancel={() => setGuardianAdoptOpen(false)}
-            onSave={(url, t) => { setGuardianSig(url); setGuardianTyped(t); setGuardianAdoptOpen(false); }}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
