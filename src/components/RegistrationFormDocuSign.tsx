@@ -256,7 +256,8 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const isReview = stepIdx >= steps.length;
 
   const allValid = steps.every(s => s.valid());
-  const canSubmit = allValid && sig && (!prefill.isMinor || guardianSig);
+  const guardianRequired = !!prefill.isMinor && !prefill.guardianInPerson;
+  const canSubmit = allValid && sig && (!guardianRequired || guardianSig);
 
   const submit = async () => {
     if (!canSubmit) return;
