@@ -168,6 +168,10 @@ const ClassRosters = () => {
   const [dl389PendingCounts, setDl389PendingCounts] = useState<Record<string, number>>({});
   // Fail-result dialog state
   const [failDialogBookingId, setFailDialogBookingId] = useState<string | null>(null);
+  const [failCanReturn, setFailCanReturn] = useState<"yes" | "no" | null>(null);
+  const [failRetestType, setFailRetestType] = useState<"skill" | "knowledge" | "both">("skill");
+  const [failComment, setFailComment] = useState("");
+  const [savingFail, setSavingFail] = useState(false);
   // Schedule-retest dialog state
   const [scheduleRetestFor, setScheduleRetestFor] = useState<Booking | null>(null);
   const [retestTargetScheduleId, setRetestTargetScheduleId] = useState<string>("");
