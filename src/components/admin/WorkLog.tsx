@@ -290,6 +290,7 @@ const WorkLog = () => {
                     <TableHead className="text-center">C2</TableHead>
                     <TableHead className="text-center">R2</TableHead>
                     <TableHead className="text-center">Total</TableHead>
+                    <TableHead className="text-center">Extra Hrs</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
