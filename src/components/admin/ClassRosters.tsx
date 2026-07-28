@@ -1933,6 +1933,65 @@ const ClassRosters = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Fail notes / cannot-return dialog */}
+        <Dialog open={!!failNotesFor} onOpenChange={open => { if (!open) closeFailNotes(); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Fail Notes</DialogTitle>
+              <DialogDescription>
+                {failNotesFor && (
+                  <>
+                    Edit the failure reason for <span className="font-semibold text-foreground">{failNotesFor.first_name} {failNotesFor.last_name}</span>.
+                    Notes are saved to the student's record and are not shown on the printed roster.
+                  </>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Textarea
+                value={failNotesText}
+                onChange={e => setFailNotesText(e.target.value)}
+                placeholder="Why did they fail? (e.g. Failed skill test — cone weave, needs practice)"
+                rows={5}
+              />
+              {confirmCannotReturn && (
+                <div className="border border-destructive/40 bg-destructive/10 rounded-md p-3 text-sm text-foreground">
+                  This will archive the student as <span className="font-semibold">Not eligible to return</span> and remove them from the Pending Retest/Reschedule list. Continue?
+                </div>
+              )}
+            </div>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button variant="ghost" onClick={closeFailNotes} disabled={savingFailNotes}>Cancel</Button>
+              {!confirmCannotReturn ? (
+                <>
+                  <Button
+                    variant="outline"
+                    className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => setConfirmCannotReturn(true)}
+                    disabled={savingFailNotes}
+                  >
+                    <UserX className="w-4 h-4 mr-1.5" /> Change to Cannot Return
+                  </Button>
+                  <Button onClick={saveFailNotes} disabled={savingFailNotes}>
+                    {savingFailNotes ? "Saving…" : "Save Notes"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" onClick={() => setConfirmCannotReturn(false)} disabled={savingFailNotes}>Back</Button>
+                  <Button
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={changeToCannotReturn}
+                    disabled={savingFailNotes}
+                  >
+                    {savingFailNotes ? "Archiving…" : "Confirm — Cannot Return"}
+                  </Button>
+                </>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   };
