@@ -2243,9 +2243,9 @@ const ClassRosters = () => {
                     <th className="check-col">Waiver</th>
                     <th className="check-col">Reg</th>
                     <th className="check-col">Model</th>
-                    <th>Phone No.</th>
+                    <th className="phone-col">Phone No.</th>
                     <th>DL #</th>
-                    <th className="id-verify-col">ID Verification</th>
+                    <th className="id-verify-col">ID ✓</th>
                     <th>Birthdate</th>
                     <th className="check-col">C1</th>
                     <th className="check-col">R1</th>
