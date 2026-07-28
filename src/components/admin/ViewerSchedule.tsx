@@ -246,45 +246,64 @@ const ViewerSchedule = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const currentMonth = today.getMonth();
-    let endDate: Date;
-    if (currentMonth === 11) {
-      endDate = new Date(today.getFullYear() + 1, 5, 30);
-    } else {
-      endDate = new Date(today.getFullYear(), 11, 31);
+    const endDate = currentMonth === 11
+      ? new Date(today.getFullYear() + 1, 5, 30)
+      : new Date(today.getFullYear(), 11, 31);
+
+    // Build per-location scheduled-date sets so a location's placeholder only hides
+    // when that same location already has a class on one of the pattern days.
+    const schedByLoc = new Map<string, Set<string>>();
+    schedules.forEach(s => {
+      if (!schedByLoc.has(s.location)) schedByLoc.set(s.location, new Set());
+      schedByLoc.get(s.location)!.add(s.date);
+    });
+
+    // Enumerate Saturdays across the range as the anchor for each week.
+    const saturdays: Date[] = [];
+    const cursor = new Date(today);
+    while (cursor.getDay() !== 6) cursor.setDate(cursor.getDate() + 1);
+    while (cursor <= endDate) {
+      saturdays.push(new Date(cursor));
+      cursor.setDate(cursor.getDate() + 7);
     }
-    const weekendDates = eachWeekendOfInterval({ start: today, end: endDate });
-    const scheduledDates = new Set(schedules.map(s => s.date));
 
-    const unscheduledDays = weekendDates.filter(d => {
-      const dateStr = format(d, "yyyy-MM-dd");
-      return !scheduledDates.has(dateStr) && !dismissedDates.has(dateStr) && d >= today;
+    // Offset from that week's Saturday for each supported class day.
+    const dayOffsetsFromSat: Record<number, number> = { 3: -3, 5: -1, 6: 0, 0: 1 };
+
+    const results: PlaceholderEntry[] = [];
+    saturdays.forEach(sat => {
+      placeholderLocationOptions.forEach(loc => {
+        const dates = loc.days
+          .map(d => {
+            const dt = new Date(sat);
+            dt.setDate(sat.getDate() + dayOffsetsFromSat[d]);
+            dt.setHours(0, 0, 0, 0);
+            return dt;
+          })
+          .filter(d => d >= today)
+          .sort((a, b) => a.getTime() - b.getTime());
+        if (dates.length === 0) return;
+
+        const dateStrs = dates.map(d => format(d, "yyyy-MM-dd"));
+        const locSchedDates = schedByLoc.get(loc.filterKey) ?? new Set();
+        // Hide the placeholder if this location already has a real class on any of these days.
+        if (dateStrs.some(ds => locSchedDates.has(ds))) return;
+        // Hide if every day in the pattern has been dismissed.
+        if (dateStrs.every(ds => dismissedDates.has(ds))) return;
+
+        results.push({
+          type: "placeholder",
+          date: dates[0],
+          dates,
+          dateStr: `${format(sat, "yyyy-MM-dd")}-${loc.value}`,
+          location: loc,
+        });
+      });
     });
 
-    // Build a set of unscheduled date strings for quick lookup
-    const unscheduledSet = new Set(unscheduledDays.map(d => format(d, "yyyy-MM-dd")));
-
-    const weekGroups = new Map<string, Date[]>();
-    unscheduledDays.forEach(d => {
-      const day = d.getDay();
-      if (day === 0) {
-        // Sunday: only include if corresponding Saturday is also unscheduled
-        const sat = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1);
-        const satStr = format(sat, "yyyy-MM-dd");
-        if (!unscheduledSet.has(satStr)) return; // skip orphan Sunday
-      }
-      const sat = day === 0 ? new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1) : d;
-      const key = format(sat, "yyyy-MM-dd");
-      if (!weekGroups.has(key)) weekGroups.set(key, []);
-      weekGroups.get(key)!.push(d);
-    });
-
-    return Array.from(weekGroups.entries()).map(([satKey, dates]) => ({
-      type: "placeholder" as const,
-      date: dates[0],
-      dates: dates.sort((a, b) => a.getTime() - b.getTime()),
-      dateStr: satKey,
-    }));
+    return results;
   };
+
 
   const buildDisplayList = (): DisplayEntry[] => {
     const scheduleEntries: ScheduleEntry[] = schedules.map(s => ({ type: "schedule", data: s }));
