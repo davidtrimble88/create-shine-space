@@ -455,7 +455,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
               )}
             </p>
             <p className="text-xs text-muted-foreground pt-1">
-              Submitting this form complete the CMSP Registration Form — you do not need to bring a copy back to us before class.
+Submitting this form completes the CMSP Registration Form — you do not need to bring a copy back to us before class.
             </p>
           </div>
 
