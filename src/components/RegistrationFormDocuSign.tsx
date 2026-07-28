@@ -49,8 +49,6 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ recordId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
 
-  const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ recordId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
 
   const dateStr = useMemo(() => {
     const d = new Date();
