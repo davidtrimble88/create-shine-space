@@ -182,6 +182,11 @@ const ClassRosters = () => {
   const [rescheduleScope, setRescheduleScope] = useState<"full" | "partial">("full");
   const [reschedulePortions, setReschedulePortions] = useState<{ c1: boolean; r1: boolean; c2: boolean; r2: boolean }>({ c1: false, r1: false, c2: false, r2: false });
   const [rescheduling, setRescheduling] = useState(false);
+  // Fail notes / change-to-cannot-return dialog state
+  const [failNotesFor, setFailNotesFor] = useState<Booking | null>(null);
+  const [failNotesText, setFailNotesText] = useState("");
+  const [savingFailNotes, setSavingFailNotes] = useState(false);
+  const [confirmCannotReturn, setConfirmCannotReturn] = useState(false);
   // Per-schedule retest counts: { [schedule_id]: { skill: n, knowledge: n } }
   const [retestCountsByClass, setRetestCountsByClass] = useState<Record<string, { skill: number; knowledge: number }>>({});
   // DL389 view: list of passed students that still need their DL389 created
@@ -1094,6 +1099,23 @@ const ClassRosters = () => {
       .join("\n")
       .trim();
 
+  const extractEvalNotes = (raw: string | null | undefined): string =>
+    (raw || "")
+      .split("\n")
+      .filter(line => /^\s*Eval note\b/i.test(line))
+      .join("\n")
+      .trim();
+
+  const replaceEvalNotes = (raw: string | null | undefined, newNotesText: string): string => {
+    const remainder = stripEvalNotes(raw || "");
+    const trimmed = newNotesText.trim();
+    if (!trimmed) return remainder;
+    const stamp = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
+    const line = `Eval note ${stamp}: ${trimmed}`;
+    return remainder ? `${remainder}\n${line}` : line;
+  };
+
+
   const displayComment = (b: Booking, classDate?: string | null): string => {
     const minor = isMinorOnClass(b, classDate);
     const base = stripEvalNotes(b.roster_comment || "");
@@ -1326,6 +1348,67 @@ const ClassRosters = () => {
     setRescheduleTargetScheduleId("");
     toast.success(`Rescheduled to ${target.date} at ${target.location_label}`);
   };
+
+  const openFailNotes = (b: Booking) => {
+    setFailNotesFor(b);
+    const raw = extractEvalNotes(b.roster_comment);
+    const cleaned = raw
+      .split("\n")
+      .map(l => l.replace(/^\s*Eval note[^:]*:\s*/i, "").trim())
+      .filter(Boolean)
+      .join("\n");
+    setFailNotesText(cleaned);
+    setConfirmCannotReturn(false);
+  };
+
+  const closeFailNotes = () => {
+    setFailNotesFor(null);
+    setFailNotesText("");
+    setSavingFailNotes(false);
+    setConfirmCannotReturn(false);
+  };
+
+  const saveFailNotes = async () => {
+    if (!failNotesFor) return;
+    setSavingFailNotes(true);
+    const merged = replaceEvalNotes(failNotesFor.roster_comment, failNotesText);
+    const { error } = await supabase
+      .from("bookings")
+      .update({ roster_comment: merged || null } as any)
+      .eq("id", failNotesFor.id);
+    setSavingFailNotes(false);
+    if (error) { toast.error("Failed to save notes"); return; }
+    setBookings(prev => prev.map(b => b.id === failNotesFor.id ? { ...b, roster_comment: merged || null } : b));
+    setPendingRetests(prev => prev.map(b => b.id === failNotesFor.id ? { ...b, roster_comment: merged || null } : b));
+    toast.success("Notes updated");
+    closeFailNotes();
+  };
+
+  const changeToCannotReturn = async () => {
+    if (!failNotesFor) return;
+    setSavingFailNotes(true);
+    const merged = replaceEvalNotes(failNotesFor.roster_comment, failNotesText);
+    const reason = failNotesText.trim() || "Not eligible to return";
+    const updates: any = {
+      roster_comment: merged || null,
+      retest_type: "none",
+      dropped: true,
+      dropped_reason: reason,
+      dropped_at: new Date().toISOString(),
+      dropped_by: user?.id ?? null,
+    };
+    const { error } = await supabase
+      .from("bookings")
+      .update(updates)
+      .eq("id", failNotesFor.id);
+    setSavingFailNotes(false);
+    if (error) { toast.error("Failed to update"); return; }
+    setBookings(prev => prev.map(b => b.id === failNotesFor.id ? { ...b, ...updates } : b));
+    setPendingRetests(prev => prev.filter(b => b.id !== failNotesFor.id));
+    toast.success("Student archived — not returning");
+    closeFailNotes();
+  };
+
 
 
   // ========================
@@ -1652,6 +1735,14 @@ const ClassRosters = () => {
                           >
                             <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="border border-border/60"
+                            onClick={() => openFailNotes(b)}
+                          >
+                            <FileText className="w-3.5 h-3.5 mr-1.5" /> Fail Notes / Change Status
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -1839,6 +1930,65 @@ const ClassRosters = () => {
               >
                 {rescheduling ? "Rescheduling…" : "Reschedule"}
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Fail notes / cannot-return dialog */}
+        <Dialog open={!!failNotesFor} onOpenChange={open => { if (!open) closeFailNotes(); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Fail Notes</DialogTitle>
+              <DialogDescription>
+                {failNotesFor && (
+                  <>
+                    Edit the failure reason for <span className="font-semibold text-foreground">{failNotesFor.first_name} {failNotesFor.last_name}</span>.
+                    Notes are saved to the student's record and are not shown on the printed roster.
+                  </>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Textarea
+                value={failNotesText}
+                onChange={e => setFailNotesText(e.target.value)}
+                placeholder="Why did they fail? (e.g. Failed skill test — cone weave, needs practice)"
+                rows={5}
+              />
+              {confirmCannotReturn && (
+                <div className="border border-destructive/40 bg-destructive/10 rounded-md p-3 text-sm text-foreground">
+                  This will archive the student as <span className="font-semibold">Not eligible to return</span> and remove them from the Pending Retest/Reschedule list. Continue?
+                </div>
+              )}
+            </div>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button variant="ghost" onClick={closeFailNotes} disabled={savingFailNotes}>Cancel</Button>
+              {!confirmCannotReturn ? (
+                <>
+                  <Button
+                    variant="outline"
+                    className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => setConfirmCannotReturn(true)}
+                    disabled={savingFailNotes}
+                  >
+                    <UserX className="w-4 h-4 mr-1.5" /> Change to Cannot Return
+                  </Button>
+                  <Button onClick={saveFailNotes} disabled={savingFailNotes}>
+                    {savingFailNotes ? "Saving…" : "Save Notes"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" onClick={() => setConfirmCannotReturn(false)} disabled={savingFailNotes}>Back</Button>
+                  <Button
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={changeToCannotReturn}
+                    disabled={savingFailNotes}
+                  >
+                    {savingFailNotes ? "Archiving…" : "Confirm — Cannot Return"}
+                  </Button>
+                </>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
