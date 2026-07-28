@@ -443,7 +443,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-5 md:p-6 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
               <FileSignature className="w-5 h-5 text-amber-600" />
-              <h3 className="font-bold text-foreground">Signature not required online</h3>
+              <h3 className="font-bold text-foreground">Signature not Required</h3>
             </div>
             <p className="text-sm text-muted-foreground">
               No signature is needed here. When you submit, we'll fill in the official CMSP Student
