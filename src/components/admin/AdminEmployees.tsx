@@ -164,7 +164,8 @@ const AdminEmployees = () => {
     }
     
     const { data: urlData } = supabase.storage.from("employee-photos").getPublicUrl(filePath);
-    return urlData.publicUrl;
+    // Append cache-busting param so browsers/CDN don't serve the previous photo
+    return `${urlData.publicUrl}?v=${Date.now()}`;
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
