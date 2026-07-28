@@ -47,6 +47,8 @@ export interface WaiverPrefill {
   licenseNumber?: string;
   licenseState?: string;
   isMinor: boolean;
+  /** If true, the parent/legal guardian will sign in person at the first range class. Skip guardian gating online. */
+  guardianInPerson?: boolean;
   guardianFirstName?: string;
   guardianLastName?: string;
   guardianRelationship?: string;
