@@ -718,7 +718,14 @@ const RegisterPage = () => {
 
   const handleModelReleaseComplete = (_recordId: string, _decision: "sign" | "decline") => {
     setModelReleaseOpen(false);
-    setWaiverOpen(true);
+    // If the parent/guardian will sign in person at the first class, skip the online waiver
+    // (which for minors is legally a guardian document) and jump straight to payment.
+    if (isUnder18 && guardianSignsInPerson) {
+      paymentCompletedRef.current = false;
+      setPaymentOpen(true);
+    } else {
+      setWaiverOpen(true);
+    }
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   };
 
