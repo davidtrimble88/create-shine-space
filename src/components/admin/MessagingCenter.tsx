@@ -56,6 +56,8 @@ export default function MessagingCenter() {
     return m;
   }, [employees]);
 
+  const [lastSenderByThread, setLastSenderByThread] = useState<Record<string, string>>({});
+
   const loadThreads = async () => {
     const { data } = await supabase
       .from("message_threads")
@@ -64,6 +66,15 @@ export default function MessagingCenter() {
     setThreads((data as Thread[]) || []);
     const { data: parts } = await supabase.from("message_thread_participants").select("*");
     setParticipants((parts as Participant[]) || []);
+    const { data: msgs } = await supabase
+      .from("messages")
+      .select("thread_id, sender_id, created_at")
+      .order("created_at", { ascending: false });
+    const map: Record<string, string> = {};
+    (msgs || []).forEach((m: any) => {
+      if (!map[m.thread_id]) map[m.thread_id] = m.sender_id;
+    });
+    setLastSenderByThread(map);
   };
 
   const loadEmployees = async () => {
