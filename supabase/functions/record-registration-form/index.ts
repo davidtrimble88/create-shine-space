@@ -56,8 +56,8 @@ const ResponseSchema = z.object({
   q9_hear_about_sources: z.array(z.string()).optional().nullable(),
   q9_hear_other: z.string().optional().nullable(),
   // Signature + acknowledgments
-  signature_typed: z.string().min(1),
-  signature_drawn: z.string().min(50),
+  signature_typed: z.string().nullable().optional(),
+  signature_drawn: z.string().nullable().optional(),
   consent_acknowledgments: z.array(z.object({
     key: z.string(), label: z.string(), accepted: z.literal(true),
   })),
@@ -76,7 +76,8 @@ async function sha256Hex(input: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-function dataUrlToBytes(dataUrl: string): { bytes: Uint8Array; mime: string } | null {
+function dataUrlToBytes(dataUrl: string | null | undefined): { bytes: Uint8Array; mime: string } | null {
+  if (!dataUrl) return null;
   const m = dataUrl.match(/^data:image\/(png|jpeg);base64,(.+)$/);
   if (!m) return null;
   const bin = atob(m[2]);
@@ -496,7 +497,7 @@ async function drawSignatureBlockOnPage(
     page.drawImage(img, { x: 60, y: y + 14, width: img.width * scale, height: img.height * scale });
   }
   page.drawLine({ start: { x: 60, y: y + 10 }, end: { x: 300, y: y + 10 }, thickness: 0.5 });
-  page.drawText(`Typed: ${data.signature_typed}`, { x: 60, y, size: 9, font });
+  if (data.signature_typed) page.drawText(`Typed: ${data.signature_typed}`, { x: 60, y, size: 9, font });
   page.drawText(`Name: ${fullName}`, { x: 320, y: y + 30, size: 9, font });
   page.drawText(`Date: ${dateStr}`, { x: 320, y: y + 14, size: 9, font });
 }
