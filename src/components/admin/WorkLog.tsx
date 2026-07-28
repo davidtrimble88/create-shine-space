@@ -411,6 +411,7 @@ const WorkLog = () => {
                     <TableCell className="text-center">
                       {totals.c1 + totals.r1 + totals.c2 + totals.r2}
                     </TableCell>
+                    <TableCell className="text-center">{totals.extra}</TableCell>
                   </TableRow>
                 )}
               </Table>
@@ -418,6 +419,8 @@ const WorkLog = () => {
           )}
         </CardContent>
       </Card>
+
+      <ExtraHoursRequests />
     </div>
   );
 };
