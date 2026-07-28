@@ -301,6 +301,21 @@ Deno.serve(async (req) => {
         if (ccErr) console.warn("[send-auto-email] CC enqueue failed:", ccErr.message);
       }
 
+      // Additional recipients (e.g. parent/guardian for a minor's registration).
+      // Only honored when the primary recipient passed the auth/whitelist above.
+      const extras: string[] = Array.isArray(additionalRecipients)
+        ? additionalRecipients.filter((v: unknown) => typeof v === "string" && v.trim().length > 0)
+        : [];
+      for (const addr of extras) {
+        const norm = addr.trim();
+        if (
+          norm.toLowerCase() === recipientEmail.toLowerCase() ||
+          norm.toLowerCase() === ccEmail.toLowerCase()
+        ) continue;
+        const { error: exErr } = await enqueueExtra(norm, subject, "guardian");
+        if (exErr) console.warn("[send-auto-email] guardian enqueue failed:", exErr.message);
+      }
+
       // Owner BCC — silent copy based on email_bcc_settings.
       try {
         const { data: bccCfg } = await supabase
