@@ -178,19 +178,40 @@ export default function MessagingCenter() {
     return `${others.slice(0, 2).join(", ")} +${others.length - 2}`;
   };
 
-  const unreadCount = (t: Thread) => {
-    if (!user) return 0;
+  const isUnread = (t: Thread) => {
+    if (!user) return false;
+    const lastSender = lastSenderByThread[t.id];
+    if (lastSender && lastSender === user.id) return false;
     const me = participants.find((p) => p.thread_id === t.id && p.user_id === user.id);
-    if (!me) return 0;
-    return new Date(t.last_message_at) > new Date(me.last_read_at) ? 1 : 0;
+    if (!me) return false;
+    return new Date(t.last_message_at) > new Date(me.last_read_at);
   };
 
-  const filteredThreads = threads.filter(
-    (t) =>
-      !search ||
-      t.subject.toLowerCase().includes(search.toLowerCase()) ||
-      threadPreview(t).toLowerCase().includes(search.toLowerCase())
-  );
+  const senderOptions = useMemo(() => {
+    const ids = new Set<string>();
+    threads.forEach((t) => {
+      const s = lastSenderByThread[t.id] || t.created_by;
+      if (s) ids.add(s);
+    });
+    return Array.from(ids)
+      .map((id) => ({ id, name: employeeMap.get(id)?.full_name || "Unknown" }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [threads, lastSenderByThread, employeeMap]);
+
+  const filteredThreads = threads.filter((t) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!t.subject.toLowerCase().includes(q) && !threadPreview(t).toLowerCase().includes(q)) return false;
+    }
+    const unread = isUnread(t);
+    if (readFilter === "unread" && !unread) return false;
+    if (readFilter === "read" && unread) return false;
+    if (senderFilter !== "all") {
+      const s = lastSenderByThread[t.id] || t.created_by;
+      if (s !== senderFilter) return false;
+    }
+    return true;
+  });
 
   const active = threads.find((t) => t.id === activeId);
 
