@@ -135,6 +135,7 @@ const SelfView = ({ userId, editable = false }: { userId: string; editable?: boo
       irc_expires: form.irc_expires || null,
       arc_expires: form.arc_expires || null,
       cpr_expires: form.cpr_expires || null,
+      teach_alone_expires: form.teach_alone_expires || null,
       notes: form.notes.trim() || null,
     };
     const { error } = cert
