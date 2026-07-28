@@ -862,7 +862,7 @@ const ClassRosters = () => {
             .roster-table thead { display: table-header-group; }
             .roster-table tfoot { display: table-footer-group; }
             .roster-table tr { page-break-inside: avoid; }
-            .roster-table th, .roster-table td { border: 1px solid #999; padding: 4px 6px; text-align: left; }
+            .roster-table th, .roster-table td { border: 1px solid #999; padding: 3px 4px; text-align: left; }
             .roster-table th { background: #e8e8e8; font-weight: 600; font-size: 10px; }
             .roster-table th.class-info-cell { background: #fff; border: none; padding: 6px 0 8px; text-align: center; }
             .roster-table th.class-info-cell .title { font-size: 16px; font-weight: 700; }
@@ -870,10 +870,11 @@ const ClassRosters = () => {
             .roster-table th.class-info-cell .instructors { font-size: 11px; margin-top: 4px; font-weight: normal; }
             .roster-table th.class-info-cell .count { font-size: 11px; margin-top: 4px; font-weight: 600; }
             .roster-table td.center { text-align: center; }
-            .roster-table .check-col { width: 28px; text-align: center; }
-            .roster-table .score-col { width: 28px; text-align: center; }
-            .roster-table .id-verify-col { width: 42px; text-align: center; }
-            .roster-table .comment-col { min-width: 180px; }
+            .roster-table .check-col { width: 20px; text-align: center; padding: 3px 2px; }
+            .roster-table .score-col { width: 26px; text-align: center; }
+            .roster-table .id-verify-col { width: 30px; text-align: center; padding: 3px 2px; }
+            .roster-table .phone-col { white-space: nowrap; }
+            .roster-table .comment-col { min-width: 140px; }
             .count { font-size: 11px; margin-bottom: 6px; font-weight: 600; }
             .section-title { font-size: 13px; font-weight: 700; margin: 16px 0 6px; page-break-after: avoid; }
             .office-tracking { margin-top: 16px; font-size: 11px; font-weight: 600; }
