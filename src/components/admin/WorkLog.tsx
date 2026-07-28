@@ -59,6 +59,7 @@ const WorkLog = () => {
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<AssignmentRow[]>([]);
+  const [extraHours, setExtraHours] = useState<ExtraHoursRow[]>([]);
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [fromDate, setFromDate] = useState<string>("");
@@ -78,12 +79,18 @@ const WorkLog = () => {
         .select("employee_id, assignment_role, part, schedule_id, schedules(id, date, course, location, schedule)")
         .lt("schedules.date", today);
 
+      // RLS filters to what this user is allowed to see (own rows, or all for owner/admin approved)
+      const extraRes = await supabase
+        .from("extra_hours_requests")
+        .select("employee_id, hours, justification, work_date, decided_at")
+        .eq("status", "approved");
+
       setEmployees((empRes.data ?? []) as Employee[]);
-      // Filter rows whose join returned no schedule (shouldn't happen with inner) or future
       const rows = ((assignRes.data ?? []) as any[]).filter(
         (r) => r.schedules && r.schedules.date && r.schedules.date < today,
       ) as AssignmentRow[];
       setAssignments(rows);
+      setExtraHours((extraRes.data ?? []) as ExtraHoursRow[]);
       setLoading(false);
     };
     load();
