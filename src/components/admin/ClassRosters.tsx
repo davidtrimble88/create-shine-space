@@ -1267,8 +1267,66 @@ const ClassRosters = () => {
     setPendingRetests(prev => prev.filter(b => b.id !== src.id));
     setScheduleRetestFor(null);
     setRetestTargetScheduleId("");
-    toast.success(`Retest scheduled for ${target.date} at ${target.location_label}`);
   };
+
+  const handleReschedule = async () => {
+    if (!rescheduleFor || !rescheduleTargetScheduleId) {
+      toast.error("Please choose a class");
+      return;
+    }
+    const target = schedules.find(s => s.id === rescheduleTargetScheduleId);
+    if (!target) {
+      toast.error("Selected class not found");
+      return;
+    }
+    const selectedPortions = (["c1", "r1", "c2", "r2"] as const).filter(k => reschedulePortions[k]);
+    if (rescheduleScope === "partial" && selectedPortions.length === 0) {
+      toast.error("Select at least one portion (C1, R1, C2, or R2)");
+      return;
+    }
+    setRescheduling(true);
+    const src = rescheduleFor;
+    const portionsLabel = selectedPortions.map(p => p.toUpperCase()).join(", ");
+    const comment = rescheduleScope === "full"
+      ? "Reschedule"
+      : `Reschedule — ${portionsLabel} only`;
+
+    const { data, error } = await supabase.from("bookings").insert({
+      first_name: src.first_name,
+      last_name: src.last_name,
+      phone: src.phone,
+      email: src.email && src.email !== "retest@placeholder.com" ? src.email : "retest@placeholder.com",
+      license_number: src.license_number || null,
+      date_of_birth: src.date_of_birth || null,
+      course: target.course,
+      location: target.location,
+      location_label: target.location_label,
+      schedule_id: target.id,
+      schedule_date: target.date,
+      booking_status: "confirmed",
+      payment_status: "paid",
+      roster_comment: comment,
+      manually_added: true,
+    } as any).select().single();
+
+    if (error || !data) {
+      setRescheduling(false);
+      toast.error("Failed to reschedule");
+      return;
+    }
+    // Clear retest_type on the original failed booking so it leaves the Pending Retest/Reschedule list
+    await (supabase as any)
+      .from("bookings")
+      .update({ retest_type: null })
+      .eq("id", src.id);
+
+    setRescheduling(false);
+    setPendingRetests(prev => prev.filter(b => b.id !== src.id));
+    setRescheduleFor(null);
+    setRescheduleTargetScheduleId("");
+    toast.success(`Rescheduled to ${target.date} at ${target.location_label}`);
+  };
+
 
   // ========================
   // DL389 view
