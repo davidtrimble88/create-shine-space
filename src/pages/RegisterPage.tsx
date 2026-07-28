@@ -340,6 +340,7 @@ const RegisterPage = () => {
     scheduleDate: string | null;
     scheduleDetail: string | null;
     fee: string;
+    additionalRecipients?: string[];
   }) => {
     try {
       const { data, error } = await supabase.functions.invoke("send-auto-email", {
@@ -349,6 +350,7 @@ const RegisterPage = () => {
           location: payload.location,
           groupName: payload.groupName,
           course: payload.courseKey,
+          additionalRecipients: payload.additionalRecipients ?? [],
           variables: {
             firstName: payload.firstName,
             lastName: payload.lastName,
@@ -377,6 +379,11 @@ const RegisterPage = () => {
   };
 
   const completeRegistration = (booking: any) => {
+    const guardianEmail = (waiverPrefill?.guardianEmail || "").trim();
+    const additionalRecipients =
+      waiverPrefill?.isMinor && guardianEmail && guardianEmail.toLowerCase() !== booking.email.toLowerCase()
+        ? [guardianEmail]
+        : [];
     fireRegistrationEmail({
       email: booking.email,
       firstName: booking.first_name,
@@ -389,7 +396,9 @@ const RegisterPage = () => {
       scheduleDate: booking.schedule_date,
       scheduleDetail: pendingScheduleDetail,
       fee: booking.fee,
+      additionalRecipients,
     });
+
     form.reset();
     setPendingBooking(null);
     setPendingGroupName(null);

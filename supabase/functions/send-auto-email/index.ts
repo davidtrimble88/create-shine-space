@@ -30,7 +30,7 @@ const PUBLIC_TRIGGERS = new Set<string>([
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
-    const { trigger_event, recipientEmail, variables = {}, location = null, groupName = null, course = null } = await req.json();
+    const { trigger_event, recipientEmail, variables = {}, location = null, groupName = null, course = null, additionalRecipients = [] } = await req.json();
     if (!trigger_event || !recipientEmail) {
       return new Response(JSON.stringify({ error: "trigger_event and recipientEmail are required" }), {
         status: 400, headers: { ...cors, "Content-Type": "application/json" },
@@ -299,6 +299,21 @@ Deno.serve(async (req) => {
       if (recipientEmail.toLowerCase() !== ccEmail.toLowerCase()) {
         const { error: ccErr } = await enqueueExtra(ccEmail, `[CC: ${recipientEmail}] ${subject}`, "cc");
         if (ccErr) console.warn("[send-auto-email] CC enqueue failed:", ccErr.message);
+      }
+
+      // Additional recipients (e.g. parent/guardian for a minor's registration).
+      // Only honored when the primary recipient passed the auth/whitelist above.
+      const extras: string[] = Array.isArray(additionalRecipients)
+        ? additionalRecipients.filter((v: unknown) => typeof v === "string" && v.trim().length > 0)
+        : [];
+      for (const addr of extras) {
+        const norm = addr.trim();
+        if (
+          norm.toLowerCase() === recipientEmail.toLowerCase() ||
+          norm.toLowerCase() === ccEmail.toLowerCase()
+        ) continue;
+        const { error: exErr } = await enqueueExtra(norm, subject, "guardian");
+        if (exErr) console.warn("[send-auto-email] guardian enqueue failed:", exErr.message);
       }
 
       // Owner BCC — silent copy based on email_bcc_settings.
