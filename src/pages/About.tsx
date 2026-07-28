@@ -264,9 +264,9 @@ const About = () => {
                   className="w-full h-[500px] object-contain object-top"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
-              </div>
-              <div className="absolute -bottom-4 -right-4 bg-accent text-accent-foreground px-6 py-3 rounded-xl font-bold text-lg shadow-glow">
-                <EditableText contentKey="about.larry.badge" fallback="Owner & Lead Instructor" />
+                <div className="absolute bottom-4 right-4 bg-accent text-accent-foreground px-6 py-3 rounded-xl font-bold text-lg shadow-glow">
+                  <EditableText contentKey="about.larry.badge" fallback="Owner & Lead Instructor" />
+                </div>
               </div>
             </motion.div>
 
