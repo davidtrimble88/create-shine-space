@@ -127,38 +127,17 @@ const AdminEmployees = () => {
   const uploadPhoto = async (employeeId: string): Promise<string | null> => {
     if (!photoFile) return null;
     
-    const fileExt = photoFile.name.split(".").pop();
-    const filePath = `${employeeId}.${fileExt}`;
+    const fileExt = photoFile.name.split(".").pop()?.toLowerCase() || "jpg";
+    const filePath = `${employeeId}/${Date.now()}.${fileExt}`;
 
     const { error } = await supabase.storage
       .from("employee-photos")
       .upload(filePath, photoFile, {
-        upsert: false,
+        upsert: true,
         contentType: photoFile.type || "application/octet-stream",
       });
 
-    if (error && error.message.toLowerCase().includes("duplicate")) {
-      const { error: deleteError } = await supabase.storage
-        .from("employee-photos")
-        .remove([filePath]);
-
-      if (deleteError) {
-        toast({ title: "Photo upload failed", description: deleteError.message, variant: "destructive" });
-        return null;
-      }
-
-      const { error: retryError } = await supabase.storage
-        .from("employee-photos")
-        .upload(filePath, photoFile, {
-          upsert: false,
-          contentType: photoFile.type || "application/octet-stream",
-        });
-
-      if (retryError) {
-        toast({ title: "Photo upload failed", description: retryError.message, variant: "destructive" });
-        return null;
-      }
-    } else if (error) {
+    if (error) {
       toast({ title: "Photo upload failed", description: error.message, variant: "destructive" });
       return null;
     }
