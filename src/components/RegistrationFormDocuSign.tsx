@@ -50,10 +50,6 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const [result, setResult] = useState<{ recordId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
 
 
-  const dateStr = useMemo(() => {
-    const d = new Date();
-    return `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}/${d.getFullYear()}`;
-  }, []);
 
   const age = useMemo(() => {
     if (!prefill.dateOfBirth) return "";
