@@ -496,7 +496,7 @@ async function drawSignatureBlockOnPage(
     page.drawImage(img, { x: 60, y: y + 14, width: img.width * scale, height: img.height * scale });
   }
   page.drawLine({ start: { x: 60, y: y + 10 }, end: { x: 300, y: y + 10 }, thickness: 0.5 });
-  page.drawText(`Typed: ${data.signature_typed}`, { x: 60, y, size: 9, font });
+  if (data.signature_typed) page.drawText(`Typed: ${data.signature_typed}`, { x: 60, y, size: 9, font });
   page.drawText(`Name: ${fullName}`, { x: 320, y: y + 30, size: 9, font });
   page.drawText(`Date: ${dateStr}`, { x: 320, y: y + 14, size: 9, font });
 }
