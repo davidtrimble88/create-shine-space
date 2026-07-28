@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/table";
 import { ShieldCheck, Download, Loader2, AlertTriangle, CheckCircle2, XCircle, Clock } from "lucide-react";
 
-type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires";
+type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires" | "teach_alone_expires";
 
 const CERTS: { key: CertKey; label: string }[] = [
   { key: "cmsp_expires", label: "CMSP" },
   { key: "irc_expires", label: "IRC" },
   { key: "arc_expires", label: "ARC" },
   { key: "cpr_expires", label: "CPR" },
+  { key: "teach_alone_expires", label: "Teach Alone" },
 ];
 
 type Status = "valid" | "warn30" | "warn10" | "warn1" | "expired" | "missing";
@@ -69,6 +70,7 @@ interface Row {
   irc_expires: string | null;
   arc_expires: string | null;
   cpr_expires: string | null;
+  teach_alone_expires: string | null;
 }
 
 const CertificationStatusReport = () => {
@@ -89,7 +91,7 @@ const CertificationStatusReport = () => {
       const { data: certs } = ids.length
         ? await supabase
             .from("instructor_certifications")
-            .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires")
+            .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires, teach_alone_expires")
             .in("user_id", ids)
         : { data: [] as any[] };
       const certMap = new Map((certs ?? []).map((c: any) => [c.user_id, c]));
@@ -104,6 +106,7 @@ const CertificationStatusReport = () => {
           irc_expires: c.irc_expires ?? null,
           arc_expires: c.arc_expires ?? null,
           cpr_expires: c.cpr_expires ?? null,
+          teach_alone_expires: c.teach_alone_expires ?? null,
         };
       });
       merged.sort((a, b) => a.full_name.localeCompare(b.full_name));
@@ -176,7 +179,7 @@ const CertificationStatusReport = () => {
             <ShieldCheck className="w-5 h-5 text-accent" /> Certification Status Report
           </CardTitle>
           <CardDescription>
-            Live overview of every instructor's CMSP, IRC, ARC, and CPR certifications with expiration status.
+            Live overview of every instructor's CMSP, IRC, ARC, CPR, and Teach-Alone certifications with expiration status.
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -17,6 +17,7 @@ const CERT_LABELS: Record<string, string> = {
   irc_expires: "IRC (Instructor)",
   arc_expires: "ARC (Advanced Rider Course)",
   cpr_expires: "CPR",
+  teach_alone_expires: "Teach Alone",
 };
 
 const MILESTONES: { key: string; days: number; label: string }[] = [
@@ -62,7 +63,7 @@ Deno.serve(async (req) => {
 
     const { data: certs, error } = await supabase
       .from("instructor_certifications")
-      .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires");
+      .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires, teach_alone_expires");
     if (error) throw error;
 
     const userIds = Array.from(new Set((certs || []).map((c) => c.user_id)));

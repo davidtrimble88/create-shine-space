@@ -1,0 +1,1 @@
+ALTER TABLE public.instructor_certifications ADD COLUMN IF NOT EXISTS teach_alone_expires date;

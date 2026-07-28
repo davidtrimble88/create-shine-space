@@ -19,7 +19,7 @@ import { ShieldCheck, Save, Loader2, AlertTriangle, CheckCircle2, XCircle, Penci
 import CertificationStatusReport from "./CertificationStatusReport";
 import { formatPSTDate } from "@/lib/formatDate";
 
-type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires";
+type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires" | "teach_alone_expires";
 
 interface CertRow {
   id: string;
@@ -28,6 +28,7 @@ interface CertRow {
   irc_expires: string | null;
   arc_expires: string | null;
   cpr_expires: string | null;
+  teach_alone_expires: string | null;
   notes: string | null;
   updated_at: string;
 }
@@ -46,6 +47,7 @@ const CERT_LABELS: { key: CertKey; label: string; short: string }[] = [
   { key: "irc_expires", label: "IRC Certification", short: "IRC" },
   { key: "arc_expires", label: "ARC Certification", short: "ARC" },
   { key: "cpr_expires", label: "CPR Certification", short: "CPR" },
+  { key: "teach_alone_expires", label: "Teach Alone", short: "Teach Alone" },
 ];
 
 const daysUntil = (iso: string | null) => {
@@ -93,6 +95,7 @@ const blankForm = {
   irc_expires: "",
   arc_expires: "",
   cpr_expires: "",
+  teach_alone_expires: "",
   notes: "",
 };
 
@@ -117,6 +120,7 @@ const SelfView = ({ userId, editable = false }: { userId: string; editable?: boo
         irc_expires: c?.irc_expires ?? "",
         arc_expires: c?.arc_expires ?? "",
         cpr_expires: c?.cpr_expires ?? "",
+        teach_alone_expires: c?.teach_alone_expires ?? "",
         notes: c?.notes ?? "",
       });
       setLoading(false);
@@ -131,6 +135,7 @@ const SelfView = ({ userId, editable = false }: { userId: string; editable?: boo
       irc_expires: form.irc_expires || null,
       arc_expires: form.arc_expires || null,
       cpr_expires: form.cpr_expires || null,
+      teach_alone_expires: form.teach_alone_expires || null,
       notes: form.notes.trim() || null,
     };
     const { error } = cert
@@ -262,6 +267,7 @@ const AdminAllView = () => {
       irc_expires: c?.irc_expires ?? "",
       arc_expires: c?.arc_expires ?? "",
       cpr_expires: c?.cpr_expires ?? "",
+      teach_alone_expires: c?.teach_alone_expires ?? "",
       notes: c?.notes ?? "",
     });
   };
@@ -275,6 +281,7 @@ const AdminAllView = () => {
       irc_expires: form.irc_expires || null,
       arc_expires: form.arc_expires || null,
       cpr_expires: form.cpr_expires || null,
+      teach_alone_expires: form.teach_alone_expires || null,
       notes: form.notes.trim() || null,
     };
     const { error } = editingId
@@ -417,8 +424,8 @@ const InstructorCertifications = () => {
         </div>
         <p className="text-muted-foreground text-sm">
           {isAdmin
-            ? "Track CMSP, IRC, ARC, and CPR expiration dates for every instructor. Only admins and owners can edit."
-            : "Your CMSP, IRC, ARC, and CPR expiration dates. Contact an admin to make changes."}
+            ? "Track CMSP, IRC, ARC, CPR, and Teach-Alone expiration dates for every instructor. Only admins and owners can edit."
+            : "Your CMSP, IRC, ARC, CPR, and Teach-Alone expiration dates. Contact an admin to make changes."}
         </p>
       </div>
 

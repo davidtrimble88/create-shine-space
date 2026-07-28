@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Clock, XCircle, AlertTriangle, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
-type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires";
-const CERTS: CertKey[] = ["cmsp_expires", "irc_expires", "arc_expires", "cpr_expires"];
+type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires" | "teach_alone_expires";
+const CERTS: CertKey[] = ["cmsp_expires", "irc_expires", "arc_expires", "cpr_expires", "teach_alone_expires"];
 
 const daysUntil = (iso: string | null) => {
   if (!iso) return null;
@@ -37,7 +37,7 @@ const CertStatusSummary = ({ scope, userId }: Props) => {
       setLoading(true);
       let query = supabase
         .from("instructor_certifications")
-        .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires");
+        .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires, teach_alone_expires");
 
       let rows: any[] = [];
       if (scope === "self") {
@@ -46,7 +46,7 @@ const CertStatusSummary = ({ scope, userId }: Props) => {
         // If instructor has no row, treat as 4 missing certs so counts make sense
         rows = data && data.length > 0
           ? data
-          : [{ user_id: userId, cmsp_expires: null, irc_expires: null, arc_expires: null, cpr_expires: null }];
+          : [{ user_id: userId, cmsp_expires: null, irc_expires: null, arc_expires: null, cpr_expires: null, teach_alone_expires: null }];
       } else {
         // Restrict to active employees
         const { data: emps } = await supabase
@@ -59,7 +59,7 @@ const CertStatusSummary = ({ scope, userId }: Props) => {
         const { data } = await query.in("user_id", ids);
         const certMap = new Map((data ?? []).map((c: any) => [c.user_id, c]));
         rows = ids.map((id) => certMap.get(id) ?? {
-          user_id: id, cmsp_expires: null, irc_expires: null, arc_expires: null, cpr_expires: null,
+          user_id: id, cmsp_expires: null, irc_expires: null, arc_expires: null, cpr_expires: null, teach_alone_expires: null,
         });
       }
 
