@@ -945,9 +945,13 @@ const ClassRosters = () => {
   };
 
   const handleSetResult = async (bookingId: string, next: "pass" | "fail" | null) => {
-    // For 'fail' we open a dialog to capture retest eligibility
+    // For 'fail' we open a dialog to capture retest eligibility + optional comment
     if (next === "fail") {
+      const b = bookings.find(x => x.id === bookingId);
       setFailDialogBookingId(bookingId);
+      setFailCanReturn(null);
+      setFailRetestType("skill");
+      setFailComment("");
       return;
     }
     const updates: any = { result: next };
@@ -966,25 +970,56 @@ const ClassRosters = () => {
     toast.success(next === null ? "Result cleared" : "Marked as Pass");
   };
 
-  const handleSetFailWithRetest = async (retestType: "skill" | "knowledge" | "both" | "none") => {
-    if (!failDialogBookingId) return;
-    const updates: any = { result: "fail", retest_type: retestType };
+  const closeFailDialog = () => {
+    setFailDialogBookingId(null);
+    setFailCanReturn(null);
+    setFailRetestType("skill");
+    setFailComment("");
+  };
+
+  const saveFailDecision = async () => {
+    if (!failDialogBookingId || !failCanReturn) return;
+    setSavingFail(true);
+    const current = bookings.find(b => b.id === failDialogBookingId);
+    const trimmed = failComment.trim();
+
+    // Append the eval comment to the roster_comment so it travels with the student's record.
+    let mergedComment = current?.roster_comment || "";
+    if (trimmed) {
+      const stamp = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
+      const prefix = failCanReturn === "yes" ? "Eval note" : "Eval note (archived)";
+      const line = `${prefix} ${stamp}: ${trimmed}`;
+      mergedComment = mergedComment ? `${mergedComment}\n${line}` : line;
+    }
+
+    const updates: any = {
+      result: "fail",
+      retest_type: failCanReturn === "yes" ? failRetestType : "none",
+      roster_comment: mergedComment || null,
+    };
+    if (failCanReturn === "no") {
+      updates.dropped = true;
+      updates.dropped_reason = trimmed || "Not eligible to return";
+      updates.dropped_at = new Date().toISOString();
+      updates.dropped_by = user?.id ?? null;
+    }
+
     const { error } = await supabase
       .from("bookings")
       .update(updates)
       .eq("id", failDialogBookingId);
+    setSavingFail(false);
     if (error) {
       toast.error("Failed to update result");
       return;
     }
     setBookings(prev => prev.map(b => b.id === failDialogBookingId ? { ...b, ...updates } : b));
-    setFailDialogBookingId(null);
-    const label =
-      retestType === "none" ? "Not eligible for retest" :
-      retestType === "skill" ? "Skill retest eligible" :
-      retestType === "knowledge" ? "Knowledge retest eligible" :
-      "Skill & Knowledge retest eligible";
-    toast.success(`Marked as Fail — ${label}`);
+    closeFailDialog();
+    toast.success(
+      failCanReturn === "yes"
+        ? `Marked as Fail — moved to Pending Retest/Reschedule`
+        : `Marked as Fail — archived (not returning)`
+    );
   };
 
   const renderResultCell = (b: Booking) => {
