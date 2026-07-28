@@ -274,36 +274,36 @@ export default function MessagingCenter() {
                   onClick={() => setActiveId(t.id)}
                   className={`w-full text-left px-3 py-3 border-b border-border/50 hover:bg-secondary/50 transition-colors flex gap-2 ${
                     activeId === t.id ? "bg-secondary" : ""
-                  } ${unread ? "border-l-4 border-l-accent" : "border-l-4 border-l-transparent"}`}
+                  } ${unread ? "border-l-4 border-l-accent bg-accent/5" : "border-l-4 border-l-transparent"}`}
                 >
-                  <div className="flex-shrink-0 mt-1" title={unread ? "Unread" : "Read"}>
+                  <div className="flex-shrink-0 mt-1 flex flex-col items-center gap-1" title={unread ? "Unread" : "Read"}>
                     {unread ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-accent">
-                        <span className="w-2 h-2 rounded-full bg-accent" />
-                        <Mail className="w-3.5 h-3.5" />
-                      </span>
+                      <>
+                        <span className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse" />
+                        <Mail className="w-4 h-4 text-accent" />
+                      </>
                     ) : (
-                      <MailOpen className="w-3.5 h-3.5 text-muted-foreground/60" />
+                      <MailOpen className="w-4 h-4 text-muted-foreground/50" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={`text-sm truncate ${unread ? "font-bold text-foreground" : "font-medium text-muted-foreground"}`}>
-                        {t.subject}
-                      </span>
-                      <Badge
-                        variant={unread ? "default" : "outline"}
-                        className="text-[9px] py-0 h-4 flex-shrink-0 uppercase tracking-wide"
-                      >
-                        {unread ? "New" : "Read"}
-                      </Badge>
+                    <div className={`text-sm truncate ${unread ? "font-bold text-foreground" : "font-medium text-muted-foreground"}`}>
+                      {t.subject}
                     </div>
                     <div className="text-xs text-muted-foreground truncate mt-0.5 flex items-center gap-1">
                       {t.is_broadcast && <Users className="w-3 h-3" />}
                       {threadPreview(t)}
                     </div>
-                    <div className="text-[10px] text-muted-foreground/70 mt-0.5">
-                      {formatDistanceToNow(new Date(t.last_message_at), { addSuffix: true })}
+                    <div className="mt-1 flex items-center gap-2">
+                      <Badge
+                        variant={unread ? "default" : "outline"}
+                        className={`text-[9px] py-0 h-4 uppercase tracking-wide ${unread ? "bg-accent text-accent-foreground" : ""}`}
+                      >
+                        {unread ? "● New" : "Read"}
+                      </Badge>
+                      <span className="text-[10px] text-muted-foreground/70">
+                        {formatDistanceToNow(new Date(t.last_message_at), { addSuffix: true })}
+                      </span>
                     </div>
                   </div>
                 </button>
