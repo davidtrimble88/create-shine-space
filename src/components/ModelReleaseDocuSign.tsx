@@ -147,7 +147,7 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
 
   const addressLine = [prefill.addressStreet].filter(Boolean).join(", ");
 
-  const guardianComplete = !prefill.isMinor || (gFirst.trim() && gLast.trim() && gRelationship.trim() && gAddress.trim() && gCity.trim() && gState.trim() && gZip.trim() && gPhone.trim() && gEmail.trim());
+  const guardianComplete = !guardianRequired || (gFirst.trim() && gLast.trim() && gRelationship.trim() && gAddress.trim() && gCity.trim() && gState.trim() && gZip.trim() && gPhone.trim() && gEmail.trim());
   const submit = async () => {
     if (!allSigned || !guardianComplete) return;
 
