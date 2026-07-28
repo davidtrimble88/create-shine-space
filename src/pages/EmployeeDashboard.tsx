@@ -603,6 +603,7 @@ const EmployeeDashboard = () => {
           {activeTab === "it-tickets" && <ITTickets />}
           {activeTab === "certifications" && <InstructorCertifications />}
           {activeTab === "messages" && <MessagingCenter />}
+          {activeTab === "work-log" && <WorkLog />}
           {activeTab === "signed-waivers" && <SignedWaivers />}
           
           {activeTab === "auto-emails" && <AutoEmails />}
