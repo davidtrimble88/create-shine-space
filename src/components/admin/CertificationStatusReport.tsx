@@ -91,7 +91,7 @@ const CertificationStatusReport = () => {
       const { data: certs } = ids.length
         ? await supabase
             .from("instructor_certifications")
-            .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires")
+            .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires, teach_alone_expires")
             .in("user_id", ids)
         : { data: [] as any[] };
       const certMap = new Map((certs ?? []).map((c: any) => [c.user_id, c]));
@@ -106,6 +106,7 @@ const CertificationStatusReport = () => {
           irc_expires: c.irc_expires ?? null,
           arc_expires: c.arc_expires ?? null,
           cpr_expires: c.cpr_expires ?? null,
+          teach_alone_expires: c.teach_alone_expires ?? null,
         };
       });
       merged.sort((a, b) => a.full_name.localeCompare(b.full_name));
