@@ -232,7 +232,7 @@ export default function MessagingCenter() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border border-border rounded-xl overflow-hidden bg-card min-h-[500px]">
         {/* Thread list */}
         <div className={`md:col-span-1 border-r border-border flex flex-col ${activeId ? "hidden md:flex" : "flex"}`}>
-          <div className="p-3 border-b border-border">
+          <div className="p-3 border-b border-border space-y-2">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -241,6 +241,25 @@ export default function MessagingCenter() {
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-8 h-9"
               />
+            </div>
+            <div className="flex gap-2">
+              <Select value={readFilter} onValueChange={(v) => setReadFilter(v as any)}>
+                <SelectTrigger className="h-8 text-xs flex-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="unread">Unread</SelectItem>
+                  <SelectItem value="read">Read</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={senderFilter} onValueChange={setSenderFilter}>
+                <SelectTrigger className="h-8 text-xs flex-1"><SelectValue placeholder="Sender" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All senders</SelectItem>
+                  {senderOptions.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <ScrollArea className="flex-1">
