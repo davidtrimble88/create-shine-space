@@ -163,12 +163,16 @@ const WorkLog = () => {
       return a.employee.full_name.localeCompare(b.employee.full_name);
     });
     return filtered;
-  }, [employees, assignments, isAdmin, user, search, fromDate, toDate]);
+  }, [employees, assignments, extraHours, isAdmin, user, search, fromDate, toDate]);
 
   const totals = useMemo(() => {
     const t: Record<Duty, number> = { c1: 0, r1: 0, c2: 0, r2: 0 };
-    summaries.forEach((s) => DUTIES.forEach((d) => (t[d] += s.counts[d])));
-    return t;
+    let extra = 0;
+    summaries.forEach((s) => {
+      DUTIES.forEach((d) => (t[d] += s.counts[d]));
+      extra += s.extraHours;
+    });
+    return { ...t, extra };
   }, [summaries]);
 
   const toggle = (id: string) =>
@@ -180,7 +184,7 @@ const WorkLog = () => {
     });
 
   const exportCSV = () => {
-    const header = ["Employee", "Position", "C1", "R1", "C2", "R2", "Total Sessions"];
+    const header = ["Employee", "Position", "C1", "R1", "C2", "R2", "Total Sessions", "Extra Hours"];
     const rows = summaries.map((s) => [
       s.employee.full_name,
       s.employee.position ?? "",
@@ -189,6 +193,7 @@ const WorkLog = () => {
       s.counts.c2,
       s.counts.r2,
       s.total,
+      s.extraHours,
     ]);
     const csv = [header, ...rows]
       .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
