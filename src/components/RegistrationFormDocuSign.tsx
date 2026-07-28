@@ -46,12 +46,8 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const [hearOther, setHearOther] = useState("");
   const toggleHear = (k: HearOpt) => setHearSel(prev => ({ ...prev, [k]: !prev[k] }));
 
-  const [sig, setSig] = useState<string | null>(null);
-  const [typed, setTyped] = useState("");
-  const [adoptOpen, setAdoptOpen] = useState(false);
-  const [guardianSig, setGuardianSig] = useState<string | null>(null);
-  const [guardianTyped, setGuardianTyped] = useState("");
-  const [guardianAdoptOpen, setGuardianAdoptOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<{ recordId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ recordId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
