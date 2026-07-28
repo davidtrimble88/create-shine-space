@@ -22,10 +22,10 @@ import totalControlLogo from "@/assets/total-control-logo.jpg";
 import totalControlBook from "@/assets/total-control-book.jpg";
 
 const tabs = [
-  { id: "basic", label: "MTC", icon: GraduationCap, subtitle: "Learn to Ride" },
-  { id: "premier", label: "1-Day Premier", icon: BookOpen, subtitle: "Get Licensed" },
-  { id: "intermediate", label: "Intermediate", icon: Gauge, subtitle: "Level Up" },
-  { id: "advanced", label: "Advanced", icon: Zap, subtitle: "Total Control ARC®" },
+  { id: "basic", label: "MTC", shortLabel: "MTC", icon: GraduationCap, subtitle: "Learn to Ride" },
+  { id: "premier", label: "1-Day Premier", shortLabel: "Premier", icon: BookOpen, subtitle: "Get Licensed" },
+  { id: "intermediate", label: "Intermediate", shortLabel: "Interm", icon: Gauge, subtitle: "Level Up" },
+  { id: "advanced", label: "Advanced", shortLabel: "Adv", icon: Zap, subtitle: "Total Control ARC®" },
 ] as const;
 
 type TabId = typeof tabs[number]["id"];
