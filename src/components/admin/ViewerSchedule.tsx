@@ -22,6 +22,16 @@ const locationOptions = [
   { value: "ventura-county", label: "Ventura County — Somis" },
 ];
 
+// Placeholder cards split Ventura into Group A (Sat/Sun) and Group B (Fri/Sat/Sun)
+// so instructors can mark availability per group. Values are stored in
+// instructor_date_availability.location.
+const placeholderLocationOptions = [
+  { value: "high-desert-hesperia", label: "High Desert — Hesperia", filterKey: "high-desert-hesperia" },
+  { value: "high-desert-wrightwood", label: "High Desert — Wrightwood", filterKey: "high-desert-wrightwood" },
+  { value: "ventura-county-a", label: "Ventura — Group A (Sat/Sun)", filterKey: "ventura-county" },
+  { value: "ventura-county-b", label: "Ventura — Group B (Fri/Sat/Sun)", filterKey: "ventura-county" },
+];
+
 interface PlaceholderEntry {
   type: "placeholder";
   date: Date;
