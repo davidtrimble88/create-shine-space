@@ -323,13 +323,14 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
       <WaiverSignedDialog
         open pdfPath={result.pdfPath} downloadUrl={result.downloadUrl}
         signerName={fullName} onContinue={() => onSigned(result.recordId)}
-        title="Registration Form Signed"
-        description="Your CMSP Student Registration Form has been saved to your file."
+        title="Registration Form Submitted"
+        description="Your CMSP Student Registration Form is filled in and saved to your file. Download and print a copy to bring with you — you'll sign it in person at check-in. It's already marked complete on your class roster."
         continueLabel="Continue →"
-        downloadPrefix="Signed_CMSP_Registration_Form"
+        downloadPrefix="CMSP_Registration_Form_To_Print"
       />
     );
   }
+
 
   // ----- Header (always visible) -----
   const total = steps.length;
@@ -445,26 +446,31 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
               <h3 className="font-bold text-foreground">Signature not required online</h3>
             </div>
             <p className="text-sm text-muted-foreground">
-              No signature is needed here. Your answers will be filled into the official CMSP Student
-              Registration Form and you'll sign the printed copy in person at check-in on the first day
-              of class.
+              No signature is needed here. When you submit, we'll fill in the official CMSP Student
+              Registration Form with your answers and give you a copy to <strong>download and print</strong>.
+              You'll sign the printed copy in person at check-in on the first day of class.
               {prefill.isMinor && (
                 <> A parent or legal guardian must also be present at the <strong>start of the first
                 range class</strong> to sign in person and confirm permission for the minor to
                 participate.</>
               )}
             </p>
+            <p className="text-xs text-muted-foreground pt-1">
+              Submitting marks this form <strong>complete</strong> on your class roster right away —
+              you don't need to bring anything back to us before class.
+            </p>
           </div>
 
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <Button type="button" variant="outline" onClick={() => setStepIdx(steps.length - 1)}>
               <ArrowLeft className="w-4 h-4 mr-1" /> Back to questions
             </Button>
             <Button type="button" variant="hero" onClick={submit} disabled={!canSubmit || submitting}>
-              {submitting ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Generating…</> : "Generate & Submit"}
+              {submitting ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Generating…</> : "Submit & Download to Print"}
             </Button>
           </div>
+
         </div>
       )}
     </div>
