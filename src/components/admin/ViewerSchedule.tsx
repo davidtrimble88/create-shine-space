@@ -336,8 +336,9 @@ const ViewerSchedule = () => {
     ? displayList
     : displayList.filter(entry => {
         if (entry.type === "schedule") return entry.data.location === filterLocation;
-        return true;
+        return entry.location.filterKey === filterLocation;
       });
+
 
   return (
     <div>
