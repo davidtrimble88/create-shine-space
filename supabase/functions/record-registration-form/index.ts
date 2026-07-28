@@ -56,8 +56,8 @@ const ResponseSchema = z.object({
   q9_hear_about_sources: z.array(z.string()).optional().nullable(),
   q9_hear_other: z.string().optional().nullable(),
   // Signature + acknowledgments
-  signature_typed: z.string().min(1),
-  signature_drawn: z.string().min(50),
+  signature_typed: z.string().nullable().optional(),
+  signature_drawn: z.string().nullable().optional(),
   consent_acknowledgments: z.array(z.object({
     key: z.string(), label: z.string(), accepted: z.literal(true),
   })),
