@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Printer, Mail, CalendarDays, History, ArrowLeft } from "lucide-react";
+import { Printer, Mail, CalendarDays, History, ArrowLeft, Pin, PinOff } from "lucide-react";
 import { roleLabelMap } from "./InstructorAssignment";
 import { formatPST, formatPSTDate } from "@/lib/formatDate";
+import { useDefaultLocation } from "@/lib/defaultLocation";
 
 interface ScheduleRow {
   id: string;
@@ -31,6 +32,14 @@ const ComprehensiveSchedule = () => {
   const [loading, setLoading] = useState(true);
   const [filterLocation, setFilterLocation] = useState("all");
   const [filterCourse, setFilterCourse] = useState("all");
+  const { defaultLocation, setDefaultLocation, loaded: prefLoaded } = useDefaultLocation();
+  const [initializedLoc, setInitializedLoc] = useState(false);
+  useEffect(() => {
+    if (prefLoaded && !initializedLoc) {
+      if (defaultLocation && defaultLocation !== "all") setFilterLocation(defaultLocation);
+      setInitializedLoc(true);
+    }
+  }, [prefLoaded, defaultLocation, initializedLoc]);
   const [filterInstructor, setFilterInstructor] = useState("all");
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [instructorList, setInstructorList] = useState<{ id: string; name: string }[]>([]);
@@ -167,7 +176,7 @@ const ComprehensiveSchedule = () => {
         </div>
       </div>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-wrap gap-3 mb-6 items-center">
         <Select value={filterCourse} onValueChange={setFilterCourse}>
           <SelectTrigger className="w-48"><SelectValue placeholder="All Courses" /></SelectTrigger>
           <SelectContent>
@@ -186,6 +195,34 @@ const ComprehensiveSchedule = () => {
             <SelectItem value="ventura-county">Ventura County</SelectItem>
           </SelectContent>
         </Select>
+        {filterLocation !== "all" && defaultLocation !== filterLocation && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setDefaultLocation(filterLocation)}
+            title="Make this my default site — schedule views will auto-filter here"
+          >
+            <Pin className="w-4 h-4 mr-1.5" /> Set as default
+          </Button>
+        )}
+        {defaultLocation && defaultLocation !== "all" && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Pin className="w-3 h-3 text-accent" />
+            <span>Default: <span className="text-foreground font-medium">
+              {defaultLocation === "high-desert-hesperia" ? "Hesperia" :
+               defaultLocation === "high-desert-wrightwood" ? "Wrightwood" :
+               defaultLocation === "ventura-county" ? "Ventura County" : defaultLocation}
+            </span></span>
+            <button
+              type="button"
+              onClick={() => setDefaultLocation("all")}
+              className="ml-1 text-muted-foreground hover:text-foreground inline-flex items-center"
+              title="Clear default site"
+            >
+              <PinOff className="w-3 h-3" />
+            </button>
+          </div>
+        )}
         <Select value={filterInstructor} onValueChange={setFilterInstructor}>
           <SelectTrigger className="w-48"><SelectValue placeholder="All Instructors" /></SelectTrigger>
           <SelectContent>

@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft, Pin, PinOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, parseISO, addDays } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
+import { useDefaultLocation } from "@/lib/defaultLocation";
 
 type Schedule = Tables<"schedules">;
 
@@ -62,6 +63,14 @@ const ViewerSchedule = () => {
   const [dismissing, setDismissing] = useState<string | null>(null);
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
+  const { defaultLocation, setDefaultLocation, loaded: prefLoaded } = useDefaultLocation();
+  const [initialized, setInitialized] = useState(false);
+  useEffect(() => {
+    if (prefLoaded && !initialized) {
+      if (defaultLocation && defaultLocation !== "all") setFilterLocation(defaultLocation);
+      setInitialized(true);
+    }
+  }, [prefLoaded, defaultLocation, initialized]);
 
   const canDismiss = effectiveRole === "owner" || effectiveRole === "admin";
   const canViewPast = effectiveRole !== "employee";
@@ -364,7 +373,7 @@ const ViewerSchedule = () => {
         ))}
       </div>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6 items-center">
         <Select value={filterLocation} onValueChange={setFilterLocation}>
           <SelectTrigger className="w-52"><SelectValue placeholder="All Locations" /></SelectTrigger>
           <SelectContent>
@@ -374,6 +383,34 @@ const ViewerSchedule = () => {
             <SelectItem value="ventura-county">Ventura County — Somis</SelectItem>
           </SelectContent>
         </Select>
+        {filterLocation !== "all" && defaultLocation !== filterLocation && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setDefaultLocation(filterLocation)}
+            title="Make this my default site — schedule views will auto-filter here"
+          >
+            <Pin className="w-4 h-4 mr-1.5" /> Set as default
+          </Button>
+        )}
+        {defaultLocation && defaultLocation !== "all" && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground ml-1">
+            <Pin className="w-3 h-3 text-accent" />
+            <span>Default: <span className="text-foreground font-medium">
+              {defaultLocation === "high-desert-hesperia" ? "Hesperia" :
+               defaultLocation === "high-desert-wrightwood" ? "Wrightwood" :
+               defaultLocation === "ventura-county" ? "Ventura County" : defaultLocation}
+            </span></span>
+            <button
+              type="button"
+              onClick={() => setDefaultLocation("all")}
+              className="ml-1 text-muted-foreground hover:text-foreground inline-flex items-center"
+              title="Clear default site"
+            >
+              <PinOff className="w-3 h-3" />
+            </button>
+          </div>
+        )}
       </div>
 
       {filtered.length === 0 ? (
