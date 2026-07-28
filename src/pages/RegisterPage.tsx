@@ -1441,7 +1441,7 @@ const RegisterPage = () => {
                           </FormControl>
                           <div className="space-y-1 leading-none">
                             <FormLabel className="text-xs leading-relaxed">
-                              I certify that I am the parent or legal guardian of the minor named above. I will sign the CMSP waiver on the next step on the minor's behalf, will be the one making payment, and will present a matching photo ID at check-in. *
+                              I certify that I am the parent or legal guardian of the minor named above. I understand that I must be present at the start of the first range class to sign the CMSP waiver and registration forms in person, and I will present a matching photo ID at check-in. *
                             </FormLabel>
                             <FormMessage />
                           </div>
