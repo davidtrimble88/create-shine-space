@@ -46,6 +46,8 @@ export default function MessagingCenter() {
   const [reply, setReply] = useState("");
   const [composeOpen, setComposeOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [readFilter, setReadFilter] = useState<"all" | "unread" | "read">("all");
+  const [senderFilter, setSenderFilter] = useState<string>("all");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const employeeMap = useMemo(() => {
