@@ -2324,7 +2324,7 @@ const ClassRosters = () => {
                       <td>{i + 1}</td>
                       <td style={{ textTransform: "uppercase" }}>{b.first_name}</td>
                       <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
-                      <td>{b.phone}</td>
+                      <td className="phone-col">{b.phone}</td>
                       <td>{b.license_number || ""}</td>
                       <td className="center"></td>
                       <td>{b.date_of_birth || ""}</td>
