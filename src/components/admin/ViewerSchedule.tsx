@@ -411,6 +411,12 @@ const ViewerSchedule = () => {
             </button>
           </div>
         )}
+        {filterLocation === "all" && (!defaultLocation || defaultLocation === "all") && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground ml-1">
+            <Pin className="w-3 h-3" />
+            <span>Tip: pick a site above, then click <span className="text-foreground font-medium">Set as default</span> to auto-filter here.</span>
+          </div>
+        )}
       </div>
 
       {filtered.length === 0 ? (
