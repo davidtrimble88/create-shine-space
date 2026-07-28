@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Clock, XCircle, AlertTriangle, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
-type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires";
-const CERTS: CertKey[] = ["cmsp_expires", "irc_expires", "arc_expires", "cpr_expires"];
+type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires" | "teach_alone_expires";
+const CERTS: CertKey[] = ["cmsp_expires", "irc_expires", "arc_expires", "cpr_expires", "teach_alone_expires"];
 
 const daysUntil = (iso: string | null) => {
   if (!iso) return null;
