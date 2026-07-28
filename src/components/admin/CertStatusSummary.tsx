@@ -46,7 +46,7 @@ const CertStatusSummary = ({ scope, userId }: Props) => {
         // If instructor has no row, treat as 4 missing certs so counts make sense
         rows = data && data.length > 0
           ? data
-          : [{ user_id: userId, cmsp_expires: null, irc_expires: null, arc_expires: null, cpr_expires: null }];
+          : [{ user_id: userId, cmsp_expires: null, irc_expires: null, arc_expires: null, cpr_expires: null, teach_alone_expires: null }];
       } else {
         // Restrict to active employees
         const { data: emps } = await supabase
