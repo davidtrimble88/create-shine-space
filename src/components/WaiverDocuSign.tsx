@@ -219,6 +219,9 @@ const SignaturePad = ({
 
 const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const isMinor = !!prefill.isMinor;
+  const guardianInPerson = !!prefill.guardianInPerson;
+  // Guardian only signs online if the minor's guardian is NOT going to sign in person.
+  const signAsGuardian = isMinor && !guardianInPerson;
   const guardianFullName = isMinor
     ? `${prefill.guardianFirstName || ""} ${prefill.guardianLastName || ""}`.trim()
     : "";
@@ -227,9 +230,10 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
     : "";
   const studentFullName = [prefill.firstName, prefill.middleName, prefill.lastName].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   const studentInitials = `${(prefill.firstName[0] || "").toUpperCase()}${(prefill.middleName?.[0] || "").toUpperCase()}${(prefill.lastName[0] || "").toUpperCase()}`;
-  // For minors, the parent/guardian is the legal signer of the waiver.
-  const fullName = isMinor ? guardianFullName : studentFullName;
-  const defaultInitials = isMinor ? guardianInitials : studentInitials;
+  // When the guardian will sign in person, the minor fills in their own info and
+  // the guardian signature block is left blank for physical signing at class.
+  const fullName = signAsGuardian ? guardianFullName : studentFullName;
+  const defaultInitials = signAsGuardian ? guardianInitials : studentInitials;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
