@@ -1499,7 +1499,7 @@ const ClassRosters = () => {
       <div>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <RotateCcw className="w-6 h-6" /> Pending Retests
+            <RotateCcw className="w-6 h-6" /> Pending Retest/Reschedule
           </h1>
           <Button variant="outline" onClick={() => setView("active")}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Class Rosters
@@ -1705,7 +1705,7 @@ const ClassRosters = () => {
                 )}
               </Button>
               <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("pending_retests"); }}>
-                <RotateCcw className="w-4 h-4 mr-2" /> Pending Retests
+                <RotateCcw className="w-4 h-4 mr-2" /> Pending Retest/Reschedule
                 {pendingRetests.length > 0 && (
                   <span className="ml-2 bg-primary/20 text-primary px-1.5 py-0.5 rounded text-xs font-bold">
                     {pendingRetests.length}
