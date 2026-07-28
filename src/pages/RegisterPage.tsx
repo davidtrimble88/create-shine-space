@@ -257,6 +257,13 @@ const RegisterPage = () => {
   const [intReturnCents, setIntReturnCents] = useState<number>(7500);
   const [advReturnCents, setAdvReturnCents] = useState<number>(7500);
 
+  // Pre-waivers gate: choose to sign online now or in person at class.
+  const [waiverGateOpen, setWaiverGateOpen] = useState(false);
+  const [minorAckChecked, setMinorAckChecked] = useState(false);
+  // When true, the parent/guardian will sign the minor's forms IN PERSON at the first class.
+  // Guardian signature blocks in the online DocuSign flow are skipped.
+  const [guardianSignsInPerson, setGuardianSignsInPerson] = useState(false);
+
   const isDiscountEligibleCourse = course === "intermediate" || course === "advanced";
   const defaultDiscountCents = course === "advanced" ? advReturnCents : intReturnCents;
 
