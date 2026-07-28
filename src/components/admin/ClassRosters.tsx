@@ -1087,9 +1087,16 @@ const ClassRosters = () => {
     return age < 18;
   };
 
+  const stripEvalNotes = (raw: string): string =>
+    raw
+      .split("\n")
+      .filter(line => !/^\s*Eval note\b/i.test(line))
+      .join("\n")
+      .trim();
+
   const displayComment = (b: Booking, classDate?: string | null): string => {
     const minor = isMinorOnClass(b, classDate);
-    const base = b.roster_comment || "";
+    const base = stripEvalNotes(b.roster_comment || "");
     if (!minor) return base;
     if (/\bminor\b/i.test(base)) return base;
     return base ? `Minor — ${base}` : "Minor";
