@@ -8,8 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquarePlus, Send, Users, Search, Trash2 } from "lucide-react";
+import { MessageSquarePlus, Send, Users, Search, Trash2, MailOpen, Mail } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 type Employee = { user_id: string; full_name: string; email: string };
