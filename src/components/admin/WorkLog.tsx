@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronRight, Download, ClipboardList } from "lucide-react";
 import { formatPSTDate } from "@/lib/formatDate";
+import ExtraHoursRequests from "./ExtraHoursRequests";
 
 type Duty = "c1" | "r1" | "c2" | "r2";
 const DUTIES: Duty[] = ["c1", "r1", "c2", "r2"];
