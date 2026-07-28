@@ -63,6 +63,14 @@ const ViewerSchedule = () => {
   const [dismissing, setDismissing] = useState<string | null>(null);
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
+  const { defaultLocation, setDefaultLocation, loaded: prefLoaded } = useDefaultLocation();
+  const [initialized, setInitialized] = useState(false);
+  useEffect(() => {
+    if (prefLoaded && !initialized) {
+      if (defaultLocation && defaultLocation !== "all") setFilterLocation(defaultLocation);
+      setInitialized(true);
+    }
+  }, [prefLoaded, defaultLocation, initialized]);
 
   const canDismiss = effectiveRole === "owner" || effectiveRole === "admin";
   const canViewPast = effectiveRole !== "employee";
