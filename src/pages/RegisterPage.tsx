@@ -725,14 +725,10 @@ const RegisterPage = () => {
 
   const handleModelReleaseComplete = (_recordId: string, _decision: "sign" | "decline") => {
     setModelReleaseOpen(false);
-    // If the parent/guardian will sign in person at the first class, skip the online waiver
-    // (which for minors is legally a guardian document) and jump straight to payment.
-    if (isUnder18 && guardianSignsInPerson) {
-      paymentCompletedRef.current = false;
-      setPaymentOpen(true);
-    } else {
-      setWaiverOpen(true);
-    }
+    // Always run the waiver step. For minors whose guardian will sign in person,
+    // the waiver wizard captures the minor's info + own signature and saves a
+    // partially-completed PDF for the guardian to sign at the first class.
+    setWaiverOpen(true);
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   };
 

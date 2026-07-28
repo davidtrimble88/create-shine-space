@@ -83,6 +83,7 @@ const ClassRosters = () => {
   const [waiverEmails, setWaiverEmails] = useState<Set<string>>(new Set());
   const [regFormEmails, setRegFormEmails] = useState<Set<string>>(new Set());
   const [modelReleaseByEmail, setModelReleaseByEmail] = useState<Map<string, "signed" | "declined">>(new Map());
+  const [pendingGuardianForms, setPendingGuardianForms] = useState<Set<string>>(new Set());
   const [waiverEditFor, setWaiverEditFor] = useState<Booking | null>(null);
   const [savingWaiverStatus, setSavingWaiverStatus] = useState(false);
   const [editStudentFor, setEditStudentFor] = useState<Booking | null>(null);
@@ -403,7 +404,7 @@ const ClassRosters = () => {
         const scheduleDate = schedules.find(s => s.id === selectedScheduleId)?.date || null;
         let extrasQuery = (supabase as any)
           .from("signed_waivers")
-          .select("signer_email, document_type, schedule_id, schedule_date")
+          .select("signer_email, document_type, schedule_id, schedule_date, is_minor, guardian_signature_drawn")
           .in("document_type", ["cmsp_waiver", "cmsp_registration_form", "cmsp_model_release", "cmsp_model_release_decline"]);
 
         extrasQuery = scheduleDate
@@ -414,24 +415,37 @@ const ClassRosters = () => {
         const regSet = new Set<string>();
         const wEmails = new Set<string>();
         const mrMap = new Map<string, "signed" | "declined">();
+        const pendingGuardian = new Set<string>(); // email:doc pairs awaiting in-person guardian sig
         const studentEmails = new Set(emails);
         (extras ?? []).forEach((r: any) => {
           const em = (r.signer_email || "").toLowerCase();
           if (!studentEmails.has(em)) return;
           const matchesClass = r.schedule_id === selectedScheduleId || (scheduleDate && r.schedule_date === scheduleDate);
           if (!matchesClass) return;
-          if (r.document_type === "cmsp_waiver") wEmails.add(em);
-          else if (r.document_type === "cmsp_registration_form") regSet.add(em);
-          else if (r.document_type === "cmsp_model_release") mrMap.set(em, "signed");
-          else if (r.document_type === "cmsp_model_release_decline" && !mrMap.has(em)) mrMap.set(em, "declined");
+          // Minor forms that require a guardian signature aren't complete until the
+          // guardian signs (either online or in person via admin toggle).
+          const isPending = !!r.is_minor && !r.guardian_signature_drawn;
+          if (r.document_type === "cmsp_waiver") {
+            if (isPending) pendingGuardian.add(`${em}:waiver`);
+            else wEmails.add(em);
+          } else if (r.document_type === "cmsp_registration_form") {
+            regSet.add(em);
+          } else if (r.document_type === "cmsp_model_release") {
+            if (isPending) pendingGuardian.add(`${em}:model_release`);
+            else mrMap.set(em, "signed");
+          } else if (r.document_type === "cmsp_model_release_decline" && !mrMap.has(em)) {
+            mrMap.set(em, "declined");
+          }
         });
         setWaiverEmails(wEmails);
         setRegFormEmails(regSet);
         setModelReleaseByEmail(mrMap);
+        setPendingGuardianForms(pendingGuardian);
       } else {
         setWaiverEmails(new Set());
         setRegFormEmails(new Set());
         setModelReleaseByEmail(new Map());
+        setPendingGuardianForms(new Set());
       }
       setLoading(false);
     };
@@ -2005,15 +2019,30 @@ const ClassRosters = () => {
                         <td className="p-3 font-medium text-foreground uppercase">
                           <div className="flex items-center gap-2">
                             <span>{b.last_name}</span>
-                            {(((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has((b.email || "").toLowerCase())) ? (
-                              <span title="Waiver signed" aria-label="Waiver signed" className="inline-flex items-center text-emerald-500">
-                                <ShieldCheck className="w-3.5 h-3.5" />
-                              </span>
-                            ) : (
-                              <span title="Waiver not signed" aria-label="Waiver not signed" className="inline-flex items-center text-amber-500/80">
-                                <ShieldAlert className="w-3.5 h-3.5" />
-                              </span>
-                            )}
+                            {(() => {
+                              const em = (b.email || "").toLowerCase();
+                              const hasWaiver = ((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has(em);
+                              const waiverPending = pendingGuardianForms.has(`${em}:waiver`);
+                              if (hasWaiver) {
+                                return (
+                                  <span title="Waiver signed" aria-label="Waiver signed" className="inline-flex items-center text-emerald-500">
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                  </span>
+                                );
+                              }
+                              if (waiverPending) {
+                                return (
+                                  <span title="Waiver awaiting parent/guardian signature (in person)" className="inline-flex items-center text-[10px] font-bold px-1 rounded bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40">
+                                    WAIVER ⏳
+                                  </span>
+                                );
+                              }
+                              return (
+                                <span title="Waiver not signed" aria-label="Waiver not signed" className="inline-flex items-center text-amber-500/80">
+                                  <ShieldAlert className="w-3.5 h-3.5" />
+                                </span>
+                              );
+                            })()}
                             {(() => {
                               const em = (b.email || "").toLowerCase();
                               const hasReg = regFormEmails.has(em);
@@ -2029,9 +2058,22 @@ const ClassRosters = () => {
                             {(() => {
                               const em = (b.email || "").toLowerCase();
                               const mr = modelReleaseByEmail.get(em);
-                              const label = mr === "signed" ? "Model release: accepted" : mr === "declined" ? "Model release: declined" : "Model release: not completed";
-                              const cls = mr === "signed" ? "bg-emerald-500/15 text-emerald-500" : mr === "declined" ? "bg-red-500/20 text-red-500 ring-1 ring-red-500/40" : "bg-muted text-muted-foreground";
-                              const sym = mr === "signed" ? "✓" : mr === "declined" ? "✗" : "—";
+                              const mrPending = pendingGuardianForms.has(`${em}:model_release`);
+                              const label = mr === "signed"
+                                ? "Model release: accepted"
+                                : mr === "declined"
+                                ? "Model release: declined"
+                                : mrPending
+                                ? "Model release: awaiting parent/guardian signature (in person)"
+                                : "Model release: not completed";
+                              const cls = mr === "signed"
+                                ? "bg-emerald-500/15 text-emerald-500"
+                                : mr === "declined"
+                                ? "bg-red-500/20 text-red-500 ring-1 ring-red-500/40"
+                                : mrPending
+                                ? "bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40"
+                                : "bg-muted text-muted-foreground";
+                              const sym = mr === "signed" ? "✓" : mr === "declined" ? "✗" : mrPending ? "⏳" : "—";
                               return (
                                 <span title={label} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
                                   MR {sym}

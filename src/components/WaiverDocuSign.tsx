@@ -219,6 +219,9 @@ const SignaturePad = ({
 
 const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
   const isMinor = !!prefill.isMinor;
+  const guardianInPerson = !!prefill.guardianInPerson;
+  // Guardian only signs online if the minor's guardian is NOT going to sign in person.
+  const signAsGuardian = isMinor && !guardianInPerson;
   const guardianFullName = isMinor
     ? `${prefill.guardianFirstName || ""} ${prefill.guardianLastName || ""}`.trim()
     : "";
@@ -227,9 +230,10 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
     : "";
   const studentFullName = [prefill.firstName, prefill.middleName, prefill.lastName].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   const studentInitials = `${(prefill.firstName[0] || "").toUpperCase()}${(prefill.middleName?.[0] || "").toUpperCase()}${(prefill.lastName[0] || "").toUpperCase()}`;
-  // For minors, the parent/guardian is the legal signer of the waiver.
-  const fullName = isMinor ? guardianFullName : studentFullName;
-  const defaultInitials = isMinor ? guardianInitials : studentInitials;
+  // When the guardian will sign in person, the minor fills in their own info and
+  // the guardian signature block is left blank for physical signing at class.
+  const fullName = signAsGuardian ? guardianFullName : studentFullName;
+  const defaultInitials = signAsGuardian ? guardianInitials : studentInitials;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -330,12 +334,13 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           license_number: prefill.licenseNumber || null,
           license_state: prefill.licenseState || null,
           is_minor: isMinor,
+          guardian_in_person: guardianInPerson,
           guardian_name: isMinor ? guardianFullName : null,
           guardian_relationship: isMinor ? (prefill.guardianRelationship || null) : null,
-          guardian_signature_typed: isMinor ? (signatureTyped || guardianFullName) : null,
-          guardian_signature_drawn: isMinor ? signatureImg : null,
-          guardian_license_number: isMinor ? (prefill.guardianLicenseNumber || null) : null,
-          guardian_license_state: isMinor ? (prefill.guardianLicenseState || null) : null,
+          guardian_signature_typed: signAsGuardian ? (signatureTyped || guardianFullName) : null,
+          guardian_signature_drawn: signAsGuardian ? signatureImg : null,
+          guardian_license_number: signAsGuardian ? (prefill.guardianLicenseNumber || null) : null,
+          guardian_license_state: signAsGuardian ? (prefill.guardianLicenseState || null) : null,
           signature_typed: signatureTyped || fullName,
           signature_drawn: signatureImg,
           initials: initialsTyped,
@@ -377,15 +382,24 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         <div className="flex items-center gap-2 mb-2">
           <ShieldCheck className="w-5 h-5 text-accent" />
           <h2 className="text-lg md:text-xl font-bold text-foreground">
-            {isMinor ? "Parent / Guardian: Sign the CMSP Course Waiver" : "Sign Your CMSP Course Waiver"}
+            {signAsGuardian ? "Parent / Guardian: Sign the CMSP Course Waiver" : "Sign Your CMSP Course Waiver"}
           </h2>
         </div>
-        {isMinor && (
+        {signAsGuardian && (
           <div className="mb-3 rounded-md border border-accent/40 bg-accent/10 px-3 py-2 text-xs">
             Because <span className="font-semibold text-foreground">{studentFullName || "the student"}</span> is under 18,
             this waiver must be signed by their parent or legal guardian
             {guardianFullName ? <> — <span className="font-semibold text-foreground">{guardianFullName}</span> ({prefill.guardianRelationship})</> : null}.
             Your initials and signature below are stamped on the minor's behalf.
+          </div>
+        )}
+        {isMinor && guardianInPerson && (
+          <div className="mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
+            <span className="font-semibold text-foreground">Guardian signature will be collected in person.</span>{" "}
+            Go ahead and complete every field below with your own initials and signature — this saves a
+            <span className="font-semibold"> partially filled</span> waiver we can print for your parent or legal guardian to
+            sign at the start of your first range class. Your registration is <span className="font-semibold">not</span> considered
+            complete until that in-person signature is captured.
           </div>
         )}
         <p className="text-sm text-muted-foreground">
@@ -542,8 +556,8 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           <DialogHeader>
             <DialogTitle>
               {adoptOpen === "signature"
-                ? (isMinor ? "Adopt parent / guardian signature" : "Adopt your signature")
-                : (isMinor ? "Adopt parent / guardian initials" : "Adopt your initials")}
+                ? (signAsGuardian ? "Adopt parent / guardian signature" : "Adopt your signature")
+                : (signAsGuardian ? "Adopt parent / guardian initials" : "Adopt your initials")}
             </DialogTitle>
           </DialogHeader>
           {adoptOpen && (
@@ -551,10 +565,10 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
               mode={adoptOpen}
               prompt={
                 adoptOpen === "signature"
-                  ? (isMinor
+                  ? (signAsGuardian
                       ? `Parent / legal guardian: draw or type your full legal signature. It will be stamped on every signature line on behalf of the minor (${studentFullName}).`
                       : "Draw or type your full legal signature. Once adopted it will be applied to all signature fields.")
-                  : (isMinor
+                  : (signAsGuardian
                       ? "Parent / legal guardian: draw or type your initials. They will be applied to every initial field on behalf of the minor."
                       : "Draw or type your initials. Once adopted they will be applied to all initial fields.")
               }

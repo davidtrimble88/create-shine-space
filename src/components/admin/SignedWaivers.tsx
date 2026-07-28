@@ -230,7 +230,15 @@ const SignedWaivers = () => {
                   </span>
                 </td>
                 <td className="px-3 py-2">
-                  <div className="font-medium">{w.signer_first_name} {w.signer_last_name}{w.is_minor && <span className="ml-2 text-xs text-accent">(minor)</span>}</div>
+                  <div className="font-medium flex items-center flex-wrap gap-1">
+                    <span>{w.signer_first_name} {w.signer_last_name}</span>
+                    {w.is_minor && <span className="text-xs text-accent">(minor)</span>}
+                    {w.is_minor && !w.guardian_signature_drawn && (w.document_type === "cmsp_waiver" || w.document_type === "cmsp_model_release") && (
+                      <span className="inline-flex items-center rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-500 ring-1 ring-inset ring-amber-500/30">
+                        Pending Guardian Signature
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-muted-foreground">{w.signer_email}</div>
                 </td>
                 <td className="px-3 py-2">
