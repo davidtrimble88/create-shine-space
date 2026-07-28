@@ -182,6 +182,11 @@ const ClassRosters = () => {
   const [rescheduleScope, setRescheduleScope] = useState<"full" | "partial">("full");
   const [reschedulePortions, setReschedulePortions] = useState<{ c1: boolean; r1: boolean; c2: boolean; r2: boolean }>({ c1: false, r1: false, c2: false, r2: false });
   const [rescheduling, setRescheduling] = useState(false);
+  // Fail notes / change-to-cannot-return dialog state
+  const [failNotesFor, setFailNotesFor] = useState<Booking | null>(null);
+  const [failNotesText, setFailNotesText] = useState("");
+  const [savingFailNotes, setSavingFailNotes] = useState(false);
+  const [confirmCannotReturn, setConfirmCannotReturn] = useState(false);
   // Per-schedule retest counts: { [schedule_id]: { skill: n, knowledge: n } }
   const [retestCountsByClass, setRetestCountsByClass] = useState<Record<string, { skill: number; knowledge: number }>>({});
   // DL389 view: list of passed students that still need their DL389 created
