@@ -592,6 +592,59 @@ export type Database = {
         }
         Relationships: []
       }
+      extra_hours_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          employee_id: string
+          hours: number
+          id: string
+          justification: string
+          requested_by: string
+          status: string
+          updated_at: string
+          work_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          employee_id: string
+          hours: number
+          id?: string
+          justification: string
+          requested_by: string
+          status?: string
+          updated_at?: string
+          work_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          employee_id?: string
+          hours?: number
+          id?: string
+          justification?: string
+          requested_by?: string
+          status?: string
+          updated_at?: string
+          work_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "extra_hours_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instructor_assignments: {
         Row: {
           assigned_by: string | null
