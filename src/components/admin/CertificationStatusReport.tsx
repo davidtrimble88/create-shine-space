@@ -179,7 +179,7 @@ const CertificationStatusReport = () => {
             <ShieldCheck className="w-5 h-5 text-accent" /> Certification Status Report
           </CardTitle>
           <CardDescription>
-            Live overview of every instructor's CMSP, IRC, ARC, and CPR certifications with expiration status.
+            Live overview of every instructor's CMSP, IRC, ARC, CPR, and Teach-Alone certifications with expiration status.
           </CardDescription>
         </CardHeader>
         <CardContent>
