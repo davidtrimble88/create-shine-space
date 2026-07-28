@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Printer, Mail, CalendarDays, History, ArrowLeft } from "lucide-react";
+import { Printer, Mail, CalendarDays, History, ArrowLeft, Pin, PinOff } from "lucide-react";
 import { roleLabelMap } from "./InstructorAssignment";
 import { formatPST, formatPSTDate } from "@/lib/formatDate";
+import { useDefaultLocation } from "@/lib/defaultLocation";
 
 interface ScheduleRow {
   id: string;
