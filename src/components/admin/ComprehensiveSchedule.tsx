@@ -195,6 +195,34 @@ const ComprehensiveSchedule = () => {
             <SelectItem value="ventura-county">Ventura County</SelectItem>
           </SelectContent>
         </Select>
+        {filterLocation !== "all" && defaultLocation !== filterLocation && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setDefaultLocation(filterLocation)}
+            title="Make this my default site — schedule views will auto-filter here"
+          >
+            <Pin className="w-4 h-4 mr-1.5" /> Set as default
+          </Button>
+        )}
+        {defaultLocation && defaultLocation !== "all" && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Pin className="w-3 h-3 text-accent" />
+            <span>Default: <span className="text-foreground font-medium">
+              {defaultLocation === "high-desert-hesperia" ? "Hesperia" :
+               defaultLocation === "high-desert-wrightwood" ? "Wrightwood" :
+               defaultLocation === "ventura-county" ? "Ventura County" : defaultLocation}
+            </span></span>
+            <button
+              type="button"
+              onClick={() => setDefaultLocation("all")}
+              className="ml-1 text-muted-foreground hover:text-foreground inline-flex items-center"
+              title="Clear default site"
+            >
+              <PinOff className="w-3 h-3" />
+            </button>
+          </div>
+        )}
         <Select value={filterInstructor} onValueChange={setFilterInstructor}>
           <SelectTrigger className="w-48"><SelectValue placeholder="All Instructors" /></SelectTrigger>
           <SelectContent>
