@@ -70,6 +70,7 @@ interface Row {
   irc_expires: string | null;
   arc_expires: string | null;
   cpr_expires: string | null;
+  teach_alone_expires: string | null;
 }
 
 const CertificationStatusReport = () => {
