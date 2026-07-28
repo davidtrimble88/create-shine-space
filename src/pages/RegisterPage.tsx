@@ -340,6 +340,7 @@ const RegisterPage = () => {
     scheduleDate: string | null;
     scheduleDetail: string | null;
     fee: string;
+    additionalRecipients?: string[];
   }) => {
     try {
       const { data, error } = await supabase.functions.invoke("send-auto-email", {
@@ -349,6 +350,7 @@ const RegisterPage = () => {
           location: payload.location,
           groupName: payload.groupName,
           course: payload.courseKey,
+          additionalRecipients: payload.additionalRecipients ?? [],
           variables: {
             firstName: payload.firstName,
             lastName: payload.lastName,
