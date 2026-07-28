@@ -2019,15 +2019,30 @@ const ClassRosters = () => {
                         <td className="p-3 font-medium text-foreground uppercase">
                           <div className="flex items-center gap-2">
                             <span>{b.last_name}</span>
-                            {(((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has((b.email || "").toLowerCase())) ? (
-                              <span title="Waiver signed" aria-label="Waiver signed" className="inline-flex items-center text-emerald-500">
-                                <ShieldCheck className="w-3.5 h-3.5" />
-                              </span>
-                            ) : (
-                              <span title="Waiver not signed" aria-label="Waiver not signed" className="inline-flex items-center text-amber-500/80">
-                                <ShieldAlert className="w-3.5 h-3.5" />
-                              </span>
-                            )}
+                            {(() => {
+                              const em = (b.email || "").toLowerCase();
+                              const hasWaiver = ((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has(em);
+                              const waiverPending = pendingGuardianForms.has(`${em}:waiver`);
+                              if (hasWaiver) {
+                                return (
+                                  <span title="Waiver signed" aria-label="Waiver signed" className="inline-flex items-center text-emerald-500">
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                  </span>
+                                );
+                              }
+                              if (waiverPending) {
+                                return (
+                                  <span title="Waiver awaiting parent/guardian signature (in person)" className="inline-flex items-center text-[10px] font-bold px-1 rounded bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40">
+                                    WAIVER ⏳
+                                  </span>
+                                );
+                              }
+                              return (
+                                <span title="Waiver not signed" aria-label="Waiver not signed" className="inline-flex items-center text-amber-500/80">
+                                  <ShieldAlert className="w-3.5 h-3.5" />
+                                </span>
+                              );
+                            })()}
                             {(() => {
                               const em = (b.email || "").toLowerCase();
                               const hasReg = regFormEmails.has(em);
@@ -2043,9 +2058,22 @@ const ClassRosters = () => {
                             {(() => {
                               const em = (b.email || "").toLowerCase();
                               const mr = modelReleaseByEmail.get(em);
-                              const label = mr === "signed" ? "Model release: accepted" : mr === "declined" ? "Model release: declined" : "Model release: not completed";
-                              const cls = mr === "signed" ? "bg-emerald-500/15 text-emerald-500" : mr === "declined" ? "bg-red-500/20 text-red-500 ring-1 ring-red-500/40" : "bg-muted text-muted-foreground";
-                              const sym = mr === "signed" ? "✓" : mr === "declined" ? "✗" : "—";
+                              const mrPending = pendingGuardianForms.has(`${em}:model_release`);
+                              const label = mr === "signed"
+                                ? "Model release: accepted"
+                                : mr === "declined"
+                                ? "Model release: declined"
+                                : mrPending
+                                ? "Model release: awaiting parent/guardian signature (in person)"
+                                : "Model release: not completed";
+                              const cls = mr === "signed"
+                                ? "bg-emerald-500/15 text-emerald-500"
+                                : mr === "declined"
+                                ? "bg-red-500/20 text-red-500 ring-1 ring-red-500/40"
+                                : mrPending
+                                ? "bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40"
+                                : "bg-muted text-muted-foreground";
+                              const sym = mr === "signed" ? "✓" : mr === "declined" ? "✗" : mrPending ? "⏳" : "—";
                               return (
                                 <span title={label} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
                                   MR {sym}
