@@ -120,6 +120,7 @@ const SelfView = ({ userId, editable = false }: { userId: string; editable?: boo
         irc_expires: c?.irc_expires ?? "",
         arc_expires: c?.arc_expires ?? "",
         cpr_expires: c?.cpr_expires ?? "",
+        teach_alone_expires: c?.teach_alone_expires ?? "",
         notes: c?.notes ?? "",
       });
       setLoading(false);
