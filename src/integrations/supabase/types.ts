@@ -1252,8 +1252,8 @@ export type Database = {
           pdf_path: string | null
           schedule_date: string | null
           schedule_id: string | null
-          signature_drawn: string
-          signature_typed: string
+          signature_drawn: string | null
+          signature_typed: string | null
           signed_at: string
           signer_email: string
           signer_first_name: string
@@ -1285,8 +1285,8 @@ export type Database = {
           pdf_path?: string | null
           schedule_date?: string | null
           schedule_id?: string | null
-          signature_drawn: string
-          signature_typed: string
+          signature_drawn?: string | null
+          signature_typed?: string | null
           signed_at?: string
           signer_email: string
           signer_first_name: string
@@ -1318,8 +1318,8 @@ export type Database = {
           pdf_path?: string | null
           schedule_date?: string | null
           schedule_id?: string | null
-          signature_drawn?: string
-          signature_typed?: string
+          signature_drawn?: string | null
+          signature_typed?: string | null
           signed_at?: string
           signer_email?: string
           signer_first_name?: string
