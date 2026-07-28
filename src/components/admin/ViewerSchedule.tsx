@@ -22,21 +22,24 @@ const locationOptions = [
   { value: "ventura-county", label: "Ventura County — Somis" },
 ];
 
-// Placeholder cards split Ventura into Group A (Sat/Sun) and Group B (Fri/Sat/Sun)
-// so instructors can mark availability per group. Values are stored in
-// instructor_date_availability.location.
+// Placeholder cards are generated per location per week using each location's actual
+// class day pattern. Instructors can then mark availability for each individual day.
+// Day numbers use JS getDay(): Sun=0, Wed=3, Fri=5, Sat=6.
 const placeholderLocationOptions = [
-  { value: "high-desert-hesperia", label: "High Desert — Hesperia", filterKey: "high-desert-hesperia" },
-  { value: "high-desert-wrightwood", label: "High Desert — Wrightwood", filterKey: "high-desert-wrightwood" },
-  { value: "ventura-county-a", label: "Ventura — Group A (Sat/Sun)", filterKey: "ventura-county" },
-  { value: "ventura-county-b", label: "Ventura — Group B (Fri/Sat/Sun)", filterKey: "ventura-county" },
+  { value: "high-desert-hesperia", label: "High Desert — Hesperia", filterKey: "high-desert-hesperia", days: [3, 6, 0] },
+  { value: "high-desert-wrightwood", label: "High Desert — Wrightwood", filterKey: "high-desert-wrightwood", days: [6, 0] },
+  { value: "ventura-county-a", label: "Ventura — Group A (Sat/Sun)", filterKey: "ventura-county", days: [6, 0] },
+  { value: "ventura-county-b", label: "Ventura — Group B (Fri/Sat/Sun)", filterKey: "ventura-county", days: [5, 6, 0] },
 ];
+
+type PlaceholderLocation = typeof placeholderLocationOptions[number];
 
 interface PlaceholderEntry {
   type: "placeholder";
   date: Date;
   dates: Date[];
   dateStr: string;
+  location: PlaceholderLocation;
 }
 
 interface ScheduleEntry {
@@ -45,6 +48,7 @@ interface ScheduleEntry {
 }
 
 type DisplayEntry = PlaceholderEntry | ScheduleEntry;
+
 
 const ViewerSchedule = () => {
   const { user, effectiveRole } = useAuth();
