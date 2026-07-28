@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/table";
 import { ShieldCheck, Download, Loader2, AlertTriangle, CheckCircle2, XCircle, Clock } from "lucide-react";
 
-type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires";
+type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires" | "teach_alone_expires";
 
 const CERTS: { key: CertKey; label: string }[] = [
   { key: "cmsp_expires", label: "CMSP" },
   { key: "irc_expires", label: "IRC" },
   { key: "arc_expires", label: "ARC" },
   { key: "cpr_expires", label: "CPR" },
+  { key: "teach_alone_expires", label: "Teach Alone" },
 ];
 
 type Status = "valid" | "warn30" | "warn10" | "warn1" | "expired" | "missing";
