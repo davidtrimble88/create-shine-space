@@ -176,6 +176,12 @@ const ClassRosters = () => {
   const [scheduleRetestFor, setScheduleRetestFor] = useState<Booking | null>(null);
   const [retestTargetScheduleId, setRetestTargetScheduleId] = useState<string>("");
   const [schedulingRetest, setSchedulingRetest] = useState(false);
+  // Reschedule (not retest) dialog state
+  const [rescheduleFor, setRescheduleFor] = useState<Booking | null>(null);
+  const [rescheduleTargetScheduleId, setRescheduleTargetScheduleId] = useState<string>("");
+  const [rescheduleScope, setRescheduleScope] = useState<"full" | "partial">("full");
+  const [reschedulePortions, setReschedulePortions] = useState<{ c1: boolean; r1: boolean; c2: boolean; r2: boolean }>({ c1: false, r1: false, c2: false, r2: false });
+  const [rescheduling, setRescheduling] = useState(false);
   // Per-schedule retest counts: { [schedule_id]: { skill: n, knowledge: n } }
   const [retestCountsByClass, setRetestCountsByClass] = useState<Record<string, { skill: number; knowledge: number }>>({});
   // DL389 view: list of passed students that still need their DL389 created
