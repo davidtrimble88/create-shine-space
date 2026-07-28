@@ -135,9 +135,10 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
     return () => { cancelled = true; };
   }, [decision]);
 
-  const requiredSigs: SigTag[] = prefill.isMinor ? [STUDENT_TAG, GUARDIAN_TAG] : [STUDENT_TAG];
-  const doneSigs = [studentSig && "student", prefill.isMinor && guardianSig && "guardian"].filter(Boolean).length;
-  const allSigned = studentSig && (!prefill.isMinor || guardianSig);
+  const guardianRequired = !!prefill.isMinor && !prefill.guardianInPerson;
+  const requiredSigs: SigTag[] = guardianRequired ? [STUDENT_TAG, GUARDIAN_TAG] : [STUDENT_TAG];
+  const doneSigs = [studentSig && "student", guardianRequired && guardianSig && "guardian"].filter(Boolean).length;
+  const allSigned = studentSig && (!guardianRequired || guardianSig);
 
   const dateStr = useMemo(() => {
     const d = new Date();
