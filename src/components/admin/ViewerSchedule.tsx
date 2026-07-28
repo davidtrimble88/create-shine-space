@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format, parseISO, eachWeekendOfInterval, addDays } from "date-fns";
+import { format, parseISO, addDays } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Schedule = Tables<"schedules">;
@@ -22,21 +22,24 @@ const locationOptions = [
   { value: "ventura-county", label: "Ventura County — Somis" },
 ];
 
-// Placeholder cards split Ventura into Group A (Sat/Sun) and Group B (Fri/Sat/Sun)
-// so instructors can mark availability per group. Values are stored in
-// instructor_date_availability.location.
+// Placeholder cards are generated per location per week using each location's actual
+// class day pattern. Instructors can then mark availability for each individual day.
+// Day numbers use JS getDay(): Sun=0, Wed=3, Fri=5, Sat=6.
 const placeholderLocationOptions = [
-  { value: "high-desert-hesperia", label: "High Desert — Hesperia", filterKey: "high-desert-hesperia" },
-  { value: "high-desert-wrightwood", label: "High Desert — Wrightwood", filterKey: "high-desert-wrightwood" },
-  { value: "ventura-county-a", label: "Ventura — Group A (Sat/Sun)", filterKey: "ventura-county" },
-  { value: "ventura-county-b", label: "Ventura — Group B (Fri/Sat/Sun)", filterKey: "ventura-county" },
+  { value: "high-desert-hesperia", label: "High Desert — Hesperia", filterKey: "high-desert-hesperia", days: [3, 6, 0] },
+  { value: "high-desert-wrightwood", label: "High Desert — Wrightwood", filterKey: "high-desert-wrightwood", days: [6, 0] },
+  { value: "ventura-county-a", label: "Ventura — Group A (Sat/Sun)", filterKey: "ventura-county", days: [6, 0] },
+  { value: "ventura-county-b", label: "Ventura — Group B (Fri/Sat/Sun)", filterKey: "ventura-county", days: [5, 6, 0] },
 ];
+
+type PlaceholderLocation = typeof placeholderLocationOptions[number];
 
 interface PlaceholderEntry {
   type: "placeholder";
   date: Date;
   dates: Date[];
   dateStr: string;
+  location: PlaceholderLocation;
 }
 
 interface ScheduleEntry {
@@ -45,6 +48,7 @@ interface ScheduleEntry {
 }
 
 type DisplayEntry = PlaceholderEntry | ScheduleEntry;
+
 
 const ViewerSchedule = () => {
   const { user, effectiveRole } = useAuth();
@@ -242,45 +246,64 @@ const ViewerSchedule = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const currentMonth = today.getMonth();
-    let endDate: Date;
-    if (currentMonth === 11) {
-      endDate = new Date(today.getFullYear() + 1, 5, 30);
-    } else {
-      endDate = new Date(today.getFullYear(), 11, 31);
+    const endDate = currentMonth === 11
+      ? new Date(today.getFullYear() + 1, 5, 30)
+      : new Date(today.getFullYear(), 11, 31);
+
+    // Build per-location scheduled-date sets so a location's placeholder only hides
+    // when that same location already has a class on one of the pattern days.
+    const schedByLoc = new Map<string, Set<string>>();
+    schedules.forEach(s => {
+      if (!schedByLoc.has(s.location)) schedByLoc.set(s.location, new Set());
+      schedByLoc.get(s.location)!.add(s.date);
+    });
+
+    // Enumerate Saturdays across the range as the anchor for each week.
+    const saturdays: Date[] = [];
+    const cursor = new Date(today);
+    while (cursor.getDay() !== 6) cursor.setDate(cursor.getDate() + 1);
+    while (cursor <= endDate) {
+      saturdays.push(new Date(cursor));
+      cursor.setDate(cursor.getDate() + 7);
     }
-    const weekendDates = eachWeekendOfInterval({ start: today, end: endDate });
-    const scheduledDates = new Set(schedules.map(s => s.date));
 
-    const unscheduledDays = weekendDates.filter(d => {
-      const dateStr = format(d, "yyyy-MM-dd");
-      return !scheduledDates.has(dateStr) && !dismissedDates.has(dateStr) && d >= today;
+    // Offset from that week's Saturday for each supported class day.
+    const dayOffsetsFromSat: Record<number, number> = { 3: -3, 5: -1, 6: 0, 0: 1 };
+
+    const results: PlaceholderEntry[] = [];
+    saturdays.forEach(sat => {
+      placeholderLocationOptions.forEach(loc => {
+        const dates = loc.days
+          .map(d => {
+            const dt = new Date(sat);
+            dt.setDate(sat.getDate() + dayOffsetsFromSat[d]);
+            dt.setHours(0, 0, 0, 0);
+            return dt;
+          })
+          .filter(d => d >= today)
+          .sort((a, b) => a.getTime() - b.getTime());
+        if (dates.length === 0) return;
+
+        const dateStrs = dates.map(d => format(d, "yyyy-MM-dd"));
+        const locSchedDates = schedByLoc.get(loc.filterKey) ?? new Set();
+        // Hide the placeholder if this location already has a real class on any of these days.
+        if (dateStrs.some(ds => locSchedDates.has(ds))) return;
+        // Hide if every day in the pattern has been dismissed.
+        if (dateStrs.every(ds => dismissedDates.has(ds))) return;
+
+        results.push({
+          type: "placeholder",
+          date: dates[0],
+          dates,
+          dateStr: `${format(sat, "yyyy-MM-dd")}-${loc.value}`,
+          location: loc,
+        });
+      });
     });
 
-    // Build a set of unscheduled date strings for quick lookup
-    const unscheduledSet = new Set(unscheduledDays.map(d => format(d, "yyyy-MM-dd")));
-
-    const weekGroups = new Map<string, Date[]>();
-    unscheduledDays.forEach(d => {
-      const day = d.getDay();
-      if (day === 0) {
-        // Sunday: only include if corresponding Saturday is also unscheduled
-        const sat = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1);
-        const satStr = format(sat, "yyyy-MM-dd");
-        if (!unscheduledSet.has(satStr)) return; // skip orphan Sunday
-      }
-      const sat = day === 0 ? new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1) : d;
-      const key = format(sat, "yyyy-MM-dd");
-      if (!weekGroups.has(key)) weekGroups.set(key, []);
-      weekGroups.get(key)!.push(d);
-    });
-
-    return Array.from(weekGroups.entries()).map(([satKey, dates]) => ({
-      type: "placeholder" as const,
-      date: dates[0],
-      dates: dates.sort((a, b) => a.getTime() - b.getTime()),
-      dateStr: satKey,
-    }));
+    return results;
   };
+
 
   const buildDisplayList = (): DisplayEntry[] => {
     const scheduleEntries: ScheduleEntry[] = schedules.map(s => ({ type: "schedule", data: s }));
@@ -313,8 +336,9 @@ const ViewerSchedule = () => {
     ? displayList
     : displayList.filter(entry => {
         if (entry.type === "schedule") return entry.data.location === filterLocation;
-        return true;
+        return entry.location.filterKey === filterLocation;
       });
+
 
   return (
     <div>
@@ -373,14 +397,10 @@ const ViewerSchedule = () => {
                 onClear={() => clearAvailability(entry.data.id)}
               />;
             } else {
-              const locationsToShow = filterLocation === "all"
-                ? placeholderLocationOptions
-                : placeholderLocationOptions.filter(l => l.filterKey === filterLocation);
-
               return <PlaceholderCard
                 key={entry.dateStr}
                 dates={entry.dates}
-                locations={locationsToShow}
+                location={entry.location}
                 myDateAvailability={myDateAvailability}
                 toggling={toggling}
                 onToggle={toggleDateAvailability}
@@ -389,6 +409,7 @@ const ViewerSchedule = () => {
                 onDismiss={() => dismissWeekend(entry.dates)}
               />;
             }
+
           })}
         </div>
       )}
@@ -644,7 +665,7 @@ const ScheduleCard = ({
 
 const PlaceholderCard = ({
   dates,
-  locations,
+  location,
   myDateAvailability,
   toggling,
   onToggle,
@@ -653,7 +674,7 @@ const PlaceholderCard = ({
   onDismiss,
 }: {
   dates: Date[];
-  locations: { value: string; label: string }[];
+  location: { value: string; label: string };
   myDateAvailability: Map<string, Set<string>>;
   toggling: string | null;
   onToggle: (dateStr: string, location: string) => void;
@@ -663,7 +684,7 @@ const PlaceholderCard = ({
 }) => {
   const hasAnyAvailability = dates.some(d => {
     const ds = format(d, "yyyy-MM-dd");
-    return locations.some(l => myDateAvailability.get(ds)?.has(l.value));
+    return myDateAvailability.get(ds)?.has(location.value);
   });
 
   const dateLabel = dates.length === 1
@@ -686,9 +707,13 @@ const PlaceholderCard = ({
             <CalendarPlus className={`w-5 h-5 ${hasAnyAvailability ? "text-green-400" : "text-muted-foreground"}`} />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-foreground">{dateLabel}</h3>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-              No class scheduled — mark your availability
+            <h3 className="font-bold text-foreground flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-muted-foreground" />
+              {location.label}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">{dateLabel}</p>
+            <span className="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+              No class scheduled — pick the days you can teach
             </span>
           </div>
           {canDismiss && (
@@ -698,7 +723,7 @@ const PlaceholderCard = ({
               onClick={onDismiss}
               disabled={isDismissing}
               className="text-muted-foreground hover:text-destructive flex-shrink-0"
-              title="Dismiss this weekend"
+              title="Dismiss this week"
             >
               {isDismissing ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -709,54 +734,42 @@ const PlaceholderCard = ({
           )}
         </div>
 
-        {dates.map(d => {
-          const dateStr = format(d, "yyyy-MM-dd");
-          const dayLabel = format(d, "EEEE");
-          return (
-            <div key={dateStr} className="ml-13">
-              {dates.length > 1 && (
-                <p className="text-xs text-muted-foreground mb-1 font-medium">{dayLabel}</p>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {locations.map(loc => {
-                  const isAvail = myDateAvailability.get(dateStr)?.has(loc.value) ?? false;
-                  const key = `${dateStr}-${loc.value}`;
-                  const isToggling = toggling === key;
+        <div className="flex flex-wrap gap-2 ml-13">
+          {dates.map(d => {
+            const dateStr = format(d, "yyyy-MM-dd");
+            const dayLabel = format(d, "EEE, MMM d");
+            const isAvail = myDateAvailability.get(dateStr)?.has(location.value) ?? false;
+            const key = `${dateStr}-${location.value}`;
+            const isToggling = toggling === key;
 
-                  return (
-                    <Button
-                      key={loc.value}
-                      variant={isAvail ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => onToggle(dateStr, loc.value)}
-                      disabled={isToggling}
-                      className={isAvail
-                        ? "bg-green-600 hover:bg-green-700 text-white"
-                        : ""
-                      }
-                    >
-                      {isToggling ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : isAvail ? (
-                        <Check className="w-4 h-4 mr-2" />
-                      ) : (
-                        <Hand className="w-4 h-4 mr-2" />
-                      )}
-                      <MapPin className="w-3.5 h-3.5 mr-1 opacity-70" />
-                      {loc.label}
-                      <span className="ml-1.5 opacity-80">
-                        {isAvail ? "— I'm Available" : "— Mark Available"}
-                      </span>
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+            return (
+              <Button
+                key={dateStr}
+                variant={isAvail ? "default" : "outline"}
+                size="sm"
+                onClick={() => onToggle(dateStr, location.value)}
+                disabled={isToggling}
+                className={isAvail ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+              >
+                {isToggling ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : isAvail ? (
+                  <Check className="w-4 h-4 mr-2" />
+                ) : (
+                  <Hand className="w-4 h-4 mr-2" />
+                )}
+                {dayLabel}
+                <span className="ml-1.5 opacity-80">
+                  {isAvail ? "— Available" : "— Mark"}
+                </span>
+              </Button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 };
+
 
 export default ViewerSchedule;
