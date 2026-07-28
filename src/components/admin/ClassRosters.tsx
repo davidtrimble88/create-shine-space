@@ -1735,6 +1735,14 @@ const ClassRosters = () => {
                           >
                             <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="border border-border/60"
+                            onClick={() => openFailNotes(b)}
+                          >
+                            <FileText className="w-3.5 h-3.5 mr-1.5" /> Fail Notes / Change Status
+                          </Button>
                         </div>
                       </td>
                     </tr>
