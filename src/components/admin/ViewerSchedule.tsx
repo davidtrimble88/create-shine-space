@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft, Pin, PinOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format, parseISO, addDays } from "date-fns";
+import { format, parseISO, addDays, addYears } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 import { useDefaultLocation } from "@/lib/defaultLocation";
 
@@ -254,10 +254,7 @@ const ViewerSchedule = () => {
   const generateWeekendPlaceholders = (): PlaceholderEntry[] => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const currentMonth = today.getMonth();
-    const endDate = currentMonth === 11
-      ? new Date(today.getFullYear() + 1, 5, 30)
-      : new Date(today.getFullYear(), 11, 31);
+    const endDate = addYears(today, 1);
 
     // Build per-location scheduled-date sets so a location's placeholder only hides
     // when that same location already has a class on one of the pattern days.
