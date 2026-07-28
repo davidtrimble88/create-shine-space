@@ -19,7 +19,7 @@ import { ShieldCheck, Save, Loader2, AlertTriangle, CheckCircle2, XCircle, Penci
 import CertificationStatusReport from "./CertificationStatusReport";
 import { formatPSTDate } from "@/lib/formatDate";
 
-type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires";
+type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires" | "teach_alone_expires";
 
 interface CertRow {
   id: string;
@@ -28,6 +28,7 @@ interface CertRow {
   irc_expires: string | null;
   arc_expires: string | null;
   cpr_expires: string | null;
+  teach_alone_expires: string | null;
   notes: string | null;
   updated_at: string;
 }
@@ -46,6 +47,7 @@ const CERT_LABELS: { key: CertKey; label: string; short: string }[] = [
   { key: "irc_expires", label: "IRC Certification", short: "IRC" },
   { key: "arc_expires", label: "ARC Certification", short: "ARC" },
   { key: "cpr_expires", label: "CPR Certification", short: "CPR" },
+  { key: "teach_alone_expires", label: "Teach Alone", short: "Teach Alone" },
 ];
 
 const daysUntil = (iso: string | null) => {
