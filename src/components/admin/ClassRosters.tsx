@@ -1351,7 +1351,13 @@ const ClassRosters = () => {
 
   const openFailNotes = (b: Booking) => {
     setFailNotesFor(b);
-    setFailNotesText(extractEvalNotes(b.roster_comment).replace(/^Eval note[^:]*:\s*/i, "").split("\n").map(l => l.replace(/^Eval note[^:]*:\s*/i, "")).join("\n"));
+    const raw = extractEvalNotes(b.roster_comment);
+    const cleaned = raw
+      .split("\n")
+      .map(l => l.replace(/^\s*Eval note[^:]*:\s*/i, "").trim())
+      .filter(Boolean)
+      .join("\n");
+    setFailNotesText(cleaned);
     setConfirmCannotReturn(false);
   };
 
