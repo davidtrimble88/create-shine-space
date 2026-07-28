@@ -473,7 +473,21 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             )}
           </div>
 
-          {prefill.isMinor && (
+          {prefill.isMinor && prefill.guardianInPerson && (
+            <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-5 md:p-6 space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <FileSignature className="w-5 h-5 text-amber-600" />
+                <h3 className="font-bold text-foreground">Parent / Legal Guardian will sign in person</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Because the student is under 18, a parent or legal guardian must be present at the
+                <strong> start of the first range class</strong> to sign this form in person and confirm
+                permission for the minor to participate. You may continue without a guardian signature now.
+              </p>
+            </div>
+          )}
+
+          {prefill.isMinor && !prefill.guardianInPerson && (
             <div className="bg-card border-2 border-accent/40 rounded-2xl p-5 md:p-6 space-y-3">
               <div className="flex items-center gap-2 flex-wrap">
                 <FileSignature className="w-5 h-5 text-accent" />
