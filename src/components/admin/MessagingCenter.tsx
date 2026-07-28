@@ -248,7 +248,7 @@ export default function MessagingCenter() {
               <div className="p-6 text-center text-sm text-muted-foreground">No conversations yet.</div>
             )}
             {filteredThreads.map((t) => {
-              const unread = unreadCount(t);
+              const unread = isUnread(t);
               return (
                 <button
                   key={t.id}
@@ -261,7 +261,10 @@ export default function MessagingCenter() {
                     <span className={`text-sm truncate ${unread ? "font-semibold" : "font-medium"}`}>
                       {t.subject}
                     </span>
-                    {unread > 0 && <span className="w-2 h-2 rounded-full bg-accent flex-shrink-0" />}
+                    <Badge variant={unread ? "default" : "secondary"} className="text-[10px] py-0 h-5 flex-shrink-0 gap-1">
+                      {unread ? <Mail className="w-3 h-3" /> : <MailOpen className="w-3 h-3" />}
+                      {unread ? "Unread" : "Read"}
+                    </Badge>
                   </div>
                   <div className="text-xs text-muted-foreground truncate mt-0.5 flex items-center gap-1">
                     {t.is_broadcast && <Users className="w-3 h-3" />}
