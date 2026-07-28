@@ -1573,13 +1573,28 @@ const ClassRosters = () => {
                         <div className="text-[10px] font-normal text-muted-foreground">deadline {deadline.toISOString().split("T")[0]}</div>
                       </td>
                       <td className="p-3 text-center">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => { setScheduleRetestFor(b); setRetestTargetScheduleId(""); }}
-                        >
-                          <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Schedule Retest
-                        </Button>
+                        <div className="flex flex-col gap-1.5 items-stretch">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => { setScheduleRetestFor(b); setRetestTargetScheduleId(""); }}
+                          >
+                            <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Schedule Retest
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="border border-border/60"
+                            onClick={() => {
+                              setRescheduleFor(b);
+                              setRescheduleTargetScheduleId("");
+                              setRescheduleScope("full");
+                              setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
+                            }}
+                          >
+                            <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
