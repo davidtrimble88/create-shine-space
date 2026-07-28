@@ -678,6 +678,7 @@ export type Database = {
           id: string
           irc_expires: string | null
           notes: string | null
+          teach_alone_expires: string | null
           updated_at: string
           user_id: string
         }
@@ -689,6 +690,7 @@ export type Database = {
           id?: string
           irc_expires?: string | null
           notes?: string | null
+          teach_alone_expires?: string | null
           updated_at?: string
           user_id: string
         }
@@ -700,6 +702,7 @@ export type Database = {
           id?: string
           irc_expires?: string | null
           notes?: string | null
+          teach_alone_expires?: string | null
           updated_at?: string
           user_id?: string
         }
