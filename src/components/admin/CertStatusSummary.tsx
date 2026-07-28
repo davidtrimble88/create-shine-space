@@ -59,7 +59,7 @@ const CertStatusSummary = ({ scope, userId }: Props) => {
         const { data } = await query.in("user_id", ids);
         const certMap = new Map((data ?? []).map((c: any) => [c.user_id, c]));
         rows = ids.map((id) => certMap.get(id) ?? {
-          user_id: id, cmsp_expires: null, irc_expires: null, arc_expires: null, cpr_expires: null,
+          user_id: id, cmsp_expires: null, irc_expires: null, arc_expires: null, cpr_expires: null, teach_alone_expires: null,
         });
       }
 
