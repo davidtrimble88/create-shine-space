@@ -141,7 +141,17 @@ const WorkLog = () => {
       }
       entries.sort((a, b) => (a.date < b.date ? 1 : -1));
       const total = counts.c1 + counts.r1 + counts.c2 + counts.r2;
-      return { employee: emp, counts, total, entries };
+
+      const empExtras = extraHours.filter((x) => {
+        if (x.employee_id !== emp.id) return false;
+        const d = x.work_date ?? x.decided_at?.slice(0, 10);
+        if (fromDate && d && d < fromDate) return false;
+        if (toDate && d && d > toDate) return false;
+        return true;
+      });
+      const extraTotal = empExtras.reduce((sum, x) => sum + Number(x.hours || 0), 0);
+
+      return { employee: emp, counts, total, entries, extraHours: extraTotal, extraEntries: empExtras };
     });
 
     // Filter by search + sort by total desc then name
