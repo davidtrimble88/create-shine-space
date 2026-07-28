@@ -851,19 +851,19 @@ const RegisterPage = () => {
           >
             {regFormOpen && regFormPrefill ? (
               <RegistrationFormDocuSign
-                prefill={regFormPrefill}
+                prefill={{ ...regFormPrefill, guardianInPerson: guardianSignsInPerson }}
                 onBack={() => setRegFormOpen(false)}
                 onSigned={handleRegistrationFormSigned}
               />
             ) : modelReleaseOpen && modelReleasePrefill ? (
               <ModelReleaseDocuSign
-                prefill={modelReleasePrefill}
+                prefill={{ ...modelReleasePrefill, guardianInPerson: guardianSignsInPerson }}
                 onBack={() => setModelReleaseOpen(false)}
                 onComplete={handleModelReleaseComplete}
               />
             ) : waiverOpen && waiverPrefill ? (
               <WaiverDocuSign
-                prefill={waiverPrefill}
+                prefill={{ ...waiverPrefill, guardianInPerson: guardianSignsInPerson }}
                 onBack={() => setWaiverOpen(false)}
                 onSigned={handleWaiverSigned}
               />
