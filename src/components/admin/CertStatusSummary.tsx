@@ -37,7 +37,7 @@ const CertStatusSummary = ({ scope, userId }: Props) => {
       setLoading(true);
       let query = supabase
         .from("instructor_certifications")
-        .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires");
+        .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires, teach_alone_expires");
 
       let rows: any[] = [];
       if (scope === "self") {
