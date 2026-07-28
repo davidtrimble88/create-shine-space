@@ -176,6 +176,12 @@ const ClassRosters = () => {
   const [scheduleRetestFor, setScheduleRetestFor] = useState<Booking | null>(null);
   const [retestTargetScheduleId, setRetestTargetScheduleId] = useState<string>("");
   const [schedulingRetest, setSchedulingRetest] = useState(false);
+  // Reschedule (not retest) dialog state
+  const [rescheduleFor, setRescheduleFor] = useState<Booking | null>(null);
+  const [rescheduleTargetScheduleId, setRescheduleTargetScheduleId] = useState<string>("");
+  const [rescheduleScope, setRescheduleScope] = useState<"full" | "partial">("full");
+  const [reschedulePortions, setReschedulePortions] = useState<{ c1: boolean; r1: boolean; c2: boolean; r2: boolean }>({ c1: false, r1: false, c2: false, r2: false });
+  const [rescheduling, setRescheduling] = useState(false);
   // Per-schedule retest counts: { [schedule_id]: { skill: n, knowledge: n } }
   const [retestCountsByClass, setRetestCountsByClass] = useState<Record<string, { skill: number; knowledge: number }>>({});
   // DL389 view: list of passed students that still need their DL389 created
@@ -1081,9 +1087,16 @@ const ClassRosters = () => {
     return age < 18;
   };
 
+  const stripEvalNotes = (raw: string): string =>
+    raw
+      .split("\n")
+      .filter(line => !/^\s*Eval note\b/i.test(line))
+      .join("\n")
+      .trim();
+
   const displayComment = (b: Booking, classDate?: string | null): string => {
     const minor = isMinorOnClass(b, classDate);
-    const base = b.roster_comment || "";
+    const base = stripEvalNotes(b.roster_comment || "");
     if (!minor) return base;
     if (/\bminor\b/i.test(base)) return base;
     return base ? `Minor — ${base}` : "Minor";
@@ -1254,8 +1267,66 @@ const ClassRosters = () => {
     setPendingRetests(prev => prev.filter(b => b.id !== src.id));
     setScheduleRetestFor(null);
     setRetestTargetScheduleId("");
-    toast.success(`Retest scheduled for ${target.date} at ${target.location_label}`);
   };
+
+  const handleReschedule = async () => {
+    if (!rescheduleFor || !rescheduleTargetScheduleId) {
+      toast.error("Please choose a class");
+      return;
+    }
+    const target = schedules.find(s => s.id === rescheduleTargetScheduleId);
+    if (!target) {
+      toast.error("Selected class not found");
+      return;
+    }
+    const selectedPortions = (["c1", "r1", "c2", "r2"] as const).filter(k => reschedulePortions[k]);
+    if (rescheduleScope === "partial" && selectedPortions.length === 0) {
+      toast.error("Select at least one portion (C1, R1, C2, or R2)");
+      return;
+    }
+    setRescheduling(true);
+    const src = rescheduleFor;
+    const portionsLabel = selectedPortions.map(p => p.toUpperCase()).join(", ");
+    const comment = rescheduleScope === "full"
+      ? "Reschedule"
+      : `Reschedule — ${portionsLabel} only`;
+
+    const { data, error } = await supabase.from("bookings").insert({
+      first_name: src.first_name,
+      last_name: src.last_name,
+      phone: src.phone,
+      email: src.email && src.email !== "retest@placeholder.com" ? src.email : "retest@placeholder.com",
+      license_number: src.license_number || null,
+      date_of_birth: src.date_of_birth || null,
+      course: target.course,
+      location: target.location,
+      location_label: target.location_label,
+      schedule_id: target.id,
+      schedule_date: target.date,
+      booking_status: "confirmed",
+      payment_status: "paid",
+      roster_comment: comment,
+      manually_added: true,
+    } as any).select().single();
+
+    if (error || !data) {
+      setRescheduling(false);
+      toast.error("Failed to reschedule");
+      return;
+    }
+    // Clear retest_type on the original failed booking so it leaves the Pending Retest/Reschedule list
+    await (supabase as any)
+      .from("bookings")
+      .update({ retest_type: null })
+      .eq("id", src.id);
+
+    setRescheduling(false);
+    setPendingRetests(prev => prev.filter(b => b.id !== src.id));
+    setRescheduleFor(null);
+    setRescheduleTargetScheduleId("");
+    toast.success(`Rescheduled to ${target.date} at ${target.location_label}`);
+  };
+
 
   // ========================
   // DL389 view
@@ -1560,13 +1631,28 @@ const ClassRosters = () => {
                         <div className="text-[10px] font-normal text-muted-foreground">deadline {deadline.toISOString().split("T")[0]}</div>
                       </td>
                       <td className="p-3 text-center">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => { setScheduleRetestFor(b); setRetestTargetScheduleId(""); }}
-                        >
-                          <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Schedule Retest
-                        </Button>
+                        <div className="flex flex-col gap-1.5 items-stretch">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => { setScheduleRetestFor(b); setRetestTargetScheduleId(""); }}
+                          >
+                            <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Schedule Retest
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="border border-border/60"
+                            onClick={() => {
+                              setRescheduleFor(b);
+                              setRescheduleTargetScheduleId("");
+                              setRescheduleScope("full");
+                              setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
+                            }}
+                          >
+                            <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1650,6 +1736,108 @@ const ClassRosters = () => {
                 disabled={!retestTargetScheduleId || schedulingRetest}
               >
                 {schedulingRetest ? "Scheduling…" : "Schedule Retest"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Reschedule dialog */}
+        <Dialog
+          open={!!rescheduleFor}
+          onOpenChange={open => {
+            if (!open) {
+              setRescheduleFor(null);
+              setRescheduleTargetScheduleId("");
+              setRescheduleScope("full");
+              setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reschedule Student</DialogTitle>
+              <DialogDescription>
+                {rescheduleFor && (
+                  <>
+                    Move <span className="font-semibold text-foreground">{rescheduleFor.first_name} {rescheduleFor.last_name}</span> into another upcoming{" "}
+                    <span className="font-semibold text-foreground">{courseLabels[rescheduleFor.course] || rescheduleFor.course}</span> class.
+                  </>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            {rescheduleFor && (() => {
+              const src = rescheduleFor;
+              const todayStr = new Date().toISOString().split("T")[0];
+              const candidates = schedules
+                .filter(s => s.course === src.course && s.date >= todayStr && s.spots_available > 0)
+                .sort((a, b) => a.date.localeCompare(b.date));
+
+              return (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground block">Choose a class</label>
+                    {candidates.length === 0 ? (
+                      <div className="bg-muted/50 border border-border rounded-md p-3 text-sm text-muted-foreground">
+                        No upcoming {courseLabels[src.course] || src.course} classes with open spots.
+                      </div>
+                    ) : (
+                      <Select value={rescheduleTargetScheduleId} onValueChange={setRescheduleTargetScheduleId}>
+                        <SelectTrigger><SelectValue placeholder="Select an available class" /></SelectTrigger>
+                        <SelectContent>
+                          {candidates.map(s => (
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.date} • {s.location_label} • {s.spots_available} spot{s.spots_available !== 1 ? "s" : ""} open
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground block">What are they attending?</label>
+                    <RadioGroup value={rescheduleScope} onValueChange={(v) => setRescheduleScope(v as "full" | "partial")}>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="full" id="resch-full" />
+                        <Label htmlFor="resch-full" className="cursor-pointer text-sm">Full class</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="partial" id="resch-partial" />
+                        <Label htmlFor="resch-partial" className="cursor-pointer text-sm">Partial — choose portions below</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {rescheduleScope === "partial" && (
+                    <div className="space-y-2 pl-2 border-l-2 border-border">
+                      <label className="text-xs font-medium text-muted-foreground block">Portions</label>
+                      <div className="flex flex-wrap gap-4">
+                        {(["c1", "r1", "c2", "r2"] as const).map(k => (
+                          <div key={k} className="flex items-center gap-2">
+                            <Checkbox
+                              id={`resch-${k}`}
+                              checked={reschedulePortions[k]}
+                              onCheckedChange={(checked) =>
+                                setReschedulePortions(prev => ({ ...prev, [k]: checked === true }))
+                              }
+                            />
+                            <Label htmlFor={`resch-${k}`} className="cursor-pointer text-sm uppercase">{k}</Label>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">Selected portions will be noted in the roster comment for the new class.</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setRescheduleFor(null)}>Cancel</Button>
+              <Button
+                onClick={handleReschedule}
+                disabled={!rescheduleTargetScheduleId || rescheduling}
+              >
+                {rescheduling ? "Rescheduling…" : "Reschedule"}
               </Button>
             </DialogFooter>
           </DialogContent>
