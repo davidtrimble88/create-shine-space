@@ -254,10 +254,7 @@ const ViewerSchedule = () => {
   const generateWeekendPlaceholders = (): PlaceholderEntry[] => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const currentMonth = today.getMonth();
-    const endDate = currentMonth === 11
-      ? new Date(today.getFullYear() + 1, 5, 30)
-      : new Date(today.getFullYear(), 11, 31);
+    const endDate = addYears(today, 1);
 
     // Build per-location scheduled-date sets so a location's placeholder only hides
     // when that same location already has a class on one of the pattern days.
