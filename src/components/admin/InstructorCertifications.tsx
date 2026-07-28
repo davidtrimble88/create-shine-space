@@ -424,8 +424,8 @@ const InstructorCertifications = () => {
         </div>
         <p className="text-muted-foreground text-sm">
           {isAdmin
-            ? "Track CMSP, IRC, ARC, and CPR expiration dates for every instructor. Only admins and owners can edit."
-            : "Your CMSP, IRC, ARC, and CPR expiration dates. Contact an admin to make changes."}
+            ? "Track CMSP, IRC, ARC, CPR, and Teach-Alone expiration dates for every instructor. Only admins and owners can edit."
+            : "Your CMSP, IRC, ARC, CPR, and Teach-Alone expiration dates. Contact an admin to make changes."}
         </p>
       </div>
 
