@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronRight, Download, ClipboardList } from "lucide-react";
 import { formatPSTDate } from "@/lib/formatDate";
+import ExtraHoursRequests from "./ExtraHoursRequests";
 
 type Duty = "c1" | "r1" | "c2" | "r2";
 const DUTIES: Duty[] = ["c1", "r1", "c2", "r2"];
@@ -28,10 +29,20 @@ interface AssignmentRow {
   schedules: { id: string; date: string; course: string | null; location: string | null; schedule: string | null } | null;
 }
 
+interface ExtraHoursRow {
+  employee_id: string;
+  hours: number;
+  justification: string;
+  work_date: string | null;
+  decided_at: string | null;
+}
+
 interface EmployeeSummary {
   employee: Employee;
   counts: Record<Duty, number>;
   total: number;
+  extraHours: number;
+  extraEntries: ExtraHoursRow[];
   entries: {
     date: string;
     scheduleId: string;
@@ -48,6 +59,7 @@ const WorkLog = () => {
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<AssignmentRow[]>([]);
+  const [extraHours, setExtraHours] = useState<ExtraHoursRow[]>([]);
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [fromDate, setFromDate] = useState<string>("");
@@ -67,12 +79,18 @@ const WorkLog = () => {
         .select("employee_id, assignment_role, part, schedule_id, schedules(id, date, course, location, schedule)")
         .lt("schedules.date", today);
 
+      // RLS filters to what this user is allowed to see (own rows, or all for owner/admin approved)
+      const extraRes = await supabase
+        .from("extra_hours_requests")
+        .select("employee_id, hours, justification, work_date, decided_at")
+        .eq("status", "approved");
+
       setEmployees((empRes.data ?? []) as Employee[]);
-      // Filter rows whose join returned no schedule (shouldn't happen with inner) or future
       const rows = ((assignRes.data ?? []) as any[]).filter(
         (r) => r.schedules && r.schedules.date && r.schedules.date < today,
       ) as AssignmentRow[];
       setAssignments(rows);
+      setExtraHours((extraRes.data ?? []) as ExtraHoursRow[]);
       setLoading(false);
     };
     load();
@@ -123,7 +141,17 @@ const WorkLog = () => {
       }
       entries.sort((a, b) => (a.date < b.date ? 1 : -1));
       const total = counts.c1 + counts.r1 + counts.c2 + counts.r2;
-      return { employee: emp, counts, total, entries };
+
+      const empExtras = extraHours.filter((x) => {
+        if (x.employee_id !== emp.id) return false;
+        const d = x.work_date ?? x.decided_at?.slice(0, 10);
+        if (fromDate && d && d < fromDate) return false;
+        if (toDate && d && d > toDate) return false;
+        return true;
+      });
+      const extraTotal = empExtras.reduce((sum, x) => sum + Number(x.hours || 0), 0);
+
+      return { employee: emp, counts, total, entries, extraHours: extraTotal, extraEntries: empExtras };
     });
 
     // Filter by search + sort by total desc then name
@@ -135,12 +163,16 @@ const WorkLog = () => {
       return a.employee.full_name.localeCompare(b.employee.full_name);
     });
     return filtered;
-  }, [employees, assignments, isAdmin, user, search, fromDate, toDate]);
+  }, [employees, assignments, extraHours, isAdmin, user, search, fromDate, toDate]);
 
   const totals = useMemo(() => {
     const t: Record<Duty, number> = { c1: 0, r1: 0, c2: 0, r2: 0 };
-    summaries.forEach((s) => DUTIES.forEach((d) => (t[d] += s.counts[d])));
-    return t;
+    let extra = 0;
+    summaries.forEach((s) => {
+      DUTIES.forEach((d) => (t[d] += s.counts[d]));
+      extra += s.extraHours;
+    });
+    return { ...t, extra };
   }, [summaries]);
 
   const toggle = (id: string) =>
@@ -152,7 +184,7 @@ const WorkLog = () => {
     });
 
   const exportCSV = () => {
-    const header = ["Employee", "Position", "C1", "R1", "C2", "R2", "Total Sessions"];
+    const header = ["Employee", "Position", "C1", "R1", "C2", "R2", "Total Sessions", "Extra Hours"];
     const rows = summaries.map((s) => [
       s.employee.full_name,
       s.employee.position ?? "",
@@ -161,6 +193,7 @@ const WorkLog = () => {
       s.counts.c2,
       s.counts.r2,
       s.total,
+      s.extraHours,
     ]);
     const csv = [header, ...rows]
       .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
@@ -257,6 +290,7 @@ const WorkLog = () => {
                     <TableHead className="text-center">C2</TableHead>
                     <TableHead className="text-center">R2</TableHead>
                     <TableHead className="text-center">Total</TableHead>
+                    <TableHead className="text-center">Extra Hrs</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -283,42 +317,80 @@ const WorkLog = () => {
                           <TableCell className="text-center">{s.counts.c2}</TableCell>
                           <TableCell className="text-center">{s.counts.r2}</TableCell>
                           <TableCell className="text-center font-semibold">{s.total}</TableCell>
+                          <TableCell className="text-center">
+                            {s.extraHours > 0 ? (
+                              <span className="font-semibold text-primary">{s.extraHours}</span>
+                            ) : (
+                              <span className="text-muted-foreground">0</span>
+                            )}
+                          </TableCell>
                         </TableRow>
                         {open && (
                           <TableRow key={s.employee.id + "-detail"}>
-                            <TableCell colSpan={7} className="bg-muted/30">
-                              {s.entries.length === 0 ? (
-                                <p className="text-sm text-muted-foreground py-2">No sessions in range.</p>
+                            <TableCell colSpan={8} className="bg-muted/30">
+                              {s.entries.length === 0 && s.extraEntries.length === 0 ? (
+                                <p className="text-sm text-muted-foreground py-2">No sessions or extra hours in range.</p>
                               ) : (
-                                <div className="py-2">
-                                  <Table>
-                                    <TableHeader>
-                                      <TableRow>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Course</TableHead>
-                                        <TableHead>Location</TableHead>
-                                        <TableHead>Sessions Taught</TableHead>
-                                      </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                      {s.entries.map((e) => (
-                                        <TableRow key={e.scheduleId}>
-                                          <TableCell>{formatPSTDate(e.date)}</TableCell>
-                                          <TableCell className="capitalize">{e.course ?? "—"}</TableCell>
-                                          <TableCell>{e.location ?? "—"}</TableCell>
-                                          <TableCell>
-                                            <div className="flex gap-1 flex-wrap">
-                                              {e.duties.map((d) => (
-                                                <Badge key={d} variant="secondary" className="uppercase">
-                                                  {d}
-                                                </Badge>
-                                              ))}
-                                            </div>
-                                          </TableCell>
+                                <div className="py-2 space-y-4">
+                                  {s.entries.length > 0 && (
+                                    <Table>
+                                      <TableHeader>
+                                        <TableRow>
+                                          <TableHead>Date</TableHead>
+                                          <TableHead>Course</TableHead>
+                                          <TableHead>Location</TableHead>
+                                          <TableHead>Sessions Taught</TableHead>
                                         </TableRow>
-                                      ))}
-                                    </TableBody>
-                                  </Table>
+                                      </TableHeader>
+                                      <TableBody>
+                                        {s.entries.map((e) => (
+                                          <TableRow key={e.scheduleId}>
+                                            <TableCell>{formatPSTDate(e.date)}</TableCell>
+                                            <TableCell className="capitalize">{e.course ?? "—"}</TableCell>
+                                            <TableCell>{e.location ?? "—"}</TableCell>
+                                            <TableCell>
+                                              <div className="flex gap-1 flex-wrap">
+                                                {e.duties.map((d) => (
+                                                  <Badge key={d} variant="secondary" className="uppercase">
+                                                    {d}
+                                                  </Badge>
+                                                ))}
+                                              </div>
+                                            </TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  )}
+                                  {s.extraEntries.length > 0 && (
+                                    <div>
+                                      <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">
+                                        Approved Extra Hours
+                                      </p>
+                                      <Table>
+                                        <TableHeader>
+                                          <TableRow>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead className="text-center">Hours</TableHead>
+                                            <TableHead>Justification</TableHead>
+                                          </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                          {s.extraEntries.map((x, i) => (
+                                            <TableRow key={i}>
+                                              <TableCell className="whitespace-nowrap">
+                                                {formatPSTDate(x.work_date ?? x.decided_at ?? "")}
+                                              </TableCell>
+                                              <TableCell className="text-center font-semibold">{x.hours}</TableCell>
+                                              <TableCell className="whitespace-pre-wrap text-sm">
+                                                {x.justification}
+                                              </TableCell>
+                                            </TableRow>
+                                          ))}
+                                        </TableBody>
+                                      </Table>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </TableCell>
@@ -339,6 +411,7 @@ const WorkLog = () => {
                     <TableCell className="text-center">
                       {totals.c1 + totals.r1 + totals.c2 + totals.r2}
                     </TableCell>
+                    <TableCell className="text-center">{totals.extra}</TableCell>
                   </TableRow>
                 )}
               </Table>
@@ -346,6 +419,8 @@ const WorkLog = () => {
           )}
         </CardContent>
       </Card>
+
+      <ExtraHoursRequests />
     </div>
   );
 };
