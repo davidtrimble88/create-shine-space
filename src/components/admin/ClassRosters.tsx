@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2, ShieldCheck, ShieldAlert, Archive } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -166,6 +168,10 @@ const ClassRosters = () => {
   const [dl389PendingCounts, setDl389PendingCounts] = useState<Record<string, number>>({});
   // Fail-result dialog state
   const [failDialogBookingId, setFailDialogBookingId] = useState<string | null>(null);
+  const [failCanReturn, setFailCanReturn] = useState<"yes" | "no" | null>(null);
+  const [failRetestType, setFailRetestType] = useState<"skill" | "knowledge" | "both">("skill");
+  const [failComment, setFailComment] = useState("");
+  const [savingFail, setSavingFail] = useState(false);
   // Schedule-retest dialog state
   const [scheduleRetestFor, setScheduleRetestFor] = useState<Booking | null>(null);
   const [retestTargetScheduleId, setRetestTargetScheduleId] = useState<string>("");
@@ -939,9 +945,13 @@ const ClassRosters = () => {
   };
 
   const handleSetResult = async (bookingId: string, next: "pass" | "fail" | null) => {
-    // For 'fail' we open a dialog to capture retest eligibility
+    // For 'fail' we open a dialog to capture retest eligibility + optional comment
     if (next === "fail") {
+      const b = bookings.find(x => x.id === bookingId);
       setFailDialogBookingId(bookingId);
+      setFailCanReturn(null);
+      setFailRetestType("skill");
+      setFailComment("");
       return;
     }
     const updates: any = { result: next };
@@ -960,25 +970,56 @@ const ClassRosters = () => {
     toast.success(next === null ? "Result cleared" : "Marked as Pass");
   };
 
-  const handleSetFailWithRetest = async (retestType: "skill" | "knowledge" | "both" | "none") => {
-    if (!failDialogBookingId) return;
-    const updates: any = { result: "fail", retest_type: retestType };
+  const closeFailDialog = () => {
+    setFailDialogBookingId(null);
+    setFailCanReturn(null);
+    setFailRetestType("skill");
+    setFailComment("");
+  };
+
+  const saveFailDecision = async () => {
+    if (!failDialogBookingId || !failCanReturn) return;
+    setSavingFail(true);
+    const current = bookings.find(b => b.id === failDialogBookingId);
+    const trimmed = failComment.trim();
+
+    // Append the eval comment to the roster_comment so it travels with the student's record.
+    let mergedComment = current?.roster_comment || "";
+    if (trimmed) {
+      const stamp = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
+      const prefix = failCanReturn === "yes" ? "Eval note" : "Eval note (archived)";
+      const line = `${prefix} ${stamp}: ${trimmed}`;
+      mergedComment = mergedComment ? `${mergedComment}\n${line}` : line;
+    }
+
+    const updates: any = {
+      result: "fail",
+      retest_type: failCanReturn === "yes" ? failRetestType : "none",
+      roster_comment: mergedComment || null,
+    };
+    if (failCanReturn === "no") {
+      updates.dropped = true;
+      updates.dropped_reason = trimmed || "Not eligible to return";
+      updates.dropped_at = new Date().toISOString();
+      updates.dropped_by = user?.id ?? null;
+    }
+
     const { error } = await supabase
       .from("bookings")
       .update(updates)
       .eq("id", failDialogBookingId);
+    setSavingFail(false);
     if (error) {
       toast.error("Failed to update result");
       return;
     }
     setBookings(prev => prev.map(b => b.id === failDialogBookingId ? { ...b, ...updates } : b));
-    setFailDialogBookingId(null);
-    const label =
-      retestType === "none" ? "Not eligible for retest" :
-      retestType === "skill" ? "Skill retest eligible" :
-      retestType === "knowledge" ? "Knowledge retest eligible" :
-      "Skill & Knowledge retest eligible";
-    toast.success(`Marked as Fail — ${label}`);
+    closeFailDialog();
+    toast.success(
+      failCanReturn === "yes"
+        ? `Marked as Fail — moved to Pending Retest/Reschedule`
+        : `Marked as Fail — archived (not returning)`
+    );
   };
 
   const renderResultCell = (b: Booking) => {
@@ -1458,7 +1499,7 @@ const ClassRosters = () => {
       <div>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <RotateCcw className="w-6 h-6" /> Pending Retests
+            <RotateCcw className="w-6 h-6" /> Pending Retest/Reschedule
           </h1>
           <Button variant="outline" onClick={() => setView("active")}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Class Rosters
@@ -1664,7 +1705,7 @@ const ClassRosters = () => {
                 )}
               </Button>
               <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("pending_retests"); }}>
-                <RotateCcw className="w-4 h-4 mr-2" /> Pending Retests
+                <RotateCcw className="w-4 h-4 mr-2" /> Pending Retest/Reschedule
                 {pendingRetests.length > 0 && (
                   <span className="ml-2 bg-primary/20 text-primary px-1.5 py-0.5 rounded text-xs font-bold">
                     {pendingRetests.length}
@@ -2390,38 +2431,97 @@ const ClassRosters = () => {
         </div>
       )}
 
-      {/* Fail-result dialog: pick retest eligibility */}
-      <Dialog open={!!failDialogBookingId} onOpenChange={open => { if (!open) setFailDialogBookingId(null); }}>
+      {/* Fail-result dialog: can return, retest type, and comment */}
+      <Dialog open={!!failDialogBookingId} onOpenChange={open => { if (!open) closeFailDialog(); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Mark as Fail — Retest Eligibility</DialogTitle>
+            <DialogTitle>Mark as Fail</DialogTitle>
             <DialogDescription>
-              Choose whether this student is eligible to retest within {RETEST_WINDOW_DAYS} days. Eligible students will appear in the Pending Retests list with a countdown.
+              Decide whether this student can return. Eligible students move to Pending Retest/Reschedule with a {RETEST_WINDOW_DAYS}-day countdown. Students who can't return are archived. Comments are saved to the student's record.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 gap-2 mt-2">
-            <Button variant="outline" onClick={() => handleSetFailWithRetest("skill")} className="justify-start">
-              <RotateCcw className="w-4 h-4 mr-2 text-primary" />
-              Eligible — <span className="font-semibold ml-1">Skill Retest</span>
-            </Button>
-            <Button variant="outline" onClick={() => handleSetFailWithRetest("knowledge")} className="justify-start">
-              <RotateCcw className="w-4 h-4 mr-2 text-amber-500" />
-              Eligible — <span className="font-semibold ml-1">Knowledge Retest</span>
-            </Button>
-            <Button variant="outline" onClick={() => handleSetFailWithRetest("both")} className="justify-start">
-              <RotateCcw className="w-4 h-4 mr-2 text-foreground" />
-              Eligible — <span className="font-semibold ml-1">Skill &amp; Knowledge Retest</span>
-            </Button>
-            <Button variant="outline" onClick={() => handleSetFailWithRetest("none")} className="justify-start">
-              <X className="w-4 h-4 mr-2 text-destructive" />
-              Not eligible for retest
-            </Button>
+
+          <div className="space-y-4 mt-2">
+            <div>
+              <div className="text-sm font-medium text-foreground mb-2">Can this student return?</div>
+              <RadioGroup
+                value={failCanReturn ?? ""}
+                onValueChange={(v) => setFailCanReturn(v as "yes" | "no")}
+                className="grid grid-cols-1 gap-2"
+              >
+                <label className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${failCanReturn === "yes" ? "border-primary bg-primary/5" : "border-border hover:bg-secondary/40"}`}>
+                  <RadioGroupItem value="yes" id="fail-return-yes" className="mt-0.5" />
+                  <div>
+                    <div className="text-sm font-semibold flex items-center gap-2">
+                      <RotateCcw className="w-4 h-4 text-primary" /> Yes — can return
+                    </div>
+                    <div className="text-xs text-muted-foreground">Moves to Pending Retest/Reschedule.</div>
+                  </div>
+                </label>
+                <label className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${failCanReturn === "no" ? "border-destructive bg-destructive/5" : "border-border hover:bg-secondary/40"}`}>
+                  <RadioGroupItem value="no" id="fail-return-no" className="mt-0.5" />
+                  <div>
+                    <div className="text-sm font-semibold flex items-center gap-2">
+                      <Archive className="w-4 h-4 text-destructive" /> No — cannot return
+                    </div>
+                    <div className="text-xs text-muted-foreground">Archives the student (Needs Rescheduling / past roster).</div>
+                  </div>
+                </label>
+              </RadioGroup>
+            </div>
+
+            {failCanReturn === "yes" && (
+              <div>
+                <div className="text-sm font-medium text-foreground mb-2">Retest type</div>
+                <RadioGroup
+                  value={failRetestType}
+                  onValueChange={(v) => setFailRetestType(v as "skill" | "knowledge" | "both")}
+                  className="grid grid-cols-1 gap-2"
+                >
+                  <label className="flex items-center gap-2 p-2 rounded-md border border-border cursor-pointer hover:bg-secondary/40">
+                    <RadioGroupItem value="skill" id="fail-rt-skill" />
+                    <span className="text-sm">Skill Retest</span>
+                  </label>
+                  <label className="flex items-center gap-2 p-2 rounded-md border border-border cursor-pointer hover:bg-secondary/40">
+                    <RadioGroupItem value="knowledge" id="fail-rt-knowledge" />
+                    <span className="text-sm">Knowledge Retest</span>
+                  </label>
+                  <label className="flex items-center gap-2 p-2 rounded-md border border-border cursor-pointer hover:bg-secondary/40">
+                    <RadioGroupItem value="both" id="fail-rt-both" />
+                    <span className="text-sm">Skill &amp; Knowledge Retest</span>
+                  </label>
+                </RadioGroup>
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="fail-comment" className="text-sm font-medium">
+                Comment {failCanReturn === "no" ? "(saved to student record & archive reason)" : "(saved to student record)"}
+              </Label>
+              <Textarea
+                id="fail-comment"
+                value={failComment}
+                onChange={(e) => setFailComment(e.target.value)}
+                placeholder="e.g. Dropped bike during eval — needs more low-speed practice"
+                className="mt-1"
+                rows={3}
+              />
+            </div>
           </div>
+
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setFailDialogBookingId(null)}>Cancel</Button>
+            <Button variant="ghost" onClick={closeFailDialog} disabled={savingFail}>Cancel</Button>
+            <Button
+              onClick={saveFailDecision}
+              disabled={!failCanReturn || savingFail}
+              variant={failCanReturn === "no" ? "destructive" : "default"}
+            >
+              {savingFail ? "Saving..." : failCanReturn === "no" ? "Archive Student" : "Mark Fail & Move"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
       {/* No-Show dialog */}
       <Dialog open={!!noShowFor} onOpenChange={open => { if (!open) setNoShowFor(null); }}>
