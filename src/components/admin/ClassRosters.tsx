@@ -1334,7 +1334,7 @@ const ClassRosters = () => {
                             {b.first_name} {b.last_name}
                           </div>
                           <div className="text-xs text-muted-foreground mt-0.5">
-                            {b.license_number ? `DL ${b.license_number}` : "No DL #"} • {b.phone}
+                            {b.license_number ? `ID ${b.license_number}` : "No ID #"} • {b.phone}
                           </div>
                         </div>
                         <div className="text-xs text-primary flex items-center gap-1">
@@ -1377,7 +1377,7 @@ const ClassRosters = () => {
                     <Field label="Email" value={b.email} />
                     <Field label="Date of Birth" value={b.date_of_birth} />
                     <Field label="Gender" value={b.gender} />
-                    <Field label="DL #" value={b.license_number} />
+                    <Field label="ID #" value={b.license_number} />
                     <Field label="DL Expiration" value={b.license_expiration} />
                     <Field label="Issuing State" value={b.issuing_state} />
                     <Field label="Issuing Country" value={b.issuing_country} />
@@ -1702,7 +1702,7 @@ const ClassRosters = () => {
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="text-xs font-medium text-muted-foreground mb-1 block">DL #</label>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">ID #</label>
                           <Input value={retestForm.license_number} onChange={e => setRetestForm(p => ({ ...p, license_number: e.target.value }))} />
                         </div>
                         <div>
@@ -1741,7 +1741,7 @@ const ClassRosters = () => {
           <Input
             value={studentSearch}
             onChange={e => setStudentSearch(e.target.value)}
-            placeholder="Search students by name, email, phone, DL #, city, ZIP…"
+            placeholder="Search students by name, email, phone, ID #, city, ZIP…"
             className="pl-9 pr-9"
           />
           {studentSearch && (
@@ -1958,7 +1958,7 @@ const ClassRosters = () => {
                       <th className="text-left p-3 font-medium text-muted-foreground">First</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">Last</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground">DL #</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground">ID #</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">DOB</th>
                       {(["checkpoint_c1","checkpoint_r1","checkpoint_c2","checkpoint_r2"] as const).map((k) => {
                         const label = k.slice(-2).toUpperCase();
@@ -2178,7 +2178,7 @@ const ClassRosters = () => {
                         <th className="text-left p-3 font-medium text-muted-foreground">First</th>
                         <th className="text-left p-3 font-medium text-muted-foreground">Last</th>
                         <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">DL #</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">ID #</th>
                         <th className="text-left p-3 font-medium text-muted-foreground">DOB</th>
                         <th className="text-left p-3 font-medium text-muted-foreground min-w-[180px]">Comments</th>
                         <th className="text-center p-3 font-medium text-muted-foreground">KS</th>
@@ -2244,7 +2244,7 @@ const ClassRosters = () => {
                     <th className="check-col">Reg</th>
                     <th className="check-col">Model</th>
                     <th className="phone-col">Phone No.</th>
-                    <th>DL #</th>
+                    <th>ID #</th>
                     <th className="id-verify-col">ID ✓</th>
                     <th>Birthdate</th>
                     <th className="check-col">C1</th>
@@ -2302,7 +2302,7 @@ const ClassRosters = () => {
                     <th>First</th>
                     <th>Last</th>
                     <th className="phone-col">Phone No.</th>
-                    <th>DL #</th>
+                    <th>ID #</th>
                     <th className="id-verify-col">ID ✓</th>
                     <th>Birthdate</th>
                     <th>Retake Knowledge?</th>
