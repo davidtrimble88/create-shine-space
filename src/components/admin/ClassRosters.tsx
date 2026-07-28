@@ -1349,6 +1349,61 @@ const ClassRosters = () => {
     toast.success(`Rescheduled to ${target.date} at ${target.location_label}`);
   };
 
+  const openFailNotes = (b: Booking) => {
+    setFailNotesFor(b);
+    setFailNotesText(extractEvalNotes(b.roster_comment).replace(/^Eval note[^:]*:\s*/i, "").split("\n").map(l => l.replace(/^Eval note[^:]*:\s*/i, "")).join("\n"));
+    setConfirmCannotReturn(false);
+  };
+
+  const closeFailNotes = () => {
+    setFailNotesFor(null);
+    setFailNotesText("");
+    setSavingFailNotes(false);
+    setConfirmCannotReturn(false);
+  };
+
+  const saveFailNotes = async () => {
+    if (!failNotesFor) return;
+    setSavingFailNotes(true);
+    const merged = replaceEvalNotes(failNotesFor.roster_comment, failNotesText);
+    const { error } = await supabase
+      .from("bookings")
+      .update({ roster_comment: merged || null } as any)
+      .eq("id", failNotesFor.id);
+    setSavingFailNotes(false);
+    if (error) { toast.error("Failed to save notes"); return; }
+    setBookings(prev => prev.map(b => b.id === failNotesFor.id ? { ...b, roster_comment: merged || null } : b));
+    setPendingRetests(prev => prev.map(b => b.id === failNotesFor.id ? { ...b, roster_comment: merged || null } : b));
+    toast.success("Notes updated");
+    closeFailNotes();
+  };
+
+  const changeToCannotReturn = async () => {
+    if (!failNotesFor) return;
+    setSavingFailNotes(true);
+    const merged = replaceEvalNotes(failNotesFor.roster_comment, failNotesText);
+    const reason = failNotesText.trim() || "Not eligible to return";
+    const updates: any = {
+      roster_comment: merged || null,
+      retest_type: "none",
+      dropped: true,
+      dropped_reason: reason,
+      dropped_at: new Date().toISOString(),
+      dropped_by: user?.id ?? null,
+    };
+    const { error } = await supabase
+      .from("bookings")
+      .update(updates)
+      .eq("id", failNotesFor.id);
+    setSavingFailNotes(false);
+    if (error) { toast.error("Failed to update"); return; }
+    setBookings(prev => prev.map(b => b.id === failNotesFor.id ? { ...b, ...updates } : b));
+    setPendingRetests(prev => prev.filter(b => b.id !== failNotesFor.id));
+    toast.success("Student archived — not returning");
+    closeFailNotes();
+  };
+
+
 
   // ========================
   // DL389 view
