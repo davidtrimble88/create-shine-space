@@ -448,7 +448,6 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             <p className="text-sm text-muted-foreground">
               No signature is needed here. When you submit, we'll fill in the official CMSP Student
               Registration Form with your answers and give you a copy to <strong>download and print</strong>.
-              You'll sign the printed copy in person at check-in on the first day of class.
               {prefill.isMinor && (
                 <> A parent or legal guardian must also be present at the <strong>start of the first
                 range class</strong> to sign in person and confirm permission for the minor to
@@ -456,8 +455,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
               )}
             </p>
             <p className="text-xs text-muted-foreground pt-1">
-              Submitting marks this form <strong>complete</strong> on your class roster right away —
-              you don't need to bring anything back to us before class.
+              Submitting this form complete the CMSP Registration Form — you do not need to bring a copy back to us before class.
             </p>
           </div>
 
