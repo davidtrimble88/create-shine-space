@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft, Pin, PinOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, parseISO, addDays } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
+import { useDefaultLocation } from "@/lib/defaultLocation";
 
 type Schedule = Tables<"schedules">;
 
