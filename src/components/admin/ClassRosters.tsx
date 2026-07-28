@@ -1740,6 +1740,108 @@ const ClassRosters = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Reschedule dialog */}
+        <Dialog
+          open={!!rescheduleFor}
+          onOpenChange={open => {
+            if (!open) {
+              setRescheduleFor(null);
+              setRescheduleTargetScheduleId("");
+              setRescheduleScope("full");
+              setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reschedule Student</DialogTitle>
+              <DialogDescription>
+                {rescheduleFor && (
+                  <>
+                    Move <span className="font-semibold text-foreground">{rescheduleFor.first_name} {rescheduleFor.last_name}</span> into another upcoming{" "}
+                    <span className="font-semibold text-foreground">{courseLabels[rescheduleFor.course] || rescheduleFor.course}</span> class.
+                  </>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            {rescheduleFor && (() => {
+              const src = rescheduleFor;
+              const todayStr = new Date().toISOString().split("T")[0];
+              const candidates = schedules
+                .filter(s => s.course === src.course && s.date >= todayStr && s.spots_available > 0)
+                .sort((a, b) => a.date.localeCompare(b.date));
+
+              return (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground block">Choose a class</label>
+                    {candidates.length === 0 ? (
+                      <div className="bg-muted/50 border border-border rounded-md p-3 text-sm text-muted-foreground">
+                        No upcoming {courseLabels[src.course] || src.course} classes with open spots.
+                      </div>
+                    ) : (
+                      <Select value={rescheduleTargetScheduleId} onValueChange={setRescheduleTargetScheduleId}>
+                        <SelectTrigger><SelectValue placeholder="Select an available class" /></SelectTrigger>
+                        <SelectContent>
+                          {candidates.map(s => (
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.date} • {s.location_label} • {s.spots_available} spot{s.spots_available !== 1 ? "s" : ""} open
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground block">What are they attending?</label>
+                    <RadioGroup value={rescheduleScope} onValueChange={(v) => setRescheduleScope(v as "full" | "partial")}>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="full" id="resch-full" />
+                        <Label htmlFor="resch-full" className="cursor-pointer text-sm">Full class</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="partial" id="resch-partial" />
+                        <Label htmlFor="resch-partial" className="cursor-pointer text-sm">Partial — choose portions below</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {rescheduleScope === "partial" && (
+                    <div className="space-y-2 pl-2 border-l-2 border-border">
+                      <label className="text-xs font-medium text-muted-foreground block">Portions</label>
+                      <div className="flex flex-wrap gap-4">
+                        {(["c1", "r1", "c2", "r2"] as const).map(k => (
+                          <div key={k} className="flex items-center gap-2">
+                            <Checkbox
+                              id={`resch-${k}`}
+                              checked={reschedulePortions[k]}
+                              onCheckedChange={(checked) =>
+                                setReschedulePortions(prev => ({ ...prev, [k]: checked === true }))
+                              }
+                            />
+                            <Label htmlFor={`resch-${k}`} className="cursor-pointer text-sm uppercase">{k}</Label>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">Selected portions will be noted in the roster comment for the new class.</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setRescheduleFor(null)}>Cancel</Button>
+              <Button
+                onClick={handleReschedule}
+                disabled={!rescheduleTargetScheduleId || rescheduling}
+              >
+                {rescheduling ? "Rescheduling…" : "Reschedule"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   };
