@@ -682,10 +682,16 @@ const RegisterPage = () => {
         scheduleId: scheduleId,
         scheduleDate: scheduleDate,
       });
-      // Open the pre-waivers gate: online now, or sign at class (skip to payment)
+      // Minors get a gate: sign online now, or skip and have parent/guardian sign in person.
+      // Adults always sign online — no skip option.
       setMinorAckChecked(false);
       setGuardianSignsInPerson(false);
-      setWaiverGateOpen(true);
+      if (isUnder18) {
+        setWaiverGateOpen(true);
+      } else {
+        setRegFormOpen(true);
+        requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+      }
     } catch (err) {
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
     }
