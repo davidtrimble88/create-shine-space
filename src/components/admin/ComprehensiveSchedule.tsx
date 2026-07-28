@@ -32,6 +32,14 @@ const ComprehensiveSchedule = () => {
   const [loading, setLoading] = useState(true);
   const [filterLocation, setFilterLocation] = useState("all");
   const [filterCourse, setFilterCourse] = useState("all");
+  const { defaultLocation, setDefaultLocation, loaded: prefLoaded } = useDefaultLocation();
+  const [initializedLoc, setInitializedLoc] = useState(false);
+  useEffect(() => {
+    if (prefLoaded && !initializedLoc) {
+      if (defaultLocation && defaultLocation !== "all") setFilterLocation(defaultLocation);
+      setInitializedLoc(true);
+    }
+  }, [prefLoaded, defaultLocation, initializedLoc]);
   const [filterInstructor, setFilterInstructor] = useState("all");
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [instructorList, setInstructorList] = useState<{ id: string; name: string }[]>([]);
