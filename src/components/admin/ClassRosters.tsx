@@ -403,7 +403,7 @@ const ClassRosters = () => {
         const scheduleDate = schedules.find(s => s.id === selectedScheduleId)?.date || null;
         let extrasQuery = (supabase as any)
           .from("signed_waivers")
-          .select("signer_email, document_type, schedule_id, schedule_date")
+          .select("signer_email, document_type, schedule_id, schedule_date, is_minor, guardian_signature_drawn")
           .in("document_type", ["cmsp_waiver", "cmsp_registration_form", "cmsp_model_release", "cmsp_model_release_decline"]);
 
         extrasQuery = scheduleDate
@@ -414,24 +414,37 @@ const ClassRosters = () => {
         const regSet = new Set<string>();
         const wEmails = new Set<string>();
         const mrMap = new Map<string, "signed" | "declined">();
+        const pendingGuardian = new Set<string>(); // email:doc pairs awaiting in-person guardian sig
         const studentEmails = new Set(emails);
         (extras ?? []).forEach((r: any) => {
           const em = (r.signer_email || "").toLowerCase();
           if (!studentEmails.has(em)) return;
           const matchesClass = r.schedule_id === selectedScheduleId || (scheduleDate && r.schedule_date === scheduleDate);
           if (!matchesClass) return;
-          if (r.document_type === "cmsp_waiver") wEmails.add(em);
-          else if (r.document_type === "cmsp_registration_form") regSet.add(em);
-          else if (r.document_type === "cmsp_model_release") mrMap.set(em, "signed");
-          else if (r.document_type === "cmsp_model_release_decline" && !mrMap.has(em)) mrMap.set(em, "declined");
+          // Minor forms that require a guardian signature aren't complete until the
+          // guardian signs (either online or in person via admin toggle).
+          const isPending = !!r.is_minor && !r.guardian_signature_drawn;
+          if (r.document_type === "cmsp_waiver") {
+            if (isPending) pendingGuardian.add(`${em}:waiver`);
+            else wEmails.add(em);
+          } else if (r.document_type === "cmsp_registration_form") {
+            regSet.add(em);
+          } else if (r.document_type === "cmsp_model_release") {
+            if (isPending) pendingGuardian.add(`${em}:model_release`);
+            else mrMap.set(em, "signed");
+          } else if (r.document_type === "cmsp_model_release_decline" && !mrMap.has(em)) {
+            mrMap.set(em, "declined");
+          }
         });
         setWaiverEmails(wEmails);
         setRegFormEmails(regSet);
         setModelReleaseByEmail(mrMap);
+        setPendingGuardianForms(pendingGuardian);
       } else {
         setWaiverEmails(new Set());
         setRegFormEmails(new Set());
         setModelReleaseByEmail(new Map());
+        setPendingGuardianForms(new Set());
       }
       setLoading(false);
     };
