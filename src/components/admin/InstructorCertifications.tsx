@@ -267,6 +267,7 @@ const AdminAllView = () => {
       irc_expires: c?.irc_expires ?? "",
       arc_expires: c?.arc_expires ?? "",
       cpr_expires: c?.cpr_expires ?? "",
+      teach_alone_expires: c?.teach_alone_expires ?? "",
       notes: c?.notes ?? "",
     });
   };
@@ -280,6 +281,7 @@ const AdminAllView = () => {
       irc_expires: form.irc_expires || null,
       arc_expires: form.arc_expires || null,
       cpr_expires: form.cpr_expires || null,
+      teach_alone_expires: form.teach_alone_expires || null,
       notes: form.notes.trim() || null,
     };
     const { error } = editingId
