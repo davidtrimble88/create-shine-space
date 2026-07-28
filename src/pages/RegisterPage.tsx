@@ -682,6 +682,59 @@ const RegisterPage = () => {
         scheduleId: scheduleId,
         scheduleDate: scheduleDate,
       });
+      // Open the pre-waivers gate: online now, or sign at class (skip to payment)
+      setMinorAckChecked(false);
+      setGuardianSignsInPerson(false);
+      setWaiverGateOpen(true);
+    } catch (err) {
+      toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
+    }
+    setSubmitting(false);
+  };
+
+  const handleGateSignOnline = () => {
+    // Guardian will sign in person at first class only if the student is a minor.
+    setGuardianSignsInPerson(isUnder18);
+    setWaiverGateOpen(false);
+    setRegFormOpen(true);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+  };
+
+  const handleGateSignInPerson = () => {
+    // Skip all three online signing steps and go straight to payment.
+    setGuardianSignsInPerson(false);
+    setWaiverGateOpen(false);
+    paymentCompletedRef.current = false;
+    setPaymentOpen(true);
+  };
+
+  const handleRegistrationFormSigned = (_recordId: string) => {
+    setRegFormOpen(false);
+    setModelReleaseOpen(true);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+  };
+        firstName: data.firstName,
+        middleName: data.middleName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        dateOfBirth: data.dateOfBirth,
+        addressStreet: data.address,
+        addressCity: data.city,
+        addressState: data.state,
+        addressZip: data.zip,
+        isMinor: isUnder18,
+        guardianFirstName: isUnder18 ? data.guardianFirstName : undefined,
+        guardianLastName: isUnder18 ? data.guardianLastName : undefined,
+        guardianRelationship: isUnder18 ? data.guardianRelationship : undefined,
+        guardianPhone: isUnder18 ? data.guardianPhone : undefined,
+        guardianEmail: isUnder18 ? data.guardianEmail : undefined,
+        course,
+        location,
+        locationLabel: locationLabels[location] || location,
+        scheduleId: scheduleId,
+        scheduleDate: scheduleDate,
+      });
       setRegFormOpen(true);
       requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
     } catch (err) {
