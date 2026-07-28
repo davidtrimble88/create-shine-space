@@ -1099,6 +1099,23 @@ const ClassRosters = () => {
       .join("\n")
       .trim();
 
+  const extractEvalNotes = (raw: string | null | undefined): string =>
+    (raw || "")
+      .split("\n")
+      .filter(line => /^\s*Eval note\b/i.test(line))
+      .join("\n")
+      .trim();
+
+  const replaceEvalNotes = (raw: string | null | undefined, newNotesText: string): string => {
+    const remainder = stripEvalNotes(raw || "");
+    const trimmed = newNotesText.trim();
+    if (!trimmed) return remainder;
+    const stamp = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
+    const line = `Eval note ${stamp}: ${trimmed}`;
+    return remainder ? `${remainder}\n${line}` : line;
+  };
+
+
   const displayComment = (b: Booking, classDate?: string | null): string => {
     const minor = isMinorOnClass(b, classDate);
     const base = stripEvalNotes(b.roster_comment || "");
