@@ -176,7 +176,7 @@ const ComprehensiveSchedule = () => {
         </div>
       </div>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-wrap gap-3 mb-6 items-center">
         <Select value={filterCourse} onValueChange={setFilterCourse}>
           <SelectTrigger className="w-48"><SelectValue placeholder="All Courses" /></SelectTrigger>
           <SelectContent>
