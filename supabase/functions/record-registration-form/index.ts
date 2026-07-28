@@ -76,7 +76,8 @@ async function sha256Hex(input: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-function dataUrlToBytes(dataUrl: string): { bytes: Uint8Array; mime: string } | null {
+function dataUrlToBytes(dataUrl: string | null | undefined): { bytes: Uint8Array; mime: string } | null {
+  if (!dataUrl) return null;
   const m = dataUrl.match(/^data:image\/(png|jpeg);base64,(.+)$/);
   if (!m) return null;
   const bin = atob(m[2]);
