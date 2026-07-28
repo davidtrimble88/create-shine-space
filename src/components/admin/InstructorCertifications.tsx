@@ -95,6 +95,7 @@ const blankForm = {
   irc_expires: "",
   arc_expires: "",
   cpr_expires: "",
+  teach_alone_expires: "",
   notes: "",
 };
 
