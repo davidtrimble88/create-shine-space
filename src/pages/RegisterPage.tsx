@@ -1518,6 +1518,68 @@ const RegisterPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Pre-waivers gate: choose to sign online now or in person at the first class */}
+      <AlertDialog open={waiverGateOpen} onOpenChange={setWaiverGateOpen}>
+        <AlertDialogContent className="max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign your waivers now, or in person at class?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm">
+                <p>
+                  You can complete your Registration Form, Model Release, and Waiver online now
+                  in about 5 minutes, or skip the online forms and sign the paper copies in
+                  person at the start of your first range class.
+                </p>
+                {isUnder18 && (
+                  <div className="rounded-lg border-2 border-amber-500/60 bg-amber-500/10 p-3 space-y-2">
+                    <p className="font-semibold text-foreground">
+                      ⚠️ Important — student is under 18
+                    </p>
+                    <p>
+                      A <strong>parent or legal guardian must be present at the start of the
+                      first range class</strong> to sign the waivers in person and confirm
+                      permission for the minor to participate. The minor will not be allowed
+                      to ride until the parent/guardian has signed in person.
+                    </p>
+                    <label className="flex items-start gap-2 pt-1 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="mt-1"
+                        checked={minorAckChecked}
+                        onChange={e => setMinorAckChecked(e.target.checked)}
+                      />
+                      <span className="text-foreground">
+                        I understand a parent/legal guardian must be present at the beginning of
+                        the first class to sign the waivers in person.
+                      </span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel>Back</AlertDialogCancel>
+            <button
+              type="button"
+              onClick={handleGateSignInPerson}
+              disabled={isUnder18 && !minorAckChecked}
+              className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Skip — sign in person at class
+            </button>
+            <button
+              type="button"
+              onClick={handleGateSignOnline}
+              disabled={isUnder18 && !minorAckChecked}
+              className="inline-flex h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-foreground hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Sign online now
+            </button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
