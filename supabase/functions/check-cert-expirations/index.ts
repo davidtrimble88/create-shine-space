@@ -17,6 +17,7 @@ const CERT_LABELS: Record<string, string> = {
   irc_expires: "IRC (Instructor)",
   arc_expires: "ARC (Advanced Rider Course)",
   cpr_expires: "CPR",
+  teach_alone_expires: "Teach Alone",
 };
 
 const MILESTONES: { key: string; days: number; label: string }[] = [
