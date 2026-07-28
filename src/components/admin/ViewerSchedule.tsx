@@ -374,8 +374,8 @@ const ViewerSchedule = () => {
               />;
             } else {
               const locationsToShow = filterLocation === "all"
-                ? locationOptions
-                : locationOptions.filter(l => l.value === filterLocation);
+                ? placeholderLocationOptions
+                : placeholderLocationOptions.filter(l => l.filterKey === filterLocation);
 
               return <PlaceholderCard
                 key={entry.dateStr}
