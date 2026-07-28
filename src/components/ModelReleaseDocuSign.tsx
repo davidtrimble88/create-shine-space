@@ -189,8 +189,8 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
         decision,
         signature_typed: studentTyped || fullName,
         signature_drawn: studentSig,
-        guardian_signature_typed: prefill.isMinor ? (guardianTyped || guardianFullName) : null,
-        guardian_signature_drawn: prefill.isMinor ? guardianSig : null,
+        guardian_signature_typed: guardianRequired ? (guardianTyped || guardianFullName) : null,
+        guardian_signature_drawn: guardianRequired ? guardianSig : null,
         consent_acknowledgments: decision === "sign" ? [
           { key: "rights", label: "Grants permission for use of images", accepted: true },
           { key: "esign", label: "Consent to sign electronically (ESIGN Act / UETA)", accepted: true },
