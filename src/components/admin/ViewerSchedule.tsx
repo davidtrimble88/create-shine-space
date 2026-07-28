@@ -665,7 +665,7 @@ const ScheduleCard = ({
 
 const PlaceholderCard = ({
   dates,
-  locations,
+  location,
   myDateAvailability,
   toggling,
   onToggle,
@@ -674,7 +674,7 @@ const PlaceholderCard = ({
   onDismiss,
 }: {
   dates: Date[];
-  locations: { value: string; label: string }[];
+  location: { value: string; label: string };
   myDateAvailability: Map<string, Set<string>>;
   toggling: string | null;
   onToggle: (dateStr: string, location: string) => void;
@@ -684,7 +684,7 @@ const PlaceholderCard = ({
 }) => {
   const hasAnyAvailability = dates.some(d => {
     const ds = format(d, "yyyy-MM-dd");
-    return locations.some(l => myDateAvailability.get(ds)?.has(l.value));
+    return myDateAvailability.get(ds)?.has(location.value);
   });
 
   const dateLabel = dates.length === 1
@@ -707,9 +707,13 @@ const PlaceholderCard = ({
             <CalendarPlus className={`w-5 h-5 ${hasAnyAvailability ? "text-green-400" : "text-muted-foreground"}`} />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-foreground">{dateLabel}</h3>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-              No class scheduled — mark your availability
+            <h3 className="font-bold text-foreground flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-muted-foreground" />
+              {location.label}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">{dateLabel}</p>
+            <span className="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+              No class scheduled — pick the days you can teach
             </span>
           </div>
           {canDismiss && (
@@ -719,7 +723,7 @@ const PlaceholderCard = ({
               onClick={onDismiss}
               disabled={isDismissing}
               className="text-muted-foreground hover:text-destructive flex-shrink-0"
-              title="Dismiss this weekend"
+              title="Dismiss this week"
             >
               {isDismissing ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -730,54 +734,42 @@ const PlaceholderCard = ({
           )}
         </div>
 
-        {dates.map(d => {
-          const dateStr = format(d, "yyyy-MM-dd");
-          const dayLabel = format(d, "EEEE");
-          return (
-            <div key={dateStr} className="ml-13">
-              {dates.length > 1 && (
-                <p className="text-xs text-muted-foreground mb-1 font-medium">{dayLabel}</p>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {locations.map(loc => {
-                  const isAvail = myDateAvailability.get(dateStr)?.has(loc.value) ?? false;
-                  const key = `${dateStr}-${loc.value}`;
-                  const isToggling = toggling === key;
+        <div className="flex flex-wrap gap-2 ml-13">
+          {dates.map(d => {
+            const dateStr = format(d, "yyyy-MM-dd");
+            const dayLabel = format(d, "EEE, MMM d");
+            const isAvail = myDateAvailability.get(dateStr)?.has(location.value) ?? false;
+            const key = `${dateStr}-${location.value}`;
+            const isToggling = toggling === key;
 
-                  return (
-                    <Button
-                      key={loc.value}
-                      variant={isAvail ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => onToggle(dateStr, loc.value)}
-                      disabled={isToggling}
-                      className={isAvail
-                        ? "bg-green-600 hover:bg-green-700 text-white"
-                        : ""
-                      }
-                    >
-                      {isToggling ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : isAvail ? (
-                        <Check className="w-4 h-4 mr-2" />
-                      ) : (
-                        <Hand className="w-4 h-4 mr-2" />
-                      )}
-                      <MapPin className="w-3.5 h-3.5 mr-1 opacity-70" />
-                      {loc.label}
-                      <span className="ml-1.5 opacity-80">
-                        {isAvail ? "— I'm Available" : "— Mark Available"}
-                      </span>
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+            return (
+              <Button
+                key={dateStr}
+                variant={isAvail ? "default" : "outline"}
+                size="sm"
+                onClick={() => onToggle(dateStr, location.value)}
+                disabled={isToggling}
+                className={isAvail ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+              >
+                {isToggling ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : isAvail ? (
+                  <Check className="w-4 h-4 mr-2" />
+                ) : (
+                  <Hand className="w-4 h-4 mr-2" />
+                )}
+                {dayLabel}
+                <span className="ml-1.5 opacity-80">
+                  {isAvail ? "— Available" : "— Mark"}
+                </span>
+              </Button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 };
+
 
 export default ViewerSchedule;
