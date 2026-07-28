@@ -8,8 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquarePlus, Send, Users, Search, Trash2 } from "lucide-react";
+import { MessageSquarePlus, Send, Users, Search, Trash2, MailOpen, Mail } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 type Employee = { user_id: string; full_name: string; email: string };
@@ -45,6 +46,8 @@ export default function MessagingCenter() {
   const [reply, setReply] = useState("");
   const [composeOpen, setComposeOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [readFilter, setReadFilter] = useState<"all" | "unread" | "read">("all");
+  const [senderFilter, setSenderFilter] = useState<string>("all");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const employeeMap = useMemo(() => {
@@ -52,6 +55,8 @@ export default function MessagingCenter() {
     employees.forEach((e) => m.set(e.user_id, e));
     return m;
   }, [employees]);
+
+  const [lastSenderByThread, setLastSenderByThread] = useState<Record<string, string>>({});
 
   const loadThreads = async () => {
     const { data } = await supabase
@@ -61,6 +66,15 @@ export default function MessagingCenter() {
     setThreads((data as Thread[]) || []);
     const { data: parts } = await supabase.from("message_thread_participants").select("*");
     setParticipants((parts as Participant[]) || []);
+    const { data: msgs } = await supabase
+      .from("messages")
+      .select("thread_id, sender_id, created_at")
+      .order("created_at", { ascending: false });
+    const map: Record<string, string> = {};
+    (msgs || []).forEach((m: any) => {
+      if (!map[m.thread_id]) map[m.thread_id] = m.sender_id;
+    });
+    setLastSenderByThread(map);
   };
 
   const loadEmployees = async () => {
@@ -164,19 +178,40 @@ export default function MessagingCenter() {
     return `${others.slice(0, 2).join(", ")} +${others.length - 2}`;
   };
 
-  const unreadCount = (t: Thread) => {
-    if (!user) return 0;
+  const isUnread = (t: Thread) => {
+    if (!user) return false;
+    const lastSender = lastSenderByThread[t.id];
+    if (lastSender && lastSender === user.id) return false;
     const me = participants.find((p) => p.thread_id === t.id && p.user_id === user.id);
-    if (!me) return 0;
-    return new Date(t.last_message_at) > new Date(me.last_read_at) ? 1 : 0;
+    if (!me) return false;
+    return new Date(t.last_message_at) > new Date(me.last_read_at);
   };
 
-  const filteredThreads = threads.filter(
-    (t) =>
-      !search ||
-      t.subject.toLowerCase().includes(search.toLowerCase()) ||
-      threadPreview(t).toLowerCase().includes(search.toLowerCase())
-  );
+  const senderOptions = useMemo(() => {
+    const ids = new Set<string>();
+    threads.forEach((t) => {
+      const s = lastSenderByThread[t.id] || t.created_by;
+      if (s) ids.add(s);
+    });
+    return Array.from(ids)
+      .map((id) => ({ id, name: employeeMap.get(id)?.full_name || "Unknown" }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [threads, lastSenderByThread, employeeMap]);
+
+  const filteredThreads = threads.filter((t) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!t.subject.toLowerCase().includes(q) && !threadPreview(t).toLowerCase().includes(q)) return false;
+    }
+    const unread = isUnread(t);
+    if (readFilter === "unread" && !unread) return false;
+    if (readFilter === "read" && unread) return false;
+    if (senderFilter !== "all") {
+      const s = lastSenderByThread[t.id] || t.created_by;
+      if (s !== senderFilter) return false;
+    }
+    return true;
+  });
 
   const active = threads.find((t) => t.id === activeId);
 
@@ -197,7 +232,7 @@ export default function MessagingCenter() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border border-border rounded-xl overflow-hidden bg-card min-h-[500px]">
         {/* Thread list */}
         <div className={`md:col-span-1 border-r border-border flex flex-col ${activeId ? "hidden md:flex" : "flex"}`}>
-          <div className="p-3 border-b border-border">
+          <div className="p-3 border-b border-border space-y-2">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -207,13 +242,32 @@ export default function MessagingCenter() {
                 className="pl-8 h-9"
               />
             </div>
+            <div className="flex gap-2">
+              <Select value={readFilter} onValueChange={(v) => setReadFilter(v as any)}>
+                <SelectTrigger className="h-8 text-xs flex-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="unread">Unread</SelectItem>
+                  <SelectItem value="read">Read</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={senderFilter} onValueChange={setSenderFilter}>
+                <SelectTrigger className="h-8 text-xs flex-1"><SelectValue placeholder="Sender" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All senders</SelectItem>
+                  {senderOptions.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <ScrollArea className="flex-1">
             {filteredThreads.length === 0 && (
               <div className="p-6 text-center text-sm text-muted-foreground">No conversations yet.</div>
             )}
             {filteredThreads.map((t) => {
-              const unread = unreadCount(t);
+              const unread = isUnread(t);
               return (
                 <button
                   key={t.id}
@@ -226,7 +280,10 @@ export default function MessagingCenter() {
                     <span className={`text-sm truncate ${unread ? "font-semibold" : "font-medium"}`}>
                       {t.subject}
                     </span>
-                    {unread > 0 && <span className="w-2 h-2 rounded-full bg-accent flex-shrink-0" />}
+                    <Badge variant={unread ? "default" : "secondary"} className="text-[10px] py-0 h-5 flex-shrink-0 gap-1">
+                      {unread ? <Mail className="w-3 h-3" /> : <MailOpen className="w-3 h-3" />}
+                      {unread ? "Unread" : "Read"}
+                    </Badge>
                   </div>
                   <div className="text-xs text-muted-foreground truncate mt-0.5 flex items-center gap-1">
                     {t.is_broadcast && <Users className="w-3 h-3" />}
