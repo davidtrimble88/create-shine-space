@@ -29,10 +29,20 @@ interface AssignmentRow {
   schedules: { id: string; date: string; course: string | null; location: string | null; schedule: string | null } | null;
 }
 
+interface ExtraHoursRow {
+  employee_id: string;
+  hours: number;
+  justification: string;
+  work_date: string | null;
+  decided_at: string | null;
+}
+
 interface EmployeeSummary {
   employee: Employee;
   counts: Record<Duty, number>;
   total: number;
+  extraHours: number;
+  extraEntries: ExtraHoursRow[];
   entries: {
     date: string;
     scheduleId: string;
