@@ -379,7 +379,12 @@ const RegisterPage = () => {
   };
 
   const completeRegistration = (booking: any) => {
-    const emailPayload = {
+    const guardianEmail = (waiverPrefill?.guardianEmail || "").trim();
+    const additionalRecipients =
+      waiverPrefill?.isMinor && guardianEmail && guardianEmail.toLowerCase() !== booking.email.toLowerCase()
+        ? [guardianEmail]
+        : [];
+    fireRegistrationEmail({
       email: booking.email,
       firstName: booking.first_name,
       lastName: booking.last_name,
@@ -391,14 +396,8 @@ const RegisterPage = () => {
       scheduleDate: booking.schedule_date,
       scheduleDetail: pendingScheduleDetail,
       fee: booking.fee,
-    };
-    fireRegistrationEmail(emailPayload);
-
-    // Minors: also send a copy of the confirmation to the parent/guardian email.
-    const guardianEmail = (waiverPrefill?.guardianEmail || "").trim();
-    if (waiverPrefill?.isMinor && guardianEmail && guardianEmail.toLowerCase() !== booking.email.toLowerCase()) {
-      fireRegistrationEmail({ ...emailPayload, email: guardianEmail });
-    }
+      additionalRecipients,
+    });
 
     form.reset();
     setPendingBooking(null);
