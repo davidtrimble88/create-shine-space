@@ -2277,7 +2277,7 @@ const ClassRosters = () => {
                           return mr === "signed" ? "✓" : mr === "declined" ? "D" : "—";
                         })()}
                       </td>
-                      <td>{b.phone}</td>
+                      <td className="phone-col">{b.phone}</td>
                       <td>{b.license_number || ""}</td>
                       <td className="center"></td>
                       <td>{b.date_of_birth || ""}</td>
