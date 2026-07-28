@@ -135,9 +135,10 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
     return () => { cancelled = true; };
   }, [decision]);
 
-  const requiredSigs: SigTag[] = prefill.isMinor ? [STUDENT_TAG, GUARDIAN_TAG] : [STUDENT_TAG];
-  const doneSigs = [studentSig && "student", prefill.isMinor && guardianSig && "guardian"].filter(Boolean).length;
-  const allSigned = studentSig && (!prefill.isMinor || guardianSig);
+  const guardianRequired = !!prefill.isMinor && !prefill.guardianInPerson;
+  const requiredSigs: SigTag[] = guardianRequired ? [STUDENT_TAG, GUARDIAN_TAG] : [STUDENT_TAG];
+  const doneSigs = [studentSig && "student", guardianRequired && guardianSig && "guardian"].filter(Boolean).length;
+  const allSigned = studentSig && (!guardianRequired || guardianSig);
 
   const dateStr = useMemo(() => {
     const d = new Date();
@@ -146,7 +147,7 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
 
   const addressLine = [prefill.addressStreet].filter(Boolean).join(", ");
 
-  const guardianComplete = !prefill.isMinor || (gFirst.trim() && gLast.trim() && gRelationship.trim() && gAddress.trim() && gCity.trim() && gState.trim() && gZip.trim() && gPhone.trim() && gEmail.trim());
+  const guardianComplete = !guardianRequired || (gFirst.trim() && gLast.trim() && gRelationship.trim() && gAddress.trim() && gCity.trim() && gState.trim() && gZip.trim() && gPhone.trim() && gEmail.trim());
   const submit = async () => {
     if (!allSigned || !guardianComplete) return;
 
@@ -164,14 +165,15 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
         address_state: prefill.addressState || null,
         address_zip: prefill.addressZip || null,
         is_minor: prefill.isMinor,
-        guardian_name: prefill.isMinor ? guardianFullName : null,
-        guardian_relationship: prefill.isMinor ? (gRelationship || null) : null,
-        guardian_address: prefill.isMinor ? (gAddress || null) : null,
-        guardian_city: prefill.isMinor ? (gCity || null) : null,
-        guardian_state: prefill.isMinor ? (gState || null) : null,
-        guardian_zip: prefill.isMinor ? (gZip || null) : null,
-        guardian_phone: prefill.isMinor ? (gPhone || null) : null,
-        guardian_email: prefill.isMinor ? (gEmail || null) : null,
+        guardian_in_person: !!(prefill.isMinor && prefill.guardianInPerson),
+        guardian_name: guardianRequired ? guardianFullName : null,
+        guardian_relationship: guardianRequired ? (gRelationship || null) : null,
+        guardian_address: guardianRequired ? (gAddress || null) : null,
+        guardian_city: guardianRequired ? (gCity || null) : null,
+        guardian_state: guardianRequired ? (gState || null) : null,
+        guardian_zip: guardianRequired ? (gZip || null) : null,
+        guardian_phone: guardianRequired ? (gPhone || null) : null,
+        guardian_email: guardianRequired ? (gEmail || null) : null,
 
         bike_model: decision === "sign" ? (bikeModel || null) : null,
         helmet_color: decision === "sign" ? (helmetColor || null) : null,
@@ -187,8 +189,8 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
         decision,
         signature_typed: studentTyped || fullName,
         signature_drawn: studentSig,
-        guardian_signature_typed: prefill.isMinor ? (guardianTyped || guardianFullName) : null,
-        guardian_signature_drawn: prefill.isMinor ? guardianSig : null,
+        guardian_signature_typed: guardianRequired ? (guardianTyped || guardianFullName) : null,
+        guardian_signature_drawn: guardianRequired ? guardianSig : null,
         consent_acknowledgments: decision === "sign" ? [
           { key: "rights", label: "Grants permission for use of images", accepted: true },
           { key: "esign", label: "Consent to sign electronically (ESIGN Act / UETA)", accepted: true },
@@ -240,10 +242,10 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
     { k: "af_zip", x: 342, y: 506, w: 65, text: prefill.addressZip || "" },
     { k: "af_email", x: 446, y: 506, w: 152, text: prefill.email || "" },
   ];
-  const GAF: { k: string; x: number; y: number; w: number; text: string }[] = prefill.isMinor ? [
+  const GAF: { k: string; x: number; y: number; w: number; text: string }[] = guardianRequired ? [
     { k: "gaf_date", x: 449, y: 568, w: 92, text: dateStr },
   ] : [];
-  const GAF_INPUTS: { k: string; x: number; y: number; w: number; value: string; setter: (v: string) => void; placeholder: string; type?: string }[] = prefill.isMinor ? [
+  const GAF_INPUTS: { k: string; x: number; y: number; w: number; value: string; setter: (v: string) => void; placeholder: string; type?: string }[] = guardianRequired ? [
     { k: "gaf_address", x: 86, y: 604, w: 320, value: gAddress, setter: setGAddress, placeholder: "Address *" },
     { k: "gaf_phone", x: 446, y: 604, w: 152, value: gPhone, setter: setGPhone, placeholder: "Phone *" },
     { k: "gaf_city", x: 86, y: 640, w: 145, value: gCity, setter: setGCity, placeholder: "City *" },
@@ -358,7 +360,21 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
         </div>
       </div>
 
-      {prefill.isMinor && decision === "sign" && (
+      {prefill.isMinor && prefill.guardianInPerson && decision === "sign" && (
+        <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-4 md:p-6 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <ShieldCheck className="w-5 h-5 text-amber-600" />
+            <h3 className="font-bold text-foreground">Parent / Legal Guardian will sign in person</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Because the student is under 18, a parent or legal guardian must be present at the
+            <strong> start of the first range class</strong> to sign this Model Release in person.
+            You may continue without their signature now.
+          </p>
+        </div>
+      )}
+
+      {guardianRequired && decision === "sign" && (
         <div className="bg-card border-2 border-accent/40 rounded-2xl p-4 md:p-6 space-y-3">
           <div className="flex items-center gap-2 flex-wrap">
             <ShieldCheck className="w-5 h-5 text-accent" />

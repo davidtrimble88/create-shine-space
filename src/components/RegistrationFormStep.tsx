@@ -39,6 +39,8 @@ export interface RegistrationFormPrefill {
   guardianFirstName?: string;
   guardianLastName?: string;
   guardianRelationship?: string;
+  /** If true, the parent/legal guardian will sign in person at the first range class. */
+  guardianInPerson?: boolean;
 }
 
 
