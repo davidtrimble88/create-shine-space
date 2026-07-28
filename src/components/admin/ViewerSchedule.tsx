@@ -397,14 +397,10 @@ const ViewerSchedule = () => {
                 onClear={() => clearAvailability(entry.data.id)}
               />;
             } else {
-              const locationsToShow = filterLocation === "all"
-                ? placeholderLocationOptions
-                : placeholderLocationOptions.filter(l => l.filterKey === filterLocation);
-
               return <PlaceholderCard
                 key={entry.dateStr}
                 dates={entry.dates}
-                locations={locationsToShow}
+                location={entry.location}
                 myDateAvailability={myDateAvailability}
                 toggling={toggling}
                 onToggle={toggleDateAvailability}
@@ -413,6 +409,7 @@ const ViewerSchedule = () => {
                 onDismiss={() => dismissWeekend(entry.dates)}
               />;
             }
+
           })}
         </div>
       )}
