@@ -30,7 +30,7 @@ const PUBLIC_TRIGGERS = new Set<string>([
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
-    const { trigger_event, recipientEmail, variables = {}, location = null, groupName = null, course = null } = await req.json();
+    const { trigger_event, recipientEmail, variables = {}, location = null, groupName = null, course = null, additionalRecipients = [] } = await req.json();
     if (!trigger_event || !recipientEmail) {
       return new Response(JSON.stringify({ error: "trigger_event and recipientEmail are required" }), {
         status: 400, headers: { ...cors, "Content-Type": "application/json" },
