@@ -317,42 +317,80 @@ const WorkLog = () => {
                           <TableCell className="text-center">{s.counts.c2}</TableCell>
                           <TableCell className="text-center">{s.counts.r2}</TableCell>
                           <TableCell className="text-center font-semibold">{s.total}</TableCell>
+                          <TableCell className="text-center">
+                            {s.extraHours > 0 ? (
+                              <span className="font-semibold text-primary">{s.extraHours}</span>
+                            ) : (
+                              <span className="text-muted-foreground">0</span>
+                            )}
+                          </TableCell>
                         </TableRow>
                         {open && (
                           <TableRow key={s.employee.id + "-detail"}>
-                            <TableCell colSpan={7} className="bg-muted/30">
-                              {s.entries.length === 0 ? (
-                                <p className="text-sm text-muted-foreground py-2">No sessions in range.</p>
+                            <TableCell colSpan={8} className="bg-muted/30">
+                              {s.entries.length === 0 && s.extraEntries.length === 0 ? (
+                                <p className="text-sm text-muted-foreground py-2">No sessions or extra hours in range.</p>
                               ) : (
-                                <div className="py-2">
-                                  <Table>
-                                    <TableHeader>
-                                      <TableRow>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Course</TableHead>
-                                        <TableHead>Location</TableHead>
-                                        <TableHead>Sessions Taught</TableHead>
-                                      </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                      {s.entries.map((e) => (
-                                        <TableRow key={e.scheduleId}>
-                                          <TableCell>{formatPSTDate(e.date)}</TableCell>
-                                          <TableCell className="capitalize">{e.course ?? "—"}</TableCell>
-                                          <TableCell>{e.location ?? "—"}</TableCell>
-                                          <TableCell>
-                                            <div className="flex gap-1 flex-wrap">
-                                              {e.duties.map((d) => (
-                                                <Badge key={d} variant="secondary" className="uppercase">
-                                                  {d}
-                                                </Badge>
-                                              ))}
-                                            </div>
-                                          </TableCell>
+                                <div className="py-2 space-y-4">
+                                  {s.entries.length > 0 && (
+                                    <Table>
+                                      <TableHeader>
+                                        <TableRow>
+                                          <TableHead>Date</TableHead>
+                                          <TableHead>Course</TableHead>
+                                          <TableHead>Location</TableHead>
+                                          <TableHead>Sessions Taught</TableHead>
                                         </TableRow>
-                                      ))}
-                                    </TableBody>
-                                  </Table>
+                                      </TableHeader>
+                                      <TableBody>
+                                        {s.entries.map((e) => (
+                                          <TableRow key={e.scheduleId}>
+                                            <TableCell>{formatPSTDate(e.date)}</TableCell>
+                                            <TableCell className="capitalize">{e.course ?? "—"}</TableCell>
+                                            <TableCell>{e.location ?? "—"}</TableCell>
+                                            <TableCell>
+                                              <div className="flex gap-1 flex-wrap">
+                                                {e.duties.map((d) => (
+                                                  <Badge key={d} variant="secondary" className="uppercase">
+                                                    {d}
+                                                  </Badge>
+                                                ))}
+                                              </div>
+                                            </TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  )}
+                                  {s.extraEntries.length > 0 && (
+                                    <div>
+                                      <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">
+                                        Approved Extra Hours
+                                      </p>
+                                      <Table>
+                                        <TableHeader>
+                                          <TableRow>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead className="text-center">Hours</TableHead>
+                                            <TableHead>Justification</TableHead>
+                                          </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                          {s.extraEntries.map((x, i) => (
+                                            <TableRow key={i}>
+                                              <TableCell className="whitespace-nowrap">
+                                                {formatPSTDate(x.work_date ?? x.decided_at ?? "")}
+                                              </TableCell>
+                                              <TableCell className="text-center font-semibold">{x.hours}</TableCell>
+                                              <TableCell className="whitespace-pre-wrap text-sm">
+                                                {x.justification}
+                                              </TableCell>
+                                            </TableRow>
+                                          ))}
+                                        </TableBody>
+                                      </Table>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </TableCell>
