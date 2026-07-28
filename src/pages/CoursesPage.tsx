@@ -659,7 +659,7 @@ const CoursesPage = () => {
       <section className="sticky top-20 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4">
           <div className="flex justify-center">
-            <div className="flex gap-1 p-1.5 bg-card rounded-2xl border border-border my-4">
+            <div className="flex flex-wrap justify-center gap-1 p-1.5 bg-card rounded-2xl border border-border my-4 max-w-full">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -667,15 +667,15 @@ const CoursesPage = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex items-center gap-2 px-5 md:px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
+                    className={`relative flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm sm:gap-2 ${
                       isActive
                         ? "bg-accent text-accent-foreground shadow-lg shadow-accent/25"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 flex-shrink-0" />
                     <span className="hidden sm:inline">{tab.label}</span>
-                    <span className="sm:hidden">{tab.label}</span>
+                    <span className="sm:hidden">{tab.shortLabel}</span>
                   </button>
                 );
               })}
