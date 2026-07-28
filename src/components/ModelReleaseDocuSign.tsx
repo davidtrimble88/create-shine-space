@@ -242,10 +242,10 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
     { k: "af_zip", x: 342, y: 506, w: 65, text: prefill.addressZip || "" },
     { k: "af_email", x: 446, y: 506, w: 152, text: prefill.email || "" },
   ];
-  const GAF: { k: string; x: number; y: number; w: number; text: string }[] = prefill.isMinor ? [
+  const GAF: { k: string; x: number; y: number; w: number; text: string }[] = guardianRequired ? [
     { k: "gaf_date", x: 449, y: 568, w: 92, text: dateStr },
   ] : [];
-  const GAF_INPUTS: { k: string; x: number; y: number; w: number; value: string; setter: (v: string) => void; placeholder: string; type?: string }[] = prefill.isMinor ? [
+  const GAF_INPUTS: { k: string; x: number; y: number; w: number; value: string; setter: (v: string) => void; placeholder: string; type?: string }[] = guardianRequired ? [
     { k: "gaf_address", x: 86, y: 604, w: 320, value: gAddress, setter: setGAddress, placeholder: "Address *" },
     { k: "gaf_phone", x: 446, y: 604, w: 152, value: gPhone, setter: setGPhone, placeholder: "Phone *" },
     { k: "gaf_city", x: 86, y: 640, w: 145, value: gCity, setter: setGCity, placeholder: "City *" },
