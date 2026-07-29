@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Clock, Plus, Check, X } from "lucide-react";
+import { Clock, Plus, Check, X, Archive } from "lucide-react";
 import { formatPSTDate } from "@/lib/formatDate";
 
 interface Row {
