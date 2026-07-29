@@ -372,7 +372,7 @@ const WorkLog = () => {
         </CardContent>
       </Card>
 
-      <ExtraHoursRequests />
+      <ExtraHoursRequests onDecision={load} />
 
       <Card>
         <CardHeader>
