@@ -33,7 +33,7 @@ const statusColor: Record<Row["status"], string> = {
   cancelled: "bg-muted text-muted-foreground",
 };
 
-const ExtraHoursRequests = () => {
+const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) => {
   const { user, effectiveRole } = useAuth();
   const isOwner = effectiveRole === "owner";
   const isAdmin = effectiveRole === "admin";
