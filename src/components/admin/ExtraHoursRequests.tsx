@@ -164,6 +164,14 @@ const ExtraHoursRequests = () => {
 
 
   const pendingCount = useMemo(() => rows.filter((r) => r.status === "pending").length, [rows]);
+  const archivedRows = useMemo(
+    () => rows.filter((r) => r.status === "approved" || r.status === "denied"),
+    [rows],
+  );
+  const visibleRows = useMemo(
+    () => (showArchive ? archivedRows : rows.filter((r) => r.status === "pending")),
+    [rows, showArchive, archivedRows],
+  );
 
   return (
     <div className="space-y-6">
