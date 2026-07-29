@@ -30,7 +30,7 @@ type Booking = Tables<"bookings"> & {
   dropped_by?: string | null;
 };
 
-type ViewMode = "active" | "evaluation_pending" | "dl389" | "past" | "pending_retests";
+type ViewMode = "active" | "evaluation_pending" | "dl389" | "past" | "pending_retests" | "archived";
 
 const RETEST_WINDOW_DAYS = 60;
 
