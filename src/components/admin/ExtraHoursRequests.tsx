@@ -126,6 +126,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     }
     toast({ title: `Request ${status}` });
     load();
+    onDecision?.();
   };
 
   const openApprove = (r: Row) => {
