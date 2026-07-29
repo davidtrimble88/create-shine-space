@@ -28,6 +28,10 @@ type Booking = Tables<"bookings"> & {
   dropped_reason?: string | null;
   dropped_at?: string | null;
   dropped_by?: string | null;
+  archived?: boolean;
+  archive_reason?: string | null;
+  archived_at?: string | null;
+  archived_by?: string | null;
 };
 
 type ViewMode = "active" | "evaluation_pending" | "dl389" | "past" | "pending_retests" | "archived";
