@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Clock, Plus, Check, X } from "lucide-react";
+import { Clock, Plus, Check, X, Archive } from "lucide-react";
 import { formatPSTDate } from "@/lib/formatDate";
 
 interface Row {
@@ -50,6 +50,7 @@ const ExtraHoursRequests = () => {
   const [approveHours, setApproveHours] = useState("");
   const [approveNotes, setApproveNotes] = useState("");
   const [approveSubmitting, setApproveSubmitting] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -163,6 +164,14 @@ const ExtraHoursRequests = () => {
 
 
   const pendingCount = useMemo(() => rows.filter((r) => r.status === "pending").length, [rows]);
+  const archivedRows = useMemo(
+    () => rows.filter((r) => r.status === "approved" || r.status === "denied"),
+    [rows],
+  );
+  const visibleRows = useMemo(
+    () => (showArchive ? archivedRows : rows.filter((r) => r.status === "pending")),
+    [rows, showArchive, archivedRows],
+  );
 
   return (
     <div className="space-y-6">
@@ -185,7 +194,12 @@ const ExtraHoursRequests = () => {
           </p>
         </div>
         {myEmployeeId && (
-          <Dialog open={open} onOpenChange={setOpen}>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" onClick={() => setShowArchive((v) => !v)}>
+              <Archive className="w-4 h-4 mr-2" />
+              {showArchive ? "Show Pending" : `View Archive (${archivedRows.length})`}
+            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="w-4 h-4 mr-2" /> Request Extra Hours
@@ -231,20 +245,25 @@ const ExtraHoursRequests = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         )}
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            {isOwner ? "All Requests" : isAdmin ? "Approved Extra Hours" : "My Requests"}
+            {showArchive
+              ? (isOwner || isAdmin ? "Archived Requests (approved & denied)" : "My Archived Requests")
+              : (isOwner || isAdmin ? "Pending Requests" : "My Pending Requests")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No requests yet.</p>
+          ) : visibleRows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {showArchive ? "No archived requests." : "No pending requests."}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -261,7 +280,7 @@ const ExtraHoursRequests = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((r) => {
+                  {visibleRows.map((r) => {
                     const isMine = r.requested_by === user?.id;
                     return (
                       <TableRow key={r.id}>
