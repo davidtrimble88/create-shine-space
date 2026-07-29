@@ -2602,12 +2602,36 @@ const ClassRosters = () => {
                               </button>
                               <button
                                 type="button"
+                                onClick={() => {
+                                  setRescheduleFor(b);
+                                  setRescheduleActive(true);
+                                  setRescheduleTargetScheduleId("");
+                                  setRescheduleScope("full");
+                                  setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
+                                }}
+                                title="Reschedule student to another class (no drop)"
+                                aria-label="Reschedule student"
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                              >
+                                <RotateCcw className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => openDrop(b)}
                                 title="Drop student from class (admin/owner only)"
                                 aria-label="Drop student"
                                 className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                               >
                                 <UserMinus className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDeleteStudent(b)}
+                                title="Delete student (moves to Archived Students)"
+                                aria-label="Delete student"
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
                           </td>
@@ -2619,47 +2643,7 @@ const ClassRosters = () => {
               </div>
             )}
 
-            {/* Dropped students — admin/owner only */}
-            {canManageEvaluations && droppedBookings.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-border">
-                <h3 className="text-md font-bold text-foreground mb-3 flex items-center gap-2">
-                  <UserMinus className="w-4 h-4 text-destructive" /> DROPPED STUDENTS
-                  <span className="text-xs font-normal text-muted-foreground">(visible to admin & owner only)</span>
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs [&_th]:!p-2 [&_td]:!p-2 [&_.min-w-\[180px\]]:!min-w-[110px]">
-                    <thead>
-                      <tr className="border-b border-border bg-secondary/50">
-                        <th className="text-left p-3 font-medium text-muted-foreground">Student</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Reason</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Dropped</th>
-                        <th className="text-center p-3 font-medium text-muted-foreground">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {droppedBookings.map(b => (
-                        <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
-                          <td className="p-3 font-medium text-foreground uppercase">
-                            {b.first_name} {b.last_name}
-                          </td>
-                          <td className="p-3 text-muted-foreground">{b.phone}</td>
-                          <td className="p-3 text-foreground italic">{b.dropped_reason || "—"}</td>
-                          <td className="p-3 text-muted-foreground text-xs">
-                            {b.dropped_at ? formatPSTDate(b.dropped_at) : "—"}
-                          </td>
-                          <td className="p-3 text-center">
-                            <Button size="sm" variant="outline" onClick={() => handleUndropStudent(b)}>
-                              <Undo2 className="w-3 h-3 mr-1" /> Restore
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+
 
             {/* Retest section on-screen */}
             <div className="mt-6 pt-4 border-t border-border">
