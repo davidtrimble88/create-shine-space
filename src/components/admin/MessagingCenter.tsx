@@ -101,7 +101,7 @@ export default function MessagingCenter() {
   useEffect(() => {
     if (!user) return;
     const ch = supabase
-      .channel("messaging-center")
+      .channel(`messaging-center:${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "message_threads" }, loadThreads)
       .on("postgres_changes", { event: "*", schema: "public", table: "message_thread_participants" }, loadThreads)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
