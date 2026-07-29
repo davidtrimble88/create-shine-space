@@ -37,6 +37,9 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const { user, effectiveRole } = useAuth();
   const isOwner = effectiveRole === "owner";
   const isAdmin = effectiveRole === "admin";
+  const isManager = effectiveRole === "manager";
+  // Only owners can see pending requests. Admins and managers only see archived (approved/denied).
+  const canSeePending = isOwner;
 
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +53,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [approveHours, setApproveHours] = useState("");
   const [approveNotes, setApproveNotes] = useState("");
   const [approveSubmitting, setApproveSubmitting] = useState(false);
-  const [showArchive, setShowArchive] = useState(false);
+  // Admins/managers default to (and are locked into) the archived view.
+  const [showArchive, setShowArchive] = useState(!canSeePending && (isAdmin || isManager));
 
   const load = async () => {
     setLoading(true);
