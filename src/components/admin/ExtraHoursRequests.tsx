@@ -325,11 +325,6 @@ const ExtraHoursRequests = () => {
                                 <Check className="w-3 h-3 mr-1" /> Change to Approved
                               </Button>
                             )}
-                            {isMine && r.status === "pending" && (
-                              <Button size="sm" variant="ghost" onClick={() => cancelOwn(r.id)}>
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            )}
                           </div>
                         </TableCell>
 
