@@ -414,7 +414,17 @@ const EmployeeDashboard = () => {
                 </span>
               )
             )}
+            {tab.id === "work-log" && pendingExtraHours > 0 && (
+              collapsed ? (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent" />
+              ) : (
+                <span className="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold flex items-center justify-center">
+                  {pendingExtraHours > 99 ? "99+" : pendingExtraHours}
+                </span>
+              )
+            )}
           </button>
+
 
         ))}
       </nav>
