@@ -161,6 +161,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     toast({ title: "Request approved" });
     setApproveTarget(null);
     load();
+    onDecision?.();
   };
 
 
