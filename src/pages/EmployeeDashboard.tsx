@@ -184,6 +184,28 @@ const EmployeeDashboard = () => {
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [user, effectiveRole, activeTab]);
 
+  // Pending extra-hours requests count (owner only)
+  const [pendingExtraHours, setPendingExtraHours] = useState(0);
+  useEffect(() => {
+    if (!user || effectiveRole !== "owner") { setPendingExtraHours(0); return; }
+    let cancelled = false;
+    const recompute = async () => {
+      const { count } = await supabase
+        .from("extra_hours_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending");
+      if (!cancelled) setPendingExtraHours(count || 0);
+    };
+    recompute();
+    const channel = supabase
+      .channel("sidebar-pending-extra-hours")
+      .on("postgres_changes", { event: "*", schema: "public", table: "extra_hours_requests" }, recompute)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [user, effectiveRole, activeTab]);
+
+
+
   // Fetch the logged-in employee's name for the welcome header
   const [employeeName, setEmployeeName] = useState("");
   useEffect(() => {
