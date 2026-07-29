@@ -265,7 +265,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
           <CardTitle className="text-base">
             {showArchive
               ? (isOwner || isAdmin ? "Archived Requests (approved & denied)" : "My Archived Requests")
-              : (isOwner || isAdmin ? "Pending Requests" : "My Pending Requests")}
+              : (canSeePending ? "Pending Requests" : "My Pending Requests")}
           </CardTitle>
         </CardHeader>
         <CardContent>
