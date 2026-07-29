@@ -314,25 +314,60 @@ const WorkLog = () => {
             </div>
           )}
           <div className="flex flex-col gap-1">
+            <label className="text-xs text-muted-foreground flex items-center gap-1">
+              <CalendarRange className="w-3 h-3" /> Pay Period
+            </label>
+            <Select value={periodKey} onValueChange={applyPeriod}>
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Select pay period" />
+              </SelectTrigger>
+              <SelectContent className="max-h-80">
+                <SelectItem value={currentPeriod.key}>
+                  Current — {currentPeriod.label}
+                </SelectItem>
+                <SelectItem value="all">All time</SelectItem>
+                <SelectItem value="custom">Custom range…</SelectItem>
+                <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Past pay periods
+                </div>
+                {payPeriods
+                  .filter((p) => !p.isCurrent)
+                  .map((p) => (
+                    <SelectItem key={p.key} value={p.key}>
+                      {p.label}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">From</label>
-            <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-44" />
+            <Input
+              type="date"
+              value={fromDate}
+              onChange={(e) => {
+                setFromDate(e.target.value);
+                setPeriodKey("custom");
+              }}
+              className="w-44"
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">To</label>
-            <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-44" />
-          </div>
-          {(fromDate || toDate || search) && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setSearch("");
-                setFromDate("");
-                setToDate("");
+            <Input
+              type="date"
+              value={toDate}
+              onChange={(e) => {
+                setToDate(e.target.value);
+                setPeriodKey("custom");
               }}
-            >
-              Clear
-            </Button>
-          )}
+              className="w-44"
+            />
+          </div>
+          <Button variant="ghost" onClick={() => applyPeriod(currentPeriod.key)}>
+            Reset to current
+          </Button>
+
         </CardContent>
       </Card>
 
