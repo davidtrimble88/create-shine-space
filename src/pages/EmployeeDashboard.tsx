@@ -184,6 +184,28 @@ const EmployeeDashboard = () => {
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [user, effectiveRole, activeTab]);
 
+  // Pending extra-hours requests count (owner only)
+  const [pendingExtraHours, setPendingExtraHours] = useState(0);
+  useEffect(() => {
+    if (!user || effectiveRole !== "owner") { setPendingExtraHours(0); return; }
+    let cancelled = false;
+    const recompute = async () => {
+      const { count } = await supabase
+        .from("extra_hours_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending");
+      if (!cancelled) setPendingExtraHours(count || 0);
+    };
+    recompute();
+    const channel = supabase
+      .channel("sidebar-pending-extra-hours")
+      .on("postgres_changes", { event: "*", schema: "public", table: "extra_hours_requests" }, recompute)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [user, effectiveRole, activeTab]);
+
+
+
   // Fetch the logged-in employee's name for the welcome header
   const [employeeName, setEmployeeName] = useState("");
   useEffect(() => {
@@ -392,7 +414,17 @@ const EmployeeDashboard = () => {
                 </span>
               )
             )}
+            {tab.id === "work-log" && pendingExtraHours > 0 && (
+              collapsed ? (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent" />
+              ) : (
+                <span className="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold flex items-center justify-center">
+                  {pendingExtraHours > 99 ? "99+" : pendingExtraHours}
+                </span>
+              )
+            )}
           </button>
+
 
         ))}
       </nav>
