@@ -210,6 +210,22 @@ const ClassRosters = () => {
   const [dropCanReschedule, setDropCanReschedule] = useState<"yes" | "no" | null>(null);
   const [savingDrop, setSavingDrop] = useState(false);
 
+  // Delete → archive dialog (any student)
+  const [deleteFor, setDeleteFor] = useState<Booking | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+  const [savingDelete, setSavingDelete] = useState(false);
+
+  // Reschedule-active flag: distinguishes "move active student" from
+  // the retest-list reschedule (which clears retest_type on the source).
+  const [rescheduleActive, setRescheduleActive] = useState(false);
+
+  // Archived roster state
+  const [archivedBookings, setArchivedBookings] = useState<Booking[]>([]);
+  const [loadingArchived, setLoadingArchived] = useState(false);
+
+
+
 
   // Load schedules + employees + assignments based on view
   useEffect(() => {
