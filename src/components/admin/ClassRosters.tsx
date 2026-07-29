@@ -569,7 +569,7 @@ const ClassRosters = () => {
   const allKnownSchedules = [...schedules, ...pastSchedules, ...evalPendingSchedules];
   const selectedSchedule = allKnownSchedules.find(s => s.id === selectedScheduleId);
 
-  const nonRetestBookings = bookings.filter(b => !b.is_retest);
+  const nonRetestBookings = bookings.filter(b => !b.is_retest && !b.archived);
   const regularBookings = nonRetestBookings.filter(b => !b.dropped);
   const droppedBookings = nonRetestBookings.filter(b => b.dropped);
   const retestBookings = bookings.filter(b => b.is_retest);
