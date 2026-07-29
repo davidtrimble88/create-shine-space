@@ -127,6 +127,40 @@ const ExtraHoursRequests = () => {
     load();
   };
 
+  const openApprove = (r: Row) => {
+    setApproveTarget(r);
+    setApproveHours(String(r.hours));
+    setApproveNotes(r.decision_notes ?? "");
+  };
+
+  const confirmApprove = async () => {
+    if (!approveTarget) return;
+    const h = parseFloat(approveHours);
+    if (!h || h <= 0) {
+      toast({ title: "Enter a valid hours amount", variant: "destructive" });
+      return;
+    }
+    setApproveSubmitting(true);
+    const { error } = await supabase
+      .from("extra_hours_requests")
+      .update({
+        status: "approved",
+        hours: h,
+        decision_notes: approveNotes.trim() || null,
+        decided_by: user?.id,
+        decided_at: new Date().toISOString(),
+      })
+      .eq("id", approveTarget.id);
+    setApproveSubmitting(false);
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Request approved" });
+    setApproveTarget(null);
+    load();
+  };
+
   const cancelOwn = async (id: string) => {
     if (!window.confirm("Cancel this request?")) return;
     const { error } = await supabase
