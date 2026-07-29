@@ -245,6 +245,7 @@ const ExtraHoursRequests = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         )}
       </div>
 
