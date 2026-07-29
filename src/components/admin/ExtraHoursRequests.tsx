@@ -174,10 +174,13 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     () => rows.filter((r) => r.status === "approved" || r.status === "denied"),
     [rows],
   );
-  const visibleRows = useMemo(
-    () => (showArchive ? archivedRows : rows.filter((r) => r.status === "pending")),
-    [rows, showArchive, archivedRows],
-  );
+  const visibleRows = useMemo(() => {
+    if (showArchive) return archivedRows;
+    // Only owner (or the requester themselves) can see pending requests.
+    return rows.filter(
+      (r) => r.status === "pending" && (canSeePending || r.requested_by === user?.id),
+    );
+  }, [rows, showArchive, archivedRows, canSeePending, user?.id]);
 
   return (
     <div className="space-y-6">
