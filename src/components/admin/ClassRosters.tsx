@@ -1333,6 +1333,33 @@ const ClassRosters = () => {
       ? "Reschedule"
       : `Reschedule — ${portionsLabel} only`;
 
+    if (rescheduleActive) {
+      // Move the active student's booking to the new class in place —
+      // no drop record, no clone. Append the reschedule note to the roster comment.
+      const prevComment = (src.roster_comment || "").trim();
+      const noteLine = `${comment} from ${src.schedule_date || ""} ${src.location_label || ""}`.trim();
+      const mergedComment = prevComment ? `${prevComment}\n${noteLine}` : noteLine;
+      const { error } = await (supabase as any)
+        .from("bookings")
+        .update({
+          schedule_id: target.id,
+          schedule_date: target.date,
+          course: target.course,
+          location: target.location,
+          location_label: target.location_label,
+          roster_comment: mergedComment,
+        })
+        .eq("id", src.id);
+      setRescheduling(false);
+      if (error) { toast.error("Failed to reschedule"); return; }
+      setBookings(prev => prev.filter(b => b.id !== src.id));
+      setRescheduleFor(null);
+      setRescheduleActive(false);
+      setRescheduleTargetScheduleId("");
+      toast.success(`Moved to ${target.date} at ${target.location_label}`);
+      return;
+    }
+
     const { data, error } = await supabase.from("bookings").insert({
       first_name: src.first_name,
       last_name: src.last_name,
@@ -1368,6 +1395,34 @@ const ClassRosters = () => {
     setRescheduleTargetScheduleId("");
     toast.success(`Rescheduled to ${target.date} at ${target.location_label}`);
   };
+
+  // Archive (soft-delete) any booking with a required comment.
+  const openDeleteStudent = (b: Booking) => {
+    setDeleteFor(b);
+    setDeleteReason("");
+    setDeleteConfirmed(false);
+  };
+
+  const submitDeleteStudent = async () => {
+    if (!deleteFor) return;
+    if (!deleteReason.trim()) { toast.error("A comment is required"); return; }
+    if (!deleteConfirmed) { toast.error("Please confirm the deletion"); return; }
+    setSavingDelete(true);
+    const updates = {
+      archived: true,
+      archive_reason: deleteReason.trim(),
+      archived_at: new Date().toISOString(),
+      archived_by: user?.id ?? null,
+    };
+    const { error } = await (supabase as any).from("bookings").update(updates).eq("id", deleteFor.id);
+    setSavingDelete(false);
+    if (error) { toast.error("Failed to delete: " + error.message); return; }
+    const name = `${deleteFor.first_name} ${deleteFor.last_name}`;
+    setBookings(prev => prev.filter(b => b.id !== deleteFor.id));
+    setDeleteFor(null);
+    toast.success(`${name} deleted and moved to Archived Students.`);
+  };
+
 
   const openFailNotes = (b: Booking) => {
     setFailNotesFor(b);
