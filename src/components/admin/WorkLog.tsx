@@ -371,6 +371,8 @@ const WorkLog = () => {
         </CardContent>
       </Card>
 
+      <ExtraHoursRequests />
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between flex-wrap gap-2">
@@ -531,8 +533,6 @@ const WorkLog = () => {
           )}
         </CardContent>
       </Card>
-
-      <ExtraHoursRequests />
     </div>
   );
 };
