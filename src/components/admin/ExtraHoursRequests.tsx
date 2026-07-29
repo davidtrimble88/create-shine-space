@@ -33,7 +33,7 @@ const statusColor: Record<Row["status"], string> = {
   cancelled: "bg-muted text-muted-foreground",
 };
 
-const ExtraHoursRequests = () => {
+const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) => {
   const { user, effectiveRole } = useAuth();
   const isOwner = effectiveRole === "owner";
   const isAdmin = effectiveRole === "admin";
@@ -126,6 +126,7 @@ const ExtraHoursRequests = () => {
     }
     toast({ title: `Request ${status}` });
     load();
+    onDecision?.();
   };
 
   const openApprove = (r: Row) => {
@@ -160,6 +161,7 @@ const ExtraHoursRequests = () => {
     toast({ title: "Request approved" });
     setApproveTarget(null);
     load();
+    onDecision?.();
   };
 
 
