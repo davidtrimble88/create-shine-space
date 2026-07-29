@@ -178,7 +178,7 @@ const EmployeeDashboard = () => {
     };
     recompute();
     const channel = supabase
-      .channel("sidebar-open-tickets")
+      .channel(`sidebar-open-tickets:${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "it_tickets" }, recompute)
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(channel); };
