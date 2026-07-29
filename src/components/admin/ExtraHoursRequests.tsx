@@ -252,14 +252,18 @@ const ExtraHoursRequests = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            {isOwner ? "All Requests" : isAdmin ? "Approved Extra Hours" : "My Requests"}
+            {showArchive
+              ? (isOwner || isAdmin ? "Archived Requests (approved & denied)" : "My Archived Requests")
+              : (isOwner || isAdmin ? "Pending Requests" : "My Pending Requests")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No requests yet.</p>
+          ) : visibleRows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {showArchive ? "No archived requests." : "No pending requests."}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
