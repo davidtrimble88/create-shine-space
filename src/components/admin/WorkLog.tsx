@@ -373,10 +373,18 @@ const WorkLog = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>
-            {isAdmin ? "Employee Totals" : "My Totals"}
+          <CardTitle className="flex items-center justify-between flex-wrap gap-2">
+            <span>{isAdmin ? "Employee Totals" : "My Totals"}</span>
+            <Badge variant="outline" className="font-normal">
+              {periodKey === "all"
+                ? "All time"
+                : periodKey === "custom"
+                  ? `${fromDate || "—"} to ${toDate || "—"}`
+                  : payPeriods.find((p) => p.key === periodKey)?.label ?? currentPeriod.label}
+            </Badge>
           </CardTitle>
         </CardHeader>
+
         <CardContent>
           {loading ? (
             <p className="text-muted-foreground text-sm">Loading…</p>
