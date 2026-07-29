@@ -342,6 +342,55 @@ const ExtraHoursRequests = () => {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!approveTarget} onOpenChange={(o) => !o && setApproveTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve Extra Hours</DialogTitle>
+          </DialogHeader>
+          {approveTarget && (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                <div><span className="font-medium text-foreground">Employee:</span> {approveTarget.employees?.full_name ?? "—"}</div>
+                <div><span className="font-medium text-foreground">Requested:</span> {approveTarget.hours} hours</div>
+                <div className="mt-1 whitespace-pre-wrap"><span className="font-medium text-foreground">Justification:</span> {approveTarget.justification}</div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Hours to approve</label>
+                <Input
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  value={approveHours}
+                  onChange={(e) => setApproveHours(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">
+                  Comment {parseFloat(approveHours) !== Number(approveTarget.hours) && (
+                    <span className="text-xs text-yellow-600 dark:text-yellow-400">
+                      (recommended — instructor will see this)
+                    </span>
+                  )}
+                </label>
+                <Textarea
+                  value={approveNotes}
+                  onChange={(e) => setApproveNotes(e.target.value)}
+                  placeholder="Optional note explaining any adjustment…"
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Optional. Visible to the instructor.</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApproveTarget(null)}>Cancel</Button>
+            <Button onClick={confirmApprove} disabled={approveSubmitting}>
+              {approveSubmitting ? "Saving…" : "Approve"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
