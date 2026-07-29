@@ -1913,6 +1913,7 @@ const ClassRosters = () => {
           onOpenChange={open => {
             if (!open) {
               setRescheduleFor(null);
+              setRescheduleActive(false);
               setRescheduleTargetScheduleId("");
               setRescheduleScope("full");
               setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
