@@ -112,8 +112,27 @@ const WorkLog = () => {
   const [extraHours, setExtraHours] = useState<ExtraHoursRow[]>([]);
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [fromDate, setFromDate] = useState<string>("");
-  const [toDate, setToDate] = useState<string>("");
+  const payPeriods = useMemo(() => listPayPeriods(24), []);
+  const currentPeriod = useMemo(() => getCurrentPeriod(new Date()), []);
+  const [periodKey, setPeriodKey] = useState<string>(currentPeriod.key);
+  const [fromDate, setFromDate] = useState<string>(currentPeriod.start);
+  const [toDate, setToDate] = useState<string>(currentPeriod.end);
+
+  const applyPeriod = (key: string) => {
+    setPeriodKey(key);
+    if (key === "all") {
+      setFromDate("");
+      setToDate("");
+      return;
+    }
+    if (key === "custom") return;
+    const p = payPeriods.find((pp) => pp.key === key);
+    if (p) {
+      setFromDate(p.start);
+      setToDate(p.end);
+    }
+  };
+
 
   useEffect(() => {
     const load = async () => {
