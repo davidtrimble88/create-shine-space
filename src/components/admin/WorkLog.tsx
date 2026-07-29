@@ -6,12 +6,62 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronRight, Download, ClipboardList } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, ClipboardList, CalendarRange } from "lucide-react";
 import { formatPSTDate } from "@/lib/formatDate";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ExtraHoursRequests from "./ExtraHoursRequests";
 
 type Duty = "c1" | "r1" | "c2" | "r2";
 const DUTIES: Duty[] = ["c1", "r1", "c2", "r2"];
+
+// Pay periods: 1st–15th (A) and 16th–end of month (B)
+type PayPeriod = { key: string; label: string; start: string; end: string; isCurrent: boolean };
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const lastDayOfMonth = (y: number, m: number) => new Date(y, m, 0).getDate(); // m is 1-12
+
+const buildPeriod = (year: number, month: number, half: "A" | "B", today: Date): PayPeriod => {
+  const start = half === "A" ? `${year}-${pad(month)}-01` : `${year}-${pad(month)}-16`;
+  const end =
+    half === "A"
+      ? `${year}-${pad(month)}-15`
+      : `${year}-${pad(month)}-${pad(lastDayOfMonth(year, month))}`;
+  const monthName = new Date(year, month - 1, 1).toLocaleString("en-US", { month: "long" });
+  const label = half === "A" ? `${monthName} 1–15, ${year}` : `${monthName} 16–${lastDayOfMonth(year, month)}, ${year}`;
+  const todayStr = today.toISOString().slice(0, 10);
+  const isCurrent = todayStr >= start && todayStr <= end;
+  return { key: `${year}-${pad(month)}-${half}`, label, start, end, isCurrent };
+};
+
+const getCurrentPeriod = (today: Date): PayPeriod => {
+  const y = today.getFullYear();
+  const m = today.getMonth() + 1;
+  const half: "A" | "B" = today.getDate() <= 15 ? "A" : "B";
+  return buildPeriod(y, m, half, today);
+};
+
+const listPayPeriods = (count = 24): PayPeriod[] => {
+  const today = new Date();
+  const periods: PayPeriod[] = [];
+  let y = today.getFullYear();
+  let m = today.getMonth() + 1;
+  let half: "A" | "B" = today.getDate() <= 15 ? "A" : "B";
+  for (let i = 0; i < count; i++) {
+    periods.push(buildPeriod(y, m, half, today));
+    if (half === "B") {
+      half = "A";
+    } else {
+      half = "B";
+      m -= 1;
+      if (m === 0) {
+        m = 12;
+        y -= 1;
+      }
+    }
+  }
+  return periods;
+};
+
 
 interface Employee {
   id: string;
@@ -62,8 +112,27 @@ const WorkLog = () => {
   const [extraHours, setExtraHours] = useState<ExtraHoursRow[]>([]);
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [fromDate, setFromDate] = useState<string>("");
-  const [toDate, setToDate] = useState<string>("");
+  const payPeriods = useMemo(() => listPayPeriods(24), []);
+  const currentPeriod = useMemo(() => getCurrentPeriod(new Date()), []);
+  const [periodKey, setPeriodKey] = useState<string>(currentPeriod.key);
+  const [fromDate, setFromDate] = useState<string>(currentPeriod.start);
+  const [toDate, setToDate] = useState<string>(currentPeriod.end);
+
+  const applyPeriod = (key: string) => {
+    setPeriodKey(key);
+    if (key === "all") {
+      setFromDate("");
+      setToDate("");
+      return;
+    }
+    if (key === "custom") return;
+    const p = payPeriods.find((pp) => pp.key === key);
+    if (p) {
+      setFromDate(p.start);
+      setToDate(p.end);
+    }
+  };
+
 
   useEffect(() => {
     const load = async () => {
@@ -245,34 +314,77 @@ const WorkLog = () => {
             </div>
           )}
           <div className="flex flex-col gap-1">
+            <label className="text-xs text-muted-foreground flex items-center gap-1">
+              <CalendarRange className="w-3 h-3" /> Pay Period
+            </label>
+            <Select value={periodKey} onValueChange={applyPeriod}>
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Select pay period" />
+              </SelectTrigger>
+              <SelectContent className="max-h-80">
+                <SelectItem value={currentPeriod.key}>
+                  Current — {currentPeriod.label}
+                </SelectItem>
+                <SelectItem value="all">All time</SelectItem>
+                <SelectItem value="custom">Custom range…</SelectItem>
+                <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Past pay periods
+                </div>
+                {payPeriods
+                  .filter((p) => !p.isCurrent)
+                  .map((p) => (
+                    <SelectItem key={p.key} value={p.key}>
+                      {p.label}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">From</label>
-            <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-44" />
+            <Input
+              type="date"
+              value={fromDate}
+              onChange={(e) => {
+                setFromDate(e.target.value);
+                setPeriodKey("custom");
+              }}
+              className="w-44"
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">To</label>
-            <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-44" />
-          </div>
-          {(fromDate || toDate || search) && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setSearch("");
-                setFromDate("");
-                setToDate("");
+            <Input
+              type="date"
+              value={toDate}
+              onChange={(e) => {
+                setToDate(e.target.value);
+                setPeriodKey("custom");
               }}
-            >
-              Clear
-            </Button>
-          )}
+              className="w-44"
+            />
+          </div>
+          <Button variant="ghost" onClick={() => applyPeriod(currentPeriod.key)}>
+            Reset to current
+          </Button>
+
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>
-            {isAdmin ? "Employee Totals" : "My Totals"}
+          <CardTitle className="flex items-center justify-between flex-wrap gap-2">
+            <span>{isAdmin ? "Employee Totals" : "My Totals"}</span>
+            <Badge variant="outline" className="font-normal">
+              {periodKey === "all"
+                ? "All time"
+                : periodKey === "custom"
+                  ? `${fromDate || "—"} to ${toDate || "—"}`
+                  : payPeriods.find((p) => p.key === periodKey)?.label ?? currentPeriod.label}
+            </Badge>
           </CardTitle>
         </CardHeader>
+
         <CardContent>
           {loading ? (
             <p className="text-muted-foreground text-sm">Loading…</p>
