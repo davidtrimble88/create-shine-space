@@ -161,18 +161,6 @@ const ExtraHoursRequests = () => {
     load();
   };
 
-  const cancelOwn = async (id: string) => {
-    if (!window.confirm("Cancel this request?")) return;
-    const { error } = await supabase
-      .from("extra_hours_requests")
-      .update({ status: "cancelled" })
-      .eq("id", id);
-    if (error) {
-      toast({ title: "Cancel failed", description: error.message, variant: "destructive" });
-      return;
-    }
-    load();
-  };
 
   const pendingCount = useMemo(() => rows.filter((r) => r.status === "pending").length, [rows]);
 
