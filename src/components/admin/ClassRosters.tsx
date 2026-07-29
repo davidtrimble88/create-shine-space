@@ -2129,6 +2129,9 @@ const ClassRosters = () => {
               <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("past"); }}>
                 <History className="w-4 h-4 mr-2" /> Past Rosters
               </Button>
+              <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("archived"); }}>
+                <Archive className="w-4 h-4 mr-2" /> Archived Students
+              </Button>
             </>
           )}
           {view === "evaluation_pending" && selectedScheduleId && (
