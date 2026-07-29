@@ -194,7 +194,12 @@ const ExtraHoursRequests = () => {
           </p>
         </div>
         {myEmployeeId && (
-          <Dialog open={open} onOpenChange={setOpen}>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" onClick={() => setShowArchive((v) => !v)}>
+              <Archive className="w-4 h-4 mr-2" />
+              {showArchive ? "Show Pending" : `View Archive (${archivedRows.length})`}
+            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="w-4 h-4 mr-2" /> Request Extra Hours
