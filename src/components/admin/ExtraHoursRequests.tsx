@@ -302,7 +302,7 @@ const ExtraHoursRequests = () => {
                           <div className="flex gap-1 justify-end flex-wrap">
                             {isOwner && r.status === "pending" && (
                               <>
-                                <Button size="sm" variant="outline" onClick={() => decide(r.id, "approved")}>
+                                <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
                                   <Check className="w-3 h-3 mr-1" /> Approve
                                 </Button>
                                 <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
@@ -311,12 +311,17 @@ const ExtraHoursRequests = () => {
                               </>
                             )}
                             {isOwner && r.status === "approved" && (
-                              <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
-                                <X className="w-3 h-3 mr-1" /> Change to Denied
-                              </Button>
+                              <>
+                                <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
+                                  <Check className="w-3 h-3 mr-1" /> Adjust Hours
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
+                                  <X className="w-3 h-3 mr-1" /> Change to Denied
+                                </Button>
+                              </>
                             )}
                             {isOwner && r.status === "denied" && (
-                              <Button size="sm" variant="outline" onClick={() => decide(r.id, "approved")}>
+                              <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
                                 <Check className="w-3 h-3 mr-1" /> Change to Approved
                               </Button>
                             )}
