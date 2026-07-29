@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Clock, Plus, Check, X, Trash2 } from "lucide-react";
+import { Clock, Plus, Check, X } from "lucide-react";
 import { formatPSTDate } from "@/lib/formatDate";
 
 interface Row {
@@ -161,18 +161,6 @@ const ExtraHoursRequests = () => {
     load();
   };
 
-  const cancelOwn = async (id: string) => {
-    if (!window.confirm("Cancel this request?")) return;
-    const { error } = await supabase
-      .from("extra_hours_requests")
-      .update({ status: "cancelled" })
-      .eq("id", id);
-    if (error) {
-      toast({ title: "Cancel failed", description: error.message, variant: "destructive" });
-      return;
-    }
-    load();
-  };
 
   const pendingCount = useMemo(() => rows.filter((r) => r.status === "pending").length, [rows]);
 
@@ -323,11 +311,6 @@ const ExtraHoursRequests = () => {
                             {isOwner && r.status === "denied" && (
                               <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
                                 <Check className="w-3 h-3 mr-1" /> Change to Approved
-                              </Button>
-                            )}
-                            {isMine && r.status === "pending" && (
-                              <Button size="sm" variant="ghost" onClick={() => cancelOwn(r.id)}>
-                                <Trash2 className="w-3 h-3" />
                               </Button>
                             )}
                           </div>
