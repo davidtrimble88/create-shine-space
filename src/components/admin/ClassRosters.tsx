@@ -2083,11 +2083,83 @@ const ClassRosters = () => {
     }
   }, [canManageEvaluations, view]);
 
+  // Load archived (soft-deleted) bookings for admin/owner archive view
+  useEffect(() => {
+    if (view !== "archived" || !canManageEvaluations) return;
+    let cancelled = false;
+    const load = async () => {
+      setLoadingArchived(true);
+      const { data } = await (supabase as any)
+        .from("bookings")
+        .select("*")
+        .eq("archived", true)
+        .order("archived_at", { ascending: false });
+      if (!cancelled) {
+        setArchivedBookings((data ?? []) as Booking[]);
+        setLoadingArchived(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [view, canManageEvaluations]);
+
   if (view === "pending_retests" && canManageEvaluations) {
     return renderPendingRetests();
   }
   if (view === "dl389" && canManageEvaluations) {
     return renderDL389();
+  }
+  if (view === "archived" && canManageEvaluations) {
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Archive className="w-6 h-6 text-muted-foreground" /> Archived Students
+          </h1>
+          <Button variant="outline" onClick={() => setView("active")}>
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Class Rosters
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          Students deleted from any roster are kept here with the comment provided at deletion. Records in the archive cannot be deleted.
+        </p>
+        {loadingArchived ? (
+          <p className="text-muted-foreground">Loading…</p>
+        ) : archivedBookings.length === 0 ? (
+          <div className="bg-card border border-border rounded-xl p-8 text-center">
+            <Archive className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground">No archived students.</p>
+          </div>
+        ) : (
+          <div className="bg-card border border-border rounded-xl overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-secondary/40">
+                  <th className="text-left p-3 font-medium text-muted-foreground">Student</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Class</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Location</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Class Date</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Reason / Comment</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Deleted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {archivedBookings.map(b => (
+                  <tr key={b.id} className="border-b border-border/50">
+                    <td className="p-3 font-medium text-foreground uppercase">{b.first_name} {b.last_name}</td>
+                    <td className="p-3 text-muted-foreground">{courseLabels[b.course] || b.course}</td>
+                    <td className="p-3 text-muted-foreground">{b.location_label || "—"}</td>
+                    <td className="p-3 text-muted-foreground">{b.schedule_date || "—"}</td>
+                    <td className="p-3 text-foreground italic whitespace-pre-wrap">{b.archive_reason || "—"}</td>
+                    <td className="p-3 text-muted-foreground text-xs">{b.archived_at ? formatPSTDate(b.archived_at) : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
   }
 
   const viewTitle =
