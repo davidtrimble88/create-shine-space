@@ -134,35 +134,36 @@ const WorkLog = () => {
   };
 
 
+  const load = async () => {
+    setLoading(true);
+    const today = new Date().toISOString().slice(0, 10);
+
+    const empRes = await supabase
+      .from("employees")
+      .select("id, user_id, full_name, position, is_active");
+
+    const assignRes = await supabase
+      .from("instructor_assignments")
+      .select("employee_id, assignment_role, part, schedule_id, schedules(id, date, course, location, schedule)")
+      .lt("schedules.date", today);
+
+    const extraRes = await supabase
+      .from("extra_hours_requests")
+      .select("employee_id, hours, justification, work_date, decided_at")
+      .eq("status", "approved");
+
+    setEmployees((empRes.data ?? []) as Employee[]);
+    const rows = ((assignRes.data ?? []) as any[]).filter(
+      (r) => r.schedules && r.schedules.date && r.schedules.date < today,
+    ) as AssignmentRow[];
+    setAssignments(rows);
+    setExtraHours((extraRes.data ?? []) as ExtraHoursRow[]);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const today = new Date().toISOString().slice(0, 10);
-
-      const empRes = await supabase
-        .from("employees")
-        .select("id, user_id, full_name, position, is_active");
-
-      const assignRes = await supabase
-        .from("instructor_assignments")
-        .select("employee_id, assignment_role, part, schedule_id, schedules(id, date, course, location, schedule)")
-        .lt("schedules.date", today);
-
-      // RLS filters to what this user is allowed to see (own rows, or all for owner/admin approved)
-      const extraRes = await supabase
-        .from("extra_hours_requests")
-        .select("employee_id, hours, justification, work_date, decided_at")
-        .eq("status", "approved");
-
-      setEmployees((empRes.data ?? []) as Employee[]);
-      const rows = ((assignRes.data ?? []) as any[]).filter(
-        (r) => r.schedules && r.schedules.date && r.schedules.date < today,
-      ) as AssignmentRow[];
-      setAssignments(rows);
-      setExtraHours((extraRes.data ?? []) as ExtraHoursRow[]);
-      setLoading(false);
-    };
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const summaries = useMemo<EmployeeSummary[]>(() => {
