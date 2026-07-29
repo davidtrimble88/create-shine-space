@@ -156,7 +156,7 @@ const EmployeeDashboard = () => {
     };
     recompute();
     const channel = supabase
-      .channel("sidebar-unread-messages")
+      .channel(`sidebar-unread-messages:${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, recompute)
       .on("postgres_changes", { event: "*", schema: "public", table: "message_thread_participants", filter: `user_id=eq.${user.id}` }, recompute)
       .on("postgres_changes", { event: "*", schema: "public", table: "message_threads" }, recompute)
@@ -178,7 +178,7 @@ const EmployeeDashboard = () => {
     };
     recompute();
     const channel = supabase
-      .channel("sidebar-open-tickets")
+      .channel(`sidebar-open-tickets:${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "it_tickets" }, recompute)
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(channel); };
