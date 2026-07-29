@@ -3185,6 +3185,147 @@ const ClassRosters = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Active-roster Reschedule dialog (moves student in place, no drop) */}
+      <Dialog
+        open={!!rescheduleFor && rescheduleActive}
+        onOpenChange={open => {
+          if (!open) {
+            setRescheduleFor(null);
+            setRescheduleActive(false);
+            setRescheduleTargetScheduleId("");
+            setRescheduleScope("full");
+            setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="w-5 h-5 text-primary" /> Reschedule Student
+            </DialogTitle>
+            <DialogDescription>
+              {rescheduleFor && (
+                <>
+                  Move <span className="font-semibold text-foreground">{rescheduleFor.first_name} {rescheduleFor.last_name}</span> to another upcoming{" "}
+                  <span className="font-semibold text-foreground">{courseLabels[rescheduleFor.course] || rescheduleFor.course}</span> class. The student will not be dropped.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {rescheduleFor && (() => {
+            const src = rescheduleFor;
+            const todayStr = new Date().toISOString().split("T")[0];
+            const candidates = schedules
+              .filter(s => s.course === src.course && s.date >= todayStr && s.id !== src.schedule_id && s.spots_available > 0)
+              .sort((a, b) => a.date.localeCompare(b.date));
+            return (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground block">Choose a class</label>
+                  {candidates.length === 0 ? (
+                    <div className="bg-muted/50 border border-border rounded-md p-3 text-sm text-muted-foreground">
+                      No upcoming {courseLabels[src.course] || src.course} classes with open spots.
+                    </div>
+                  ) : (
+                    <Select value={rescheduleTargetScheduleId} onValueChange={setRescheduleTargetScheduleId}>
+                      <SelectTrigger><SelectValue placeholder="Select an available class" /></SelectTrigger>
+                      <SelectContent>
+                        {candidates.map(s => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.date} • {s.location_label} • {s.spots_available} spot{s.spots_available !== 1 ? "s" : ""} open
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground block">What are they attending?</label>
+                  <RadioGroup value={rescheduleScope} onValueChange={(v) => setRescheduleScope(v as "full" | "partial")}>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="full" id="a-resch-full" />
+                      <Label htmlFor="a-resch-full" className="cursor-pointer text-sm">Full class</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="partial" id="a-resch-partial" />
+                      <Label htmlFor="a-resch-partial" className="cursor-pointer text-sm">Partial — choose portions below</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                {rescheduleScope === "partial" && (
+                  <div className="space-y-2 pl-2 border-l-2 border-border">
+                    <label className="text-xs font-medium text-muted-foreground block">Portions</label>
+                    <div className="flex flex-wrap gap-4">
+                      {(["c1", "r1", "c2", "r2"] as const).map(k => (
+                        <div key={k} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`a-resch-${k}`}
+                            checked={reschedulePortions[k]}
+                            onCheckedChange={(checked) =>
+                              setReschedulePortions(prev => ({ ...prev, [k]: checked === true }))
+                            }
+                          />
+                          <Label htmlFor={`a-resch-${k}`} className="cursor-pointer text-sm uppercase">{k}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setRescheduleFor(null); setRescheduleActive(false); }}>Cancel</Button>
+            <Button onClick={handleReschedule} disabled={!rescheduleTargetScheduleId || rescheduling}>
+              {rescheduling ? "Moving…" : "Reschedule"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete → Archive dialog */}
+      <Dialog open={!!deleteFor} onOpenChange={o => { if (!o) { setDeleteFor(null); setDeleteReason(""); setDeleteConfirmed(false); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-destructive" /> Delete Student
+            </DialogTitle>
+            <DialogDescription>
+              {deleteFor && (
+                <>
+                  Delete <span className="font-semibold text-foreground">{deleteFor.first_name} {deleteFor.last_name}</span> from this roster. The record moves to <span className="font-semibold text-foreground">Archived Students</span> with your comment and cannot be deleted again.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Comment (required)</label>
+              <Textarea
+                value={deleteReason}
+                onChange={e => setDeleteReason(e.target.value)}
+                placeholder="Why is this student being deleted?"
+                rows={3}
+              />
+            </div>
+            <label className="flex items-start gap-2 text-sm text-foreground cursor-pointer">
+              <Checkbox checked={deleteConfirmed} onCheckedChange={c => setDeleteConfirmed(c === true)} />
+              <span>I confirm I want to delete this student. This will remove them from the roster and archive the record.</span>
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDeleteFor(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={submitDeleteStudent}
+              disabled={savingDelete || !deleteReason.trim() || !deleteConfirmed}
+            >
+              {savingDelete ? "Deleting…" : "Delete & Archive"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 
