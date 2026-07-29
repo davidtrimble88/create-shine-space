@@ -46,6 +46,10 @@ const ExtraHoursRequests = () => {
   const [workDate, setWorkDate] = useState("");
   const [justification, setJustification] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [approveTarget, setApproveTarget] = useState<Row | null>(null);
+  const [approveHours, setApproveHours] = useState("");
+  const [approveNotes, setApproveNotes] = useState("");
+  const [approveSubmitting, setApproveSubmitting] = useState(false);
 
   const load = async () => {
     setLoading(true);
