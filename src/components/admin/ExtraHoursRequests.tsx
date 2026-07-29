@@ -46,6 +46,10 @@ const ExtraHoursRequests = () => {
   const [workDate, setWorkDate] = useState("");
   const [justification, setJustification] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [approveTarget, setApproveTarget] = useState<Row | null>(null);
+  const [approveHours, setApproveHours] = useState("");
+  const [approveNotes, setApproveNotes] = useState("");
+  const [approveSubmitting, setApproveSubmitting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -120,6 +124,40 @@ const ExtraHoursRequests = () => {
       return;
     }
     toast({ title: `Request ${status}` });
+    load();
+  };
+
+  const openApprove = (r: Row) => {
+    setApproveTarget(r);
+    setApproveHours(String(r.hours));
+    setApproveNotes(r.decision_notes ?? "");
+  };
+
+  const confirmApprove = async () => {
+    if (!approveTarget) return;
+    const h = parseFloat(approveHours);
+    if (!h || h <= 0) {
+      toast({ title: "Enter a valid hours amount", variant: "destructive" });
+      return;
+    }
+    setApproveSubmitting(true);
+    const { error } = await supabase
+      .from("extra_hours_requests")
+      .update({
+        status: "approved",
+        hours: h,
+        decision_notes: approveNotes.trim() || null,
+        decided_by: user?.id,
+        decided_at: new Date().toISOString(),
+      })
+      .eq("id", approveTarget.id);
+    setApproveSubmitting(false);
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Request approved" });
+    setApproveTarget(null);
     load();
   };
 
@@ -264,7 +302,7 @@ const ExtraHoursRequests = () => {
                           <div className="flex gap-1 justify-end flex-wrap">
                             {isOwner && r.status === "pending" && (
                               <>
-                                <Button size="sm" variant="outline" onClick={() => decide(r.id, "approved")}>
+                                <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
                                   <Check className="w-3 h-3 mr-1" /> Approve
                                 </Button>
                                 <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
@@ -273,12 +311,17 @@ const ExtraHoursRequests = () => {
                               </>
                             )}
                             {isOwner && r.status === "approved" && (
-                              <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
-                                <X className="w-3 h-3 mr-1" /> Change to Denied
-                              </Button>
+                              <>
+                                <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
+                                  <Check className="w-3 h-3 mr-1" /> Adjust Hours
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
+                                  <X className="w-3 h-3 mr-1" /> Change to Denied
+                                </Button>
+                              </>
                             )}
                             {isOwner && r.status === "denied" && (
-                              <Button size="sm" variant="outline" onClick={() => decide(r.id, "approved")}>
+                              <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
                                 <Check className="w-3 h-3 mr-1" /> Change to Approved
                               </Button>
                             )}
@@ -299,6 +342,55 @@ const ExtraHoursRequests = () => {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!approveTarget} onOpenChange={(o) => !o && setApproveTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve Extra Hours</DialogTitle>
+          </DialogHeader>
+          {approveTarget && (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                <div><span className="font-medium text-foreground">Employee:</span> {approveTarget.employees?.full_name ?? "—"}</div>
+                <div><span className="font-medium text-foreground">Requested:</span> {approveTarget.hours} hours</div>
+                <div className="mt-1 whitespace-pre-wrap"><span className="font-medium text-foreground">Justification:</span> {approveTarget.justification}</div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Hours to approve</label>
+                <Input
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  value={approveHours}
+                  onChange={(e) => setApproveHours(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">
+                  Comment {parseFloat(approveHours) !== Number(approveTarget.hours) && (
+                    <span className="text-xs text-yellow-600 dark:text-yellow-400">
+                      (recommended — instructor will see this)
+                    </span>
+                  )}
+                </label>
+                <Textarea
+                  value={approveNotes}
+                  onChange={(e) => setApproveNotes(e.target.value)}
+                  placeholder="Optional note explaining any adjustment…"
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Optional. Visible to the instructor.</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApproveTarget(null)}>Cancel</Button>
+            <Button onClick={confirmApprove} disabled={approveSubmitting}>
+              {approveSubmitting ? "Saving…" : "Approve"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
