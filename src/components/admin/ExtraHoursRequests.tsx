@@ -261,7 +261,7 @@ const ExtraHoursRequests = () => {
                           {r.decision_notes ?? "—"}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex gap-1 justify-end">
+                          <div className="flex gap-1 justify-end flex-wrap">
                             {isOwner && r.status === "pending" && (
                               <>
                                 <Button size="sm" variant="outline" onClick={() => decide(r.id, "approved")}>
@@ -272,6 +272,16 @@ const ExtraHoursRequests = () => {
                                 </Button>
                               </>
                             )}
+                            {isOwner && r.status === "approved" && (
+                              <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
+                                <X className="w-3 h-3 mr-1" /> Change to Denied
+                              </Button>
+                            )}
+                            {isOwner && r.status === "denied" && (
+                              <Button size="sm" variant="outline" onClick={() => decide(r.id, "approved")}>
+                                <Check className="w-3 h-3 mr-1" /> Change to Approved
+                              </Button>
+                            )}
                             {isMine && r.status === "pending" && (
                               <Button size="sm" variant="ghost" onClick={() => cancelOwn(r.id)}>
                                 <Trash2 className="w-3 h-3" />
@@ -279,6 +289,7 @@ const ExtraHoursRequests = () => {
                             )}
                           </div>
                         </TableCell>
+
                       </TableRow>
                     );
                   })}
