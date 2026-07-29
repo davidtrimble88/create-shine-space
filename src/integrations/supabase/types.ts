@@ -71,6 +71,10 @@ export type Database = {
       bookings: {
         Row: {
           address: string | null
+          archive_reason: string | null
+          archived: boolean
+          archived_at: string | null
+          archived_by: string | null
           booking_status: string
           checkpoint_c1: boolean
           checkpoint_c2: boolean
@@ -135,6 +139,10 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          archive_reason?: string | null
+          archived?: boolean
+          archived_at?: string | null
+          archived_by?: string | null
           booking_status?: string
           checkpoint_c1?: boolean
           checkpoint_c2?: boolean
@@ -199,6 +207,10 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          archive_reason?: string | null
+          archived?: boolean
+          archived_at?: string | null
+          archived_by?: string | null
           booking_status?: string
           checkpoint_c1?: boolean
           checkpoint_c2?: boolean

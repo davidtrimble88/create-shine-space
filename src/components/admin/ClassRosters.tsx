@@ -28,9 +28,13 @@ type Booking = Tables<"bookings"> & {
   dropped_reason?: string | null;
   dropped_at?: string | null;
   dropped_by?: string | null;
+  archived?: boolean;
+  archive_reason?: string | null;
+  archived_at?: string | null;
+  archived_by?: string | null;
 };
 
-type ViewMode = "active" | "evaluation_pending" | "dl389" | "past" | "pending_retests";
+type ViewMode = "active" | "evaluation_pending" | "dl389" | "past" | "pending_retests" | "archived";
 
 const RETEST_WINDOW_DAYS = 60;
 
@@ -205,6 +209,22 @@ const ClassRosters = () => {
   const [dropReason, setDropReason] = useState("");
   const [dropCanReschedule, setDropCanReschedule] = useState<"yes" | "no" | null>(null);
   const [savingDrop, setSavingDrop] = useState(false);
+
+  // Delete → archive dialog (any student)
+  const [deleteFor, setDeleteFor] = useState<Booking | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+  const [savingDelete, setSavingDelete] = useState(false);
+
+  // Reschedule-active flag: distinguishes "move active student" from
+  // the retest-list reschedule (which clears retest_type on the source).
+  const [rescheduleActive, setRescheduleActive] = useState(false);
+
+  // Archived roster state
+  const [archivedBookings, setArchivedBookings] = useState<Booking[]>([]);
+  const [loadingArchived, setLoadingArchived] = useState(false);
+
+
 
 
   // Load schedules + employees + assignments based on view
@@ -549,7 +569,7 @@ const ClassRosters = () => {
   const allKnownSchedules = [...schedules, ...pastSchedules, ...evalPendingSchedules];
   const selectedSchedule = allKnownSchedules.find(s => s.id === selectedScheduleId);
 
-  const nonRetestBookings = bookings.filter(b => !b.is_retest);
+  const nonRetestBookings = bookings.filter(b => !b.is_retest && !b.archived);
   const regularBookings = nonRetestBookings.filter(b => !b.dropped);
   const droppedBookings = nonRetestBookings.filter(b => b.dropped);
   const retestBookings = bookings.filter(b => b.is_retest);
@@ -1313,6 +1333,33 @@ const ClassRosters = () => {
       ? "Reschedule"
       : `Reschedule — ${portionsLabel} only`;
 
+    if (rescheduleActive) {
+      // Move the active student's booking to the new class in place —
+      // no drop record, no clone. Append the reschedule note to the roster comment.
+      const prevComment = (src.roster_comment || "").trim();
+      const noteLine = `${comment} from ${src.schedule_date || ""} ${src.location_label || ""}`.trim();
+      const mergedComment = prevComment ? `${prevComment}\n${noteLine}` : noteLine;
+      const { error } = await (supabase as any)
+        .from("bookings")
+        .update({
+          schedule_id: target.id,
+          schedule_date: target.date,
+          course: target.course,
+          location: target.location,
+          location_label: target.location_label,
+          roster_comment: mergedComment,
+        })
+        .eq("id", src.id);
+      setRescheduling(false);
+      if (error) { toast.error("Failed to reschedule"); return; }
+      setBookings(prev => prev.filter(b => b.id !== src.id));
+      setRescheduleFor(null);
+      setRescheduleActive(false);
+      setRescheduleTargetScheduleId("");
+      toast.success(`Moved to ${target.date} at ${target.location_label}`);
+      return;
+    }
+
     const { data, error } = await supabase.from("bookings").insert({
       first_name: src.first_name,
       last_name: src.last_name,
@@ -1348,6 +1395,34 @@ const ClassRosters = () => {
     setRescheduleTargetScheduleId("");
     toast.success(`Rescheduled to ${target.date} at ${target.location_label}`);
   };
+
+  // Archive (soft-delete) any booking with a required comment.
+  const openDeleteStudent = (b: Booking) => {
+    setDeleteFor(b);
+    setDeleteReason("");
+    setDeleteConfirmed(false);
+  };
+
+  const submitDeleteStudent = async () => {
+    if (!deleteFor) return;
+    if (!deleteReason.trim()) { toast.error("A comment is required"); return; }
+    if (!deleteConfirmed) { toast.error("Please confirm the deletion"); return; }
+    setSavingDelete(true);
+    const updates = {
+      archived: true,
+      archive_reason: deleteReason.trim(),
+      archived_at: new Date().toISOString(),
+      archived_by: user?.id ?? null,
+    };
+    const { error } = await (supabase as any).from("bookings").update(updates).eq("id", deleteFor.id);
+    setSavingDelete(false);
+    if (error) { toast.error("Failed to delete: " + error.message); return; }
+    const name = `${deleteFor.first_name} ${deleteFor.last_name}`;
+    setBookings(prev => prev.filter(b => b.id !== deleteFor.id));
+    setDeleteFor(null);
+    toast.success(`${name} deleted and moved to Archived Students.`);
+  };
+
 
   const openFailNotes = (b: Booking) => {
     setFailNotesFor(b);
@@ -1838,6 +1913,7 @@ const ClassRosters = () => {
           onOpenChange={open => {
             if (!open) {
               setRescheduleFor(null);
+              setRescheduleActive(false);
               setRescheduleTargetScheduleId("");
               setRescheduleScope("full");
               setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
@@ -2007,11 +2083,83 @@ const ClassRosters = () => {
     }
   }, [canManageEvaluations, view]);
 
+  // Load archived (soft-deleted) bookings for admin/owner archive view
+  useEffect(() => {
+    if (view !== "archived" || !canManageEvaluations) return;
+    let cancelled = false;
+    const load = async () => {
+      setLoadingArchived(true);
+      const { data } = await (supabase as any)
+        .from("bookings")
+        .select("*")
+        .eq("archived", true)
+        .order("archived_at", { ascending: false });
+      if (!cancelled) {
+        setArchivedBookings((data ?? []) as Booking[]);
+        setLoadingArchived(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [view, canManageEvaluations]);
+
   if (view === "pending_retests" && canManageEvaluations) {
     return renderPendingRetests();
   }
   if (view === "dl389" && canManageEvaluations) {
     return renderDL389();
+  }
+  if (view === "archived" && canManageEvaluations) {
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Archive className="w-6 h-6 text-muted-foreground" /> Archived Students
+          </h1>
+          <Button variant="outline" onClick={() => setView("active")}>
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Class Rosters
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          Students deleted from any roster are kept here with the comment provided at deletion. Records in the archive cannot be deleted.
+        </p>
+        {loadingArchived ? (
+          <p className="text-muted-foreground">Loading…</p>
+        ) : archivedBookings.length === 0 ? (
+          <div className="bg-card border border-border rounded-xl p-8 text-center">
+            <Archive className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground">No archived students.</p>
+          </div>
+        ) : (
+          <div className="bg-card border border-border rounded-xl overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-secondary/40">
+                  <th className="text-left p-3 font-medium text-muted-foreground">Student</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Class</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Location</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Class Date</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Reason / Comment</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Deleted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {archivedBookings.map(b => (
+                  <tr key={b.id} className="border-b border-border/50">
+                    <td className="p-3 font-medium text-foreground uppercase">{b.first_name} {b.last_name}</td>
+                    <td className="p-3 text-muted-foreground">{courseLabels[b.course] || b.course}</td>
+                    <td className="p-3 text-muted-foreground">{b.location_label || "—"}</td>
+                    <td className="p-3 text-muted-foreground">{b.schedule_date || "—"}</td>
+                    <td className="p-3 text-foreground italic whitespace-pre-wrap">{b.archive_reason || "—"}</td>
+                    <td className="p-3 text-muted-foreground text-xs">{b.archived_at ? formatPSTDate(b.archived_at) : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
   }
 
   const viewTitle =
@@ -2052,6 +2200,9 @@ const ClassRosters = () => {
               </Button>
               <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("past"); }}>
                 <History className="w-4 h-4 mr-2" /> Past Rosters
+              </Button>
+              <Button variant="outline" onClick={() => { setSelectedScheduleId(""); setView("archived"); }}>
+                <Archive className="w-4 h-4 mr-2" /> Archived Students
               </Button>
             </>
           )}
@@ -2477,16 +2628,6 @@ const ClassRosters = () => {
                                 <Pencil className="w-3 h-3" /> Edit
                               </button>
                             )}
-                            {canEditStudents && (b as any).manually_added && (
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteManual(b)}
-                                title="Delete manually added student"
-                                className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-destructive/40 bg-destructive/10 text-destructive text-[10px] font-semibold hover:bg-destructive/20"
-                              >
-                                <Trash2 className="w-3 h-3" /> Delete
-                              </button>
-                            )}
                           </div>
                         </td>
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
@@ -2526,12 +2667,36 @@ const ClassRosters = () => {
                               </button>
                               <button
                                 type="button"
+                                onClick={() => {
+                                  setRescheduleFor(b);
+                                  setRescheduleActive(true);
+                                  setRescheduleTargetScheduleId("");
+                                  setRescheduleScope("full");
+                                  setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
+                                }}
+                                title="Reschedule student to another class (no drop)"
+                                aria-label="Reschedule student"
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                              >
+                                <RotateCcw className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => openDrop(b)}
                                 title="Drop student from class (admin/owner only)"
                                 aria-label="Drop student"
                                 className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                               >
                                 <UserMinus className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDeleteStudent(b)}
+                                title="Delete student (moves to Archived Students)"
+                                aria-label="Delete student"
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
                           </td>
@@ -2543,47 +2708,7 @@ const ClassRosters = () => {
               </div>
             )}
 
-            {/* Dropped students — admin/owner only */}
-            {canManageEvaluations && droppedBookings.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-border">
-                <h3 className="text-md font-bold text-foreground mb-3 flex items-center gap-2">
-                  <UserMinus className="w-4 h-4 text-destructive" /> DROPPED STUDENTS
-                  <span className="text-xs font-normal text-muted-foreground">(visible to admin & owner only)</span>
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs [&_th]:!p-2 [&_td]:!p-2 [&_.min-w-\[180px\]]:!min-w-[110px]">
-                    <thead>
-                      <tr className="border-b border-border bg-secondary/50">
-                        <th className="text-left p-3 font-medium text-muted-foreground">Student</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Reason</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Dropped</th>
-                        <th className="text-center p-3 font-medium text-muted-foreground">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {droppedBookings.map(b => (
-                        <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
-                          <td className="p-3 font-medium text-foreground uppercase">
-                            {b.first_name} {b.last_name}
-                          </td>
-                          <td className="p-3 text-muted-foreground">{b.phone}</td>
-                          <td className="p-3 text-foreground italic">{b.dropped_reason || "—"}</td>
-                          <td className="p-3 text-muted-foreground text-xs">
-                            {b.dropped_at ? formatPSTDate(b.dropped_at) : "—"}
-                          </td>
-                          <td className="p-3 text-center">
-                            <Button size="sm" variant="outline" onClick={() => handleUndropStudent(b)}>
-                              <Undo2 className="w-3 h-3 mr-1" /> Restore
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+
 
             {/* Retest section on-screen */}
             <div className="mt-6 pt-4 border-t border-border">
@@ -3056,6 +3181,147 @@ const ClassRosters = () => {
             <Button variant="outline" onClick={() => setEditStudentFor(null)} disabled={savingStudent}>Cancel</Button>
             <Button onClick={handleSaveStudentEdit} disabled={savingStudent}>
               {savingStudent ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Active-roster Reschedule dialog (moves student in place, no drop) */}
+      <Dialog
+        open={!!rescheduleFor && rescheduleActive}
+        onOpenChange={open => {
+          if (!open) {
+            setRescheduleFor(null);
+            setRescheduleActive(false);
+            setRescheduleTargetScheduleId("");
+            setRescheduleScope("full");
+            setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="w-5 h-5 text-primary" /> Reschedule Student
+            </DialogTitle>
+            <DialogDescription>
+              {rescheduleFor && (
+                <>
+                  Move <span className="font-semibold text-foreground">{rescheduleFor.first_name} {rescheduleFor.last_name}</span> to another upcoming{" "}
+                  <span className="font-semibold text-foreground">{courseLabels[rescheduleFor.course] || rescheduleFor.course}</span> class. The student will not be dropped.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {rescheduleFor && (() => {
+            const src = rescheduleFor;
+            const todayStr = new Date().toISOString().split("T")[0];
+            const candidates = schedules
+              .filter(s => s.course === src.course && s.date >= todayStr && s.id !== src.schedule_id && s.spots_available > 0)
+              .sort((a, b) => a.date.localeCompare(b.date));
+            return (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground block">Choose a class</label>
+                  {candidates.length === 0 ? (
+                    <div className="bg-muted/50 border border-border rounded-md p-3 text-sm text-muted-foreground">
+                      No upcoming {courseLabels[src.course] || src.course} classes with open spots.
+                    </div>
+                  ) : (
+                    <Select value={rescheduleTargetScheduleId} onValueChange={setRescheduleTargetScheduleId}>
+                      <SelectTrigger><SelectValue placeholder="Select an available class" /></SelectTrigger>
+                      <SelectContent>
+                        {candidates.map(s => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.date} • {s.location_label} • {s.spots_available} spot{s.spots_available !== 1 ? "s" : ""} open
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground block">What are they attending?</label>
+                  <RadioGroup value={rescheduleScope} onValueChange={(v) => setRescheduleScope(v as "full" | "partial")}>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="full" id="a-resch-full" />
+                      <Label htmlFor="a-resch-full" className="cursor-pointer text-sm">Full class</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="partial" id="a-resch-partial" />
+                      <Label htmlFor="a-resch-partial" className="cursor-pointer text-sm">Partial — choose portions below</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                {rescheduleScope === "partial" && (
+                  <div className="space-y-2 pl-2 border-l-2 border-border">
+                    <label className="text-xs font-medium text-muted-foreground block">Portions</label>
+                    <div className="flex flex-wrap gap-4">
+                      {(["c1", "r1", "c2", "r2"] as const).map(k => (
+                        <div key={k} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`a-resch-${k}`}
+                            checked={reschedulePortions[k]}
+                            onCheckedChange={(checked) =>
+                              setReschedulePortions(prev => ({ ...prev, [k]: checked === true }))
+                            }
+                          />
+                          <Label htmlFor={`a-resch-${k}`} className="cursor-pointer text-sm uppercase">{k}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setRescheduleFor(null); setRescheduleActive(false); }}>Cancel</Button>
+            <Button onClick={handleReschedule} disabled={!rescheduleTargetScheduleId || rescheduling}>
+              {rescheduling ? "Moving…" : "Reschedule"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete → Archive dialog */}
+      <Dialog open={!!deleteFor} onOpenChange={o => { if (!o) { setDeleteFor(null); setDeleteReason(""); setDeleteConfirmed(false); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-destructive" /> Delete Student
+            </DialogTitle>
+            <DialogDescription>
+              {deleteFor && (
+                <>
+                  Delete <span className="font-semibold text-foreground">{deleteFor.first_name} {deleteFor.last_name}</span> from this roster. The record moves to <span className="font-semibold text-foreground">Archived Students</span> with your comment and cannot be deleted again.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Comment (required)</label>
+              <Textarea
+                value={deleteReason}
+                onChange={e => setDeleteReason(e.target.value)}
+                placeholder="Why is this student being deleted?"
+                rows={3}
+              />
+            </div>
+            <label className="flex items-start gap-2 text-sm text-foreground cursor-pointer">
+              <Checkbox checked={deleteConfirmed} onCheckedChange={c => setDeleteConfirmed(c === true)} />
+              <span>I confirm I want to delete this student. This will remove them from the roster and archive the record.</span>
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDeleteFor(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={submitDeleteStudent}
+              disabled={savingDelete || !deleteReason.trim() || !deleteConfirmed}
+            >
+              {savingDelete ? "Deleting…" : "Delete & Archive"}
             </Button>
           </DialogFooter>
         </DialogContent>
