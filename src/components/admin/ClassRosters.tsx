@@ -2553,16 +2553,6 @@ const ClassRosters = () => {
                                 <Pencil className="w-3 h-3" /> Edit
                               </button>
                             )}
-                            {canEditStudents && (b as any).manually_added && (
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteManual(b)}
-                                title="Delete manually added student"
-                                className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-destructive/40 bg-destructive/10 text-destructive text-[10px] font-semibold hover:bg-destructive/20"
-                              >
-                                <Trash2 className="w-3 h-3" /> Delete
-                              </button>
-                            )}
                           </div>
                         </td>
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
