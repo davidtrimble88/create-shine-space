@@ -280,7 +280,7 @@ const ExtraHoursRequests = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((r) => {
+                  {visibleRows.map((r) => {
                     const isMine = r.requested_by === user?.id;
                     return (
                       <TableRow key={r.id}>
