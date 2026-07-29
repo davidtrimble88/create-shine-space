@@ -204,10 +204,12 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
         </div>
         {myEmployeeId && (
           <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" onClick={() => setShowArchive((v) => !v)}>
-              <Archive className="w-4 h-4 mr-2" />
-              {showArchive ? "Show Pending" : `View Archive (${archivedRows.length})`}
-            </Button>
+            {canSeePending && (
+              <Button variant="outline" onClick={() => setShowArchive((v) => !v)}>
+                <Archive className="w-4 h-4 mr-2" />
+                {showArchive ? "Show Pending" : `View Archive (${archivedRows.length})`}
+              </Button>
+            )}
             <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
