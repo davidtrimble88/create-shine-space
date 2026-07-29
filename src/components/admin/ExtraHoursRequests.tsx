@@ -37,6 +37,9 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const { user, effectiveRole } = useAuth();
   const isOwner = effectiveRole === "owner";
   const isAdmin = effectiveRole === "admin";
+  const isManager = effectiveRole === "manager";
+  // Only owners can see pending requests. Admins and managers only see archived (approved/denied).
+  const canSeePending = isOwner;
 
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +53,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [approveHours, setApproveHours] = useState("");
   const [approveNotes, setApproveNotes] = useState("");
   const [approveSubmitting, setApproveSubmitting] = useState(false);
+  // Admins/managers default to (and are locked into) the archived view.
   const [showArchive, setShowArchive] = useState(false);
 
   const load = async () => {
@@ -170,10 +174,13 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     () => rows.filter((r) => r.status === "approved" || r.status === "denied"),
     [rows],
   );
-  const visibleRows = useMemo(
-    () => (showArchive ? archivedRows : rows.filter((r) => r.status === "pending")),
-    [rows, showArchive, archivedRows],
-  );
+  const visibleRows = useMemo(() => {
+    if (showArchive) return archivedRows;
+    // Only owner (or the requester themselves) can see pending requests.
+    return rows.filter(
+      (r) => r.status === "pending" && (canSeePending || r.requested_by === user?.id),
+    );
+  }, [rows, showArchive, archivedRows, canSeePending, user?.id]);
 
   return (
     <div className="space-y-6">
@@ -199,7 +206,9 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
           <div className="flex gap-2 flex-wrap">
             <Button variant="outline" onClick={() => setShowArchive((v) => !v)}>
               <Archive className="w-4 h-4 mr-2" />
-              {showArchive ? "Show Pending" : `View Archive (${archivedRows.length})`}
+              {showArchive
+                ? (canSeePending ? "Show Pending" : "Show My Pending")
+                : `View Archive (${archivedRows.length})`}
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -256,7 +265,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
           <CardTitle className="text-base">
             {showArchive
               ? (isOwner || isAdmin ? "Archived Requests (approved & denied)" : "My Archived Requests")
-              : (isOwner || isAdmin ? "Pending Requests" : "My Pending Requests")}
+              : (canSeePending ? "Pending Requests" : "My Pending Requests")}
           </CardTitle>
         </CardHeader>
         <CardContent>
