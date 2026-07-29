@@ -50,6 +50,7 @@ const ExtraHoursRequests = () => {
   const [approveHours, setApproveHours] = useState("");
   const [approveNotes, setApproveNotes] = useState("");
   const [approveSubmitting, setApproveSubmitting] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
 
   const load = async () => {
     setLoading(true);
