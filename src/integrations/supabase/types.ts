@@ -1562,6 +1562,14 @@ export type Database = {
         Returns: boolean
       }
       email_queue_dispatch: { Args: never; Returns: undefined }
+      employee_login_stats: {
+        Args: never
+        Returns: {
+          last_login_at: string
+          login_count: number
+          user_id: string
+        }[]
+      }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number

@@ -103,19 +103,18 @@ const AdminEmployees = () => {
           if (emp) emp.role = role.role;
         }
       }
-      const { data: logins } = await supabase
-        .from("employee_logins")
-        .select("user_id, created_at")
-        .in("user_id", userIds)
-        .order("created_at", { ascending: false });
-      if (logins) {
-        for (const l of logins) {
-          const emp = empsWithRoles.find(e => e.user_id === l.user_id);
+      // Aggregate in the database — a raw row fetch is capped at 1000 rows and
+      // silently drops older logins for less-active employees.
+      const { data: stats } = await (supabase as any).rpc("employee_login_stats");
+      if (stats) {
+        for (const s of stats as { user_id: string; login_count: number; last_login_at: string }[]) {
+          const emp = empsWithRoles.find(e => e.user_id === s.user_id);
           if (!emp) continue;
-          emp.login_count = (emp.login_count ?? 0) + 1;
-          if (!emp.last_login_at) emp.last_login_at = l.created_at;
+          emp.login_count = Number(s.login_count) || 0;
+          emp.last_login_at = s.last_login_at;
         }
       }
+
     }
 
     setEmployees(empsWithRoles);
