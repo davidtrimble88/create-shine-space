@@ -448,12 +448,31 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             <p className="text-sm text-muted-foreground">
               No signature is needed here. When you submit, we'll fill in the official CMSP Student
               Registration Form with your answers and give you a copy to <strong>download and print</strong>.
-              {prefill.isMinor && (
-                <> A parent or legal guardian must also be present at the <strong>start of the first
-                range class</strong> to sign in person and confirm permission for the minor to
-                participate.</>
-              )}
             </p>
+            {prefill.isMinor && (
+              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 space-y-2">
+                <p className="text-sm font-semibold text-amber-600">
+                  Parent / Legal Guardian must attend the start of the first class
+                </p>
+                <p className="text-sm text-foreground/90">
+                  A parent or legal guardian must be present at the <strong>start of the first class</strong>{" "}
+                  to give permission and sign all required paperwork.
+                </p>
+                <ul className="list-disc list-inside text-sm text-foreground/90 space-y-1">
+                  <li>
+                    If the first class is held <strong>via Zoom</strong>: the parent or legal guardian must
+                    appear on camera, identify themselves, and give verbal permission.
+                  </li>
+                  <li>
+                    If the first class is held <strong>in person</strong>: the parent or legal guardian must
+                    come to the class location in person.
+                  </li>
+                </ul>
+                <p className="text-sm text-foreground/90">
+                  All waivers and release forms will be signed in person at the first range class.
+                </p>
+              </div>
+            )}
             <p className="text-xs text-muted-foreground pt-1">
 Submitting this form completes the CMSP Registration Form — you do not need to bring a copy back to us before class.
             </p>

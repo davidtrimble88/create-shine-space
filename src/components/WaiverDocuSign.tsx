@@ -397,17 +397,29 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           <div className="mb-4 rounded-2xl border-4 border-amber-500 bg-amber-500/15 p-5 md:p-6 shadow-lg">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-8 h-8 md:w-10 md:h-10 text-amber-500 shrink-0" />
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <h3 className="text-xl md:text-2xl font-extrabold uppercase tracking-wide text-foreground">
-                  Parent / Legal Guardian must sign in person
+                  Parent / Legal Guardian must attend the start of the first class
                 </h3>
                 <p className="text-base md:text-lg text-foreground/90 leading-relaxed">
-                  Complete every field below with your own initials and signature — this saves a{" "}
-                  <span className="font-bold">partially filled</span> waiver we print for your parent or legal
-                  guardian to sign <span className="font-bold">at the start of your first range class</span>.
+                  Because this student is under 18, a parent or legal guardian must be present at the{" "}
+                  <span className="font-bold">start of the first class</span> to give permission and sign
+                  all required paperwork.
                 </p>
+                <ul className="list-disc list-inside text-base md:text-lg text-foreground/90 leading-relaxed space-y-1">
+                  <li>
+                    If the first class is held <span className="font-bold">via Zoom</span>: the parent or
+                    legal guardian must appear on camera, identify themselves, and give verbal permission.
+                  </li>
+                  <li>
+                    If the first class is held <span className="font-bold">in person</span>: the parent or
+                    legal guardian must come to the class location in person.
+                  </li>
+                </ul>
                 <p className="text-base md:text-lg font-bold text-amber-600">
-                  Your registration is NOT complete until that in-person signature is captured.
+                  All waivers and release forms will be signed in person at the first range class. Your
+                  registration is NOT complete until the guardian's in-person signature and permission are
+                  captured.
                 </p>
               </div>
             </div>
