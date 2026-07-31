@@ -174,13 +174,13 @@ const Courses = () => {
                 ))}
               </ul>
 
-              <Link to={`/courses?tab=${course.tab}`}>
+              <Link to={`/courses?tab=${course.tab}`} aria-label={`Learn more about the ${course.name}`}>
                 <Button
                   variant={course.popular ? "hero" : "heroOutline"}
                   className="w-full group"
                   size="lg"
                 >
-                  Learn More
+                  Learn More<span className="sr-only"> about the {course.name}</span>
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>

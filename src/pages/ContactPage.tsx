@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EditableText from "@/components/EditableText";
 import { Phone, Mail, MapPin, Clock, Instagram, Facebook } from "lucide-react";
+import Seo from "@/components/Seo";
 
 const contactMethods = [
   {
@@ -70,6 +71,7 @@ const socialLinks = [
 const ContactPage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Seo title={"Contact Learn to Ride VC — Ventura & High Desert"} description={"Call, text, or email Learn to Ride VC for motorcycle training in Ventura County and the High Desert. Office hours and locations inside."} path="/contact" />
       <Navbar />
 
       <section className="pt-32 pb-24 relative overflow-hidden">

@@ -37,6 +37,7 @@ import { type ModelReleasePrefill } from "@/components/ModelReleaseStep";
 import RegistrationFormDocuSign from "@/components/RegistrationFormDocuSign";
 import ModelReleaseDocuSign from "@/components/ModelReleaseDocuSign";
 import WaiverDocuSign from "@/components/WaiverDocuSign";
+import Seo from "@/components/Seo";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -828,6 +829,7 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo title={"Register for a Motorcycle Class — Learn to Ride VC"} description={"Complete your registration for CMSP-certified motorcycle training. Bike and helmet provided for the Motorcycle Training Course."} path="/register" />
       <Navbar />
 
       <section className="pt-40 pb-24 relative overflow-hidden">

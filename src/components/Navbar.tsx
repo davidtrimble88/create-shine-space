@@ -113,7 +113,12 @@ const Navbar = () => {
             <Link to="/choose-course"><Button variant="hero"><EditableText contentKey="nav.booknow" fallback="Book Now" /></Button></Link>
           </div>
 
-          <button className="md:hidden p-2" onClick={() => setIsOpen(!isOpen)}>
+          <button
+            className="md:hidden p-2"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isOpen}
+          >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>

@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import Seo, { SITE_URL } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -56,6 +57,64 @@ const faqs = [
   { q: "Can I get a discount?", a: "Returning students get $50 off the Intermediate Course ($300 vs $350) — call our office to receive the discounted rate. For new students, groups of 4+ friends receive a group discount — call our office for details." },
   { q: "Is the course required for licensing?", a: "If you're under 21, the MTC is mandatory before taking your motorcycle permit written test at the DMV. For 21 and over, it's recommended but not required — though you still get the DMV skills test waiver." },
 ];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
+const courseCatalog = [
+  {
+    name: "Motorcycle Training Course",
+    description:
+      "CMSP-certified beginner motorcycle course. No experience required — bike and helmet provided, with a DMV skills-test waiver on completion.",
+    tab: "basic",
+  },
+  {
+    name: "1-Day Premier Course",
+    description:
+      "One-day course for experienced riders, including a licensing option for riders 21 and over.",
+    tab: "premier",
+  },
+  {
+    name: "Intermediate Course",
+    description:
+      "Skills course for licensed riders covering cornering, emergency maneuvers, and risk management.",
+    tab: "intermediate",
+  },
+  {
+    name: "Advanced Riding Clinic",
+    description:
+      "Advanced clinic covering vision, body position, and suspension setup in a controlled environment.",
+    tab: "advanced",
+  },
+];
+
+const coursesSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  itemListElement: courseCatalog.map((c, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    item: {
+      "@type": "Course",
+      name: c.name,
+      description: c.description,
+      url: `${SITE_URL}/courses?tab=${c.tab}`,
+      provider: {
+        "@type": "Organization",
+        name: "Learn to Ride VC",
+        url: SITE_URL,
+      },
+    },
+  })),
+};
+
 
 /* ─── Basic Course Tab ─── */
 const BasicCourse = () => (
@@ -627,7 +686,14 @@ const CoursesPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Motorcycle Courses & Pricing | Learn to Ride VC"
+        description="Compare the CMSP Motorcycle Training Course, 1-Day Premier, Intermediate, and Advanced Riding Clinic — pricing, requirements, and class FAQs."
+        path="/courses"
+        jsonLd={[coursesSchema, faqSchema]}
+      />
       <Navbar />
+
 
       {/* Hero */}
       <section className="pt-32 pb-12 relative overflow-hidden">

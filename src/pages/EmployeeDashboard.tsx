@@ -37,6 +37,7 @@ import DashboardTour from "@/components/admin/DashboardTour";
 import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPresence } from "@/lib/employeePresence";
+import Seo from "@/components/Seo";
 
 
 const tabs = [
@@ -123,6 +124,7 @@ const EmployeeDashboard = () => {
     window.addEventListener("openRoster", handler);
     return () => window.removeEventListener("openRoster", handler);
   }, []);
+      <Seo title="Employee Dashboard — Learn to Ride VC" description="Internal staff dashboard for Learn to Ride VC." path="/employee-dashboard" noindex />
 
   // Presence: broadcast that this user is actively on the site (only while tab is visible)
   useEffect(() => {

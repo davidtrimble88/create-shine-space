@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { MapPin, ArrowRight, Mountain, Waves } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import Seo from "@/components/Seo";
 
 const locations = [
   {
@@ -66,6 +67,7 @@ const ChooseLocationPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo title={"Choose a Training Location — Learn to Ride VC"} description={"Pick your motorcycle training site in Ventura County or the High Desert and continue your class registration."} path="/choose-location" />
       <Navbar />
 
       <section className="pt-32 pb-24 relative overflow-hidden">
