@@ -627,7 +627,14 @@ const CoursesPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Motorcycle Courses & Pricing | Learn to Ride VC"
+        description="Compare the CMSP Motorcycle Training Course, 1-Day Premier, Intermediate, and Advanced Riding Clinic — pricing, requirements, and class FAQs."
+        path="/courses"
+        jsonLd={[coursesSchema, faqSchema]}
+      />
       <Navbar />
+
 
       {/* Hero */}
       <section className="pt-32 pb-12 relative overflow-hidden">
