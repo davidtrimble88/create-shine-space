@@ -52,6 +52,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [approveTarget, setApproveTarget] = useState<Row | null>(null);
   const [approveHours, setApproveHours] = useState("");
   const [approveNotes, setApproveNotes] = useState("");
+  const [approveWorkDate, setApproveWorkDate] = useState("");
+  const [approveJustification, setApproveJustification] = useState("");
   const [approveSubmitting, setApproveSubmitting] = useState(false);
   // Admins/managers default to (and are locked into) the archived view.
   const [showArchive, setShowArchive] = useState(effectiveRole !== "owner");
@@ -171,6 +173,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     setApproveTarget(r);
     setApproveHours(String(r.hours));
     setApproveNotes(r.decision_notes ?? "");
+    setApproveWorkDate(r.work_date ?? "");
+    setApproveJustification(r.justification ?? "");
   };
 
   const confirmApprove = async () => {
@@ -186,6 +190,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
       .update({
         status: "approved",
         hours: h,
+        work_date: approveWorkDate || null,
+        justification: approveJustification.trim() || approveTarget.justification,
         decision_notes: approveNotes.trim() || null,
         decided_by: user?.id,
         decided_at: new Date().toISOString(),
@@ -196,11 +202,12 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
       toast({ title: "Update failed", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Request approved" });
+    toast({ title: approveTarget.status === "approved" ? "Extra hours updated" : "Request approved" });
     setApproveTarget(null);
     load();
     onDecision?.();
   };
+
 
 
   const pendingCount = useMemo(() => rows.filter((r) => r.status === "pending").length, [rows]);
@@ -377,7 +384,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
                             {isOwner && r.status === "approved" && (
                               <>
                                 <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
-                                  <Check className="w-3 h-3 mr-1" /> Adjust Hours
+                                  <Check className="w-3 h-3 mr-1" /> Edit
                                 </Button>
                                 <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
                                   <X className="w-3 h-3 mr-1" /> Change to Denied
@@ -411,23 +418,42 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
       <Dialog open={!!approveTarget} onOpenChange={(o) => !o && setApproveTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Approve Extra Hours</DialogTitle>
+            <DialogTitle>
+              {approveTarget?.status === "approved" ? "Edit Approved Extra Hours" : "Approve Extra Hours"}
+            </DialogTitle>
           </DialogHeader>
           {approveTarget && (
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
                 <div><span className="font-medium text-foreground">Employee:</span> {approveTarget.employees?.full_name ?? "—"}</div>
-                <div><span className="font-medium text-foreground">Requested:</span> {approveTarget.hours} hours</div>
-                <div className="mt-1 whitespace-pre-wrap"><span className="font-medium text-foreground">Justification:</span> {approveTarget.justification}</div>
+                <div><span className="font-medium text-foreground">Originally requested:</span> {approveTarget.hours} hours</div>
               </div>
               <div>
-                <label className="text-sm font-medium">Hours to approve</label>
+                <label className="text-sm font-medium">
+                  {approveTarget.status === "approved" ? "Approved hours" : "Hours to approve"}
+                </label>
                 <Input
                   type="number"
                   step="0.25"
                   min="0"
                   value={approveHours}
                   onChange={(e) => setApproveHours(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Work date</label>
+                <Input
+                  type="date"
+                  value={approveWorkDate}
+                  onChange={(e) => setApproveWorkDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Justification</label>
+                <Textarea
+                  value={approveJustification}
+                  onChange={(e) => setApproveJustification(e.target.value)}
+                  rows={3}
                 />
               </div>
               <div>
@@ -451,7 +477,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApproveTarget(null)}>Cancel</Button>
             <Button onClick={confirmApprove} disabled={approveSubmitting}>
-              {approveSubmitting ? "Saving…" : "Approve"}
+              {approveSubmitting ? "Saving…" : approveTarget?.status === "approved" ? "Save Changes" : "Approve"}
             </Button>
           </DialogFooter>
         </DialogContent>
