@@ -174,6 +174,10 @@ const AdminBookings = () => {
       emergency_contact_name: form.emergency_contact_name || null,
       emergency_contact_relationship: form.emergency_contact_relationship || null,
       emergency_contact_phone: form.emergency_contact_phone || null,
+      guardian_name: form.guardian_name || null,
+      guardian_relationship: form.guardian_relationship || null,
+      guardian_phone: form.guardian_phone || null,
+      guardian_email: form.guardian_email || null,
       fee: sched.price,
       manually_added: true,
     };
