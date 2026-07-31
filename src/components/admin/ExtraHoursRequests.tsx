@@ -418,23 +418,42 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
       <Dialog open={!!approveTarget} onOpenChange={(o) => !o && setApproveTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Approve Extra Hours</DialogTitle>
+            <DialogTitle>
+              {approveTarget?.status === "approved" ? "Edit Approved Extra Hours" : "Approve Extra Hours"}
+            </DialogTitle>
           </DialogHeader>
           {approveTarget && (
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
                 <div><span className="font-medium text-foreground">Employee:</span> {approveTarget.employees?.full_name ?? "—"}</div>
-                <div><span className="font-medium text-foreground">Requested:</span> {approveTarget.hours} hours</div>
-                <div className="mt-1 whitespace-pre-wrap"><span className="font-medium text-foreground">Justification:</span> {approveTarget.justification}</div>
+                <div><span className="font-medium text-foreground">Originally requested:</span> {approveTarget.hours} hours</div>
               </div>
               <div>
-                <label className="text-sm font-medium">Hours to approve</label>
+                <label className="text-sm font-medium">
+                  {approveTarget.status === "approved" ? "Approved hours" : "Hours to approve"}
+                </label>
                 <Input
                   type="number"
                   step="0.25"
                   min="0"
                   value={approveHours}
                   onChange={(e) => setApproveHours(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Work date</label>
+                <Input
+                  type="date"
+                  value={approveWorkDate}
+                  onChange={(e) => setApproveWorkDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Justification</label>
+                <Textarea
+                  value={approveJustification}
+                  onChange={(e) => setApproveJustification(e.target.value)}
+                  rows={3}
                 />
               </div>
               <div>
