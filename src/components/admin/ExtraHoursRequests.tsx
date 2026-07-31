@@ -241,13 +241,17 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
         </div>
         {isOwner && (
           <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" onClick={() => setShowArchive((v) => !v)}>
-              <Archive className="w-4 h-4 mr-2" />
-              {showArchive
-                ? "Show Pending"
-                : `View Archive (${archivedRows.length})`}
-            </Button>
-            <Dialog open={open} onOpenChange={setOpen}>
+            {(["all", "pending", "approved", "denied"] as const).map((f) => (
+              <Button
+                key={f}
+                size="sm"
+                variant={filter === f ? "default" : "outline"}
+                onClick={() => setFilter(f)}
+              >
+                {f === "all" && <Archive className="w-4 h-4 mr-2" />}
+                {f === "all" ? `All (${rows.length})` : f.charAt(0).toUpperCase() + f.slice(1) + ` (${rows.filter((r) => r.status === f).length})`}
+              </Button>
+            ))}
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="w-4 h-4 mr-2" /> Add Extra Hours
