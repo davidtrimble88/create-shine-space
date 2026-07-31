@@ -793,6 +793,55 @@ const AdminBookings = () => {
                 </div>
               </div>
 
+              {/* Emergency Contact */}
+              <div className="border-t border-border pt-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Emergency Contact</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-muted-foreground text-xs">Name</p>
+                    <p className="font-medium text-foreground">{selectedBooking.emergency_contact_name || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Relationship</p>
+                    <p className="font-medium text-foreground">{selectedBooking.emergency_contact_relationship || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Phone</p>
+                    <p className="font-medium text-foreground">{selectedBooking.emergency_contact_phone || "—"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Parent / Legal Guardian */}
+              {(isMinorBooking(selectedBooking.date_of_birth, selectedBooking.schedule_date) ||
+                selectedBooking.guardian_name || selectedBooking.guardian_email || selectedBooking.guardian_phone) && (
+                <div className="border-t border-border pt-3">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 text-amber-500">
+                    Parent / Legal Guardian {isMinorBooking(selectedBooking.date_of_birth, selectedBooking.schedule_date) && "(Minor)"}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-muted-foreground text-xs">Name</p>
+                      <p className="font-medium text-foreground">{selectedBooking.guardian_name || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground text-xs">Relationship</p>
+                      <p className="font-medium text-foreground">{selectedBooking.guardian_relationship || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground text-xs">Phone</p>
+                      <p className="font-medium text-foreground">{selectedBooking.guardian_phone || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground text-xs">Email</p>
+                      <p className="font-medium text-foreground break-all">{selectedBooking.guardian_email || "—"}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+
+
               {/* Address */}
               <div className="border-t border-border pt-3">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Address</h3>
