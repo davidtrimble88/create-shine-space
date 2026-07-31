@@ -384,7 +384,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
                             {isOwner && r.status === "approved" && (
                               <>
                                 <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
-                                  <Check className="w-3 h-3 mr-1" /> Adjust Hours
+                                  <Check className="w-3 h-3 mr-1" /> Edit
                                 </Button>
                                 <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
                                   <X className="w-3 h-3 mr-1" /> Change to Denied
