@@ -2933,7 +2933,12 @@ const ClassRosters = () => {
                     <tr key={b.id}>
                       <td>{i + 1}</td>
                       <td style={{ textTransform: "uppercase" }}>{b.first_name}</td>
-                      <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
+                      <td style={{ textTransform: "uppercase" }}>
+                        {b.last_name}
+                        {isMinorOnClass(b, selectedSchedule.date) && (
+                          <span style={{ fontSize: 9, fontWeight: 700, color: "#d97706", marginLeft: 4, textTransform: "none" }}>(MINOR)</span>
+                        )}
+                      </td>
                       <td className="phone-col">{b.phone}</td>
                       <td>{b.license_number || ""}</td>
                       <td className="center"></td>
