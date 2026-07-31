@@ -153,7 +153,7 @@ const WorkLog = () => {
 
     const extraRes = await supabase
       .from("extra_hours_requests")
-      .select("employee_id, hours, justification, work_date, decided_at")
+      .select("id, employee_id, hours, justification, work_date, decided_at")
       .eq("status", "approved");
 
     setEmployees((empRes.data ?? []) as Employee[]);
