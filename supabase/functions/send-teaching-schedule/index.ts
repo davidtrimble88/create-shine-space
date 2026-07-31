@@ -154,6 +154,15 @@ Deno.serve(async (req) => {
       `Log in to your portal to view your full schedule: ${PORTAL_URL}\n` +
       `If you cannot teach this class, request a replacement through the Sub Coverage tab in your portal — do not arrange changes by text or phone alone.`;
 
+    // Owner/office copies of assignment notices
+    const { data: bccCfg } = await supabase
+      .from("email_bcc_settings")
+      .select("enabled, bcc_email")
+      .eq("id", true)
+      .maybeSingle();
+    const copyTargets = [OFFICE_EMAIL];
+    if (bccCfg?.enabled && bccCfg?.bcc_email) copyTargets.push(bccCfg.bcc_email);
+
     let processed = 0;
 
     for (const g of grouped.values()) {
