@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail, ChevronLeft, ChevronRight, Wrench, Menu, MessageSquare, Ticket } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail, ChevronLeft, ChevronRight, Wrench, Menu, MessageSquare, Ticket, UserMinus } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -27,6 +27,7 @@ import ITTickets from "@/components/admin/ITTickets";
 import InstructorCertifications from "@/components/admin/InstructorCertifications";
 import AdminDiscounts from "@/components/admin/AdminDiscounts";
 import WorkLog from "@/components/admin/WorkLog";
+import SubCoverage from "@/components/admin/SubCoverage";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
 
@@ -52,6 +53,7 @@ const tabs = [
   { id: "messages", label: "Messages", icon: MessageSquare, roles: ["owner", "admin", "manager", "employee"] },
   { id: "certifications", label: "Certifications", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
   { id: "work-log", label: "Work Log", icon: ClipboardList, roles: ["owner", "admin", "manager", "employee"] },
+  { id: "sub-coverage", label: "Sub Coverage", icon: UserMinus, roles: ["owner", "admin", "manager", "employee"] },
   
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
@@ -636,6 +638,7 @@ const EmployeeDashboard = () => {
           {activeTab === "certifications" && <InstructorCertifications />}
           {activeTab === "messages" && <MessagingCenter />}
           {activeTab === "work-log" && <WorkLog />}
+          {activeTab === "sub-coverage" && <SubCoverage />}
           {activeTab === "signed-waivers" && <SignedWaivers />}
           
           {activeTab === "auto-emails" && <AutoEmails />}
