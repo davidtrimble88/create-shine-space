@@ -211,14 +211,9 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     return base.filter((r) => myEmployeeId && r.employee_id === myEmployeeId);
   }, [rows, isOwner, isAdmin, myEmployeeId]);
   const visibleRows = useMemo(() => {
-    if (isOwner) {
-      // Active view = pending + approved (manageable). History = denied.
-      return showArchive
-        ? rows.filter((r) => r.status === "denied" || r.status === "cancelled")
-        : rows.filter((r) => r.status === "pending" || r.status === "approved");
-    }
     if (showArchive) return archivedRows;
-    return [];
+    // Only owners can view or manage pending requests.
+    return isOwner ? rows.filter((r) => r.status === "pending") : [];
   }, [rows, showArchive, archivedRows, isOwner]);
 
   return (
@@ -244,8 +239,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
             <Button variant="outline" onClick={() => setShowArchive((v) => !v)}>
               <Archive className="w-4 h-4 mr-2" />
               {showArchive
-                ? "Back to Active Hours"
-                : `History (${rows.filter((r) => r.status === "denied" || r.status === "cancelled").length})`}
+                ? "Show Pending"
+                : `View Archive (${archivedRows.length})`}
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
@@ -314,20 +309,18 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            {isOwner
-              ? showArchive
-                ? "History (denied & cancelled)"
-                : "Active Extra Hours (pending & approved)"
-              : isAdmin
-                ? "Archived Requests (approved & denied)"
-                : "My Archived Requests"}
+            {showArchive
+              ? (isOwner || isAdmin ? "Archived Requests (approved & denied)" : "My Archived Requests")
+              : "Pending Requests"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : visibleRows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No requests to show.</p>
+            <p className="text-sm text-muted-foreground">
+              {showArchive ? "No archived requests." : "No pending requests."}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
