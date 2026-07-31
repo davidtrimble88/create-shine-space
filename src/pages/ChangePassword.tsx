@@ -105,7 +105,7 @@ const ChangePassword = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <Seo title="Change Password \u2014 Learn to Ride VC" description="Update your Learn to Ride VC staff account password." path="/change-password" noindex />
+      <Seo title="Change Password — Learn to Ride VC" description="Update your Learn to Ride VC staff account password." path="/change-password" noindex />
       <div className="w-full max-w-md">
         {step === "password" ? (
           <>

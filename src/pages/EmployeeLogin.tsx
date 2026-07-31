@@ -56,7 +56,7 @@ const EmployeeLogin = () => {
     })();
     return () => {
       cancelled = true;
-      <Seo title="Employee Login \u2014 Learn to Ride VC" description="Staff portal sign-in for Learn to Ride VC employees." path="/employee-login" noindex />
+      <Seo title="Employee Login — Learn to Ride VC" description="Staff portal sign-in for Learn to Ride VC employees." path="/employee-login" noindex />
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

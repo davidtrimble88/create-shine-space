@@ -71,7 +71,7 @@ const socialLinks = [
 const ContactPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <Seo title={"Contact Learn to Ride VC \u2014 Ventura & High Desert"} description={"Call, text, or email Learn to Ride VC for motorcycle training in Ventura County and the High Desert. Office hours and locations inside."} path="/contact" />
+      <Seo title={"Contact Learn to Ride VC — Ventura & High Desert"} description={"Call, text, or email Learn to Ride VC for motorcycle training in Ventura County and the High Desert. Office hours and locations inside."} path="/contact" />
       <Navbar />
 
       <section className="pt-32 pb-24 relative overflow-hidden">

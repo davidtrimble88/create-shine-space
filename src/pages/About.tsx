@@ -34,7 +34,7 @@ const About = () => {
   }, []);
   return (
     <div className="min-h-screen bg-background">
-      <Seo title={"About Our Instructors \u2014 Learn to Ride VC"} description={"Meet the CMSP-certified instructors behind Learn to Ride VC \u2014 25+ years of experience training 1,500+ California riders every year."} path="/about" />
+      <Seo title={"About Our Instructors — Learn to Ride VC"} description={"Meet the CMSP-certified instructors behind Learn to Ride VC — 25+ years of experience training 1,500+ California riders every year."} path="/about" />
       <Navbar />
 
       {/* Hero Section */}

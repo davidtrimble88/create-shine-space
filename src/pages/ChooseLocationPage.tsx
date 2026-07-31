@@ -67,7 +67,7 @@ const ChooseLocationPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Seo title={"Choose a Training Location \u2014 Learn to Ride VC"} description={"Pick your motorcycle training site in Ventura County or the High Desert and continue your class registration."} path="/choose-location" />
+      <Seo title={"Choose a Training Location — Learn to Ride VC"} description={"Pick your motorcycle training site in Ventura County or the High Desert and continue your class registration."} path="/choose-location" />
       <Navbar />
 
       <section className="pt-32 pb-24 relative overflow-hidden">

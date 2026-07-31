@@ -80,7 +80,7 @@ const ChooseSchedulePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Seo title={"Upcoming Class Dates \u2014 Learn to Ride VC"} description={"See upcoming motorcycle class dates and available seats in Ventura County and the High Desert, then reserve your spot online."} path="/choose-schedule" />
+      <Seo title={"Upcoming Class Dates — Learn to Ride VC"} description={"See upcoming motorcycle class dates and available seats in Ventura County and the High Desert, then reserve your spot online."} path="/choose-schedule" />
       <Navbar />
 
       <section className="pt-32 pb-24 relative overflow-hidden">

@@ -11,7 +11,7 @@ const RegistrationConfirmation = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Seo title="Registration Confirmed \u2014 Learn to Ride VC" description="Your motorcycle class registration confirmation details." path="/registration-confirmation" noindex />
+      <Seo title="Registration Confirmed — Learn to Ride VC" description="Your motorcycle class registration confirmation details." path="/registration-confirmation" noindex />
       <Navbar />
       <main className="flex-1 px-4 pt-40 pb-20">
         <motion.div

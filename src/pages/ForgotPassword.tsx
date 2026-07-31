@@ -82,7 +82,7 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <Seo title="Reset Password \u2014 Learn to Ride VC" description="Recover access to your Learn to Ride VC staff account." path="/forgot-password" noindex />
+      <Seo title="Reset Password — Learn to Ride VC" description="Recover access to your Learn to Ride VC staff account." path="/forgot-password" noindex />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <ShieldCheck className="w-12 h-12 text-accent mx-auto mb-4" />
