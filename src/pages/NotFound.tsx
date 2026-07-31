@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import EditableText from "@/components/EditableText";
+import Seo from "@/components/Seo";
 
 const NotFound = () => {
   const location = useLocation();
@@ -11,6 +12,7 @@ const NotFound = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted">
+      <Seo title="Page Not Found \u2014 Learn to Ride VC" description="The page you're looking for doesn't exist." path="/404" noindex />
       <div className="text-center">
         <h1 className="mb-4 text-4xl font-bold">
           <EditableText contentKey="notfound.code" fallback="404" />

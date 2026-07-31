@@ -4,12 +4,14 @@ import Footer from "@/components/Footer";
 import { CheckCircle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import Seo from "@/components/Seo";
 
 const RegistrationConfirmation = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Seo title="Registration Confirmed \u2014 Learn to Ride VC" description="Your motorcycle class registration confirmation details." path="/registration-confirmation" noindex />
       <Navbar />
       <main className="flex-1 px-4 pt-40 pb-20">
         <motion.div

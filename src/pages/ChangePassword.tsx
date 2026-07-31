@@ -8,6 +8,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import Seo from "@/components/Seo";
 
 const SECURITY_QUESTIONS = [
   "What was the name of your first pet?",
@@ -104,6 +105,7 @@ const ChangePassword = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <Seo title="Change Password \u2014 Learn to Ride VC" description="Update your Learn to Ride VC staff account password." path="/change-password" noindex />
       <div className="w-full max-w-md">
         {step === "password" ? (
           <>

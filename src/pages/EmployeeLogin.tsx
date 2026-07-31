@@ -27,6 +27,7 @@ import {
   verifyAndGetCredentials,
 } from "@/lib/biometric";
 import type { BiometryType } from "capacitor-native-biometric";
+import Seo from "@/components/Seo";
 
 const EmployeeLogin = () => {
   const [email, setEmail] = useState("");
@@ -55,6 +56,7 @@ const EmployeeLogin = () => {
     })();
     return () => {
       cancelled = true;
+      <Seo title="Employee Login \u2014 Learn to Ride VC" description="Staff portal sign-in for Learn to Ride VC employees." path="/employee-login" noindex />
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
