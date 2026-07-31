@@ -326,10 +326,13 @@ const AdminCancellations = ({ onBack }: Props) => {
         .in("id", restoreIds);
     }
 
+    // Only active students hold a seat — dropped/archived students free theirs.
     const { count } = await supabase
       .from("bookings")
       .select("*", { count: "exact", head: true })
-      .eq("schedule_id", c.schedule_id);
+      .eq("schedule_id", c.schedule_id)
+      .eq("archived", false)
+      .eq("dropped", false);
     const totalSpots = 12;
     const remaining = Math.max(totalSpots - (count ?? 0), 0);
     await supabase.from("schedules").update({ spots_available: remaining }).eq("id", c.schedule_id);
