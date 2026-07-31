@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ShieldCheck, Eraser, PenLine, CheckCircle2 } from "lucide-react";
+import { Loader2, ShieldCheck, Eraser, PenLine, CheckCircle2, AlertTriangle } from "lucide-react";
 import type { WaiverPrefill } from "./WaiverStep";
 import { CMSP_WAIVER_TEXT, CMSP_WAIVER_VERSION } from "./WaiverStep";
 import WaiverSignedDialog from "./WaiverSignedDialog";
