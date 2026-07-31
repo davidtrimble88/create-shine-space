@@ -417,7 +417,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
                   </li>
                 </ul>
                 <p className="text-base md:text-lg font-bold text-amber-600">
-                  All waivers and release forms will be signed in person at the first range class. Your
+                  All waivers and release forms will be signed in person at the first in person class. Your
                   registration is NOT complete until the guardian's in-person signature and permission are
                   captured.
                 </p>
