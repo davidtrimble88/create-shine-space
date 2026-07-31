@@ -319,18 +319,20 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            {showArchive
-              ? (isOwner || isAdmin ? "Archived Requests (approved & denied)" : "My Archived Requests")
-              : "Pending Requests"}
+            {isOwner
+              ? filter === "all"
+                ? "All Extra Hours"
+                : `${filter.charAt(0).toUpperCase() + filter.slice(1)} Extra Hours`
+              : isAdmin
+                ? "Archived Requests (approved & denied)"
+                : "My Archived Requests"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : visibleRows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {showArchive ? "No archived requests." : "No pending requests."}
-            </p>
+            <p className="text-sm text-muted-foreground">No requests to show.</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
