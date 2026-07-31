@@ -1548,6 +1548,10 @@ export type Database = {
       }
     }
     Functions: {
+      booking_occupies_seat: {
+        Args: { _archived: boolean; _dropped: boolean; _schedule_id: string }
+        Returns: boolean
+      }
       can_start_thread: { Args: { _user: string }; Returns: boolean }
       can_view_min_role: {
         Args: {
