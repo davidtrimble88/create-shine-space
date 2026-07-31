@@ -1419,6 +1419,79 @@ export type Database = {
         }
         Relationships: []
       }
+      sub_requests: {
+        Row: {
+          covering_employee_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_manual: boolean
+          reason: string
+          requester_employee_id: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          roles: string[]
+          schedule_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          covering_employee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_manual?: boolean
+          reason: string
+          requester_employee_id: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          roles?: string[]
+          schedule_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          covering_employee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_manual?: boolean
+          reason?: string
+          requester_employee_id?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          roles?: string[]
+          schedule_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_requests_covering_employee_id_fkey"
+            columns: ["covering_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_requests_requester_employee_id_fkey"
+            columns: ["requester_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_requests_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -1595,6 +1668,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin_strict: { Args: { _user_id: string }; Returns: boolean }
+      is_my_employee: { Args: { _employee_id: string }; Returns: boolean }
       is_owner: { Args: { _user_id: string }; Returns: boolean }
       is_thread_participant: {
         Args: { _thread: string; _user: string }
