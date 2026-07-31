@@ -210,6 +210,26 @@ Deno.serve(async (req) => {
 
         await enqueueEmail(emp.email, subject, body, key, "instructor_schedule_notice");
 
+        // Copy the office and owner on new / changed assignments
+        if (milestone === "assigned" || isUpdate) {
+          const copySubject = isUpdate
+            ? `Assignment updated — ${emp.full_name} — ${s.course}, ${prettyDate(s.date)}`
+            : `Instructor assigned — ${emp.full_name} — ${s.course}, ${prettyDate(s.date)}`;
+          const copyBody =
+            `${isUpdate ? "An instructor's assignment has been updated." : "An instructor has been scheduled to teach."}\n\n` +
+            `Instructor: ${emp.full_name} (${emp.email})\n${details}\n\n` +
+            `View or change staffing in the portal: ${PORTAL_URL}\n\n— Learn to Ride VC`;
+          for (const target of copyTargets) {
+            await enqueueEmail(
+              target,
+              copySubject,
+              copyBody,
+              `${key}-copy-${target.toLowerCase()}`,
+              "instructor_schedule_notice_copy",
+            );
+          }
+        }
+
         if (emp.user_id) {
           await supabase.from("notifications").insert({
             user_id: emp.user_id,
