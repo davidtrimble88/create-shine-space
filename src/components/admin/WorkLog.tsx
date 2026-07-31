@@ -109,6 +109,7 @@ interface EmployeeSummary {
 const WorkLog = () => {
   const { user, effectiveRole } = useAuth();
   const isAdmin = effectiveRole === "owner" || effectiveRole === "admin";
+  const isOwner = effectiveRole === "owner";
 
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -121,6 +122,83 @@ const WorkLog = () => {
   const [periodKey, setPeriodKey] = useState<string>(currentPeriod.key);
   const [fromDate, setFromDate] = useState<string>(currentPeriod.start);
   const [toDate, setToDate] = useState<string>(currentPeriod.end);
+
+  // Owner-only extra hours editor
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorEmployee, setEditorEmployee] = useState<Employee | null>(null);
+  const [editorEntry, setEditorEntry] = useState<ExtraHoursRow | null>(null);
+  const [formHours, setFormHours] = useState("");
+  const [formDate, setFormDate] = useState("");
+  const [formJustification, setFormJustification] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ExtraHoursRow | null>(null);
+
+  const openAdd = (emp: Employee) => {
+    setEditorEmployee(emp);
+    setEditorEntry(null);
+    setFormHours("");
+    setFormDate(new Date().toISOString().slice(0, 10));
+    setFormJustification("");
+    setEditorOpen(true);
+  };
+
+  const openEdit = (emp: Employee, entry: ExtraHoursRow) => {
+    setEditorEmployee(emp);
+    setEditorEntry(entry);
+    setFormHours(String(entry.hours));
+    setFormDate(entry.work_date ?? entry.decided_at?.slice(0, 10) ?? "");
+    setFormJustification(entry.justification ?? "");
+    setEditorOpen(true);
+  };
+
+  const saveEntry = async () => {
+    if (!isOwner || !editorEmployee || !user) return;
+    const h = parseFloat(formHours);
+    if (!h || h <= 0) {
+      toast({ title: "Enter a valid hours amount", variant: "destructive" });
+      return;
+    }
+    if (formJustification.trim().length < 3) {
+      toast({ title: "Please add justification", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    const payload = {
+      hours: h,
+      work_date: formDate || null,
+      justification: formJustification.trim(),
+    };
+    const { error } = editorEntry
+      ? await supabase.from("extra_hours_requests").update(payload).eq("id", editorEntry.id)
+      : await supabase.from("extra_hours_requests").insert({
+          ...payload,
+          employee_id: editorEmployee.id,
+          requested_by: user.id,
+          status: "approved",
+          decided_by: user.id,
+          decided_at: new Date().toISOString(),
+        });
+    setSaving(false);
+    if (error) {
+      toast({ title: "Could not save hours", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: editorEntry ? "Extra hours updated" : "Extra hours added" });
+    setEditorOpen(false);
+    load();
+  };
+
+  const confirmDelete = async () => {
+    if (!isOwner || !deleteTarget) return;
+    const { error } = await supabase.from("extra_hours_requests").delete().eq("id", deleteTarget.id);
+    if (error) {
+      toast({ title: "Could not remove hours", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Extra hours removed" });
+    setDeleteTarget(null);
+    load();
+  };
 
   const applyPeriod = (key: string) => {
     setPeriodKey(key);
