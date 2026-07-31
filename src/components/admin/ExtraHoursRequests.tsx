@@ -318,16 +318,15 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
               : "Only the owner can add or remove extra hours. Approved hours are visible here and on the Work Log."}
           </p>
         </div>
-        {isOwner && (
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" onClick={() => setShowArchive((v) => !v)}>
-              <Archive className="w-4 h-4 mr-2" />
-              {showArchive
-                ? "Show Pending"
-                : `View Archive (${archivedRows.length})`}
-            </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => setArchiveOpen(true)}>
+            <Archive className="w-4 h-4 mr-2" />
+            Archived Requests ({archivedRows.length})
+          </Button>
+          {isOwner && (
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
+
                 <Button>
                   <Plus className="w-4 h-4 mr-2" /> Add Extra Hours
                 </Button>
