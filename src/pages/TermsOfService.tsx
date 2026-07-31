@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Seo from "@/components/Seo";
 
 const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Seo title={"Terms of Service \u2014 Learn to Ride VC"} description={"Registration, cancellation, and class attendance policies for Learn to Ride VC motorcycle training courses."} path="/terms-of-service" />
       <div className="container mx-auto px-4 py-16 max-w-4xl">
         <Link to="/">
           <Button variant="ghost" className="mb-8">

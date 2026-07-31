@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Seo from "@/components/Seo";
 
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Seo title={"Privacy Policy \u2014 Learn to Ride VC"} description={"How Learn to Ride VC collects, uses, and protects student information submitted through registration and course paperwork."} path="/privacy-policy" />
       <div className="container mx-auto px-4 py-16 max-w-4xl">
         <Link to="/">
           <Button variant="ghost" className="mb-8">

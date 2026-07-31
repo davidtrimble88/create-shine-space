@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Smartphone, Share, Plus, MoreVertical, Download, ArrowLeft } from "lucide-react";
 import appIcon from "/app-icon-192.png";
+import Seo from "@/components/Seo";
 
 const InstallApp = () => {
   return (
     <div className="min-h-screen bg-background py-12 px-4">
+      <Seo title={"Install the Learn to Ride VC App"} description={"Add Learn to Ride VC to your phone home screen for fast access to class schedules, registration, and course information."} path="/install" />
       <div className="max-w-2xl mx-auto">
         <Link to="/" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1 mb-6">
           <ArrowLeft className="w-4 h-4" /> Back to website

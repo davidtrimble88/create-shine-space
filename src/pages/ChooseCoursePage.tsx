@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, GraduationCap, Gauge, Zap, BookOpen, Clock, Users, Award, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
+import Seo from "@/components/Seo";
 
 const courses = [
   {
@@ -63,6 +64,7 @@ const courses = [
 const ChooseCoursePage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Seo title={"Book a Motorcycle Course \u2014 Learn to Ride VC"} description={"Choose your motorcycle training course and start registration. Beginner, premier, intermediate, and advanced options available."} path="/choose-course" />
       <Navbar />
 
       <section className="pt-32 pb-24 relative overflow-hidden">

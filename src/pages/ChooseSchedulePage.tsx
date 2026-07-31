@@ -7,6 +7,7 @@ import { format, parseISO } from "date-fns";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import Seo from "@/components/Seo";
 
 type Schedule = Tables<"schedules">;
 
@@ -79,6 +80,7 @@ const ChooseSchedulePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo title={"Upcoming Class Dates \u2014 Learn to Ride VC"} description={"See upcoming motorcycle class dates and available seats in Ventura County and the High Desert, then reserve your spot online."} path="/choose-schedule" />
       <Navbar />
 
       <section className="pt-32 pb-24 relative overflow-hidden">
