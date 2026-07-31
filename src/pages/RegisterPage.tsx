@@ -591,6 +591,15 @@ const RegisterPage = () => {
         license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
         id_photo_path: data.idPhotoPath || null,
         guardian_id_photo_path: isUnder18 ? (data.guardianIdPhotoPath || null) : null,
+        emergency_contact_name: data.emergencyContactName || null,
+        emergency_contact_relationship: data.emergencyContactRelationship || null,
+        emergency_contact_phone: data.emergencyContactPhone || null,
+        guardian_name: isUnder18
+          ? [data.guardianFirstName, data.guardianLastName].filter(Boolean).join(" ").trim() || null
+          : null,
+        guardian_relationship: isUnder18 ? (data.guardianRelationship || null) : null,
+        guardian_phone: isUnder18 ? (data.guardianPhone || null) : null,
+        guardian_email: isUnder18 ? (data.guardianEmail || null) : null,
         discount_amount_cents: discountCents,
         discount_reason: discountCents > 0 ? (discountApplied?.source === "code" ? "code" : "returning_student") : null,
         discount_code: discountCents > 0 && discountApplied?.source === "code" ? (discountApplied.code || null) : null,
