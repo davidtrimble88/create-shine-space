@@ -2554,8 +2554,13 @@ const ClassRosters = () => {
                           {(b as any).preferred_name ? <span className="ml-1 text-muted-foreground normal-case">("{(b as any).preferred_name}")</span> : null}
                         </td>
                         <td className="p-3 font-medium text-foreground uppercase">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span>{b.last_name}</span>
+                            {isMinorOnClass(b, selectedSchedule?.date) && (
+                              <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40" title="Student is under 18">
+                                MINOR
+                              </span>
+                            )}
                             {(() => {
                               const em = (b.email || "").toLowerCase();
                               const hasWaiver = ((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has(em);
