@@ -361,18 +361,23 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
       </div>
 
       {prefill.isMinor && prefill.guardianInPerson && decision === "sign" && (
-        <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-4 md:p-6 space-y-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <ShieldCheck className="w-5 h-5 text-amber-600" />
-            <h3 className="font-bold text-foreground">Parent / Legal Guardian will sign in person</h3>
+        <div className="bg-amber-500/15 border-4 border-amber-500 rounded-2xl p-5 md:p-6 shadow-lg">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-amber-500 shrink-0" />
+            <div className="space-y-2">
+              <h3 className="text-xl md:text-2xl font-extrabold uppercase tracking-wide text-foreground">
+                Parent / Legal Guardian must sign in person
+              </h3>
+              <p className="text-base md:text-lg text-foreground/90 leading-relaxed">
+                Because the student is under 18, a parent or legal guardian must be present at the{" "}
+                <span className="font-bold">start of the first range class</span> to sign this Model Release
+                in person. You may continue without their signature now.
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Because the student is under 18, a parent or legal guardian must be present at the
-            <strong> start of the first range class</strong> to sign this Model Release in person.
-            You may continue without their signature now.
-          </p>
         </div>
       )}
+
 
       {guardianRequired && decision === "sign" && (
         <div className="bg-card border-2 border-accent/40 rounded-2xl p-4 md:p-6 space-y-3">
