@@ -154,6 +154,15 @@ Deno.serve(async (req) => {
       `Log in to your portal to view your full schedule: ${PORTAL_URL}\n` +
       `If you cannot teach this class, request a replacement through the Sub Coverage tab in your portal — do not arrange changes by text or phone alone.`;
 
+    // Owner/office copies of assignment notices
+    const { data: bccCfg } = await supabase
+      .from("email_bcc_settings")
+      .select("enabled, bcc_email")
+      .eq("id", true)
+      .maybeSingle();
+    const copyTargets = [OFFICE_EMAIL];
+    if (bccCfg?.enabled && bccCfg?.bcc_email) copyTargets.push(bccCfg.bcc_email);
+
     let processed = 0;
 
     for (const g of grouped.values()) {
@@ -200,6 +209,26 @@ Deno.serve(async (req) => {
         const key = `assign-${g.schedule_id}-${g.employee_id}-${milestone}`;
 
         await enqueueEmail(emp.email, subject, body, key, "instructor_schedule_notice");
+
+        // Copy the office and owner on new / changed assignments
+        if (milestone === "assigned" || isUpdate) {
+          const copySubject = isUpdate
+            ? `Assignment updated — ${emp.full_name} — ${s.course}, ${prettyDate(s.date)}`
+            : `Instructor assigned — ${emp.full_name} — ${s.course}, ${prettyDate(s.date)}`;
+          const copyBody =
+            `${isUpdate ? "An instructor's assignment has been updated." : "An instructor has been scheduled to teach."}\n\n` +
+            `Instructor: ${emp.full_name} (${emp.email})\n${details}\n\n` +
+            `View or change staffing in the portal: ${PORTAL_URL}\n\n— Learn to Ride VC`;
+          for (const target of copyTargets) {
+            await enqueueEmail(
+              target,
+              copySubject,
+              copyBody,
+              `${key}-copy-${target.toLowerCase()}`,
+              "instructor_schedule_notice_copy",
+            );
+          }
+        }
 
         if (emp.user_id) {
           await supabase.from("notifications").insert({
