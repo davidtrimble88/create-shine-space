@@ -937,6 +937,7 @@ const ClassRosters = () => {
             .office-tracking { margin-top: 16px; font-size: 11px; font-weight: 600; }
             .empty-rows td { height: 22px; }
             @media print { body { padding: 0; } @page { margin: 0.5in; size: landscape; } }
+            .emergency-page { page-break-before: always; break-before: page; margin-top: 16px; }
           </style>
         </head>
         <body>
