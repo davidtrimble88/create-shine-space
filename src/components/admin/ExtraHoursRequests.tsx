@@ -55,8 +55,9 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [approveWorkDate, setApproveWorkDate] = useState("");
   const [approveJustification, setApproveJustification] = useState("");
   const [approveSubmitting, setApproveSubmitting] = useState(false);
-  // Admins/managers default to (and are locked into) the archived view.
-  const [showArchive, setShowArchive] = useState(effectiveRole !== "owner");
+  // Archived (approved & denied) requests live in their own dialog "folder".
+  const [archiveOpen, setArchiveOpen] = useState(false);
+
 
   const load = async () => {
     setLoading(true);
