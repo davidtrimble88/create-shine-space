@@ -252,6 +252,20 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
+                    <label className="text-sm font-medium">Employee</label>
+                    <select
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      value={targetEmployeeId}
+                      onChange={(e) => setTargetEmployeeId(e.target.value)}
+                    >
+                      <option value="">Select employee…</option>
+                      {employees.map((e) => (
+                        <option key={e.id} value={e.id}>{e.full_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+
                     <label className="text-sm font-medium">Hours</label>
                     <Input
                       type="number"
