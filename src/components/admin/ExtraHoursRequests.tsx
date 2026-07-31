@@ -180,11 +180,9 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   );
   const visibleRows = useMemo(() => {
     if (showArchive) return archivedRows;
-    // Only owner (or the requester themselves) can see pending requests.
-    return rows.filter(
-      (r) => r.status === "pending" && (canSeePending || r.requested_by === user?.id),
-    );
-  }, [rows, showArchive, archivedRows, canSeePending, user?.id]);
+    // Only owners can view or manage pending requests.
+    return isOwner ? rows.filter((r) => r.status === "pending") : [];
+  }, [rows, showArchive, archivedRows, isOwner]);
 
   return (
     <div className="space-y-6">
