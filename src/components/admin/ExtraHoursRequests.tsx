@@ -387,7 +387,13 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
                                 <Check className="w-3 h-3 mr-1" /> Change to Approved
                               </Button>
                             )}
+                            {isOwner && (
+                              <Button size="sm" variant="destructive" onClick={() => remove(r)}>
+                                <Trash2 className="w-3 h-3 mr-1" /> Remove
+                              </Button>
+                            )}
                           </div>
+
                         </TableCell>
 
                       </TableRow>
