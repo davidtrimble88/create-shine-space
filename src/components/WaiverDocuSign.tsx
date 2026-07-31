@@ -394,19 +394,19 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           </div>
         )}
         {isMinor && guardianInPerson && (
-          <div className="mb-4 rounded-2xl border-4 border-amber-500 bg-amber-500/15 p-5 md:p-6 shadow-lg">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-8 h-8 md:w-10 md:h-10 text-amber-500 shrink-0" />
-              <div className="space-y-3">
-                <h3 className="text-xl md:text-2xl font-extrabold uppercase tracking-wide text-foreground">
+          <div className="mb-3 rounded-xl border-2 border-amber-500 bg-amber-500/10 p-3 md:p-4">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="w-5 h-5 md:w-6 md:h-6 text-amber-500 shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <h3 className="text-base md:text-lg font-bold text-foreground">
                   Parent / Legal Guardian must attend the start of the first class
                 </h3>
-                <p className="text-base md:text-lg text-foreground/90 leading-relaxed">
+                <p className="text-sm md:text-base text-foreground/90 leading-snug">
                   Because this student is under 18, a parent or legal guardian must be present at the{" "}
                   <span className="font-bold">start of the first class</span> to give permission and sign
                   all required paperwork.
                 </p>
-                <ul className="list-disc list-inside text-base md:text-lg text-foreground/90 leading-relaxed space-y-1">
+                <ul className="list-disc list-inside text-sm md:text-base text-foreground/90 leading-snug space-y-1">
                   <li>
                     If the first class is held <span className="font-bold">via Zoom</span>: the parent or
                     legal guardian must appear on camera, identify themselves, and give verbal permission.
@@ -416,7 +416,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
                     legal guardian must come to the class location in person.
                   </li>
                 </ul>
-                <p className="text-base md:text-lg font-bold text-amber-600">
+                <p className="text-sm md:text-base font-semibold text-amber-600">
                   All waivers and release forms will be signed in person at the first in person class. Your
                   registration is NOT complete until the guardian's in-person signature and permission are
                   captured.

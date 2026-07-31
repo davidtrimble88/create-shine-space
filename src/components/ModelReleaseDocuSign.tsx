@@ -361,19 +361,19 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
       </div>
 
       {prefill.isMinor && prefill.guardianInPerson && decision === "sign" && (
-        <div className="bg-amber-500/15 border-4 border-amber-500 rounded-2xl p-5 md:p-6 shadow-lg">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-amber-500 shrink-0" />
-            <div className="space-y-3">
-              <h3 className="text-xl md:text-2xl font-extrabold uppercase tracking-wide text-foreground">
+        <div className="bg-amber-500/10 border-2 border-amber-500 rounded-xl p-3 md:p-4">
+          <div className="flex items-start gap-2.5">
+            <ShieldCheck className="w-5 h-5 md:w-6 md:h-6 text-amber-500 shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <h3 className="text-base md:text-lg font-bold text-foreground">
                 Parent / Legal Guardian must attend the start of the first class
               </h3>
-              <p className="text-base md:text-lg text-foreground/90 leading-relaxed">
+              <p className="text-sm md:text-base text-foreground/90 leading-snug">
                 Because the student is under 18, a parent or legal guardian must be present at the{" "}
                 <span className="font-bold">start of the first class</span> to give permission and sign
                 all required paperwork.
               </p>
-              <ul className="list-disc list-inside text-base md:text-lg text-foreground/90 leading-relaxed space-y-1">
+              <ul className="list-disc list-inside text-sm md:text-base text-foreground/90 leading-snug space-y-1">
                 <li>
                   If the first class is held <span className="font-bold">via Zoom</span>: the parent or
                   legal guardian must appear on camera, identify themselves, and give verbal permission.
@@ -383,7 +383,7 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
                   legal guardian must come to the class location in person.
                 </li>
               </ul>
-              <p className="text-base md:text-lg font-bold text-amber-600">
+              <p className="text-sm md:text-base font-semibold text-amber-600">
                 This Model Release will be signed in person at the first in person class. You may continue
                 without the guardian's signature now.
               </p>

@@ -440,7 +440,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
             </div>
           </div>
 
-          <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-5 md:p-6 space-y-2">
+          <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-xl p-4 md:p-5 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
               <FileSignature className="w-5 h-5 text-amber-600" />
               <h3 className="font-bold text-foreground">Signature not Required</h3>
@@ -450,7 +450,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
               Registration Form with your answers and give you a copy to <strong>download and print</strong>.
             </p>
             {prefill.isMinor && (
-              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 space-y-2">
+              <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2.5 space-y-1.5">
                 <p className="text-sm font-semibold text-amber-600">
                   Parent / Legal Guardian must attend the start of the first class
                 </p>

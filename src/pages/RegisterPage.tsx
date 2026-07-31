@@ -1519,11 +1519,11 @@ const RegisterPage = () => {
                   person at the start of your first in person class.
                 </p>
                 {isUnder18 && (
-                  <div className="rounded-lg border-2 border-amber-500/60 bg-amber-500/10 p-3 space-y-2">
-                    <p className="font-semibold text-foreground">
+                  <div className="rounded-lg border border-amber-500/60 bg-amber-500/10 p-2.5 space-y-1.5">
+                    <p className="text-sm font-semibold text-foreground">
                       ⚠️ Important — student is under 18
                     </p>
-                    <p>
+                    <p className="text-sm text-foreground/90">
                       A <strong>parent or legal guardian must attend the start of the first class</strong>{" "}
                       to give permission and sign all required paperwork. If the first class is held via{" "}
                       <strong>Zoom</strong>, the parent or legal guardian must appear on camera, identify
@@ -1532,7 +1532,7 @@ const RegisterPage = () => {
                       waivers and release forms will be signed in person at the first in person class. The minor
                       will not be allowed to ride until the parent/guardian has signed in person.
                     </p>
-                    <label className="flex items-start gap-2 pt-1 cursor-pointer">
+                    <label className="flex items-start gap-2 pt-1 cursor-pointer text-sm">
                       <input
                         type="checkbox"
                         className="mt-1"
