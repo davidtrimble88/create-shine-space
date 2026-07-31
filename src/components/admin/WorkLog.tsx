@@ -80,6 +80,7 @@ interface AssignmentRow {
 }
 
 interface ExtraHoursRow {
+  id: string;
   employee_id: string;
   hours: number;
   justification: string;
