@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      assignment_notifications_sent: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          milestone: string
+          roles_hash: string | null
+          schedule_id: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          milestone: string
+          roles_hash?: string | null
+          schedule_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          milestone?: string
+          roles_hash?: string | null
+          schedule_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_notifications_sent_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_notifications_sent_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auto_email_templates: {
         Row: {
           attachments: Json
