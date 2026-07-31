@@ -137,10 +137,17 @@ export type Database = {
           dropped_by: string | null
           dropped_reason: string | null
           email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
           fee: string | null
           first_name: string
           gender: string | null
+          guardian_email: string | null
           guardian_id_photo_path: string | null
+          guardian_name: string | null
+          guardian_phone: string | null
+          guardian_relationship: string | null
           id: string
           id_photo_path: string | null
           is_retest: boolean
@@ -205,10 +212,17 @@ export type Database = {
           dropped_by?: string | null
           dropped_reason?: string | null
           email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           fee?: string | null
           first_name: string
           gender?: string | null
+          guardian_email?: string | null
           guardian_id_photo_path?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          guardian_relationship?: string | null
           id?: string
           id_photo_path?: string | null
           is_retest?: boolean
@@ -273,10 +287,17 @@ export type Database = {
           dropped_by?: string | null
           dropped_reason?: string | null
           email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           fee?: string | null
           first_name?: string
           gender?: string | null
+          guardian_email?: string | null
           guardian_id_photo_path?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          guardian_relationship?: string | null
           id?: string
           id_photo_path?: string | null
           is_retest?: boolean
