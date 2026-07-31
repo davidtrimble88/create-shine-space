@@ -477,7 +477,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApproveTarget(null)}>Cancel</Button>
             <Button onClick={confirmApprove} disabled={approveSubmitting}>
-              {approveSubmitting ? "Saving…" : "Approve"}
+              {approveSubmitting ? "Saving…" : approveTarget?.status === "approved" ? "Save Changes" : "Approve"}
             </Button>
           </DialogFooter>
         </DialogContent>
