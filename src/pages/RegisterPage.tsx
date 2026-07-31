@@ -1516,7 +1516,7 @@ const RegisterPage = () => {
                 <p>
                   You can complete your Registration Form, Model Release, and Waiver online now
                   in about 5 minutes, or skip the online forms and sign the paper copies in
-                  person at the start of your first range class.
+                  person at the start of your first in person class.
                 </p>
                 {isUnder18 && (
                   <div className="rounded-lg border-2 border-amber-500/60 bg-amber-500/10 p-3 space-y-2">
@@ -1529,7 +1529,7 @@ const RegisterPage = () => {
                       <strong>Zoom</strong>, the parent or legal guardian must appear on camera, identify
                       themselves, and give verbal permission. If the first class is held <strong>in person</strong>,
                       the parent or legal guardian must be physically present at the class location. All
-                      waivers and release forms will be signed in person at the first range class. The minor
+                      waivers and release forms will be signed in person at the first in person class. The minor
                       will not be allowed to ride until the parent/guardian has signed in person.
                     </p>
                     <label className="flex items-start gap-2 pt-1 cursor-pointer">
@@ -1541,7 +1541,7 @@ const RegisterPage = () => {
                       />
                       <span className="text-foreground">
                         I understand a parent/legal guardian must attend the start of the first class to
-                        give permission and sign all required paperwork in person at the first range class.
+                        give permission and sign all required paperwork in person at the first in person class.
                       </span>
                     </label>
                   </div>
