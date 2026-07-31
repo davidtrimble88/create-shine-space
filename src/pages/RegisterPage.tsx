@@ -1446,7 +1446,7 @@ const RegisterPage = () => {
                           </FormControl>
                           <div className="space-y-1 leading-none">
                             <FormLabel className="text-xs leading-relaxed">
-                              I certify that I am the parent or legal guardian of the minor named above. I understand that I must attend the start of the first class to give permission and sign all required paperwork. If the first class is held via Zoom, I will appear on camera, identify myself, and give verbal permission. If the first class is held in person, I must be physically present at the class location. All CMSP waivers and registration forms will be signed in person at the first range class, and I will present a matching photo ID at check-in. *
+                              I certify that I am the parent or legal guardian of the minor named above. I understand that I must attend the start of the first class to give permission and sign all required paperwork. If the first class is held via Zoom, I will appear on camera, identify myself, and give verbal permission. If the first class is held in person, I must be physically present at the class location. All CMSP waivers and registration forms will be signed in person at the first in person class, and I will present a matching photo ID at check-in. *
                             </FormLabel>
                             <FormMessage />
                           </div>
