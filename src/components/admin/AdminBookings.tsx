@@ -296,6 +296,19 @@ const AdminBookings = () => {
     }
   };
 
+  const isMinorBooking = (dob?: string | null, classDate?: string | null): boolean => {
+    if (!dob) return false;
+    const birth = new Date(dob);
+    if (isNaN(birth.getTime())) return false;
+    const ref = classDate ? new Date(classDate) : new Date();
+    if (isNaN(ref.getTime())) return false;
+    let age = ref.getFullYear() - birth.getFullYear();
+    const m = ref.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && ref.getDate() < birth.getDate())) age--;
+    return age < 18;
+  };
+
+
   const filtered = bookings.filter(b => {
     if (search && !`${b.first_name} ${b.last_name} ${b.email} ${b.course}`.toLowerCase().includes(search.toLowerCase())) return false;
     if (activeCourse && b.course !== activeCourse) return false;
@@ -707,6 +720,10 @@ const AdminBookings = () => {
                   <td className="p-3 font-medium text-foreground">
                     {b.first_name} {b.last_name}
                     {b.is_retest && <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded bg-accent/20 text-accent">Retest</span>}
+                    {isMinorBooking(b.date_of_birth, b.schedule_date) && (
+                      <span className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/40">MINOR</span>
+                    )}
+
                     <br /><span className="text-xs text-muted-foreground">{b.is_retest ? "Retest" : b.email}</span>
                   </td>
                   <td className="p-3 text-muted-foreground">{courseLabels[b.course] || b.course}</td>
