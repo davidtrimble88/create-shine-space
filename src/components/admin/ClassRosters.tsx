@@ -2992,7 +2992,12 @@ const ClassRosters = () => {
                     {emergencyContactRows.map((b, i) => (
                       <tr key={b.id}>
                         <td>{i + 1}</td>
-                        <td style={{ textTransform: "uppercase" }}>{b.last_name}, {b.first_name}</td>
+                        <td style={{ textTransform: "uppercase" }}>
+                          {b.last_name}, {b.first_name}
+                          {isMinorOnClass(b, selectedSchedule.date) && (
+                            <span style={{ fontSize: 9, fontWeight: 700, color: "#d97706", marginLeft: 4, textTransform: "none" }}>(MINOR)</span>
+                          )}
+                        </td>
                         <td className="phone-col">{b.phone || ""}</td>
                         <td>{(b as any).emergency_contact_name || ""}</td>
                         <td>{(b as any).emergency_contact_relationship || ""}</td>
