@@ -1524,10 +1524,13 @@ const RegisterPage = () => {
                       ⚠️ Important — student is under 18
                     </p>
                     <p>
-                      A <strong>parent or legal guardian must be present at the start of the
-                      first range class</strong> to sign the waivers in person and confirm
-                      permission for the minor to participate. The minor will not be allowed
-                      to ride until the parent/guardian has signed in person.
+                      A <strong>parent or legal guardian must attend the start of the first class</strong>{" "}
+                      to give permission and sign all required paperwork. If the first class is held via{" "}
+                      <strong>Zoom</strong>, the parent or legal guardian must appear on camera, identify
+                      themselves, and give verbal permission. If the first class is held <strong>in person</strong>,
+                      the parent or legal guardian must be physically present at the class location. All
+                      waivers and release forms will be signed in person at the first range class. The minor
+                      will not be allowed to ride until the parent/guardian has signed in person.
                     </p>
                     <label className="flex items-start gap-2 pt-1 cursor-pointer">
                       <input
@@ -1537,8 +1540,8 @@ const RegisterPage = () => {
                         onChange={e => setMinorAckChecked(e.target.checked)}
                       />
                       <span className="text-foreground">
-                        I understand a parent/legal guardian must be present at the beginning of
-                        the first class to sign the waivers in person.
+                        I understand a parent/legal guardian must attend the start of the first class to
+                        give permission and sign all required paperwork in person at the first range class.
                       </span>
                     </label>
                   </div>
