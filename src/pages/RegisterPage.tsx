@@ -1339,6 +1339,41 @@ const RegisterPage = () => {
                   />
                 </div>
 
+                {/* Emergency Contact */}
+                <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold">Emergency Contact</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Someone we can reach on class day if needed. Please use a person who is not attending the class with you.
+                    </p>
+                  </div>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <FormField control={form.control} name="emergencyContactName" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name *</FormLabel>
+                        <FormControl><Input placeholder="Jane Doe" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="emergencyContactRelationship" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Relationship *</FormLabel>
+                        <FormControl><Input placeholder="Spouse, parent, friend…" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="emergencyContactPhone" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone *</FormLabel>
+                        <FormControl><Input type="tel" placeholder="(805) 555-0123" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                </div>
+
+
+
                 {/* Agreement */}
                 <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6">
                   <FormField
