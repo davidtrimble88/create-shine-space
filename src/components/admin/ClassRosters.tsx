@@ -577,6 +577,8 @@ const ClassRosters = () => {
   const regularBookings = nonRetestBookings.filter(b => !b.dropped);
   const droppedBookings = nonRetestBookings.filter(b => b.dropped);
   const retestBookings = bookings.filter(b => b.is_retest);
+  // Everyone attending the class (regular + retests) for the emergency contact sheet
+  const emergencyContactRows = [...regularBookings, ...retestBookings];
 
   const DUTY_CODES_SET = new Set(["c1", "r1", "c2", "r2"]);
   const DUTY_ORDER = ["c1", "r1", "c2", "r2"];
