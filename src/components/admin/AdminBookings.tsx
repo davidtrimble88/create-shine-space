@@ -657,7 +657,6 @@ const AdminBookings = () => {
                     </div>
                   </div>
                 </div>
-                </div>
               </div>
 
 
