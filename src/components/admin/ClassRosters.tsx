@@ -577,6 +577,8 @@ const ClassRosters = () => {
   const regularBookings = nonRetestBookings.filter(b => !b.dropped);
   const droppedBookings = nonRetestBookings.filter(b => b.dropped);
   const retestBookings = bookings.filter(b => b.is_retest);
+  // Everyone attending the class (regular + retests) for the emergency contact sheet
+  const emergencyContactRows = [...regularBookings, ...retestBookings];
 
   const DUTY_CODES_SET = new Set(["c1", "r1", "c2", "r2"]);
   const DUTY_ORDER = ["c1", "r1", "c2", "r2"];
@@ -935,6 +937,7 @@ const ClassRosters = () => {
             .office-tracking { margin-top: 16px; font-size: 11px; font-weight: 600; }
             .empty-rows td { height: 22px; }
             @media print { body { padding: 0; } @page { margin: 0.5in; size: landscape; } }
+            .emergency-page { page-break-before: always; break-before: page; margin-top: 16px; }
           </style>
         </head>
         <body>
@@ -2769,6 +2772,50 @@ const ClassRosters = () => {
             </div>
           </div>
 
+          {/* Emergency contacts (on screen) */}
+          <div className="bg-card border border-border rounded-xl overflow-hidden mt-6">
+            <div className="px-4 py-3 border-b border-border">
+              <h3 className="font-semibold">Emergency Contacts</h3>
+              <p className="text-xs text-muted-foreground">Included automatically when you print the roster.</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr className="text-left">
+                    <th className="px-3 py-2 font-medium">Student</th>
+                    <th className="px-3 py-2 font-medium">Student Phone</th>
+                    <th className="px-3 py-2 font-medium">Emergency Contact</th>
+                    <th className="px-3 py-2 font-medium">Relationship</th>
+                    <th className="px-3 py-2 font-medium">Emergency Phone</th>
+                    <th className="px-3 py-2 font-medium">Parent/Guardian</th>
+                    <th className="px-3 py-2 font-medium">Guardian Phone</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {emergencyContactRows.map((b) => (
+                    <tr key={b.id} className="border-t border-border">
+                      <td className="px-3 py-2">{b.last_name}, {b.first_name}</td>
+                      <td className="px-3 py-2">{b.phone || "—"}</td>
+                      <td className="px-3 py-2">{(b as any).emergency_contact_name || "—"}</td>
+                      <td className="px-3 py-2">{(b as any).emergency_contact_relationship || "—"}</td>
+                      <td className="px-3 py-2">{(b as any).emergency_contact_phone || "—"}</td>
+                      <td className="px-3 py-2">
+                        {(b as any).guardian_name
+                          ? `${(b as any).guardian_name}${(b as any).guardian_relationship ? ` (${(b as any).guardian_relationship})` : ""}`
+                          : "—"}
+                      </td>
+                      <td className="px-3 py-2">{(b as any).guardian_phone || "—"}</td>
+                    </tr>
+                  ))}
+                  {emergencyContactRows.length === 0 && (
+                    <tr><td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">No students enrolled.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+
           {/* Hidden printable roster */}
           <div className="hidden">
             <div ref={printRef}>
@@ -2886,6 +2933,54 @@ const ClassRosters = () => {
               <div className="office-tracking">
                 FOR OFFICE TRACKING: [ ] REMS &nbsp; [ ] DL389 LOG &nbsp; [ ] IRs &nbsp; [ ] C/O LOG
               </div>
+
+              {/* Emergency contact page — prints on its own page with the roster */}
+              <div className="emergency-page">
+                <div className="title" style={{ fontSize: 16, fontWeight: 700, textAlign: "center" }}>
+                  EMERGENCY CONTACTS — {selectedSchedule.location_label}
+                </div>
+                <div className="sub" style={{ fontSize: 12, textAlign: "center", color: "#555", marginBottom: 10 }}>
+                  {selectedSchedule.date} — {selectedSchedule.schedule}
+                </div>
+                <table className="roster-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Student</th>
+                      <th className="phone-col">Student Phone</th>
+                      <th>Emergency Contact</th>
+                      <th>Relationship</th>
+                      <th className="phone-col">Emergency Phone</th>
+                      <th>Parent/Guardian (if minor)</th>
+                      <th className="phone-col">Guardian Phone</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {emergencyContactRows.map((b, i) => (
+                      <tr key={b.id}>
+                        <td>{i + 1}</td>
+                        <td style={{ textTransform: "uppercase" }}>{b.last_name}, {b.first_name}</td>
+                        <td className="phone-col">{b.phone || ""}</td>
+                        <td>{(b as any).emergency_contact_name || ""}</td>
+                        <td>{(b as any).emergency_contact_relationship || ""}</td>
+                        <td className="phone-col">{(b as any).emergency_contact_phone || ""}</td>
+                        <td>
+                          {(b as any).guardian_name
+                            ? `${(b as any).guardian_name}${(b as any).guardian_relationship ? ` (${(b as any).guardian_relationship})` : ""}`
+                            : ""}
+                        </td>
+                        <td className="phone-col">{(b as any).guardian_phone || ""}</td>
+                      </tr>
+                    ))}
+                    {emergencyContactRows.length === 0 && (
+                      <tr>
+                        <td colSpan={8} style={{ textAlign: "center" }}>No students enrolled.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
             </div>
           </div>
         </>

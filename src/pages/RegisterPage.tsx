@@ -69,6 +69,9 @@ const registrationSchema = z.object({
   issuingState: z.string().trim().max(50).optional(),
   licenseExpiration: z.string().optional(),
   referralSource: z.string().min(1, "Please select how you found us"),
+  emergencyContactName: z.string().trim().min(1, "Emergency contact name is required").max(100),
+  emergencyContactRelationship: z.string().trim().min(1, "Relationship is required").max(50),
+  emergencyContactPhone: z.string().trim().min(7, "Emergency contact phone is required").max(20),
   agreement: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
@@ -214,6 +217,9 @@ const RegisterPage = () => {
       issuingState: "",
       licenseExpiration: "",
       referralSource: "",
+      emergencyContactName: "",
+      emergencyContactRelationship: "",
+      emergencyContactPhone: "",
       guardianFirstName: "",
       guardianLastName: "",
       guardianRelationship: "",
@@ -585,6 +591,15 @@ const RegisterPage = () => {
         license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
         id_photo_path: data.idPhotoPath || null,
         guardian_id_photo_path: isUnder18 ? (data.guardianIdPhotoPath || null) : null,
+        emergency_contact_name: data.emergencyContactName || null,
+        emergency_contact_relationship: data.emergencyContactRelationship || null,
+        emergency_contact_phone: data.emergencyContactPhone || null,
+        guardian_name: isUnder18
+          ? [data.guardianFirstName, data.guardianLastName].filter(Boolean).join(" ").trim() || null
+          : null,
+        guardian_relationship: isUnder18 ? (data.guardianRelationship || null) : null,
+        guardian_phone: isUnder18 ? (data.guardianPhone || null) : null,
+        guardian_email: isUnder18 ? (data.guardianEmail || null) : null,
         discount_amount_cents: discountCents,
         discount_reason: discountCents > 0 ? (discountApplied?.source === "code" ? "code" : "returning_student") : null,
         discount_code: discountCents > 0 && discountApplied?.source === "code" ? (discountApplied.code || null) : null,
@@ -1323,6 +1338,41 @@ const RegisterPage = () => {
                     )}
                   />
                 </div>
+
+                {/* Emergency Contact */}
+                <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold">Emergency Contact</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Someone we can reach on class day if needed. Please use a person who is not attending the class with you.
+                    </p>
+                  </div>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <FormField control={form.control} name="emergencyContactName" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name *</FormLabel>
+                        <FormControl><Input placeholder="Jane Doe" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="emergencyContactRelationship" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Relationship *</FormLabel>
+                        <FormControl><Input placeholder="Spouse, parent, friend…" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="emergencyContactPhone" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone *</FormLabel>
+                        <FormControl><Input type="tel" placeholder="(805) 555-0123" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                </div>
+
+
 
                 {/* Agreement */}
                 <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6">
