@@ -79,6 +79,10 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   }, [user]);
 
   const submit = async () => {
+    if (!isOwner) {
+      toast({ title: "Only the owner can add extra hours", variant: "destructive" });
+      return;
+    }
     if (!myEmployeeId || !user) {
       toast({ title: "No employee record found", variant: "destructive" });
       return;
@@ -102,10 +106,10 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     });
     setSubmitting(false);
     if (error) {
-      toast({ title: "Could not submit request", description: error.message, variant: "destructive" });
+      toast({ title: "Could not add hours", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Request submitted", description: "The owner will review it." });
+    toast({ title: "Extra hours added" });
     setOpen(false);
     setHours("");
     setWorkDate("");
