@@ -69,6 +69,9 @@ const registrationSchema = z.object({
   issuingState: z.string().trim().max(50).optional(),
   licenseExpiration: z.string().optional(),
   referralSource: z.string().min(1, "Please select how you found us"),
+  emergencyContactName: z.string().trim().min(1, "Emergency contact name is required").max(100),
+  emergencyContactRelationship: z.string().trim().min(1, "Relationship is required").max(50),
+  emergencyContactPhone: z.string().trim().min(7, "Emergency contact phone is required").max(20),
   agreement: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
