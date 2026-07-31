@@ -42,6 +42,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [myEmployeeId, setMyEmployeeId] = useState<string | null>(null);
+  const [employees, setEmployees] = useState<{ id: string; full_name: string }[]>([]);
+  const [targetEmployeeId, setTargetEmployeeId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [hours, setHours] = useState("");
   const [workDate, setWorkDate] = useState("");
@@ -76,13 +78,24 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!isOwner) return;
+    supabase
+      .from("employees")
+      .select("id, full_name")
+      .eq("is_active", true)
+      .order("full_name")
+      .then(({ data }) => setEmployees((data ?? []) as any));
+  }, [isOwner]);
+
   const submit = async () => {
     if (!isOwner) {
       toast({ title: "Only the owner can add extra hours", variant: "destructive" });
       return;
     }
-    if (!myEmployeeId || !user) {
-      toast({ title: "No employee record found", variant: "destructive" });
+    const employeeId = targetEmployeeId || myEmployeeId;
+    if (!employeeId || !user) {
+      toast({ title: "Select an employee", variant: "destructive" });
       return;
     }
     const h = parseFloat(hours);
@@ -96,11 +109,14 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     }
     setSubmitting(true);
     const { error } = await supabase.from("extra_hours_requests").insert({
-      employee_id: myEmployeeId,
+      employee_id: employeeId,
       requested_by: user.id,
       hours: h,
       justification: justification.trim(),
       work_date: workDate || null,
+      status: "approved",
+      decided_by: user.id,
+      decided_at: new Date().toISOString(),
     });
     setSubmitting(false);
     if (error) {
@@ -112,8 +128,24 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     setHours("");
     setWorkDate("");
     setJustification("");
+    setTargetEmployeeId("");
     load();
+    onDecision?.();
   };
+
+  const remove = async (r: Row) => {
+    if (!isOwner) return;
+    if (!window.confirm(`Remove ${r.hours} extra hours for ${r.employees?.full_name ?? "this employee"}? This cannot be undone.`)) return;
+    const { error } = await supabase.from("extra_hours_requests").delete().eq("id", r.id);
+    if (error) {
+      toast({ title: "Could not remove", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Extra hours removed" });
+    load();
+    onDecision?.();
+  };
+
 
   const decide = async (id: string, status: "approved" | "denied") => {
     const notes = window.prompt(`Optional notes for ${status}:`, "") ?? "";
