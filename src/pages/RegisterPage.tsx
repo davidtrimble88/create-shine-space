@@ -37,8 +37,8 @@ import { type ModelReleasePrefill } from "@/components/ModelReleaseStep";
 import RegistrationFormDocuSign from "@/components/RegistrationFormDocuSign";
 import ModelReleaseDocuSign from "@/components/ModelReleaseDocuSign";
 import WaiverDocuSign from "@/components/WaiverDocuSign";
-import {
 import Seo from "@/components/Seo";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
