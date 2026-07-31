@@ -27,6 +27,7 @@ import ITTickets from "@/components/admin/ITTickets";
 import InstructorCertifications from "@/components/admin/InstructorCertifications";
 import AdminDiscounts from "@/components/admin/AdminDiscounts";
 import WorkLog from "@/components/admin/WorkLog";
+import SubCoverage from "@/components/admin/SubCoverage";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
 
