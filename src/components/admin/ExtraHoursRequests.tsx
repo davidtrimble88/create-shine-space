@@ -213,10 +213,13 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     return base.filter((r) => myEmployeeId && r.employee_id === myEmployeeId);
   }, [rows, isOwner, isAdmin, myEmployeeId]);
   const visibleRows = useMemo(() => {
+    if (isOwner) {
+      // Owners see everything in one place and filter by status.
+      return filter === "all" ? rows : rows.filter((r) => r.status === filter);
+    }
     if (showArchive) return archivedRows;
-    // Only owners can view or manage pending requests.
-    return isOwner ? rows.filter((r) => r.status === "pending") : [];
-  }, [rows, showArchive, archivedRows, isOwner]);
+    return [];
+  }, [rows, showArchive, archivedRows, isOwner, filter]);
 
   return (
     <div className="space-y-6">
