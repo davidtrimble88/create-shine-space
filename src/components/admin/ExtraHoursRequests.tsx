@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Clock, Plus, Check, X, Archive } from "lucide-react";
+import { Clock, Plus, Check, X, Archive, Trash2 } from "lucide-react";
 import { formatPSTDate } from "@/lib/formatDate";
 
 interface Row {
@@ -42,6 +42,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [myEmployeeId, setMyEmployeeId] = useState<string | null>(null);
+  const [employees, setEmployees] = useState<{ id: string; full_name: string }[]>([]);
+  const [targetEmployeeId, setTargetEmployeeId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [hours, setHours] = useState("");
   const [workDate, setWorkDate] = useState("");
@@ -76,13 +78,24 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!isOwner) return;
+    supabase
+      .from("employees")
+      .select("id, full_name")
+      .eq("is_active", true)
+      .order("full_name")
+      .then(({ data }) => setEmployees((data ?? []) as any));
+  }, [isOwner]);
+
   const submit = async () => {
     if (!isOwner) {
       toast({ title: "Only the owner can add extra hours", variant: "destructive" });
       return;
     }
-    if (!myEmployeeId || !user) {
-      toast({ title: "No employee record found", variant: "destructive" });
+    const employeeId = targetEmployeeId || myEmployeeId;
+    if (!employeeId || !user) {
+      toast({ title: "Select an employee", variant: "destructive" });
       return;
     }
     const h = parseFloat(hours);
@@ -96,11 +109,14 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     }
     setSubmitting(true);
     const { error } = await supabase.from("extra_hours_requests").insert({
-      employee_id: myEmployeeId,
+      employee_id: employeeId,
       requested_by: user.id,
       hours: h,
       justification: justification.trim(),
       work_date: workDate || null,
+      status: "approved",
+      decided_by: user.id,
+      decided_at: new Date().toISOString(),
     });
     setSubmitting(false);
     if (error) {
@@ -112,8 +128,24 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     setHours("");
     setWorkDate("");
     setJustification("");
+    setTargetEmployeeId("");
     load();
+    onDecision?.();
   };
+
+  const remove = async (r: Row) => {
+    if (!isOwner) return;
+    if (!window.confirm(`Remove ${r.hours} extra hours for ${r.employees?.full_name ?? "this employee"}? This cannot be undone.`)) return;
+    const { error } = await supabase.from("extra_hours_requests").delete().eq("id", r.id);
+    if (error) {
+      toast({ title: "Could not remove", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Extra hours removed" });
+    load();
+    onDecision?.();
+  };
+
 
   const decide = async (id: string, status: "approved" | "denied") => {
     const notes = window.prompt(`Optional notes for ${status}:`, "") ?? "";
@@ -220,6 +252,20 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
+                    <label className="text-sm font-medium">Employee</label>
+                    <select
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      value={targetEmployeeId}
+                      onChange={(e) => setTargetEmployeeId(e.target.value)}
+                    >
+                      <option value="">Select employee…</option>
+                      {employees.map((e) => (
+                        <option key={e.id} value={e.id}>{e.full_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+
                     <label className="text-sm font-medium">Hours</label>
                     <Input
                       type="number"
@@ -341,7 +387,13 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
                                 <Check className="w-3 h-3 mr-1" /> Change to Approved
                               </Button>
                             )}
+                            {isOwner && (
+                              <Button size="sm" variant="destructive" onClick={() => remove(r)}>
+                                <Trash2 className="w-3 h-3 mr-1" /> Remove
+                              </Button>
+                            )}
                           </div>
+
                         </TableCell>
 
                       </TableRow>
