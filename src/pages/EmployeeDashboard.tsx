@@ -53,6 +53,7 @@ const tabs = [
   { id: "messages", label: "Messages", icon: MessageSquare, roles: ["owner", "admin", "manager", "employee"] },
   { id: "certifications", label: "Certifications", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
   { id: "work-log", label: "Work Log", icon: ClipboardList, roles: ["owner", "admin", "manager", "employee"] },
+  { id: "sub-coverage", label: "Sub Coverage", icon: UserMinus, roles: ["owner", "admin", "manager", "employee"] },
   
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
