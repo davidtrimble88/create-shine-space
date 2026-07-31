@@ -296,6 +296,19 @@ const AdminBookings = () => {
     }
   };
 
+  const isMinorBooking = (dob?: string | null, classDate?: string | null): boolean => {
+    if (!dob) return false;
+    const birth = new Date(dob);
+    if (isNaN(birth.getTime())) return false;
+    const ref = classDate ? new Date(classDate) : new Date();
+    if (isNaN(ref.getTime())) return false;
+    let age = ref.getFullYear() - birth.getFullYear();
+    const m = ref.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && ref.getDate() < birth.getDate())) age--;
+    return age < 18;
+  };
+
+
   const filtered = bookings.filter(b => {
     if (search && !`${b.first_name} ${b.last_name} ${b.email} ${b.course}`.toLowerCase().includes(search.toLowerCase())) return false;
     if (activeCourse && b.course !== activeCourse) return false;
