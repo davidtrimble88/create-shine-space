@@ -16,6 +16,7 @@ const ForgotPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -23,15 +24,18 @@ const ForgotPassword = () => {
     e.preventDefault();
     if (!email.trim()) return;
     setIsLoading(true);
+    setNotFound(false);
 
     const { data } = await supabase.functions.invoke("self-reset-password", {
       body: { mode: "get-questions", email: email.trim() },
     });
 
-    // Always advance to the questions step regardless of whether the email
-    // matches an account — this prevents account enumeration via the
-    // forgot-password flow. Verification of the answers on the next step
-    // returns a generic failure for both invalid emails and wrong answers.
+    if (!data?.found) {
+      setNotFound(true);
+      setIsLoading(false);
+      return;
+    }
+
     const qs = Array.isArray(data?.questions) && data.questions.length >= 3
       ? data.questions
       : [
@@ -104,6 +108,18 @@ const ForgotPassword = () => {
                   <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} className="pl-10" required />
                 </div>
               </div>
+              {notFound && (
+                <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm">
+                  <p className="font-semibold text-foreground">We couldn't find an account with that email.</p>
+                  <p className="text-muted-foreground mt-1">
+                    Double-check the spelling and try again, or call the office for support:
+                  </p>
+                  <p className="mt-2 space-x-3">
+                    <a href="tel:+18058270075" className="text-accent font-medium hover:underline">Ventura (805) 827-0075</a>
+                    <a href="tel:+17609876652" className="text-accent font-medium hover:underline">High Desert (760) 987-6652</a>
+                  </p>
+                </div>
+              )}
               <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
                 {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Looking up...</> : "Continue"}
               </Button>

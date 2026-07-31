@@ -36,10 +36,10 @@ Deno.serve(async (req) => {
 
     if (mode === "get-questions") {
       // Return the account's configured questions so the user knows what to
-      // answer. If the email has no account (or no questions set), fall back to
-      // the generic placeholders so the response shape is identical and the
-      // flow cannot be used to enumerate accounts.
-      let questions = PLACEHOLDER_QUESTIONS;
+      // answer. If no account/questions exist we report that back so the UI can
+      // tell the user to try again or call the office.
+      let questions: string[] | null = null;
+      let found = false;
       try {
         const listRes = await fetch(`${supabaseUrl}/auth/v1/admin/users?per_page=1000`, {
           headers: restHeaders,
@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
           (u: any) => u.email?.toLowerCase() === String(email ?? "").trim().toLowerCase()
         );
         if (target) {
+          found = true;
           const qRes = await fetch(
             `${supabaseUrl}/rest/v1/security_questions?user_id=eq.${target.id}&select=question,question_number&order=question_number`,
             { headers: restHeaders }
@@ -59,10 +60,21 @@ Deno.serve(async (req) => {
           }
         }
       } catch (_e) {
-        // fall through to placeholders
+        // treated as not found below
       }
 
-      return new Response(JSON.stringify({ questions }), {
+      if (!found) {
+        return new Response(JSON.stringify({ found: false, reason: "no_account" }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (!questions) {
+        return new Response(JSON.stringify({ found: true, reason: "no_questions", questions: PLACEHOLDER_QUESTIONS }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ found: true, questions }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
