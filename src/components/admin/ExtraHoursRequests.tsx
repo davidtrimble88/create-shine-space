@@ -52,6 +52,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [approveTarget, setApproveTarget] = useState<Row | null>(null);
   const [approveHours, setApproveHours] = useState("");
   const [approveNotes, setApproveNotes] = useState("");
+  const [approveWorkDate, setApproveWorkDate] = useState("");
+  const [approveJustification, setApproveJustification] = useState("");
   const [approveSubmitting, setApproveSubmitting] = useState(false);
   // Admins/managers default to (and are locked into) the archived view.
   const [showArchive, setShowArchive] = useState(effectiveRole !== "owner");
