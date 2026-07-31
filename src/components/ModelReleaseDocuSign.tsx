@@ -384,7 +384,7 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
                 </li>
               </ul>
               <p className="text-base md:text-lg font-bold text-amber-600">
-                This Model Release will be signed in person at the first range class. You may continue
+                This Model Release will be signed in person at the first in person class. You may continue
                 without the guardian's signature now.
               </p>
             </div>

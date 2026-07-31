@@ -469,7 +469,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
                   </li>
                 </ul>
                 <p className="text-sm text-foreground/90">
-                  All waivers and release forms will be signed in person at the first range class.
+                  All waivers and release forms will be signed in person at the first in person class.
                 </p>
               </div>
             )}
