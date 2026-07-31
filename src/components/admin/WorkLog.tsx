@@ -4,9 +4,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronRight, Download, ClipboardList, CalendarRange } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
+import { ChevronDown, ChevronRight, Download, ClipboardList, CalendarRange, Plus, Pencil, Trash2 } from "lucide-react";
 import { formatPSTDate } from "@/lib/formatDate";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ExtraHoursRequests from "./ExtraHoursRequests";
@@ -80,6 +83,7 @@ interface AssignmentRow {
 }
 
 interface ExtraHoursRow {
+  id: string;
   employee_id: string;
   hours: number;
   justification: string;
@@ -105,6 +109,7 @@ interface EmployeeSummary {
 const WorkLog = () => {
   const { user, effectiveRole } = useAuth();
   const isAdmin = effectiveRole === "owner" || effectiveRole === "admin";
+  const isOwner = effectiveRole === "owner";
 
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -117,6 +122,83 @@ const WorkLog = () => {
   const [periodKey, setPeriodKey] = useState<string>(currentPeriod.key);
   const [fromDate, setFromDate] = useState<string>(currentPeriod.start);
   const [toDate, setToDate] = useState<string>(currentPeriod.end);
+
+  // Owner-only extra hours editor
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorEmployee, setEditorEmployee] = useState<Employee | null>(null);
+  const [editorEntry, setEditorEntry] = useState<ExtraHoursRow | null>(null);
+  const [formHours, setFormHours] = useState("");
+  const [formDate, setFormDate] = useState("");
+  const [formJustification, setFormJustification] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ExtraHoursRow | null>(null);
+
+  const openAdd = (emp: Employee) => {
+    setEditorEmployee(emp);
+    setEditorEntry(null);
+    setFormHours("");
+    setFormDate(new Date().toISOString().slice(0, 10));
+    setFormJustification("");
+    setEditorOpen(true);
+  };
+
+  const openEdit = (emp: Employee, entry: ExtraHoursRow) => {
+    setEditorEmployee(emp);
+    setEditorEntry(entry);
+    setFormHours(String(entry.hours));
+    setFormDate(entry.work_date ?? entry.decided_at?.slice(0, 10) ?? "");
+    setFormJustification(entry.justification ?? "");
+    setEditorOpen(true);
+  };
+
+  const saveEntry = async () => {
+    if (!isOwner || !editorEmployee || !user) return;
+    const h = parseFloat(formHours);
+    if (!h || h <= 0) {
+      toast({ title: "Enter a valid hours amount", variant: "destructive" });
+      return;
+    }
+    if (formJustification.trim().length < 3) {
+      toast({ title: "Please add justification", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    const payload = {
+      hours: h,
+      work_date: formDate || null,
+      justification: formJustification.trim(),
+    };
+    const { error } = editorEntry
+      ? await supabase.from("extra_hours_requests").update(payload).eq("id", editorEntry.id)
+      : await supabase.from("extra_hours_requests").insert({
+          ...payload,
+          employee_id: editorEmployee.id,
+          requested_by: user.id,
+          status: "approved",
+          decided_by: user.id,
+          decided_at: new Date().toISOString(),
+        });
+    setSaving(false);
+    if (error) {
+      toast({ title: "Could not save hours", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: editorEntry ? "Extra hours updated" : "Extra hours added" });
+    setEditorOpen(false);
+    load();
+  };
+
+  const confirmDelete = async () => {
+    if (!isOwner || !deleteTarget) return;
+    const { error } = await supabase.from("extra_hours_requests").delete().eq("id", deleteTarget.id);
+    if (error) {
+      toast({ title: "Could not remove hours", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Extra hours removed" });
+    setDeleteTarget(null);
+    load();
+  };
 
   const applyPeriod = (key: string) => {
     setPeriodKey(key);
@@ -149,7 +231,7 @@ const WorkLog = () => {
 
     const extraRes = await supabase
       .from("extra_hours_requests")
-      .select("employee_id, hours, justification, work_date, decided_at")
+      .select("id, employee_id, hours, justification, work_date, decided_at")
       .eq("status", "approved");
 
     setEmployees((empRes.data ?? []) as Employee[]);
@@ -433,11 +515,41 @@ const WorkLog = () => {
                           <TableCell className="text-center">{s.counts.r2}</TableCell>
                           <TableCell className="text-center font-semibold">{s.total}</TableCell>
                           <TableCell className="text-center">
-                            {s.extraHours > 0 ? (
-                              <span className="font-semibold text-primary">{s.extraHours}</span>
-                            ) : (
-                              <span className="text-muted-foreground">0</span>
-                            )}
+                            <div className="flex items-center justify-center gap-1">
+                              {s.extraHours > 0 ? (
+                                <span className="font-semibold text-primary">{s.extraHours}</span>
+                              ) : (
+                                <span className="text-muted-foreground">0</span>
+                              )}
+                              {isOwner && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6 text-primary"
+                                  title="Add extra hours"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openAdd(s.employee);
+                                  }}
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                              )}
+                              {isOwner && s.extraEntries.length > 0 && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6"
+                                  title="Edit or delete approved hours"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!expanded.has(s.employee.id)) toggle(s.employee.id);
+                                  }}
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                         {open && (
@@ -488,6 +600,7 @@ const WorkLog = () => {
                                             <TableHead>Date</TableHead>
                                             <TableHead className="text-center">Hours</TableHead>
                                             <TableHead>Justification</TableHead>
+                                            {isOwner && <TableHead className="text-right">Actions</TableHead>}
                                           </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -500,6 +613,34 @@ const WorkLog = () => {
                                               <TableCell className="whitespace-pre-wrap text-sm">
                                                 {x.justification}
                                               </TableCell>
+                                              {isOwner && (
+                                                <TableCell className="text-right whitespace-nowrap">
+                                                  <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-7 w-7"
+                                                    title="Edit hours"
+                                                    onClick={(ev) => {
+                                                      ev.stopPropagation();
+                                                      openEdit(s.employee, x);
+                                                    }}
+                                                  >
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                  </Button>
+                                                  <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-7 w-7 text-destructive"
+                                                    title="Delete hours"
+                                                    onClick={(ev) => {
+                                                      ev.stopPropagation();
+                                                      setDeleteTarget(x);
+                                                    }}
+                                                  >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                  </Button>
+                                                </TableCell>
+                                              )}
                                             </TableRow>
                                           ))}
                                         </TableBody>
@@ -534,6 +675,73 @@ const WorkLog = () => {
           )}
         </CardContent>
       </Card>
+
+      {isOwner && (
+        <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editorEntry ? "Edit Extra Hours" : "Add Extra Hours"}
+                {editorEmployee ? ` — ${editorEmployee.full_name}` : ""}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Hours</label>
+                <Input
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  value={formHours}
+                  onChange={(e) => setFormHours(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Work date</label>
+                <Input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Justification</label>
+                <Textarea
+                  rows={3}
+                  value={formJustification}
+                  onChange={(e) => setFormJustification(e.target.value)}
+                  placeholder="What was the extra time for?"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setEditorOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={saveEntry} disabled={saving}>
+                {saving ? "Saving…" : editorEntry ? "Save changes" : "Add hours"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {isOwner && (
+        <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Remove extra hours?</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              This permanently deletes {deleteTarget?.hours} approved hour(s). This cannot be undone.
+            </p>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmDelete}>
+                Remove
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
