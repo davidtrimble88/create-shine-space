@@ -214,12 +214,14 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   }, [rows, isOwner, isAdmin, myEmployeeId]);
   const visibleRows = useMemo(() => {
     if (isOwner) {
-      // Owners see everything in one place and filter by status.
-      return filter === "all" ? rows : rows.filter((r) => r.status === filter);
+      // Active view = pending + approved (manageable). History = denied.
+      return showArchive
+        ? rows.filter((r) => r.status === "denied" || r.status === "cancelled")
+        : rows.filter((r) => r.status === "pending" || r.status === "approved");
     }
     if (showArchive) return archivedRows;
     return [];
-  }, [rows, showArchive, archivedRows, isOwner, filter]);
+  }, [rows, showArchive, archivedRows, isOwner]);
 
   return (
     <div className="space-y-6">
