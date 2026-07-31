@@ -2866,7 +2866,12 @@ const ClassRosters = () => {
                         {b.first_name}
                         {(b as any).preferred_name ? <span style={{ textTransform: "none", marginLeft: 4, fontWeight: 400 }}>("{(b as any).preferred_name}")</span> : null}
                       </td>
-                      <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
+                      <td style={{ textTransform: "uppercase" }}>
+                        {b.last_name}
+                        {isMinorOnClass(b, selectedSchedule.date) && (
+                          <span style={{ fontSize: 9, fontWeight: 700, color: "#d97706", marginLeft: 4, textTransform: "none" }}>(MINOR)</span>
+                        )}
+                      </td>
                       <td className="center" style={{ fontWeight: 700 }}>
                         {(((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has((b.email || "").toLowerCase())) ? "✓" : "✗"}
                       </td>
