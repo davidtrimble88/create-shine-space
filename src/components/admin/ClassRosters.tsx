@@ -2886,6 +2886,54 @@ const ClassRosters = () => {
               <div className="office-tracking">
                 FOR OFFICE TRACKING: [ ] REMS &nbsp; [ ] DL389 LOG &nbsp; [ ] IRs &nbsp; [ ] C/O LOG
               </div>
+
+              {/* Emergency contact page — prints on its own page with the roster */}
+              <div className="emergency-page">
+                <div className="title" style={{ fontSize: 16, fontWeight: 700, textAlign: "center" }}>
+                  EMERGENCY CONTACTS — {selectedSchedule.location_label}
+                </div>
+                <div className="sub" style={{ fontSize: 12, textAlign: "center", color: "#555", marginBottom: 10 }}>
+                  {selectedSchedule.date} — {selectedSchedule.schedule}
+                </div>
+                <table className="roster-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Student</th>
+                      <th className="phone-col">Student Phone</th>
+                      <th>Emergency Contact</th>
+                      <th>Relationship</th>
+                      <th className="phone-col">Emergency Phone</th>
+                      <th>Parent/Guardian (if minor)</th>
+                      <th className="phone-col">Guardian Phone</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {emergencyContactRows.map((b, i) => (
+                      <tr key={b.id}>
+                        <td>{i + 1}</td>
+                        <td style={{ textTransform: "uppercase" }}>{b.last_name}, {b.first_name}</td>
+                        <td className="phone-col">{b.phone || ""}</td>
+                        <td>{(b as any).emergency_contact_name || ""}</td>
+                        <td>{(b as any).emergency_contact_relationship || ""}</td>
+                        <td className="phone-col">{(b as any).emergency_contact_phone || ""}</td>
+                        <td>
+                          {(b as any).guardian_name
+                            ? `${(b as any).guardian_name}${(b as any).guardian_relationship ? ` (${(b as any).guardian_relationship})` : ""}`
+                            : ""}
+                        </td>
+                        <td className="phone-col">{(b as any).guardian_phone || ""}</td>
+                      </tr>
+                    ))}
+                    {emergencyContactRows.length === 0 && (
+                      <tr>
+                        <td colSpan={8} style={{ textAlign: "center" }}>No students enrolled.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
             </div>
           </div>
         </>
