@@ -295,7 +295,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         consent_acknowledgments: [
           { key: "truthful", label: "Answers are true and complete", accepted: true },
           { key: "id_match", label: "ID at check-in will match name on this form", accepted: true },
-          ...(prefill.isMinor ? [{ key: "guardian_in_person", label: "Parent/guardian will sign this form in person at the first range class", accepted: true as const }] : []),
+          ...(prefill.isMinor ? [{ key: "guardian_in_person", label: "Parent/guardian will sign this form in person at the first in person class", accepted: true as const }] : []),
         ],
         course: prefill.course || null,
         location: prefill.location || null,
@@ -469,7 +469,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
                   </li>
                 </ul>
                 <p className="text-sm text-foreground/90">
-                  All waivers and release forms will be signed in person at the first range class.
+                  All waivers and release forms will be signed in person at the first in person class.
                 </p>
               </div>
             )}
