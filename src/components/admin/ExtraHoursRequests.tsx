@@ -196,66 +196,64 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
           </h2>
           <p className="text-muted-foreground text-sm mt-1">
             {isOwner
-              ? "Review, approve, or deny requests. Approved hours appear on the Work Log."
-              : isAdmin
-              ? "Approved extra hours are visible here and on the Work Log."
-              : "Submit extra hours worked outside your assigned classes. Owner approval required."}
+              ? "Add, review, approve, or remove requests. Approved hours appear on the Work Log."
+              : "Only the owner can add or remove extra hours. Approved hours are visible here and on the Work Log."}
           </p>
         </div>
-        {myEmployeeId && (
+        {isOwner && (
           <div className="flex gap-2 flex-wrap">
             <Button variant="outline" onClick={() => setShowArchive((v) => !v)}>
               <Archive className="w-4 h-4 mr-2" />
               {showArchive
-                ? (canSeePending ? "Show Pending" : "Show My Pending")
+                ? "Show Pending"
                 : `View Archive (${archivedRows.length})`}
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" /> Request Extra Hours
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Request Extra Hours</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Hours requested</label>
-                  <Input
-                    type="number"
-                    step="0.25"
-                    min="0"
-                    value={hours}
-                    onChange={(e) => setHours(e.target.value)}
-                    placeholder="e.g. 2.5"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Date worked (optional)</label>
-                  <Input type="date" value={workDate} onChange={(e) => setWorkDate(e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Justification</label>
-                  <Textarea
-                    value={justification}
-                    onChange={(e) => setJustification(e.target.value)}
-                    placeholder="Explain what work was performed and why extra hours are needed…"
-                    rows={4}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" /> Add Extra Hours
                 </Button>
-                <Button onClick={submit} disabled={submitting}>
-                  {submitting ? "Submitting…" : "Submit Request"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Extra Hours</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Hours</label>
+                    <Input
+                      type="number"
+                      step="0.25"
+                      min="0"
+                      value={hours}
+                      onChange={(e) => setHours(e.target.value)}
+                      placeholder="e.g. 2.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Date worked (optional)</label>
+                    <Input type="date" value={workDate} onChange={(e) => setWorkDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Justification</label>
+                    <Textarea
+                      value={justification}
+                      onChange={(e) => setJustification(e.target.value)}
+                      placeholder="Explain what work was performed and why extra hours are needed…"
+                      rows={4}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={submit} disabled={submitting}>
+                    {submitting ? "Adding…" : "Add Hours"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
       </div>
