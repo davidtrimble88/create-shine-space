@@ -113,8 +113,8 @@ const coursesSchema = {
       },
     },
   })),
+};
 
-];
 
 /* ─── Basic Course Tab ─── */
 const BasicCourse = () => (
