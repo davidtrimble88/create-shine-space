@@ -313,107 +313,41 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
         )}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {showArchive
-              ? (isOwner || isAdmin ? "Archived Requests (approved & denied)" : "My Archived Requests")
-              : "Pending Requests"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      {isOwner && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Pending Requests</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            ) : pendingRows.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No pending requests.</p>
+            ) : (
+              renderTable(pendingRows)
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Archive className="w-5 h-5" />
+              {isOwner || isAdmin ? "Archived Requests (approved & denied)" : "My Archived Requests"}
+            </DialogTitle>
+          </DialogHeader>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : visibleRows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {showArchive ? "No archived requests." : "No pending requests."}
-            </p>
+          ) : archivedRows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No archived requests.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Submitted</TableHead>
-                    {(isOwner || isAdmin) && <TableHead>Employee</TableHead>}
-                    <TableHead>Work Date</TableHead>
-                    <TableHead className="text-center">Hours</TableHead>
-                    <TableHead>Justification</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Notes</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {visibleRows.map((r) => {
-                    const isMine = r.requested_by === user?.id;
-                    return (
-                      <TableRow key={r.id}>
-                        <TableCell className="whitespace-nowrap text-xs">
-                          {formatPSTDate(r.created_at)}
-                        </TableCell>
-                        {(isOwner || isAdmin) && (
-                          <TableCell className="whitespace-nowrap">
-                            {r.employees?.full_name ?? "—"}
-                          </TableCell>
-                        )}
-                        <TableCell className="whitespace-nowrap text-xs">
-                          {r.work_date ? formatPSTDate(r.work_date) : "—"}
-                        </TableCell>
-                        <TableCell className="text-center font-semibold">{r.hours}</TableCell>
-                        <TableCell className="max-w-xs">
-                          <div className="text-sm whitespace-pre-wrap">{r.justification}</div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={statusColor[r.status]}>{r.status}</Badge>
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-[200px]">
-                          {r.decision_notes ?? "—"}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex gap-1 justify-end flex-wrap">
-                            {isOwner && r.status === "pending" && (
-                              <>
-                                <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
-                                  <Check className="w-3 h-3 mr-1" /> Approve
-                                </Button>
-                                <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
-                                  <X className="w-3 h-3 mr-1" /> Deny
-                                </Button>
-                              </>
-                            )}
-                            {isOwner && r.status === "approved" && (
-                              <>
-                                <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
-                                  <Check className="w-3 h-3 mr-1" /> Edit
-                                </Button>
-                                <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
-                                  <X className="w-3 h-3 mr-1" /> Change to Denied
-                                </Button>
-                              </>
-                            )}
-                            {isOwner && r.status === "denied" && (
-                              <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
-                                <Check className="w-3 h-3 mr-1" /> Change to Approved
-                              </Button>
-                            )}
-                            {isOwner && (
-                              <Button size="sm" variant="destructive" onClick={() => remove(r)}>
-                                <Trash2 className="w-3 h-3 mr-1" /> Remove
-                              </Button>
-                            )}
-                          </div>
-
-                        </TableCell>
-
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+            renderTable(archivedRows)
           )}
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
+
 
       <Dialog open={!!approveTarget} onOpenChange={(o) => !o && setApproveTarget(null)}>
         <DialogContent>
