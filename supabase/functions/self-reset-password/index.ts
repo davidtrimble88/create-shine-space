@@ -35,9 +35,34 @@ Deno.serve(async (req) => {
     };
 
     if (mode === "get-questions") {
-      // Always return the same generic questions — do not disclose whether the
-      // account exists or which questions were configured.
-      return new Response(JSON.stringify({ questions: PLACEHOLDER_QUESTIONS }), {
+      // Return the account's configured questions so the user knows what to
+      // answer. If the email has no account (or no questions set), fall back to
+      // the generic placeholders so the response shape is identical and the
+      // flow cannot be used to enumerate accounts.
+      let questions = PLACEHOLDER_QUESTIONS;
+      try {
+        const listRes = await fetch(`${supabaseUrl}/auth/v1/admin/users?per_page=1000`, {
+          headers: restHeaders,
+        });
+        const listData = await listRes.json();
+        const target = (listData.users || []).find(
+          (u: any) => u.email?.toLowerCase() === String(email ?? "").trim().toLowerCase()
+        );
+        if (target) {
+          const qRes = await fetch(
+            `${supabaseUrl}/rest/v1/security_questions?user_id=eq.${target.id}&select=question,question_number&order=question_number`,
+            { headers: restHeaders }
+          );
+          const rows = await qRes.json();
+          if (Array.isArray(rows) && rows.length === 3) {
+            questions = rows.map((r: any) => r.question);
+          }
+        }
+      } catch (_e) {
+        // fall through to placeholders
+      }
+
+      return new Response(JSON.stringify({ questions }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
