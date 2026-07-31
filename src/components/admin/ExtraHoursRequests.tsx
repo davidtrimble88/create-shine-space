@@ -55,6 +55,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [approveSubmitting, setApproveSubmitting] = useState(false);
   // Admins/managers default to (and are locked into) the archived view.
   const [showArchive, setShowArchive] = useState(effectiveRole !== "owner");
+  // Owner-only filter within the list: all / pending / approved / denied
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "denied">("all");
 
   const load = async () => {
     setLoading(true);
