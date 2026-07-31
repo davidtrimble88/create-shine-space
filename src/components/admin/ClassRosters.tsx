@@ -2772,6 +2772,50 @@ const ClassRosters = () => {
             </div>
           </div>
 
+          {/* Emergency contacts (on screen) */}
+          <div className="bg-card border border-border rounded-xl overflow-hidden mt-6">
+            <div className="px-4 py-3 border-b border-border">
+              <h3 className="font-semibold">Emergency Contacts</h3>
+              <p className="text-xs text-muted-foreground">Included automatically when you print the roster.</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr className="text-left">
+                    <th className="px-3 py-2 font-medium">Student</th>
+                    <th className="px-3 py-2 font-medium">Student Phone</th>
+                    <th className="px-3 py-2 font-medium">Emergency Contact</th>
+                    <th className="px-3 py-2 font-medium">Relationship</th>
+                    <th className="px-3 py-2 font-medium">Emergency Phone</th>
+                    <th className="px-3 py-2 font-medium">Parent/Guardian</th>
+                    <th className="px-3 py-2 font-medium">Guardian Phone</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {emergencyContactRows.map((b) => (
+                    <tr key={b.id} className="border-t border-border">
+                      <td className="px-3 py-2">{b.last_name}, {b.first_name}</td>
+                      <td className="px-3 py-2">{b.phone || "—"}</td>
+                      <td className="px-3 py-2">{(b as any).emergency_contact_name || "—"}</td>
+                      <td className="px-3 py-2">{(b as any).emergency_contact_relationship || "—"}</td>
+                      <td className="px-3 py-2">{(b as any).emergency_contact_phone || "—"}</td>
+                      <td className="px-3 py-2">
+                        {(b as any).guardian_name
+                          ? `${(b as any).guardian_name}${(b as any).guardian_relationship ? ` (${(b as any).guardian_relationship})` : ""}`
+                          : "—"}
+                      </td>
+                      <td className="px-3 py-2">{(b as any).guardian_phone || "—"}</td>
+                    </tr>
+                  ))}
+                  {emergencyContactRows.length === 0 && (
+                    <tr><td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">No students enrolled.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+
           {/* Hidden printable roster */}
           <div className="hidden">
             <div ref={printRef}>
