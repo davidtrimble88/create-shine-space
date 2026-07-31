@@ -217,11 +217,88 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     if (isOwner || isAdmin) return base;
     return base.filter((r) => myEmployeeId && r.employee_id === myEmployeeId);
   }, [rows, isOwner, isAdmin, myEmployeeId]);
-  const visibleRows = useMemo(() => {
-    if (showArchive) return archivedRows;
-    // Only owners can view or manage pending requests.
-    return isOwner ? rows.filter((r) => r.status === "pending") : [];
-  }, [rows, showArchive, archivedRows, isOwner]);
+  // Only owners can view or manage pending requests.
+  const pendingRows = useMemo(
+    () => (isOwner ? rows.filter((r) => r.status === "pending") : []),
+    [rows, isOwner],
+  );
+
+  const renderTable = (list: Row[]) => (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Submitted</TableHead>
+            {(isOwner || isAdmin) && <TableHead>Employee</TableHead>}
+            <TableHead>Work Date</TableHead>
+            <TableHead className="text-center">Hours</TableHead>
+            <TableHead>Justification</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Notes</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {list.map((r) => (
+            <TableRow key={r.id}>
+              <TableCell className="whitespace-nowrap text-xs">{formatPSTDate(r.created_at)}</TableCell>
+              {(isOwner || isAdmin) && (
+                <TableCell className="whitespace-nowrap">{r.employees?.full_name ?? "—"}</TableCell>
+              )}
+              <TableCell className="whitespace-nowrap text-xs">
+                {r.work_date ? formatPSTDate(r.work_date) : "—"}
+              </TableCell>
+              <TableCell className="text-center font-semibold">{r.hours}</TableCell>
+              <TableCell className="max-w-xs">
+                <div className="text-sm whitespace-pre-wrap">{r.justification}</div>
+              </TableCell>
+              <TableCell>
+                <Badge className={statusColor[r.status]}>{r.status}</Badge>
+              </TableCell>
+              <TableCell className="text-xs text-muted-foreground max-w-[200px]">
+                {r.decision_notes ?? "—"}
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex gap-1 justify-end flex-wrap">
+                  {isOwner && r.status === "pending" && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
+                        <Check className="w-3 h-3 mr-1" /> Approve
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
+                        <X className="w-3 h-3 mr-1" /> Deny
+                      </Button>
+                    </>
+                  )}
+                  {isOwner && r.status === "approved" && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
+                        <Check className="w-3 h-3 mr-1" /> Edit
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => decide(r.id, "denied")}>
+                        <X className="w-3 h-3 mr-1" /> Change to Denied
+                      </Button>
+                    </>
+                  )}
+                  {isOwner && r.status === "denied" && (
+                    <Button size="sm" variant="outline" onClick={() => openApprove(r)}>
+                      <Check className="w-3 h-3 mr-1" /> Change to Approved
+                    </Button>
+                  )}
+                  {isOwner && (
+                    <Button size="sm" variant="destructive" onClick={() => remove(r)}>
+                      <Trash2 className="w-3 h-3 mr-1" /> Remove
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
 
   return (
     <div className="space-y-6">
