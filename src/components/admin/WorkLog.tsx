@@ -600,6 +600,7 @@ const WorkLog = () => {
                                             <TableHead>Date</TableHead>
                                             <TableHead className="text-center">Hours</TableHead>
                                             <TableHead>Justification</TableHead>
+                                            {isOwner && <TableHead className="text-right">Actions</TableHead>}
                                           </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -612,6 +613,34 @@ const WorkLog = () => {
                                               <TableCell className="whitespace-pre-wrap text-sm">
                                                 {x.justification}
                                               </TableCell>
+                                              {isOwner && (
+                                                <TableCell className="text-right whitespace-nowrap">
+                                                  <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-7 w-7"
+                                                    title="Edit hours"
+                                                    onClick={(ev) => {
+                                                      ev.stopPropagation();
+                                                      openEdit(s.employee, x);
+                                                    }}
+                                                  >
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                  </Button>
+                                                  <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-7 w-7 text-destructive"
+                                                    title="Delete hours"
+                                                    onClick={(ev) => {
+                                                      ev.stopPropagation();
+                                                      setDeleteTarget(x);
+                                                    }}
+                                                  >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                  </Button>
+                                                </TableCell>
+                                              )}
                                             </TableRow>
                                           ))}
                                         </TableBody>
