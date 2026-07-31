@@ -54,7 +54,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [approveNotes, setApproveNotes] = useState("");
   const [approveSubmitting, setApproveSubmitting] = useState(false);
   // Admins/managers default to (and are locked into) the archived view.
-  const [showArchive, setShowArchive] = useState(false);
+  const [showArchive, setShowArchive] = useState(effectiveRole !== "owner");
 
   const load = async () => {
     setLoading(true);
