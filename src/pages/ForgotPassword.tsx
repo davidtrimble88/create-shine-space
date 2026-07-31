@@ -23,15 +23,18 @@ const ForgotPassword = () => {
     e.preventDefault();
     if (!email.trim()) return;
     setIsLoading(true);
+    setNotFound(false);
 
     const { data } = await supabase.functions.invoke("self-reset-password", {
       body: { mode: "get-questions", email: email.trim() },
     });
 
-    // Always advance to the questions step regardless of whether the email
-    // matches an account — this prevents account enumeration via the
-    // forgot-password flow. Verification of the answers on the next step
-    // returns a generic failure for both invalid emails and wrong answers.
+    if (!data?.found) {
+      setNotFound(true);
+      setIsLoading(false);
+      return;
+    }
+
     const qs = Array.isArray(data?.questions) && data.questions.length >= 3
       ? data.questions
       : [
