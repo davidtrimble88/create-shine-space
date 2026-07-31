@@ -54,7 +54,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [approveNotes, setApproveNotes] = useState("");
   const [approveSubmitting, setApproveSubmitting] = useState(false);
   // Admins/managers default to (and are locked into) the archived view.
-  const [showArchive, setShowArchive] = useState(false);
+  const [showArchive, setShowArchive] = useState(effectiveRole !== "owner");
 
   const load = async () => {
     setLoading(true);
@@ -204,10 +204,12 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
 
 
   const pendingCount = useMemo(() => rows.filter((r) => r.status === "pending").length, [rows]);
-  const archivedRows = useMemo(
-    () => rows.filter((r) => r.status === "approved" || r.status === "denied"),
-    [rows],
-  );
+  const archivedRows = useMemo(() => {
+    const base = rows.filter((r) => r.status === "approved" || r.status === "denied");
+    // Owners and admins see everyone; managers/instructors only their own.
+    if (isOwner || isAdmin) return base;
+    return base.filter((r) => myEmployeeId && r.employee_id === myEmployeeId);
+  }, [rows, isOwner, isAdmin, myEmployeeId]);
   const visibleRows = useMemo(() => {
     if (showArchive) return archivedRows;
     // Only owners can view or manage pending requests.
