@@ -15,11 +15,11 @@ const TRIGGER = "employee_welcome";
 
 const SUPABASE_PUBLIC = (Deno.env.get("SUPABASE_URL") || "").replace(/\/$/, "");
 const DECK_BY_ROLE: Record<string, { name: string; path: string }> = {
-  owner:    { name: "Owner Dashboard Training",            path: "training/Training_Owner.pptx" },
-  admin:    { name: "Admin Dashboard Training",            path: "training/Training_Admin.pptx" },
-  manager:  { name: "Admin Dashboard Training",            path: "training/Training_Admin.pptx" },
-  employee: { name: "Employee & Viewer Dashboard Training", path: "training/Training_Employee_Viewer.pptx" },
-  viewer:   { name: "Employee & Viewer Dashboard Training", path: "training/Training_Employee_Viewer.pptx" },
+  owner:    { name: "How-To Guide: Owner",      path: "training/How_To_Guide_Owner.pptx" },
+  admin:    { name: "How-To Guide: Admin",      path: "training/How_To_Guide_Admin.pptx" },
+  manager:  { name: "How-To Guide: Manager",    path: "training/How_To_Guide_Manager.pptx" },
+  employee: { name: "How-To Guide: Instructor", path: "training/How_To_Guide_Instructor.pptx" },
+  viewer:   { name: "How-To Guide: Instructor", path: "training/How_To_Guide_Instructor.pptx" },
 };
 const deckUrlFor = async (role: string, client: any) => {
   const d = DECK_BY_ROLE[(role || "employee").toLowerCase()] ?? DECK_BY_ROLE.employee;
