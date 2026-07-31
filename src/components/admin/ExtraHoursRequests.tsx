@@ -55,6 +55,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [approveSubmitting, setApproveSubmitting] = useState(false);
   // Admins/managers default to (and are locked into) the archived view.
   const [showArchive, setShowArchive] = useState(effectiveRole !== "owner");
+  // Owner-only filter within the list: all / pending / approved / denied
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "denied">("all");
 
   const load = async () => {
     setLoading(true);
@@ -211,10 +213,13 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     return base.filter((r) => myEmployeeId && r.employee_id === myEmployeeId);
   }, [rows, isOwner, isAdmin, myEmployeeId]);
   const visibleRows = useMemo(() => {
+    if (isOwner) {
+      // Owners see everything in one place and filter by status.
+      return filter === "all" ? rows : rows.filter((r) => r.status === filter);
+    }
     if (showArchive) return archivedRows;
-    // Only owners can view or manage pending requests.
-    return isOwner ? rows.filter((r) => r.status === "pending") : [];
-  }, [rows, showArchive, archivedRows, isOwner]);
+    return [];
+  }, [rows, showArchive, archivedRows, isOwner, filter]);
 
   return (
     <div className="space-y-6">
@@ -236,12 +241,17 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
         </div>
         {isOwner && (
           <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" onClick={() => setShowArchive((v) => !v)}>
-              <Archive className="w-4 h-4 mr-2" />
-              {showArchive
-                ? "Show Pending"
-                : `View Archive (${archivedRows.length})`}
-            </Button>
+            {(["all", "pending", "approved", "denied"] as const).map((f) => (
+              <Button
+                key={f}
+                size="sm"
+                variant={filter === f ? "default" : "outline"}
+                onClick={() => setFilter(f)}
+              >
+                {f === "all" && <Archive className="w-4 h-4 mr-2" />}
+                {f === "all" ? `All (${rows.length})` : f.charAt(0).toUpperCase() + f.slice(1) + ` (${rows.filter((r) => r.status === f).length})`}
+              </Button>
+            ))}
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -309,18 +319,20 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            {showArchive
-              ? (isOwner || isAdmin ? "Archived Requests (approved & denied)" : "My Archived Requests")
-              : "Pending Requests"}
+            {isOwner
+              ? filter === "all"
+                ? "All Extra Hours"
+                : `${filter.charAt(0).toUpperCase() + filter.slice(1)} Extra Hours`
+              : isAdmin
+                ? "Archived Requests (approved & denied)"
+                : "My Archived Requests"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : visibleRows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {showArchive ? "No archived requests." : "No pending requests."}
-            </p>
+            <p className="text-sm text-muted-foreground">No requests to show.</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
