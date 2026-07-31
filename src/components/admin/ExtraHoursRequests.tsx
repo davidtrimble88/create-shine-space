@@ -317,9 +317,9 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
         <CardHeader>
           <CardTitle className="text-base">
             {isOwner
-              ? filter === "all"
-                ? "All Extra Hours"
-                : `${filter.charAt(0).toUpperCase() + filter.slice(1)} Extra Hours`
+              ? showArchive
+                ? "History (denied & cancelled)"
+                : "Active Extra Hours (pending & approved)"
               : isAdmin
                 ? "Archived Requests (approved & denied)"
                 : "My Archived Requests"}
