@@ -171,6 +171,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
     setApproveTarget(r);
     setApproveHours(String(r.hours));
     setApproveNotes(r.decision_notes ?? "");
+    setApproveWorkDate(r.work_date ?? "");
+    setApproveJustification(r.justification ?? "");
   };
 
   const confirmApprove = async () => {
@@ -186,6 +188,8 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
       .update({
         status: "approved",
         hours: h,
+        work_date: approveWorkDate || null,
+        justification: approveJustification.trim() || approveTarget.justification,
         decision_notes: approveNotes.trim() || null,
         decided_by: user?.id,
         decided_at: new Date().toISOString(),
@@ -196,11 +200,12 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
       toast({ title: "Update failed", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Request approved" });
+    toast({ title: approveTarget.status === "approved" ? "Extra hours updated" : "Request approved" });
     setApproveTarget(null);
     load();
     onDecision?.();
   };
+
 
 
   const pendingCount = useMemo(() => rows.filter((r) => r.status === "pending").length, [rows]);
