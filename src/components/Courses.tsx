@@ -180,7 +180,7 @@ const Courses = () => {
                   className="w-full group"
                   size="lg"
                 >
-                  Learn more about the {course.name}
+                  Learn More<span className="sr-only"> about the {course.name}</span>
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
