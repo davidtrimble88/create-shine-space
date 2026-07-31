@@ -79,6 +79,9 @@ const AdminBookings = () => {
     issuing_state: "",
     license_expiration: "",
     referral_source: "",
+    emergency_contact_name: "",
+    emergency_contact_relationship: "",
+    emergency_contact_phone: "",
   });
   const [studentPaymentCollected, setStudentPaymentCollected] = useState(false);
   const [studentPaymentMethod, setStudentPaymentMethod] = useState("cash");
@@ -164,6 +167,9 @@ const AdminBookings = () => {
       issuing_state: form.issuing_state || null,
       license_expiration: form.license_expiration || null,
       referral_source: form.referral_source || "Phone Call",
+      emergency_contact_name: form.emergency_contact_name || null,
+      emergency_contact_relationship: form.emergency_contact_relationship || null,
+      emergency_contact_phone: form.emergency_contact_phone || null,
       fee: sched.price,
       manually_added: true,
     };
@@ -196,7 +202,7 @@ const AdminBookings = () => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Student Added", description: `${form.first_name} ${form.last_name} has been booked.` });
-      setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "" });
+      setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "" });
       setStudentPaymentCollected(false);
       setStudentPaymentMethod("cash");
       setDialogOpen(false);
@@ -269,7 +275,7 @@ const AdminBookings = () => {
     toast({ title: "Payment received", description: "Student has been booked and marked paid." });
     setChargeOpen(false);
     setChargePayload(null);
-    setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "" });
+    setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "" });
     setStudentPaymentCollected(false);
     setStudentPaymentMethod("cash");
     setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
@@ -596,6 +602,31 @@ const AdminBookings = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Emergency Contact (optional for manual entry) */}
+              <div className="pt-2 border-t border-border/40">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                  Emergency Contact <span className="normal-case font-normal tracking-normal">(optional)</span>
+                </p>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <Label>Contact Name</Label>
+                      <Input value={form.emergency_contact_name} onChange={e => setForm(f => ({ ...f, emergency_contact_name: e.target.value }))} maxLength={100} />
+                    </div>
+                    <div>
+                      <Label>Relationship</Label>
+                      <Input value={form.emergency_contact_relationship} onChange={e => setForm(f => ({ ...f, emergency_contact_relationship: e.target.value }))} maxLength={50} />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Contact Phone</Label>
+                    <Input type="tel" value={form.emergency_contact_phone} onChange={e => setForm(f => ({ ...f, emergency_contact_phone: e.target.value }))} maxLength={25} />
+                  </div>
+                </div>
+              </div>
+
+
 
               <div>
                 <Label>How did they hear about us?</Label>
