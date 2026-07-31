@@ -720,6 +720,10 @@ const AdminBookings = () => {
                   <td className="p-3 font-medium text-foreground">
                     {b.first_name} {b.last_name}
                     {b.is_retest && <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded bg-accent/20 text-accent">Retest</span>}
+                    {isMinorBooking(b.date_of_birth, b.schedule_date) && (
+                      <span className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/40">MINOR</span>
+                    )}
+
                     <br /><span className="text-xs text-muted-foreground">{b.is_retest ? "Retest" : b.email}</span>
                   </td>
                   <td className="p-3 text-muted-foreground">{courseLabels[b.course] || b.course}</td>
