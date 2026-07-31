@@ -55,8 +55,6 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const [approveSubmitting, setApproveSubmitting] = useState(false);
   // Admins/managers default to (and are locked into) the archived view.
   const [showArchive, setShowArchive] = useState(effectiveRole !== "owner");
-  // Owner-only filter within the list: all / pending / approved / denied
-  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "denied">("all");
 
   const load = async () => {
     setLoading(true);
@@ -214,12 +212,14 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   }, [rows, isOwner, isAdmin, myEmployeeId]);
   const visibleRows = useMemo(() => {
     if (isOwner) {
-      // Owners see everything in one place and filter by status.
-      return filter === "all" ? rows : rows.filter((r) => r.status === filter);
+      // Active view = pending + approved (manageable). History = denied.
+      return showArchive
+        ? rows.filter((r) => r.status === "denied" || r.status === "cancelled")
+        : rows.filter((r) => r.status === "pending" || r.status === "approved");
     }
     if (showArchive) return archivedRows;
     return [];
-  }, [rows, showArchive, archivedRows, isOwner, filter]);
+  }, [rows, showArchive, archivedRows, isOwner]);
 
   return (
     <div className="space-y-6">
@@ -241,17 +241,12 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
         </div>
         {isOwner && (
           <div className="flex gap-2 flex-wrap">
-            {(["all", "pending", "approved", "denied"] as const).map((f) => (
-              <Button
-                key={f}
-                size="sm"
-                variant={filter === f ? "default" : "outline"}
-                onClick={() => setFilter(f)}
-              >
-                {f === "all" && <Archive className="w-4 h-4 mr-2" />}
-                {f === "all" ? `All (${rows.length})` : f.charAt(0).toUpperCase() + f.slice(1) + ` (${rows.filter((r) => r.status === f).length})`}
-              </Button>
-            ))}
+            <Button variant="outline" onClick={() => setShowArchive((v) => !v)}>
+              <Archive className="w-4 h-4 mr-2" />
+              {showArchive
+                ? "Back to Active Hours"
+                : `History (${rows.filter((r) => r.status === "denied" || r.status === "cancelled").length})`}
+            </Button>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -320,9 +315,9 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
         <CardHeader>
           <CardTitle className="text-base">
             {isOwner
-              ? filter === "all"
-                ? "All Extra Hours"
-                : `${filter.charAt(0).toUpperCase() + filter.slice(1)} Extra Hours`
+              ? showArchive
+                ? "History (denied & cancelled)"
+                : "Active Extra Hours (pending & approved)"
               : isAdmin
                 ? "Archived Requests (approved & denied)"
                 : "My Archived Requests"}
