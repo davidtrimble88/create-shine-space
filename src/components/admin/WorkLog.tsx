@@ -675,6 +675,73 @@ const WorkLog = () => {
           )}
         </CardContent>
       </Card>
+
+      {isOwner && (
+        <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editorEntry ? "Edit Extra Hours" : "Add Extra Hours"}
+                {editorEmployee ? ` — ${editorEmployee.full_name}` : ""}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Hours</label>
+                <Input
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  value={formHours}
+                  onChange={(e) => setFormHours(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Work date</label>
+                <Input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Justification</label>
+                <Textarea
+                  rows={3}
+                  value={formJustification}
+                  onChange={(e) => setFormJustification(e.target.value)}
+                  placeholder="What was the extra time for?"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setEditorOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={saveEntry} disabled={saving}>
+                {saving ? "Saving…" : editorEntry ? "Save changes" : "Add hours"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {isOwner && (
+        <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Remove extra hours?</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              This permanently deletes {deleteTarget?.hours} approved hour(s). This cannot be undone.
+            </p>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmDelete}>
+                Remove
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
