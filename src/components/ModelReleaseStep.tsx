@@ -44,7 +44,7 @@ export interface ModelReleasePrefill {
   locationLabel?: string;
   scheduleId?: string | null;
   scheduleDate?: string | null;
-  /** If true, the parent/legal guardian will sign in person at the first range class. */
+  /** If true, the parent/legal guardian will sign in person at the first in person class. */
   guardianInPerson?: boolean;
 }
 
