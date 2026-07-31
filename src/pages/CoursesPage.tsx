@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import Seo, { SITE_URL } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
