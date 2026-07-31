@@ -252,6 +252,7 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
                 {f === "all" ? `All (${rows.length})` : f.charAt(0).toUpperCase() + f.slice(1) + ` (${rows.filter((r) => r.status === f).length})`}
               </Button>
             ))}
+            <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="w-4 h-4 mr-2" /> Add Extra Hours
