@@ -515,11 +515,41 @@ const WorkLog = () => {
                           <TableCell className="text-center">{s.counts.r2}</TableCell>
                           <TableCell className="text-center font-semibold">{s.total}</TableCell>
                           <TableCell className="text-center">
-                            {s.extraHours > 0 ? (
-                              <span className="font-semibold text-primary">{s.extraHours}</span>
-                            ) : (
-                              <span className="text-muted-foreground">0</span>
-                            )}
+                            <div className="flex items-center justify-center gap-1">
+                              {s.extraHours > 0 ? (
+                                <span className="font-semibold text-primary">{s.extraHours}</span>
+                              ) : (
+                                <span className="text-muted-foreground">0</span>
+                              )}
+                              {isOwner && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6 text-primary"
+                                  title="Add extra hours"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openAdd(s.employee);
+                                  }}
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                              )}
+                              {isOwner && s.extraEntries.length > 0 && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6"
+                                  title="Edit or delete approved hours"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!expanded.has(s.employee.id)) toggle(s.employee.id);
+                                  }}
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                         {open && (
