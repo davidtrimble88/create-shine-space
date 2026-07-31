@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ShieldCheck, Eraser, PenLine, CheckCircle2 } from "lucide-react";
+import { Loader2, ShieldCheck, Eraser, PenLine, CheckCircle2, AlertTriangle } from "lucide-react";
 import type { WaiverPrefill } from "./WaiverStep";
 import { CMSP_WAIVER_TEXT, CMSP_WAIVER_VERSION } from "./WaiverStep";
 import WaiverSignedDialog from "./WaiverSignedDialog";
@@ -394,14 +394,26 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           </div>
         )}
         {isMinor && guardianInPerson && (
-          <div className="mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
-            <span className="font-semibold text-foreground">Guardian signature will be collected in person.</span>{" "}
-            Go ahead and complete every field below with your own initials and signature — this saves a
-            <span className="font-semibold"> partially filled</span> waiver we can print for your parent or legal guardian to
-            sign at the start of your first range class. Your registration is <span className="font-semibold">not</span> considered
-            complete until that in-person signature is captured.
+          <div className="mb-4 rounded-2xl border-4 border-amber-500 bg-amber-500/15 p-5 md:p-6 shadow-lg">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-8 h-8 md:w-10 md:h-10 text-amber-500 shrink-0" />
+              <div className="space-y-2">
+                <h3 className="text-xl md:text-2xl font-extrabold uppercase tracking-wide text-foreground">
+                  Parent / Legal Guardian must sign in person
+                </h3>
+                <p className="text-base md:text-lg text-foreground/90 leading-relaxed">
+                  Complete every field below with your own initials and signature — this saves a{" "}
+                  <span className="font-bold">partially filled</span> waiver we print for your parent or legal
+                  guardian to sign <span className="font-bold">at the start of your first range class</span>.
+                </p>
+                <p className="text-base md:text-lg font-bold text-amber-600">
+                  Your registration is NOT complete until that in-person signature is captured.
+                </p>
+              </div>
+            </div>
           </div>
         )}
+
         <p className="text-sm text-muted-foreground">
           Click each highlighted <span className="font-semibold text-accent">Initial</span> or{" "}
           <span className="font-semibold text-accent">Sign</span> tag on the document. The first time you
