@@ -38,8 +38,6 @@ const ExtraHoursRequests = ({ onDecision }: { onDecision?: () => void } = {}) =>
   const isOwner = effectiveRole === "owner";
   const isAdmin = effectiveRole === "admin";
   const isManager = effectiveRole === "manager";
-  // Only owners can see pending requests. Admins and managers only see archived (approved/denied).
-  const canSeePending = isOwner;
 
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
