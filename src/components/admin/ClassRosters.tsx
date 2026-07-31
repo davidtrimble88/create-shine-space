@@ -2554,8 +2554,13 @@ const ClassRosters = () => {
                           {(b as any).preferred_name ? <span className="ml-1 text-muted-foreground normal-case">("{(b as any).preferred_name}")</span> : null}
                         </td>
                         <td className="p-3 font-medium text-foreground uppercase">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span>{b.last_name}</span>
+                            {isMinorOnClass(b, selectedSchedule?.date) && (
+                              <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40" title="Student is under 18">
+                                MINOR
+                              </span>
+                            )}
                             {(() => {
                               const em = (b.email || "").toLowerCase();
                               const hasWaiver = ((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has(em);
@@ -2750,7 +2755,16 @@ const ClassRosters = () => {
                             {b.first_name}
                             {(b as any).preferred_name ? <span className="ml-1 text-muted-foreground normal-case">("{(b as any).preferred_name}")</span> : null}
                           </td>
-                          <td className="p-3 font-medium text-foreground uppercase">{b.last_name}</td>
+                          <td className="p-3 font-medium text-foreground uppercase">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span>{b.last_name}</span>
+                              {isMinorOnClass(b, selectedSchedule?.date) && (
+                                <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40" title="Student is under 18">
+                                  MINOR
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className="p-3 text-muted-foreground">{b.phone}</td>
                           <td className="p-3 text-muted-foreground">{b.license_number || "—"}</td>
                           <td className="p-3 text-muted-foreground">{b.date_of_birth || "—"}</td>
@@ -2794,7 +2808,16 @@ const ClassRosters = () => {
                 <tbody>
                   {emergencyContactRows.map((b) => (
                     <tr key={b.id} className="border-t border-border">
-                      <td className="px-3 py-2">{b.last_name}, {b.first_name}</td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span>{b.last_name}, {b.first_name}</span>
+                          {isMinorOnClass(b, selectedSchedule?.date) && (
+                            <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40" title="Student is under 18">
+                              MINOR
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-3 py-2">{b.phone || "—"}</td>
                       <td className="px-3 py-2">{(b as any).emergency_contact_name || "—"}</td>
                       <td className="px-3 py-2">{(b as any).emergency_contact_relationship || "—"}</td>
@@ -2861,7 +2884,12 @@ const ClassRosters = () => {
                         {b.first_name}
                         {(b as any).preferred_name ? <span style={{ textTransform: "none", marginLeft: 4, fontWeight: 400 }}>("{(b as any).preferred_name}")</span> : null}
                       </td>
-                      <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
+                      <td style={{ textTransform: "uppercase" }}>
+                        {b.last_name}
+                        {isMinorOnClass(b, selectedSchedule.date) && (
+                          <span style={{ fontSize: 9, fontWeight: 700, color: "#d97706", marginLeft: 4, textTransform: "none" }}>(MINOR)</span>
+                        )}
+                      </td>
                       <td className="center" style={{ fontWeight: 700 }}>
                         {(((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has((b.email || "").toLowerCase())) ? "✓" : "✗"}
                       </td>
@@ -2914,7 +2942,12 @@ const ClassRosters = () => {
                     <tr key={b.id}>
                       <td>{i + 1}</td>
                       <td style={{ textTransform: "uppercase" }}>{b.first_name}</td>
-                      <td style={{ textTransform: "uppercase" }}>{b.last_name}</td>
+                      <td style={{ textTransform: "uppercase" }}>
+                        {b.last_name}
+                        {isMinorOnClass(b, selectedSchedule.date) && (
+                          <span style={{ fontSize: 9, fontWeight: 700, color: "#d97706", marginLeft: 4, textTransform: "none" }}>(MINOR)</span>
+                        )}
+                      </td>
                       <td className="phone-col">{b.phone}</td>
                       <td>{b.license_number || ""}</td>
                       <td className="center"></td>
@@ -2959,7 +2992,12 @@ const ClassRosters = () => {
                     {emergencyContactRows.map((b, i) => (
                       <tr key={b.id}>
                         <td>{i + 1}</td>
-                        <td style={{ textTransform: "uppercase" }}>{b.last_name}, {b.first_name}</td>
+                        <td style={{ textTransform: "uppercase" }}>
+                          {b.last_name}, {b.first_name}
+                          {isMinorOnClass(b, selectedSchedule.date) && (
+                            <span style={{ fontSize: 9, fontWeight: 700, color: "#d97706", marginLeft: 4, textTransform: "none" }}>(MINOR)</span>
+                          )}
+                        </td>
                         <td className="phone-col">{b.phone || ""}</td>
                         <td>{(b as any).emergency_contact_name || ""}</td>
                         <td>{(b as any).emergency_contact_relationship || ""}</td>
