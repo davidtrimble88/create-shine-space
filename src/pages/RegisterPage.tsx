@@ -606,6 +606,21 @@ const RegisterPage = () => {
         discount_code: discountCents > 0 && discountApplied?.source === "code" ? (discountApplied.code || null) : null,
       };
 
+      // Track this attempt so staff can see anyone who starts but doesn't finish.
+      attemptIdRef.current = await startAttempt({
+        stage: "payment",
+        course,
+        location_label: locationLabels[location] || location,
+        schedule_id: scheduleId,
+        schedule_date: scheduleDate,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        amount_cents: feeCents,
+        booking_id: bookingPayload.id,
+      });
+
       if (skipPaymentRef.current) {
         skipPaymentRef.current = false;
         await saveBooking(bookingPayload, "skipped");
