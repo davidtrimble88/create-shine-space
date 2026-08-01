@@ -19,8 +19,11 @@ const COLORS = ["hsl(var(--accent))", "#3b82f6", "#8b5cf6", "#10b981", "#f59e0b"
 const WebsiteAnalytics = () => {
   const [timeRange, setTimeRange] = useState("30");
   const [pageViews, setPageViews] = useState<any[]>([]);
+  const [pageViewsTotal, setPageViewsTotal] = useState(0);
   const [bookings, setBookings] = useState<any[]>([]);
+  const [bookingsTotal, setBookingsTotal] = useState(0);
   const [logins, setLogins] = useState<any[]>([]);
+  const [loginsTotal, setLoginsTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [drilldown, setDrilldown] = useState<{ type: string; label: string; data: any[] } | null>(null);
 
@@ -34,23 +37,29 @@ const WebsiteAnalytics = () => {
     const load = async () => {
       setLoading(true);
       const since = getDateFilter();
-      const [pvRes, bkRes, lgRes] = await Promise.all([
-        supabase.from("page_views").select("*").gte("created_at", since).order("created_at"),
-        supabase.from("bookings").select("*").order("created_at"),
-        supabase.from("employee_logins").select("*").gte("created_at", since).order("created_at", { ascending: false }),
+      const [pvRes, pvCountRes, bkRes, bkCountRes, lgRes, lgCountRes] = await Promise.all([
+        supabase.from("page_views").select("*").gte("created_at", since).order("created_at").limit(10000),
+        supabase.from("page_views").select("*", { count: "exact", head: true }).gte("created_at", since),
+        supabase.from("bookings").select("*").order("created_at").limit(10000),
+        supabase.from("bookings").select("*", { count: "exact", head: true }),
+        supabase.from("employee_logins").select("*").gte("created_at", since).order("created_at", { ascending: false }).limit(10000),
+        supabase.from("employee_logins").select("*", { count: "exact", head: true }).gte("created_at", since),
       ]);
       setPageViews(pvRes.data ?? []);
+      setPageViewsTotal(pvCountRes.count ?? (pvRes.data?.length ?? 0));
       setBookings(bkRes.data ?? []);
+      setBookingsTotal(bkCountRes.count ?? (bkRes.data?.length ?? 0));
       setLogins(lgRes.data ?? []);
+      setLoginsTotal(lgCountRes.count ?? (lgRes.data?.length ?? 0));
       setLoading(false);
     };
     load();
   }, [timeRange]);
 
   // ---- Computed Stats ----
-  const totalViews = pageViews.length;
+  const totalViews = pageViewsTotal;
   const uniqueVisitors = new Set(pageViews.map(p => p.visitor_id)).size;
-  const totalBookings = bookings.length;
+  const totalBookings = bookingsTotal;
   const registrationViews = pageViews.filter(p => p.page_path === "/register").length;
   const conversionRate = registrationViews > 0 ? ((totalBookings / registrationViews) * 100).toFixed(1) : "0";
 
@@ -251,7 +260,7 @@ const WebsiteAnalytics = () => {
           { label: "Unique Visitors", value: uniqueVisitors, icon: Users, color: "text-blue-400" },
           { label: "Total Bookings", value: totalBookings, icon: BookOpen, color: "text-purple-400" },
           { label: "Conversion Rate", value: `${conversionRate}%`, icon: TrendingUp, color: "text-green-400" },
-          { label: "Employee Logins", value: logins.length, icon: LogIn, color: "text-amber-400" },
+          { label: "Employee Logins", value: loginsTotal, icon: LogIn, color: "text-amber-400" },
         ].map((card, i) => (
           <div key={i} className="bg-card border border-border rounded-xl p-4">
             <div className="flex items-center gap-2 mb-1">
