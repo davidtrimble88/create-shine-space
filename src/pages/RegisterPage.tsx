@@ -253,6 +253,7 @@ const RegisterPage = () => {
     | { source: "returning" | "code"; amountCents: number; code?: string; codeId?: string }
     | null
   >(null);
+  const attemptIdRef = useRef<string | null>(null);
   const [discountBusy, setDiscountBusy] = useState<null | "returning" | "code">(null);
   const [discountNotice, setDiscountNotice] = useState<string | null>(null);
   const [intReturnCents, setIntReturnCents] = useState<number>(7500);
