@@ -245,7 +245,7 @@ Deno.serve(async (req) => {
         queue_name: "transactional_emails",
         payload: {
           to: recipientEmail,
-          from: "Learn to Ride VC <notify@learntoridevc.com>",
+          from: "Learn to Ride VC <notifications@notify.learntoridevc.com>",
           sender_domain: "notify.learntoridevc.com",
           subject,
           text: htmlToPlainText(body),
@@ -281,7 +281,7 @@ Deno.serve(async (req) => {
           queue_name: "transactional_emails",
           payload: {
             to: toAddr,
-            from: "Learn to Ride VC <notify@learntoridevc.com>",
+            from: "Learn to Ride VC <notifications@notify.learntoridevc.com>",
             sender_domain: "notify.learntoridevc.com",
             subject: subj,
             text: htmlToPlainText(body),
