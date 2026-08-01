@@ -110,8 +110,8 @@ const About = () => {
               </p>
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium">
-                  <Shield className="w-4 h-4" />
-                  CHP Authorized
+                  <Award className="w-4 h-4" />
+                  CMSP Certified
                 </div>
                 <div className="flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium">
                   <Award className="w-4 h-4" />
