@@ -1203,6 +1203,72 @@ export type Database = {
         }
         Relationships: []
       }
+      registration_attempts: {
+        Row: {
+          amount_cents: number | null
+          booking_id: string | null
+          course: string | null
+          created_at: string
+          email: string | null
+          error_message: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          location_label: string | null
+          phone: string | null
+          resolved: boolean
+          schedule_date: string | null
+          schedule_id: string | null
+          staff_notes: string | null
+          stage: string | null
+          status: string
+          updated_at: string
+          visitor_id: string | null
+        }
+        Insert: {
+          amount_cents?: number | null
+          booking_id?: string | null
+          course?: string | null
+          created_at?: string
+          email?: string | null
+          error_message?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          location_label?: string | null
+          phone?: string | null
+          resolved?: boolean
+          schedule_date?: string | null
+          schedule_id?: string | null
+          staff_notes?: string | null
+          stage?: string | null
+          status?: string
+          updated_at?: string
+          visitor_id?: string | null
+        }
+        Update: {
+          amount_cents?: number | null
+          booking_id?: string | null
+          course?: string | null
+          created_at?: string
+          email?: string | null
+          error_message?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          location_label?: string | null
+          phone?: string | null
+          resolved?: boolean
+          schedule_date?: string | null
+          schedule_id?: string | null
+          staff_notes?: string | null
+          stage?: string | null
+          status?: string
+          updated_at?: string
+          visitor_id?: string | null
+        }
+        Relationships: []
+      }
       schedule_cancellations: {
         Row: {
           cancelled_at: string
