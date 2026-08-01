@@ -39,7 +39,6 @@ export type PaymentDiscount = { source: "returning" | "code"; code?: string };
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSkipPayment?: () => Promise<void> | void;
   region: SquareRegion;
   amountCents: number;
   amountLabel: string; // e.g. "$425"
@@ -49,7 +48,7 @@ interface Props {
 }
 
 export const SquarePaymentDialog = ({
-  open, onOpenChange, onSkipPayment, region, amountCents, amountLabel, bookingPayload, discount, onSuccess,
+  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, onSuccess,
 }: Props) => {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<any>(null);
