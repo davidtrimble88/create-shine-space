@@ -30,6 +30,7 @@ import WorkLog from "@/components/admin/WorkLog";
 import SubCoverage from "@/components/admin/SubCoverage";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
+import RegistrationIssues from "@/components/admin/RegistrationIssues";
 
 import NotificationBell from "@/components/admin/NotificationBell";
 import MessagingCenter from "@/components/admin/MessagingCenter";
