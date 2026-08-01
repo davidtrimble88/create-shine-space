@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://create-shine-space.lovable.app/sitemap.xml
+Sitemap: https://learntoridevc.com/sitemap.xml

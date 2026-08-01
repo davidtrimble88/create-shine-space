@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
 
-export const SITE_URL = "https://create-shine-space.lovable.app";
+export const SITE_URL = "https://learntoridevc.com";
 export const SITE_NAME = "Learn to Ride VC";
 
 interface SeoProps {
