@@ -16,6 +16,7 @@ interface Props {
   bookingPayload: Record<string, unknown>;
   discount?: PaymentDiscount;
   onSuccess: (paymentId: string, provider: PaymentProvider) => void;
+  onFailure?: (info: { stage: "setup" | "charge"; message: string }) => void;
 }
 
 /**
