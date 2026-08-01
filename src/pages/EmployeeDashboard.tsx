@@ -59,6 +59,7 @@ const tabs = [
   
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
+  { id: "registration-issues", label: "Registration Issues", icon: AlertTriangle, roles: ["owner", "admin"] },
   
   { id: "auto-emails", label: "Auto Emails", icon: Mail, roles: ["owner", "admin"] },
   { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
