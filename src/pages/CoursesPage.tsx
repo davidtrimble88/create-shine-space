@@ -50,7 +50,7 @@ const advancedSkills = [
 ];
 
 const faqs = [
-  { q: "Do I need any prior experience for the MTC?", a: "No! The Motorcycle Training Course is designed for complete beginners with no riding experience. You should however be able to balance and comfortably ride a two-wheeled bicycle." },
+  { q: "Do I need any prior experience for the MTC?", a: "No! The Motorcyclist Training Course is designed for complete beginners with no riding experience. You should however be able to balance and comfortably ride a two-wheeled bicycle." },
   { q: "Is the motorcycle provided?", a: "Yes — for the MTC, we provide the motorcycle and helmet. For the Advanced Course, you must bring your own motorcycle." },
   { q: "What happens if I don't pass?", a: "There are written and riding evaluations after the course. You must pass both to graduate and receive your DMV waiver. If you don't pass, contact us about rescheduling options." },
   { q: "What's the cancellation policy?", a: "You must notify us at least 5 business days before the start of class. If a class is cancelled by us, you'll be rescheduled at no extra cost. Classes are held rain or shine." },
@@ -70,7 +70,7 @@ const faqSchema = {
 
 const courseCatalog = [
   {
-    name: "Motorcycle Training Course",
+    name: "Motorcyclist Training Course",
     description:
       "CMSP-certified beginner motorcycle course. No experience required — bike and helmet provided, with a DMV skills-test waiver on completion.",
     tab: "basic",
@@ -131,7 +131,7 @@ const BasicCourse = () => (
       <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8 flex items-center gap-4">
         <img src={cmspLogo} alt="CMSP California Motorcyclist Safety Program" className="h-16 md:h-20 rounded-xl shadow-lg" />
           <div>
-            <p className="text-accent font-bold text-lg md:text-2xl">Motorcycle Training Course</p>
+            <p className="text-accent font-bold text-lg md:text-2xl">Motorcyclist Training Course</p>
             <p className="text-foreground/70 text-sm">CMSP Certified</p>
           </div>
       </div>
@@ -688,7 +688,7 @@ const CoursesPage = () => {
     <div className="min-h-screen bg-background">
       <Seo
         title="Motorcycle Courses & Pricing | Learn to Ride VC"
-        description="Compare the CMSP Motorcycle Training Course, 1-Day Premier, Intermediate, and Advanced Riding Clinic — pricing, requirements, and class FAQs."
+        description="Compare the CMSP Motorcyclist Training Course, 1-Day Premier, Intermediate, and Advanced Riding Clinic — pricing, requirements, and class FAQs."
         path="/courses"
         jsonLd={[coursesSchema, faqSchema]}
       />

@@ -34,7 +34,7 @@ interface AssignmentInfo {
 const DUTY_CODES = new Set(["c1", "r1", "c2", "r2"]);
 
 const courseLabels: Record<string, string> = {
-  basic: "Motorcycle Training Course",
+  basic: "Motorcyclist Training Course",
   intermediate: "Intermediate Course",
   advanced: "Advanced Riding Clinic",
 };
@@ -450,7 +450,7 @@ const AdminSchedule = () => {
                   <Select value={form.course} onValueChange={v => setForm(f => ({ ...f, course: v }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="basic">Motorcycle Training Course</SelectItem>
+                      <SelectItem value="basic">Motorcyclist Training Course</SelectItem>
                       <SelectItem value="intermediate">Intermediate Course</SelectItem>
                       <SelectItem value="advanced">Advanced Riding Clinic</SelectItem>
                     </SelectContent>

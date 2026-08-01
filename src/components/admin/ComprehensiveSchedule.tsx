@@ -22,7 +22,7 @@ interface ScheduleRow {
 }
 
 const courseLabels: Record<string, string> = {
-  basic: "Motorcycle Training Course",
+  basic: "Motorcyclist Training Course",
   intermediate: "Intermediate Course",
   advanced: "Advanced Riding Clinic",
 };

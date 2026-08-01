@@ -29,7 +29,7 @@ const GROUP_OPTIONS: { value: string; label: string }[] = [
 ];
 const COURSE_OPTIONS: { value: string; label: string }[] = [
   { value: "", label: "Any course" },
-  { value: "basic", label: "Motorcycle Training Course (Basic)" },
+  { value: "basic", label: "Motorcyclist Training Course (Basic)" },
   { value: "intermediate", label: "Intermediate Course" },
   { value: "advanced", label: "Advanced Course" },
 ];
@@ -69,7 +69,7 @@ const TRIGGER_OPTIONS: { value: string; label: string; vars: string[] }[] = [
 const SAMPLE_VARS: Record<string, string> = {
   firstName: "Alex",
   lastName: "Rider",
-  course: "Motorcycle Training Course",
+  course: "Motorcyclist Training Course",
   locationLabel: "Ventura County — Somis",
   locationAddress: "5500 Somis Rd, Somis, CA 93066",
   scheduleDate: "Sat, Jun 14, 2025",

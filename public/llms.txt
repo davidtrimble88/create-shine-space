@@ -5,7 +5,7 @@
 ## Pages
 
 - [Home](/): Overview of courses, locations, and how to get your motorcycle license in California.
-- [Courses](/courses): Motorcycle Training Course, 1-Day Premier Course, Intermediate Course, and Advanced Riding Clinic — pricing, requirements, and FAQ.
+- [Courses](/courses): Motorcyclist Training Course, 1-Day Premier Course, Intermediate Course, and Advanced Riding Clinic — pricing, requirements, and FAQ.
 - [About](/about): Our instructors, 25+ years of experience, and training philosophy.
 - [Contact](/contact): Phone, email, and office hours for Ventura County and the High Desert.
 - [Book a Course](/choose-course): Start registration by picking a course, location, and class date.

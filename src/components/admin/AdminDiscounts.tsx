@@ -10,7 +10,7 @@ import { Loader2, Copy, Trash2, Ticket, DollarSign, Megaphone } from "lucide-rea
 import { formatPSTDate } from "@/lib/formatDate";
 
 const COURSE_OPTIONS = [
-  { id: "basic", label: "Motorcycle Training Course" },
+  { id: "basic", label: "Motorcyclist Training Course" },
   { id: "intermediate", label: "Intermediate Course" },
   { id: "advanced", label: "Advanced Riding Clinic" },
 ];

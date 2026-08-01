@@ -185,7 +185,7 @@ const RegisterPage = () => {
   }, []);
 
   const courseLabels: Record<string, string> = {
-    basic: "Motorcycle Training Course",
+    basic: "Motorcyclist Training Course",
     intermediate: "Intermediate Course",
     advanced: "Advanced Riding Clinic",
   };
@@ -819,7 +819,7 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Seo title={"Register for a Motorcycle Class — Learn to Ride VC"} description={"Complete your registration for CMSP-certified motorcycle training. Bike and helmet provided for the Motorcycle Training Course."} path="/register" />
+      <Seo title={"Register for a Motorcycle Class — Learn to Ride VC"} description={"Complete your registration for CMSP-certified motorcycle training. Bike and helmet provided for the Motorcyclist Training Course."} path="/register" />
       <Navbar />
 
       <section className="pt-40 pb-24 relative overflow-hidden">

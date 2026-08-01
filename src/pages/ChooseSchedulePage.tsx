@@ -21,7 +21,7 @@ const ChooseSchedulePage = () => {
   const [otherLocations, setOtherLocations] = useState<{ location: string; label: string; count: number }[]>([]);
 
   const courseLabels: Record<string, string> = {
-    basic: "Motorcycle Training Course",
+    basic: "Motorcyclist Training Course",
     intermediate: "Intermediate Course",
     advanced: "Advanced Riding Clinic",
   };

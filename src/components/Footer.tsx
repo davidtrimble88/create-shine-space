@@ -69,7 +69,7 @@ const Footer = () => {
             <h4 className="font-semibold text-foreground mb-4"><EditableText contentKey="footer.courses.title" fallback="Our Courses" /></h4>
             <ul className="space-y-3">
               {[
-                { name: "Motorcycle Training Course", link: "/courses?tab=basic" },
+                { name: "Motorcyclist Training Course", link: "/courses?tab=basic" },
                 { name: "1-Day Premier Course", link: "/courses?tab=premier" },
                 { name: "Intermediate Course", link: "/courses?tab=intermediate" },
                 { name: "Advanced Riding Clinic", link: "/courses?tab=advanced" },

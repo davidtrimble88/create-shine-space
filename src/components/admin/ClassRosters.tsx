@@ -39,7 +39,7 @@ type ViewMode = "active" | "evaluation_pending" | "dl389" | "past" | "pending_re
 const RETEST_WINDOW_DAYS = 60;
 
 const courseLabels: Record<string, string> = {
-  basic: "Motorcycle Training Course",
+  basic: "Motorcyclist Training Course",
   intermediate: "Intermediate Course",
   advanced: "Advanced Riding Clinic",
 };

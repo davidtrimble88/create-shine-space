@@ -6,7 +6,7 @@ import EditableText from "@/components/EditableText";
 
 const courses = [
   {
-    name: "Motorcycle Training Course",
+    name: "Motorcyclist Training Course",
     subtitle: "Perfect for beginners",
     price: "$395",
     priceAlt: "$425",
