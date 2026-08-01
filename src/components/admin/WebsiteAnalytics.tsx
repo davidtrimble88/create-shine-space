@@ -260,7 +260,7 @@ const WebsiteAnalytics = () => {
           { label: "Unique Visitors", value: uniqueVisitors, icon: Users, color: "text-blue-400" },
           { label: "Total Bookings", value: totalBookings, icon: BookOpen, color: "text-purple-400" },
           { label: "Conversion Rate", value: `${conversionRate}%`, icon: TrendingUp, color: "text-green-400" },
-          { label: "Employee Logins", value: logins.length, icon: LogIn, color: "text-amber-400" },
+          { label: "Employee Logins", value: loginsTotal, icon: LogIn, color: "text-amber-400" },
         ].map((card, i) => (
           <div key={i} className="bg-card border border-border rounded-xl p-4">
             <div className="flex items-center gap-2 mb-1">
