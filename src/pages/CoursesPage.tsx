@@ -10,6 +10,7 @@ import {
   Target, Zap, Brain, FileCheck, BadgeCheck, GraduationCap, Phone
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
+import IdRequirementNote from "@/components/IdRequirementNote";
 import { useState, useEffect } from "react";
 
 import cmspLogo from "@/assets/cmsp-logo.jpg";
@@ -276,6 +277,7 @@ const BasicCourse = () => (
           </p>
         </div>
       </div>
+      <IdRequirementNote className="mt-8" />
     </div>
   </motion.div>
 );
@@ -431,6 +433,7 @@ const PremierCourse = () => (
           </ul>
         </div>
       </div>
+      <IdRequirementNote className="mt-8" />
     </div>
   </motion.div>
 );
@@ -534,6 +537,7 @@ const IntermediateCourse = () => (
           </p>
         </div>
       </div>
+      <IdRequirementNote className="mt-8" />
     </div>
   </motion.div>
 );
@@ -674,6 +678,7 @@ const AdvancedCourse = () => (
           </div>
         ))}
       </div>
+      <IdRequirementNote className="mt-8" />
     </div>
   </motion.div>
 );
