@@ -57,9 +57,9 @@ const WebsiteAnalytics = () => {
   }, [timeRange]);
 
   // ---- Computed Stats ----
-  const totalViews = pageViews.length;
+  const totalViews = pageViewsTotal;
   const uniqueVisitors = new Set(pageViews.map(p => p.visitor_id)).size;
-  const totalBookings = bookings.length;
+  const totalBookings = bookingsTotal;
   const registrationViews = pageViews.filter(p => p.page_path === "/register").length;
   const conversionRate = registrationViews > 0 ? ((totalBookings / registrationViews) * 100).toFixed(1) : "0";
 
