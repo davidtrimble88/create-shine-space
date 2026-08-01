@@ -125,18 +125,6 @@ export const SquarePaymentDialog = ({
     setSubmitting(false);
   };
 
-  const handleSkipPayment = async () => {
-    if (!onSkipPayment) return;
-    setSubmitting(true);
-    try {
-      await onSkipPayment();
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Could not save booking";
-      toast({ title: "Could not save booking", description: msg, variant: "destructive" });
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !submitting && onOpenChange(o)}>
