@@ -278,6 +278,7 @@ const BasicCourse = () => (
         </div>
       </div>
     </div>
+    <IdRequirementNote className="mt-4" />
   </motion.div>
 );
 
@@ -433,6 +434,7 @@ const PremierCourse = () => (
         </div>
       </div>
     </div>
+    <IdRequirementNote className="mt-4" />
   </motion.div>
 );
 
@@ -536,6 +538,7 @@ const IntermediateCourse = () => (
         </div>
       </div>
     </div>
+    <IdRequirementNote className="mt-4" />
   </motion.div>
 );
 
@@ -676,6 +679,7 @@ const AdvancedCourse = () => (
         ))}
       </div>
     </div>
+    <IdRequirementNote className="mt-4" />
   </motion.div>
 );
 
