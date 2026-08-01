@@ -10,7 +10,6 @@ export type PaymentProvider = "square" | "paypal" | "stripe";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSkipPayment?: () => Promise<void> | void;
   region: SquareRegion;
   amountCents: number;
   amountLabel: string;

@@ -39,7 +39,6 @@ export type PaymentDiscount = { source: "returning" | "code"; code?: string };
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSkipPayment?: () => Promise<void> | void;
   region: SquareRegion;
   amountCents: number;
   amountLabel: string; // e.g. "$425"
@@ -49,7 +48,7 @@ interface Props {
 }
 
 export const SquarePaymentDialog = ({
-  open, onOpenChange, onSkipPayment, region, amountCents, amountLabel, bookingPayload, discount, onSuccess,
+  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, onSuccess,
 }: Props) => {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<any>(null);
@@ -125,18 +124,6 @@ export const SquarePaymentDialog = ({
     setSubmitting(false);
   };
 
-  const handleSkipPayment = async () => {
-    if (!onSkipPayment) return;
-    setSubmitting(true);
-    try {
-      await onSkipPayment();
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Could not save booking";
-      toast({ title: "Could not save booking", description: msg, variant: "destructive" });
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !submitting && onOpenChange(o)}>
@@ -168,17 +155,6 @@ export const SquarePaymentDialog = ({
             {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing…</> : `Pay ${amountLabel}`}
           </Button>
           </div>
-        </div>
-        <div className="pt-2 border-t border-border/40">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full text-xs text-muted-foreground hover:text-foreground"
-            onClick={handleSkipPayment}
-            disabled={submitting}
-          >
-            Skip Payment (Testing Only)
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

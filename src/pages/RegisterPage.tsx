@@ -764,16 +764,6 @@ const RegisterPage = () => {
     }
   };
 
-  const handleTestingSkipPayment = async () => {
-    if (!pendingBooking) return;
-
-    const booking = pendingBooking as any;
-    await saveBooking(booking, "skipped");
-    toast({ title: "Test booking saved", description: "Payment skipped (testing only)." });
-    paymentCompletedRef.current = true;
-    completeRegistration(booking);
-  };
-
   // If the user tries to close the payment dialog without paying, show a
   // confirmation warning. Only cancel (do not register) if they explicitly
   // confirm. Otherwise, keep the payment dialog open so they can pay.
@@ -1527,7 +1517,6 @@ const RegisterPage = () => {
         <PaymentDialog
           open={paymentOpen}
           onOpenChange={handlePaymentDialogChange}
-          onSkipPayment={handleTestingSkipPayment}
           region={paymentRegion}
           amountCents={paymentAmountCents}
           amountLabel={paymentAmountLabel}
