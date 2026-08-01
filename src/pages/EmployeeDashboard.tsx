@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail, ChevronLeft, ChevronRight, Wrench, Menu, MessageSquare, Ticket, UserMinus } from "lucide-react";
+import { LogOut, Shield, CalendarDays, Users, LayoutDashboard, UserCog, Eye, Hand, FileText, ArrowLeft, BarChart3, Crown, ClipboardList, KeyRound, HelpCircle, ShieldCheck, Lock, DollarSign, ListChecks, ListPlus, FolderOpen, EyeOff, Smartphone, CreditCard, Mail, ChevronLeft, ChevronRight, Wrench, Menu, MessageSquare, Ticket, UserMinus, AlertTriangle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import AdminSchedule from "@/components/admin/AdminSchedule";
 import AdminEmployees from "@/components/admin/AdminEmployees";
@@ -30,6 +30,7 @@ import WorkLog from "@/components/admin/WorkLog";
 import SubCoverage from "@/components/admin/SubCoverage";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
+import RegistrationIssues from "@/components/admin/RegistrationIssues";
 
 import NotificationBell from "@/components/admin/NotificationBell";
 import MessagingCenter from "@/components/admin/MessagingCenter";
@@ -58,6 +59,7 @@ const tabs = [
   
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
+  { id: "registration-issues", label: "Registration Issues", icon: AlertTriangle, roles: ["owner", "admin"] },
   
   { id: "auto-emails", label: "Auto Emails", icon: Mail, roles: ["owner", "admin"] },
   { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
@@ -642,6 +644,7 @@ const EmployeeDashboard = () => {
           {activeTab === "work-log" && <WorkLog />}
           {activeTab === "sub-coverage" && <SubCoverage />}
           {activeTab === "signed-waivers" && <SignedWaivers />}
+          {activeTab === "registration-issues" && <RegistrationIssues />}
           
           {activeTab === "auto-emails" && <AutoEmails />}
           {activeTab === "analytics" && <WebsiteAnalytics />}

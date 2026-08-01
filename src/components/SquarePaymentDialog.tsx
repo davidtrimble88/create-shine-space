@@ -45,10 +45,12 @@ interface Props {
   bookingPayload: Record<string, unknown>;
   discount?: PaymentDiscount;
   onSuccess: (paymentId: string) => void;
+  /** Called when payment can't be completed, so the attempt can be logged. */
+  onFailure?: (info: { stage: "setup" | "charge"; message: string }) => void;
 }
 
 export const SquarePaymentDialog = ({
-  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, onSuccess,
+  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, onSuccess, onFailure,
 }: Props) => {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<any>(null);
@@ -84,6 +86,7 @@ export const SquarePaymentDialog = ({
         const msg = e instanceof Error ? e.message : "Failed to initialize payment form";
         setInitError(msg);
         setInitializing(false);
+        onFailure?.({ stage: "setup", message: msg });
       }
     })();
 
@@ -120,6 +123,7 @@ export const SquarePaymentDialog = ({
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Payment failed";
       toast({ title: "Payment failed", description: msg, variant: "destructive" });
+      onFailure?.({ stage: "charge", message: msg });
     }
     setSubmitting(false);
   };

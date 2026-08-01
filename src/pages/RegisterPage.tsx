@@ -30,6 +30,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
+import { startAttempt, updateAttempt } from "@/lib/registrationAttempts";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
 import { type RegistrationFormPrefill } from "@/components/RegistrationFormStep";
@@ -253,6 +254,7 @@ const RegisterPage = () => {
     | { source: "returning" | "code"; amountCents: number; code?: string; codeId?: string }
     | null
   >(null);
+  const attemptIdRef = useRef<string | null>(null);
   const [discountBusy, setDiscountBusy] = useState<null | "returning" | "code">(null);
   const [discountNotice, setDiscountNotice] = useState<string | null>(null);
   const [intReturnCents, setIntReturnCents] = useState<number>(7500);
@@ -606,6 +608,21 @@ const RegisterPage = () => {
         discount_code: discountCents > 0 && discountApplied?.source === "code" ? (discountApplied.code || null) : null,
       };
 
+      // Track this attempt so staff can see anyone who starts but doesn't finish.
+      attemptIdRef.current = await startAttempt({
+        stage: "payment",
+        course,
+        location_label: locationLabels[location] || location,
+        schedule_id: scheduleId,
+        schedule_date: scheduleDate,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        amount_cents: feeCents,
+        booking_id: bookingPayload.id,
+      });
+
       if (skipPaymentRef.current) {
         skipPaymentRef.current = false;
         await saveBooking(bookingPayload, "skipped");
@@ -710,6 +727,22 @@ const RegisterPage = () => {
         requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
       }
     } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      if (attemptIdRef.current) {
+        updateAttempt(attemptIdRef.current, { status: "form_error", stage: "registration_form", error_message: msg });
+      } else {
+        startAttempt({
+          status: "form_error",
+          stage: "registration_form",
+          error_message: msg,
+          course,
+          location_label: locationLabels[location] || location,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email,
+          phone: data.phone,
+        });
+      }
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
     }
     setSubmitting(false);
@@ -759,6 +792,7 @@ const RegisterPage = () => {
 
   const handlePaymentSuccess = () => {
     paymentCompletedRef.current = true;
+    updateAttempt(attemptIdRef.current, { status: "completed", stage: "complete", error_message: null });
     if (pendingBooking) {
       completeRegistration(pendingBooking as any);
     }
@@ -786,6 +820,7 @@ const RegisterPage = () => {
     setCancelConfirmOpen(false);
     setPaymentOpen(false);
     setPendingBooking(null);
+    updateAttempt(attemptIdRef.current, { status: "abandoned", stage: "payment", error_message: "Customer cancelled at the payment step" });
     toast({
       title: "Registration cancelled",
       description: "Your spot was not reserved. You can register again anytime.",
@@ -1523,6 +1558,13 @@ const RegisterPage = () => {
           bookingPayload={pendingBooking}
           discount={discountApplied ? { source: discountApplied.source, code: discountApplied.code } : undefined}
           onSuccess={handlePaymentSuccess}
+          onFailure={({ stage, message }) =>
+            updateAttempt(attemptIdRef.current, {
+              status: stage === "setup" ? "payment_setup_failed" : "payment_failed",
+              stage: stage === "setup" ? "payment_form" : "payment_charge",
+              error_message: message,
+            })
+          }
         />
       )}
 
