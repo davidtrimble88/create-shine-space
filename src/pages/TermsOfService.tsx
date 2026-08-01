@@ -28,7 +28,7 @@ const TermsOfService = () => {
             <h2 className="text-2xl font-semibold text-foreground mb-3">2. Services</h2>
             <p>Learn to Ride VC provides motorcycle training courses certified by the California Motorcyclist Safety Program (CMSP). Our services include but are not limited to:</p>
             <ul className="list-disc pl-6 space-y-2 mt-2">
-               <li>Motorcycle Training Course (MTC)</li>
+               <li>Motorcyclist Training Course (MTC)</li>
                <li>Intermediate Rider Course</li>
                <li>Advanced Riding Clinic</li>
             </ul>
