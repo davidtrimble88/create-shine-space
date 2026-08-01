@@ -644,6 +644,7 @@ const EmployeeDashboard = () => {
           {activeTab === "work-log" && <WorkLog />}
           {activeTab === "sub-coverage" && <SubCoverage />}
           {activeTab === "signed-waivers" && <SignedWaivers />}
+          {activeTab === "registration-issues" && <RegistrationIssues />}
           
           {activeTab === "auto-emails" && <AutoEmails />}
           {activeTab === "analytics" && <WebsiteAnalytics />}
