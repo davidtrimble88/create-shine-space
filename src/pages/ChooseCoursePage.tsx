@@ -5,6 +5,8 @@ import Footer from "@/components/Footer";
 import { ArrowRight, GraduationCap, Gauge, Zap, BookOpen, Clock, Users, Award, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import Seo from "@/components/Seo";
+import IdRequirementNote from "@/components/IdRequirementNote";
+
 
 const courses = [
   {
