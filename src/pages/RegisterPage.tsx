@@ -727,6 +727,22 @@ const RegisterPage = () => {
         requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
       }
     } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      if (attemptIdRef.current) {
+        updateAttempt(attemptIdRef.current, { status: "form_error", stage: "registration_form", error_message: msg });
+      } else {
+        startAttempt({
+          status: "form_error",
+          stage: "registration_form",
+          error_message: msg,
+          course,
+          location_label: locationLabels[location] || location,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email,
+          phone: data.phone,
+        });
+      }
       toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
     }
     setSubmitting(false);
@@ -776,6 +792,7 @@ const RegisterPage = () => {
 
   const handlePaymentSuccess = () => {
     paymentCompletedRef.current = true;
+    updateAttempt(attemptIdRef.current, { status: "completed", stage: "complete", error_message: null });
     if (pendingBooking) {
       completeRegistration(pendingBooking as any);
     }
@@ -803,6 +820,7 @@ const RegisterPage = () => {
     setCancelConfirmOpen(false);
     setPaymentOpen(false);
     setPendingBooking(null);
+    updateAttempt(attemptIdRef.current, { status: "abandoned", stage: "payment", error_message: "Customer cancelled at the payment step" });
     toast({
       title: "Registration cancelled",
       description: "Your spot was not reserved. You can register again anytime.",
@@ -1540,6 +1558,13 @@ const RegisterPage = () => {
           bookingPayload={pendingBooking}
           discount={discountApplied ? { source: discountApplied.source, code: discountApplied.code } : undefined}
           onSuccess={handlePaymentSuccess}
+          onFailure={({ stage, message }) =>
+            updateAttempt(attemptIdRef.current, {
+              status: stage === "setup" ? "payment_setup_failed" : "payment_failed",
+              stage: stage === "setup" ? "payment_form" : "payment_charge",
+              error_message: message,
+            })
+          }
         />
       )}
 
