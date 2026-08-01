@@ -19,8 +19,11 @@ const COLORS = ["hsl(var(--accent))", "#3b82f6", "#8b5cf6", "#10b981", "#f59e0b"
 const WebsiteAnalytics = () => {
   const [timeRange, setTimeRange] = useState("30");
   const [pageViews, setPageViews] = useState<any[]>([]);
+  const [pageViewsTotal, setPageViewsTotal] = useState(0);
   const [bookings, setBookings] = useState<any[]>([]);
+  const [bookingsTotal, setBookingsTotal] = useState(0);
   const [logins, setLogins] = useState<any[]>([]);
+  const [loginsTotal, setLoginsTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [drilldown, setDrilldown] = useState<{ type: string; label: string; data: any[] } | null>(null);
 
