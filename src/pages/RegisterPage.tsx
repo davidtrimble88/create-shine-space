@@ -30,6 +30,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
+import { startAttempt, updateAttempt } from "@/lib/registrationAttempts";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
 import { type RegistrationFormPrefill } from "@/components/RegistrationFormStep";
