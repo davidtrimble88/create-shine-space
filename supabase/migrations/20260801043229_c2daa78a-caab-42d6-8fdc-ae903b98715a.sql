@@ -1,0 +1,2 @@
+UPDATE public.site_content SET content_value = replace(content_value, 'Motorcycle Training Course', 'Motorcyclist Training Course') WHERE content_value LIKE '%Motorcycle Training Course%';
+UPDATE public.auto_email_templates SET subject = replace(subject, 'Motorcycle Training Course', 'Motorcyclist Training Course'), body = replace(body, 'Motorcycle Training Course', 'Motorcyclist Training Course') WHERE subject LIKE '%Motorcycle Training Course%' OR body LIKE '%Motorcycle Training Course%';
