@@ -34,14 +34,20 @@ const WebsiteAnalytics = () => {
     const load = async () => {
       setLoading(true);
       const since = getDateFilter();
-      const [pvRes, bkRes, lgRes] = await Promise.all([
-        supabase.from("page_views").select("*").gte("created_at", since).order("created_at"),
-        supabase.from("bookings").select("*").order("created_at"),
-        supabase.from("employee_logins").select("*").gte("created_at", since).order("created_at", { ascending: false }),
+      const [pvRes, pvCountRes, bkRes, bkCountRes, lgRes, lgCountRes] = await Promise.all([
+        supabase.from("page_views").select("*").gte("created_at", since).order("created_at").limit(10000),
+        supabase.from("page_views").select("*", { count: "exact", head: true }).gte("created_at", since),
+        supabase.from("bookings").select("*").order("created_at").limit(10000),
+        supabase.from("bookings").select("*", { count: "exact", head: true }),
+        supabase.from("employee_logins").select("*").gte("created_at", since).order("created_at", { ascending: false }).limit(10000),
+        supabase.from("employee_logins").select("*", { count: "exact", head: true }).gte("created_at", since),
       ]);
       setPageViews(pvRes.data ?? []);
+      setPageViewsTotal(pvCountRes.count ?? (pvRes.data?.length ?? 0));
       setBookings(bkRes.data ?? []);
+      setBookingsTotal(bkCountRes.count ?? (bkRes.data?.length ?? 0));
       setLogins(lgRes.data ?? []);
+      setLoginsTotal(lgCountRes.count ?? (lgRes.data?.length ?? 0));
       setLoading(false);
     };
     load();
