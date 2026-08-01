@@ -147,6 +147,11 @@ const ChooseCoursePage = () => {
             })}
           </div>
 
+          <div className="max-w-6xl mx-auto mt-8">
+            <IdRequirementNote />
+          </div>
+
+
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
