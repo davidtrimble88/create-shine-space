@@ -926,6 +926,9 @@ const ClassRosters = () => {
             .roster-table th.class-info-cell .sub { font-size: 12px; font-weight: normal; color: #555; margin-top: 2px; }
             .roster-table th.class-info-cell .instructors { font-size: 11px; margin-top: 4px; font-weight: normal; }
             .roster-table th.class-info-cell .count { font-size: 11px; margin-top: 4px; font-weight: 600; }
+            .roster-table th.legend-cell { background: #fff; border: none; padding: 0 0 6px; text-align: center; }
+            .roster-table th.legend-cell .legend { display: flex; justify-content: center; gap: 16px; font-size: 10px; color: #333; }
+            .roster-table th.legend-cell .legend span strong { margin-right: 3px; }
             .roster-table td.center { text-align: center; }
             .roster-table .check-col { width: 20px; text-align: center; padding: 3px 2px; }
             .roster-table .score-col { width: 26px; text-align: center; }
@@ -2498,6 +2501,16 @@ const ClassRosters = () => {
               </div>
             )}
 
+            {regularBookings.length > 0 && (
+              <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                <span className="font-semibold text-foreground">Form legend:</span>
+                <span className="inline-flex items-center gap-1 text-emerald-500" title="Form completed/signed"><span className="font-bold">✓</span> Done</span>
+                <span className="inline-flex items-center gap-1 text-amber-500" title="Form not completed/signed"><span className="font-bold">✗</span> Not done</span>
+                <span className="inline-flex items-center gap-1 text-amber-500" title="Awaiting parent/guardian in-person signature"><span className="font-bold">⏳</span> Guardian pending</span>
+                <span className="inline-flex items-center gap-1 text-red-500" title="Model release declined"><span className="font-bold">D</span> Declined</span>
+              </div>
+            )}
+
             {regularBookings.length === 0 ? (
               <p className="text-muted-foreground py-4 text-center">No students enrolled in this class yet.</p>
             ) : (
@@ -2565,35 +2578,32 @@ const ClassRosters = () => {
                               const em = (b.email || "").toLowerCase();
                               const hasWaiver = ((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has(em);
                               const waiverPending = pendingGuardianForms.has(`${em}:waiver`);
-                              if (hasWaiver) {
-                                return (
-                                  <span title="Waiver signed" aria-label="Waiver signed" className="inline-flex items-center text-emerald-500">
-                                    <ShieldCheck className="w-3.5 h-3.5" />
-                                  </span>
-                                );
-                              }
-                              if (waiverPending) {
-                                return (
-                                  <span title="Waiver awaiting parent/guardian signature (in person)" className="inline-flex items-center text-[10px] font-bold px-1 rounded bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40">
-                                    WAIVER ⏳
-                                  </span>
-                                );
-                              }
+                              const sym = hasWaiver ? "✓" : waiverPending ? "⏳" : "✗";
+                              const title = hasWaiver
+                                ? "Waiver signed"
+                                : waiverPending
+                                ? "Waiver awaiting parent/guardian signature (in person)"
+                                : "Waiver not signed";
+                              const cls = hasWaiver
+                                ? "bg-emerald-500/15 text-emerald-500"
+                                : waiverPending
+                                ? "bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40"
+                                : "bg-amber-500/15 text-amber-500";
                               return (
-                                <span title="Waiver not signed" aria-label="Waiver not signed" className="inline-flex items-center text-amber-500/80">
-                                  <ShieldAlert className="w-3.5 h-3.5" />
+                                <span title={title} aria-label={title} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
+                                  WAIVER {sym}
                                 </span>
                               );
                             })()}
                             {(() => {
                               const em = (b.email || "").toLowerCase();
                               const hasReg = regFormEmails.has(em);
+                              const sym = hasReg ? "✓" : "✗";
+                              const title = hasReg ? "Registration form completed" : "Registration form not completed";
+                              const cls = hasReg ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500";
                               return (
-                                <span
-                                  title={hasReg ? "Registration form signed" : "Registration form not signed"}
-                                  className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${hasReg ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"}`}
-                                >
-                                  REG {hasReg ? "✓" : "✗"}
+                                <span title={title} aria-label={title} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
+                                  REG {sym}
                                 </span>
                               );
                             })()}
@@ -2601,24 +2611,24 @@ const ClassRosters = () => {
                               const em = (b.email || "").toLowerCase();
                               const mr = modelReleaseByEmail.get(em);
                               const mrPending = pendingGuardianForms.has(`${em}:model_release`);
-                              const label = mr === "signed"
-                                ? "Model release: accepted"
+                              const sym = mr === "signed" ? "✓" : mr === "declined" ? "D" : mrPending ? "⏳" : "✗";
+                              const title = mr === "signed"
+                                ? "Model release accepted"
                                 : mr === "declined"
-                                ? "Model release: declined"
+                                ? "Model release declined"
                                 : mrPending
-                                ? "Model release: awaiting parent/guardian signature (in person)"
-                                : "Model release: not completed";
+                                ? "Model release awaiting parent/guardian signature (in person)"
+                                : "Model release not completed";
                               const cls = mr === "signed"
                                 ? "bg-emerald-500/15 text-emerald-500"
                                 : mr === "declined"
                                 ? "bg-red-500/20 text-red-500 ring-1 ring-red-500/40"
                                 : mrPending
                                 ? "bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40"
-                                : "bg-muted text-muted-foreground";
-                              const sym = mr === "signed" ? "✓" : mr === "declined" ? "✗" : mrPending ? "⏳" : "—";
+                                : "bg-amber-500/15 text-amber-500";
                               return (
-                                <span title={label} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
-                                  MR {sym}
+                                <span title={title} aria-label={title} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
+                                  MODEL {sym}
                                 </span>
                               );
                             })()}
@@ -2857,6 +2867,16 @@ const ClassRosters = () => {
                     </th>
                   </tr>
                   <tr>
+                    <th className="legend-cell" colSpan={17}>
+                      <div className="legend">
+                        <span><strong>✓</strong> Done</span>
+                        <span><strong>✗</strong> Not done</span>
+                        <span><strong>⏳</strong> Guardian pending</span>
+                        <span><strong>D</strong> Declined</span>
+                      </div>
+                    </th>
+                  </tr>
+                  <tr>
                     <th>#</th>
                     <th>First</th>
                     <th>Last</th>
@@ -2898,8 +2918,10 @@ const ClassRosters = () => {
                       </td>
                       <td className="center" style={{ fontWeight: 700 }}>
                         {(() => {
-                          const mr = modelReleaseByEmail.get((b.email || "").toLowerCase());
-                          return mr === "signed" ? "✓" : mr === "declined" ? "D" : "—";
+                          const em = (b.email || "").toLowerCase();
+                          const mr = modelReleaseByEmail.get(em);
+                          const mrPending = pendingGuardianForms.has(`${em}:model_release`);
+                          return mr === "signed" ? "✓" : mr === "declined" ? "D" : mrPending ? "⏳" : "✗";
                         })()}
                       </td>
                       <td className="phone-col">{b.phone}</td>
