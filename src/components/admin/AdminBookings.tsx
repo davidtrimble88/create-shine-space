@@ -297,8 +297,8 @@ const AdminBookings = () => {
   const activeLocation = filterLocation && filterLocation !== "all" ? filterLocation : "";
   const hasFilters = !!activeCourse || !!activeLocation || !!filterDate;
 
-  type SortKey = "student" | "course" | "location" | "date" | "payment" | "status" | "referral";
-  const [sortKey, setSortKey] = useState<SortKey>("date");
+  type SortKey = "student" | "course" | "location" | "date" | "registered" | "payment" | "status" | "referral";
+  const [sortKey, setSortKey] = useState<SortKey>("registered");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const toggleSort = (key: SortKey) => {
@@ -339,6 +339,7 @@ const AdminBookings = () => {
         case "course": return (courseLabels[row.course] || row.course).toLowerCase();
         case "location": return (row.location_label || "").toLowerCase();
         case "date": return row.schedule_date || "";
+        case "registered": return row.created_at || "";
         case "payment": return row.payment_status || "";
         case "status": return row.booking_status || "";
         case "referral": return (row.referral_source || "").toLowerCase();
@@ -761,7 +762,8 @@ const AdminBookings = () => {
                   ["student", "Student"],
                   ["course", "Course"],
                   ["location", "Location"],
-                  ["date", "Date"],
+                  ["date", "Class Date"],
+                  ["registered", "Registered"],
                   ["payment", "Payment"],
                   ["status", "Status"],
                   ["referral", "Referral"],
@@ -782,7 +784,7 @@ const AdminBookings = () => {
             </thead>
             <tbody>
               {sorted.length === 0 ? (
-                <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">No bookings found</td></tr>
+                <tr><td colSpan={9} className="p-6 text-center text-muted-foreground">No bookings found</td></tr>
               ) : sorted.map(b => (
                 <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
                   <td className="p-3 font-medium text-foreground">
@@ -797,6 +799,7 @@ const AdminBookings = () => {
                   <td className="p-3 text-muted-foreground">{courseLabels[b.course] || b.course}</td>
                   <td className="p-3 text-muted-foreground">{b.location_label}</td>
                   <td className="p-3 text-muted-foreground">{b.schedule_date || "—"}</td>
+                  <td className="p-3 text-muted-foreground text-xs">{b.created_at ? formatPSTDate(b.created_at) : "—"}</td>
                   <td className="p-3">
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                       b.payment_status === "paid" ? "bg-green-500/20 text-green-400" :
