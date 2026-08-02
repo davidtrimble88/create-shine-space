@@ -2864,6 +2864,16 @@ const ClassRosters = () => {
                     </th>
                   </tr>
                   <tr>
+                    <th className="legend-cell" colSpan={17}>
+                      <div className="legend">
+                        <span><strong>✓</strong> Done</span>
+                        <span><strong>✗</strong> Not done</span>
+                        <span><strong>⏳</strong> Guardian pending</span>
+                        <span><strong>D</strong> Declined</span>
+                      </div>
+                    </th>
+                  </tr>
+                  <tr>
                     <th>#</th>
                     <th>First</th>
                     <th>Last</th>
