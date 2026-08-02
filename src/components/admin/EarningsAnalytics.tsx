@@ -14,6 +14,8 @@ interface EarningRow {
   fee: string | null;
   location_label: string;
   created_at: string;
+  first_name?: string | null;
+  last_name?: string | null;
 }
 
 interface OpsStats {
