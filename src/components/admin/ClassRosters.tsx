@@ -2575,35 +2575,32 @@ const ClassRosters = () => {
                               const em = (b.email || "").toLowerCase();
                               const hasWaiver = ((b as any).waiver_id && waiverIds.has((b as any).waiver_id)) || waiverEmails.has(em);
                               const waiverPending = pendingGuardianForms.has(`${em}:waiver`);
-                              if (hasWaiver) {
-                                return (
-                                  <span title="Waiver signed" aria-label="Waiver signed" className="inline-flex items-center text-emerald-500">
-                                    <ShieldCheck className="w-3.5 h-3.5" />
-                                  </span>
-                                );
-                              }
-                              if (waiverPending) {
-                                return (
-                                  <span title="Waiver awaiting parent/guardian signature (in person)" className="inline-flex items-center text-[10px] font-bold px-1 rounded bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40">
-                                    WAIVER ⏳
-                                  </span>
-                                );
-                              }
+                              const sym = hasWaiver ? "✓" : waiverPending ? "⏳" : "✗";
+                              const title = hasWaiver
+                                ? "Waiver signed"
+                                : waiverPending
+                                ? "Waiver awaiting parent/guardian signature (in person)"
+                                : "Waiver not signed";
+                              const cls = hasWaiver
+                                ? "bg-emerald-500/15 text-emerald-500"
+                                : waiverPending
+                                ? "bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40"
+                                : "bg-amber-500/15 text-amber-500";
                               return (
-                                <span title="Waiver not signed" aria-label="Waiver not signed" className="inline-flex items-center text-amber-500/80">
-                                  <ShieldAlert className="w-3.5 h-3.5" />
+                                <span title={title} aria-label={title} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
+                                  WAIVER {sym}
                                 </span>
                               );
                             })()}
                             {(() => {
                               const em = (b.email || "").toLowerCase();
                               const hasReg = regFormEmails.has(em);
+                              const sym = hasReg ? "✓" : "✗";
+                              const title = hasReg ? "Registration form completed" : "Registration form not completed";
+                              const cls = hasReg ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500";
                               return (
-                                <span
-                                  title={hasReg ? "Registration form signed" : "Registration form not signed"}
-                                  className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${hasReg ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"}`}
-                                >
-                                  REG {hasReg ? "✓" : "✗"}
+                                <span title={title} aria-label={title} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
+                                  REG {sym}
                                 </span>
                               );
                             })()}
@@ -2611,24 +2608,24 @@ const ClassRosters = () => {
                               const em = (b.email || "").toLowerCase();
                               const mr = modelReleaseByEmail.get(em);
                               const mrPending = pendingGuardianForms.has(`${em}:model_release`);
-                              const label = mr === "signed"
-                                ? "Model release: accepted"
+                              const sym = mr === "signed" ? "✓" : mr === "declined" ? "D" : mrPending ? "⏳" : "✗";
+                              const title = mr === "signed"
+                                ? "Model release accepted"
                                 : mr === "declined"
-                                ? "Model release: declined"
+                                ? "Model release declined"
                                 : mrPending
-                                ? "Model release: awaiting parent/guardian signature (in person)"
-                                : "Model release: not completed";
+                                ? "Model release awaiting parent/guardian signature (in person)"
+                                : "Model release not completed";
                               const cls = mr === "signed"
                                 ? "bg-emerald-500/15 text-emerald-500"
                                 : mr === "declined"
                                 ? "bg-red-500/20 text-red-500 ring-1 ring-red-500/40"
                                 : mrPending
                                 ? "bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/40"
-                                : "bg-muted text-muted-foreground";
-                              const sym = mr === "signed" ? "✓" : mr === "declined" ? "✗" : mrPending ? "⏳" : "—";
+                                : "bg-amber-500/15 text-amber-500";
                               return (
-                                <span title={label} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
-                                  MR {sym}
+                                <span title={title} aria-label={title} className={`inline-flex items-center text-[10px] font-bold px-1 rounded ${cls}`}>
+                                  MODEL {sym}
                                 </span>
                               );
                             })()}
