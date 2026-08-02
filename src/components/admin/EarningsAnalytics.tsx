@@ -362,17 +362,19 @@ const EarningsAnalytics = () => {
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left p-4 text-muted-foreground font-medium">Date</th>
+                    <th className="text-left p-4 text-muted-foreground font-medium">Paid By</th>
                     <th className="text-left p-4 text-muted-foreground font-medium">Location</th>
                     <th className="text-right p-4 text-muted-foreground font-medium">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.length === 0 ? (
-                    <tr><td colSpan={3} className="p-4 text-center text-muted-foreground">No paid transactions in this period</td></tr>
+                    <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">No paid transactions in this period</td></tr>
                   ) : (
                     rows.map((r, i) => (
                       <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/50">
                         <td className="p-4 text-foreground">{format(new Date(r.created_at), "MMM d, yyyy h:mm a")}</td>
+                        <td className="p-4 text-foreground">{[r.first_name, r.last_name].filter(Boolean).join(" ") || "—"}</td>
                         <td className="p-4 text-foreground flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-muted-foreground" />{r.location_label}</td>
                         <td className="p-4 text-right font-medium text-foreground">${parseFee(r.fee).toFixed(2)}</td>
                       </tr>
