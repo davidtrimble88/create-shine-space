@@ -2498,6 +2498,16 @@ const ClassRosters = () => {
               </div>
             )}
 
+            {regularBookings.length > 0 && (
+              <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                <span className="font-semibold text-foreground">Form legend:</span>
+                <span className="inline-flex items-center gap-1 text-emerald-500" title="Form completed/signed"><span className="font-bold">✓</span> Done</span>
+                <span className="inline-flex items-center gap-1 text-amber-500" title="Form not completed/signed"><span className="font-bold">✗</span> Not done</span>
+                <span className="inline-flex items-center gap-1 text-amber-500" title="Awaiting parent/guardian in-person signature"><span className="font-bold">⏳</span> Guardian pending</span>
+                <span className="inline-flex items-center gap-1 text-red-500" title="Model release declined"><span className="font-bold">D</span> Declined</span>
+              </div>
+            )}
+
             {regularBookings.length === 0 ? (
               <p className="text-muted-foreground py-4 text-center">No students enrolled in this class yet.</p>
             ) : (
