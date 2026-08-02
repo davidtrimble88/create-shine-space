@@ -62,7 +62,7 @@ export const updateAttempt = async (id: string | null, fields: AttemptFields) =>
     await supabase.rpc("update_registration_attempt", {
       p_id: id,
       p_visitor_id: visitorId,
-      p_fields: fields as Record<string, unknown>,
+      p_fields: JSON.parse(JSON.stringify(fields)),
     });
   } catch (e) {
     console.warn("Failed to update registration attempt", e);
