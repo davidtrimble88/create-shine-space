@@ -2915,8 +2915,10 @@ const ClassRosters = () => {
                       </td>
                       <td className="center" style={{ fontWeight: 700 }}>
                         {(() => {
-                          const mr = modelReleaseByEmail.get((b.email || "").toLowerCase());
-                          return mr === "signed" ? "✓" : mr === "declined" ? "D" : "—";
+                          const em = (b.email || "").toLowerCase();
+                          const mr = modelReleaseByEmail.get(em);
+                          const mrPending = pendingGuardianForms.has(`${em}:model_release`);
+                          return mr === "signed" ? "✓" : mr === "declined" ? "D" : mrPending ? "⏳" : "✗";
                         })()}
                       </td>
                       <td className="phone-col">{b.phone}</td>
