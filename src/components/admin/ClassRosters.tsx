@@ -926,6 +926,9 @@ const ClassRosters = () => {
             .roster-table th.class-info-cell .sub { font-size: 12px; font-weight: normal; color: #555; margin-top: 2px; }
             .roster-table th.class-info-cell .instructors { font-size: 11px; margin-top: 4px; font-weight: normal; }
             .roster-table th.class-info-cell .count { font-size: 11px; margin-top: 4px; font-weight: 600; }
+            .roster-table th.legend-cell { background: #fff; border: none; padding: 0 0 6px; text-align: center; }
+            .roster-table th.legend-cell .legend { display: flex; justify-content: center; gap: 16px; font-size: 10px; color: #333; }
+            .roster-table th.legend-cell .legend span strong { margin-right: 3px; }
             .roster-table td.center { text-align: center; }
             .roster-table .check-col { width: 20px; text-align: center; padding: 3px 2px; }
             .roster-table .score-col { width: 26px; text-align: center; }
