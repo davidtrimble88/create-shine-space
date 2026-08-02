@@ -56,8 +56,14 @@ export const startAttempt = async (fields: AttemptFields): Promise<string | null
 /** Update an existing attempt (best effort — never throws). */
 export const updateAttempt = async (id: string | null, fields: AttemptFields) => {
   if (!id) return;
+  const visitorId = getVisitorId();
+  if (!visitorId) return;
   try {
-    await supabase.from("registration_attempts").update(fields).eq("id", id);
+    await supabase.rpc("update_registration_attempt", {
+      p_id: id,
+      p_visitor_id: visitorId,
+      p_fields: JSON.parse(JSON.stringify(fields)),
+    });
   } catch (e) {
     console.warn("Failed to update registration attempt", e);
   }
