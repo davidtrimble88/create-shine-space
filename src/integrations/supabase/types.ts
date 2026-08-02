@@ -1845,6 +1845,10 @@ export type Database = {
         }[]
       }
       set_security_questions: { Args: { _questions: Json }; Returns: undefined }
+      update_registration_attempt: {
+        Args: { p_fields: Json; p_id: string; p_visitor_id: string }
+        Returns: undefined
+      }
       verify_security_answers: {
         Args: { _answers: string[]; _user_id: string }
         Returns: boolean
