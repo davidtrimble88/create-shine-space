@@ -465,8 +465,20 @@ const AdminBookings = () => {
                   </div>
                 )}
                 {!retestPaymentCollected && (
-                  <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => { setRetestPaymentCollected(true); setRetestPaymentMethod("charge_card"); }}
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" /> Take Square Payment (phone / in person)
+                    </Button>
+                  </div>
                 )}
+
               </div>
               <Button onClick={handleRetestSubmit} className="w-full">
                 {retestPaymentCollected && retestPaymentMethod === "charge_card" ? (
