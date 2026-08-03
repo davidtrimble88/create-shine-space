@@ -44,19 +44,24 @@ interface Props {
   amountLabel: string; // e.g. "$425"
   bookingPayload: Record<string, unknown>;
   discount?: PaymentDiscount;
+  /** Staff-taken card-not-present payment: shows the phone authorization script. */
+  phoneAuthorization?: boolean;
   onSuccess: (paymentId: string) => void;
   /** Called when payment can't be completed, so the attempt can be logged. */
   onFailure?: (info: { stage: "setup" | "charge"; message: string }) => void;
 }
 
 export const SquarePaymentDialog = ({
-  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, onSuccess, onFailure,
+  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, phoneAuthorization, onSuccess, onFailure,
 }: Props) => {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<any>(null);
   const [initializing, setInitializing] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => { if (!open) setAuthorized(false); }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -131,7 +136,7 @@ export const SquarePaymentDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !submitting && onOpenChange(o)}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Complete Payment</DialogTitle>
           <DialogDescription>
@@ -147,6 +152,39 @@ export const SquarePaymentDialog = ({
           </div>
         ) : null}
 
+        {phoneAuthorization && (
+          <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-accent">
+              Read this to the customer before entering the card
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              “This call may be documented for accuracy. I’m going to read a short payment authorization.
+              You, {String(bookingPayload.first_name ?? "")} {String(bookingPayload.last_name ?? "")}, are authorizing
+              Learn To Ride VC to charge your card a one-time amount of {amountLabel} for the
+              {" "}{String(bookingPayload.course ?? "motorcycle training")} course on
+              {" "}{String(bookingPayload.schedule_date ?? "the selected date")} at
+              {" "}{String(bookingPayload.location_label ?? "our training location")}.
+              You confirm you are the authorized cardholder or have the cardholder’s permission to use this card,
+              and that the billing information you provide is accurate. This charge will appear on your statement as
+              Learn To Ride VC. Payment is subject to our cancellation and refund policy available at
+              learntoridevc.com/terms-of-service, and no refund is issued for no-shows or late cancellations
+              outside that policy. Your card number is entered directly into our secure payment processor and is not
+              stored by Learn To Ride VC. Do you authorize this charge of {amountLabel} today?”
+            </p>
+            <label className="flex items-start gap-2 text-sm cursor-pointer pt-1">
+              <input
+                type="checkbox"
+                className="mt-1 accent-primary"
+                checked={authorized}
+                onChange={(e) => setAuthorized(e.target.checked)}
+              />
+              <span className="text-foreground">
+                The customer verbally authorized this charge after hearing the script above.
+              </span>
+            </label>
+          </div>
+        )}
+
         <div ref={cardContainerRef} className={initializing || initError ? "hidden" : "min-h-[90px]"} />
 
         <div className="flex items-center justify-between gap-2 pt-2">
@@ -155,7 +193,7 @@ export const SquarePaymentDialog = ({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
             Cancel
           </Button>
-          <Button onClick={handlePay} disabled={submitting || initializing || !!initError}>
+          <Button onClick={handlePay} disabled={submitting || initializing || !!initError || (phoneAuthorization && !authorized)}>
             {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing…</> : `Pay ${amountLabel}`}
           </Button>
           </div>

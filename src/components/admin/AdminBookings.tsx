@@ -455,11 +455,10 @@ const AdminBookings = () => {
                     <Select value={retestPaymentMethod} onValueChange={setRetestPaymentMethod}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="charge_card">💳 Charge Card Now (Square)</SelectItem>
+                        <SelectItem value="charge_card">💳 Take Square Payment</SelectItem>
                         <SelectItem value="cash">Cash</SelectItem>
                         <SelectItem value="check">Check</SelectItem>
                         <SelectItem value="card">Card (recorded only)</SelectItem>
-                        <SelectItem value="square">Square (recorded only)</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
@@ -689,11 +688,10 @@ const AdminBookings = () => {
                     <Select value={studentPaymentMethod} onValueChange={setStudentPaymentMethod}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="charge_card">💳 Charge Card Now (Square)</SelectItem>
+                        <SelectItem value="charge_card">💳 Take Square Payment</SelectItem>
                         <SelectItem value="cash">Cash</SelectItem>
                         <SelectItem value="check">Check</SelectItem>
                         <SelectItem value="card">Card (recorded only)</SelectItem>
-                        <SelectItem value="square">Square (recorded only)</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1037,6 +1035,7 @@ const AdminBookings = () => {
           amountCents={chargeAmountCents}
           amountLabel={chargeAmountLabel}
           bookingPayload={chargePayload}
+          phoneAuthorization
           onSuccess={handleChargeSuccess}
         />
       )}
