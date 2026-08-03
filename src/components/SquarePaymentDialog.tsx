@@ -44,19 +44,24 @@ interface Props {
   amountLabel: string; // e.g. "$425"
   bookingPayload: Record<string, unknown>;
   discount?: PaymentDiscount;
+  /** Staff-taken card-not-present payment: shows the phone authorization script. */
+  phoneAuthorization?: boolean;
   onSuccess: (paymentId: string) => void;
   /** Called when payment can't be completed, so the attempt can be logged. */
   onFailure?: (info: { stage: "setup" | "charge"; message: string }) => void;
 }
 
 export const SquarePaymentDialog = ({
-  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, onSuccess, onFailure,
+  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, phoneAuthorization, onSuccess, onFailure,
 }: Props) => {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<any>(null);
   const [initializing, setInitializing] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => { if (!open) setAuthorized(false); }, [open]);
 
   useEffect(() => {
     if (!open) return;
