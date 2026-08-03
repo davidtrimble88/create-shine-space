@@ -14,6 +14,7 @@ import AdminCancellations from "./AdminCancellations";
 import { PaymentDialog, type PaymentProvider } from "@/components/PaymentDialog";
 import type { SquareRegion } from "@/components/SquarePaymentDialog";
 import { formatPSTDate } from "@/lib/formatDate";
+import { sendRegistrationConfirmation } from "@/lib/registrationEmail";
 
 const regionFor = (location: string): SquareRegion =>
   location.startsWith("high-desert") ? "high_desert" : "ventura";
@@ -139,6 +140,33 @@ const AdminBookings = () => {
 
   const selectedSchedule = schedules.find(s => s.id === form.schedule_id);
 
+  // Send the same registration confirmation students get when booking online.
+  const sendConfirmationForBooking = async (payload: Record<string, unknown>) => {
+    const email = String(payload.email || "").trim();
+    if (!email || email.toLowerCase() === "retest@placeholder.com") return;
+    const sched = schedules.find(s => s.id === payload.schedule_id);
+    const guardianEmail = String(payload.guardian_email || "").trim();
+    const additionalRecipients =
+      guardianEmail && guardianEmail.toLowerCase() !== email.toLowerCase() ? [guardianEmail] : [];
+    const course = String(payload.course || "");
+    const location = String(payload.location || "");
+    await sendRegistrationConfirmation({
+      email,
+      firstName: String(payload.first_name || ""),
+      lastName: String(payload.last_name || ""),
+      courseKey: course,
+      courseLabel: courseLabels[course] || course,
+      locationLabel: String(payload.location_label || locationLabels[location] || location),
+      location,
+      groupName: sched?.group_name ?? null,
+      scheduleDate: (payload.schedule_date as string) || sched?.date || null,
+      scheduleDetail: sched?.schedule ?? null,
+      fee: String(payload.fee || sched?.price || ""),
+      additionalRecipients,
+    });
+  };
+
+
   const handleSubmit = async () => {
     if (!form.first_name || !form.last_name || !form.email || !form.phone || !form.schedule_id) {
       toast({ title: "Missing fields", description: "Please fill in all required fields.", variant: "destructive" });
@@ -209,6 +237,7 @@ const AdminBookings = () => {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
+      void sendConfirmationForBooking(basePayload);
       toast({ title: "Student Added", description: `${form.first_name} ${form.last_name} has been booked.` });
       setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
       setStudentPaymentCollected(false);
@@ -270,6 +299,7 @@ const AdminBookings = () => {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
+      void sendConfirmationForBooking(basePayload);
       toast({ title: "Retest Student Added", description: `${retestForm.first_name} ${retestForm.last_name} added for retest.` });
       setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
       setRetestPaymentCollected(false);
@@ -281,6 +311,7 @@ const AdminBookings = () => {
 
   const handleChargeSuccess = (_paymentId: string, _provider: PaymentProvider) => {
     toast({ title: "Payment received", description: "Student has been booked and marked paid." });
+    if (chargePayload) void sendConfirmationForBooking(chargePayload);
     setChargeOpen(false);
     setChargePayload(null);
     setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
