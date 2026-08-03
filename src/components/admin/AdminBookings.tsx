@@ -870,9 +870,22 @@ const AdminBookings = () => {
                   </td>
                   <td className="p-3 text-muted-foreground text-xs">{b.referral_source || "—"}</td>
                   <td className="p-3">
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedBooking(b)}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedBooking(b)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      {!b.is_retest && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Resend registration email"
+                          disabled={resendingId === b.id}
+                          onClick={() => handleResend(b)}
+                        >
+                          <Mail className={`w-4 h-4 ${resendingId === b.id ? "opacity-50" : ""}`} />
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
