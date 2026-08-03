@@ -141,7 +141,9 @@ const AdminBookings = () => {
   const selectedSchedule = schedules.find(s => s.id === form.schedule_id);
 
   // Send the same registration confirmation students get when booking online.
+  // Retest bookings are skipped for now; a dedicated retest email will be built later.
   const sendConfirmationForBooking = async (payload: Record<string, unknown>) => {
+    if (payload.is_retest) return;
     const email = String(payload.email || "").trim();
     if (!email || email.toLowerCase() === "retest@placeholder.com") return;
     const sched = schedules.find(s => s.id === payload.schedule_id);
