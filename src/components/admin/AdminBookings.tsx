@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard } from "lucide-react";
+import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard, Mail } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminCancellations from "./AdminCancellations";
 import { PaymentDialog, type PaymentProvider } from "@/components/PaymentDialog";
@@ -167,6 +167,21 @@ const AdminBookings = () => {
       additionalRecipients,
     });
   };
+
+  const [resendingId, setResendingId] = useState<string | null>(null);
+
+  const handleResend = async (b: Booking) => {
+    setResendingId(b.id);
+    try {
+      await sendConfirmationForBooking(b as unknown as Record<string, unknown>);
+      toast({ title: "Email sent", description: `Registration confirmation resent to ${b.email}.` });
+    } catch (e) {
+      toast({ title: "Send failed", description: e instanceof Error ? e.message : "Could not resend email.", variant: "destructive" });
+    } finally {
+      setResendingId(null);
+    }
+  };
+
 
 
   const handleSubmit = async () => {
@@ -870,9 +885,22 @@ const AdminBookings = () => {
                   </td>
                   <td className="p-3 text-muted-foreground text-xs">{b.referral_source || "—"}</td>
                   <td className="p-3">
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedBooking(b)}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedBooking(b)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      {!b.is_retest && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Resend registration email"
+                          disabled={resendingId === b.id}
+                          onClick={() => handleResend(b)}
+                        >
+                          <Mail className={`w-4 h-4 ${resendingId === b.id ? "opacity-50" : ""}`} />
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
