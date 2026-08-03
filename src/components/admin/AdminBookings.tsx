@@ -698,8 +698,20 @@ const AdminBookings = () => {
                   </div>
                 )}
                 {!studentPaymentCollected && (
-                  <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => { setStudentPaymentCollected(true); setStudentPaymentMethod("charge_card"); }}
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" /> Take Square Payment (phone / in person)
+                    </Button>
+                  </div>
                 )}
+
               </div>
               <Button onClick={handleSubmit} className="w-full">
                 {studentPaymentCollected && studentPaymentMethod === "charge_card" ? (
