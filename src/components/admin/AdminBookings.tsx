@@ -168,6 +168,21 @@ const AdminBookings = () => {
     });
   };
 
+  const [resendingId, setResendingId] = useState<string | null>(null);
+
+  const handleResend = async (b: Booking) => {
+    setResendingId(b.id);
+    try {
+      await sendConfirmationForBooking(b as unknown as Record<string, unknown>);
+      toast({ title: "Email sent", description: `Registration confirmation resent to ${b.email}.` });
+    } catch (e) {
+      toast({ title: "Send failed", description: e instanceof Error ? e.message : "Could not resend email.", variant: "destructive" });
+    } finally {
+      setResendingId(null);
+    }
+  };
+
+
 
   const handleSubmit = async () => {
     if (!form.first_name || !form.last_name || !form.email || !form.phone || !form.schedule_id) {
