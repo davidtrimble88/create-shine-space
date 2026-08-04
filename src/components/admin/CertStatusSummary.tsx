@@ -37,7 +37,7 @@ const CertStatusSummary = ({ scope, userId }: Props) => {
       setLoading(true);
       let query = supabase
         .from("instructor_certifications")
-        .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires, teach_alone_expires");
+        .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires, teach_alone_expires, cmsp_not_required, irc_not_required, arc_not_required, cpr_not_required, teach_alone_not_required");
 
       let rows: any[] = [];
       if (scope === "self") {
@@ -66,6 +66,7 @@ const CertStatusSummary = ({ scope, userId }: Props) => {
       const c = { valid: 0, warn: 0, expired: 0, missing: 0 };
       for (const r of rows) {
         for (const k of CERTS) {
+          if (r[k.replace("_expires", "_not_required")]) continue;
           const s = classify(r[k]);
           c[s]++;
         }

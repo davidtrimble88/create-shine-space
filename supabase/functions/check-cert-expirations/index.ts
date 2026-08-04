@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
 
     const { data: certs, error } = await supabase
       .from("instructor_certifications")
-      .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires, teach_alone_expires");
+      .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires, teach_alone_expires, cmsp_not_required, irc_not_required, arc_not_required, cpr_not_required, teach_alone_not_required");
     if (error) throw error;
 
     const userIds = Array.from(new Set((certs || []).map((c) => c.user_id)));
@@ -81,6 +81,7 @@ Deno.serve(async (req) => {
       if (!emp?.email) continue;
 
       for (const field of Object.keys(CERT_LABELS)) {
+        if ((cert as any)[field.replace("_expires", "_not_required")]) continue;
         const dateStr = (cert as any)[field];
         if (!dateStr) continue;
         const expDate = new Date(dateStr + "T00:00:00");
