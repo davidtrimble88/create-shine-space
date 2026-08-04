@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format, subDays, startOfMonth, startOfYear, endOfYear } from "date-fns";
+import { format } from "date-fns";
 
 type ViewMode = "all" | "by-site" | "by-date";
 type DateRange = "all-time" | "today" | "yesterday" | "7days" | "30days" | "this-month" | "this-year" | "last-year" | "custom";
@@ -51,52 +51,55 @@ const EarningsAnalytics = () => {
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
   const [customTo, setCustomTo] = useState<Date | undefined>();
 
+  // All ranges are computed in Pacific Time (business timezone), not UTC.
+  const TZ = "America/Los_Angeles";
+  const ptDay = (d: Date) =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+  // UTC instant corresponding to 00:00 Pacific on the given YYYY-MM-DD
+  const ptStart = (dayStr: string) => {
+    const guess = new Date(`${dayStr}T08:00:00Z`);
+    const h = Number(
+      new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "numeric", hour12: false }).format(guess)
+    ) % 24;
+    return new Date(guess.getTime() - h * 3600000).toISOString();
+  };
+  const shiftDay = (dayStr: string, days: number) =>
+    new Date(new Date(`${dayStr}T00:00:00Z`).getTime() + days * 86400000).toISOString().split("T")[0];
+
   const getDateBounds = (): { from: string; to: string } => {
     const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
-    const tomorrowStr = new Date(now.getTime() + 86400000).toISOString().split("T")[0];
+    const todayStr = ptDay(now);
+    const tomorrowStr = shiftDay(todayStr, 1);
 
     switch (dateRange) {
       case "all-time":
-        return { from: "2000-01-01T00:00:00", to: `${tomorrowStr}T00:00:00` };
+        return { from: "2000-01-01T00:00:00Z", to: ptStart(tomorrowStr) };
       case "today":
-        return { from: `${todayStr}T00:00:00`, to: `${tomorrowStr}T00:00:00` };
-      case "yesterday": {
-        const y = subDays(now, 1).toISOString().split("T")[0];
-        return { from: `${y}T00:00:00`, to: `${todayStr}T00:00:00` };
-      }
-      case "7days": {
-        const d = subDays(now, 7).toISOString().split("T")[0];
-        return { from: `${d}T00:00:00`, to: `${tomorrowStr}T00:00:00` };
-      }
-      case "30days": {
-        const d = subDays(now, 30).toISOString().split("T")[0];
-        return { from: `${d}T00:00:00`, to: `${tomorrowStr}T00:00:00` };
-      }
-      case "this-month": {
-        const d = startOfMonth(now).toISOString().split("T")[0];
-        return { from: `${d}T00:00:00`, to: `${tomorrowStr}T00:00:00` };
-      }
-      case "this-year": {
-        const d = startOfYear(now).toISOString().split("T")[0];
-        return { from: `${d}T00:00:00`, to: `${tomorrowStr}T00:00:00` };
-      }
+        return { from: ptStart(todayStr), to: ptStart(tomorrowStr) };
+      case "yesterday":
+        return { from: ptStart(shiftDay(todayStr, -1)), to: ptStart(todayStr) };
+      case "7days":
+        return { from: ptStart(shiftDay(todayStr, -7)), to: ptStart(tomorrowStr) };
+      case "30days":
+        return { from: ptStart(shiftDay(todayStr, -30)), to: ptStart(tomorrowStr) };
+      case "this-month":
+        return { from: ptStart(`${todayStr.slice(0, 7)}-01`), to: ptStart(tomorrowStr) };
+      case "this-year":
+        return { from: ptStart(`${todayStr.slice(0, 4)}-01-01`), to: ptStart(tomorrowStr) };
       case "last-year": {
-        const lastYear = new Date(now.getFullYear() - 1, 0, 1);
-        const f = startOfYear(lastYear).toISOString().split("T")[0];
-        const t = endOfYear(lastYear);
-        const tStr = new Date(t.getTime() + 86400000).toISOString().split("T")[0];
-        return { from: `${f}T00:00:00`, to: `${tStr}T00:00:00` };
+        const y = Number(todayStr.slice(0, 4)) - 1;
+        return { from: ptStart(`${y}-01-01`), to: ptStart(`${y + 1}-01-01`) };
       }
       case "custom": {
-        const f = customFrom ? customFrom.toISOString().split("T")[0] : todayStr;
-        const t = customTo ? new Date(customTo.getTime() + 86400000).toISOString().split("T")[0] : tomorrowStr;
-        return { from: `${f}T00:00:00`, to: `${t}T00:00:00` };
+        const f = customFrom ? ptDay(customFrom) : todayStr;
+        const t = customTo ? shiftDay(ptDay(customTo), 1) : tomorrowStr;
+        return { from: ptStart(f), to: ptStart(t) };
       }
       default:
-        return { from: `${todayStr}T00:00:00`, to: `${tomorrowStr}T00:00:00` };
+        return { from: ptStart(todayStr), to: ptStart(tomorrowStr) };
     }
   };
+
 
   useEffect(() => {
     const run = async () => {
