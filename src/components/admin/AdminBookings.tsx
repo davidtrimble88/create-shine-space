@@ -889,17 +889,16 @@ const AdminBookings = () => {
                       <Button variant="ghost" size="sm" onClick={() => setSelectedBooking(b)}>
                         <Eye className="w-4 h-4" />
                       </Button>
-                      {!b.is_retest && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Resend registration email"
-                          disabled={resendingId === b.id}
-                          onClick={() => handleResend(b)}
-                        >
-                          <Mail className={`w-4 h-4 ${resendingId === b.id ? "opacity-50" : ""}`} />
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title={b.is_retest ? "Retest confirmation email template not set up yet" : "Resend registration email"}
+                        disabled={resendingId === b.id || b.is_retest}
+                        onClick={() => handleResend(b)}
+                      >
+                        <Mail className={`w-4 h-4 ${resendingId === b.id || b.is_retest ? "opacity-50" : ""}`} />
+                      </Button>
+
                     </div>
                   </td>
                 </tr>
