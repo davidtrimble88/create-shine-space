@@ -55,15 +55,29 @@ const AdminOverview = () => {
   const fetchEarnings = useCallback(async () => {
     if (!canSeeEarnings) return;
     const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split("T")[0];
+    // Use Pacific Time day boundaries (business timezone), not UTC.
+    const TZ = "America/Los_Angeles";
+    const ptDay = (d: Date) =>
+      new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+    const ptStart = (dayStr: string) => {
+      const guess = new Date(`${dayStr}T08:00:00Z`);
+      const h = Number(
+        new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "numeric", hour12: false }).format(guess)
+      ) % 24;
+      return new Date(guess.getTime() - h * 3600000).toISOString();
+    };
+    const shiftDay = (dayStr: string, days: number) =>
+      new Date(new Date(`${dayStr}T00:00:00Z`).getTime() + days * 86400000).toISOString().split("T")[0];
+
+    const todayStr = ptDay(new Date());
+    const yesterdayStr = shiftDay(todayStr, -1);
+    const tomorrowStr = shiftDay(todayStr, 1);
 
     const [todayRes, yesterdayRes] = await Promise.all([
-      supabase.from("bookings").select("fee, location_label").eq("payment_status", "paid").gte("created_at", `${todayStr}T00:00:00`).lt("created_at", `${todayStr}T23:59:59.999`),
-      supabase.from("bookings").select("fee, location_label").eq("payment_status", "paid").gte("created_at", `${yesterdayStr}T00:00:00`).lt("created_at", `${yesterdayStr}T23:59:59.999`),
+      supabase.from("bookings").select("fee, location_label").eq("payment_status", "paid").gte("created_at", ptStart(todayStr)).lt("created_at", ptStart(tomorrowStr)),
+      supabase.from("bookings").select("fee, location_label").eq("payment_status", "paid").gte("created_at", ptStart(yesterdayStr)).lt("created_at", ptStart(todayStr)),
     ]);
+
 
     const parseFee = (fee: string | null) => {
       const val = parseFloat((fee || "0").replace(/[^0-9.]/g, ""));
