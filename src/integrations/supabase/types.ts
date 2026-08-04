@@ -800,37 +800,52 @@ export type Database = {
       instructor_certifications: {
         Row: {
           arc_expires: string | null
+          arc_not_required: boolean
           cmsp_expires: string | null
+          cmsp_not_required: boolean
           cpr_expires: string | null
+          cpr_not_required: boolean
           created_at: string
           id: string
           irc_expires: string | null
+          irc_not_required: boolean
           notes: string | null
           teach_alone_expires: string | null
+          teach_alone_not_required: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
           arc_expires?: string | null
+          arc_not_required?: boolean
           cmsp_expires?: string | null
+          cmsp_not_required?: boolean
           cpr_expires?: string | null
+          cpr_not_required?: boolean
           created_at?: string
           id?: string
           irc_expires?: string | null
+          irc_not_required?: boolean
           notes?: string | null
           teach_alone_expires?: string | null
+          teach_alone_not_required?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
           arc_expires?: string | null
+          arc_not_required?: boolean
           cmsp_expires?: string | null
+          cmsp_not_required?: boolean
           cpr_expires?: string | null
+          cpr_not_required?: boolean
           created_at?: string
           id?: string
           irc_expires?: string | null
+          irc_not_required?: boolean
           notes?: string | null
           teach_alone_expires?: string | null
+          teach_alone_not_required?: boolean
           updated_at?: string
           user_id?: string
         }

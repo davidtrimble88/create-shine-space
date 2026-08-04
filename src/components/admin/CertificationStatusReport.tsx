@@ -22,7 +22,9 @@ const CERTS: { key: CertKey; label: string }[] = [
   { key: "teach_alone_expires", label: "Teach Alone" },
 ];
 
-type Status = "valid" | "warn30" | "warn10" | "warn1" | "expired" | "missing";
+type Status = "valid" | "warn30" | "warn10" | "warn1" | "expired" | "missing" | "not_required";
+const notReqKey = (k: CertKey) => k.replace("_expires", "_not_required") as
+  "cmsp_not_required" | "irc_not_required" | "arc_not_required" | "cpr_not_required" | "teach_alone_not_required";
 
 const daysUntil = (iso: string | null) => {
   if (!iso) return null;
@@ -31,7 +33,8 @@ const daysUntil = (iso: string | null) => {
   return Math.round((e.getTime() - t.getTime()) / 86400000);
 };
 
-const classify = (iso: string | null): Status => {
+const classify = (iso: string | null, notRequired = false): Status => {
+  if (notRequired) return "not_required";
   const d = daysUntil(iso);
   if (d === null) return "missing";
   if (d < 0) return "expired";
@@ -41,8 +44,8 @@ const classify = (iso: string | null): Status => {
   return "valid";
 };
 
-const StatusCell = ({ iso }: { iso: string | null }) => {
-  const s = classify(iso);
+const StatusCell = ({ iso, notRequired }: { iso: string | null; notRequired?: boolean }) => {
+  const s = classify(iso, notRequired);
   const d = daysUntil(iso);
   const map: Record<Status, { cls: string; text: string }> = {
     valid:   { cls: "bg-green-500/15 text-green-500 border-green-500/40",  text: iso ? `Valid · ${d}d` : "Valid" },
@@ -51,12 +54,13 @@ const StatusCell = ({ iso }: { iso: string | null }) => {
     warn1:   { cls: "bg-red-500/15 text-red-500 border-red-500/40",         text: d === 0 ? "Expires today" : "1d left" },
     expired: { cls: "bg-red-600/20 text-red-500 border-red-600/50",         text: `Expired ${Math.abs(d!)}d ago` },
     missing: { cls: "bg-muted text-muted-foreground border-border",         text: "Not on file" },
+    not_required: { cls: "bg-muted text-muted-foreground border-border border-dashed", text: "Not required" },
   };
   const m = map[s];
   return (
     <div className="flex flex-col gap-1">
       <Badge variant="outline" className={m.cls}>{m.text}</Badge>
-      {iso && <span className="text-xs text-muted-foreground">{new Date(iso + "T00:00:00").toLocaleDateString()}</span>}
+      {iso && s !== "not_required" && <span className="text-xs text-muted-foreground">{new Date(iso + "T00:00:00").toLocaleDateString()}</span>}
     </div>
   );
 };
@@ -71,6 +75,11 @@ interface Row {
   arc_expires: string | null;
   cpr_expires: string | null;
   teach_alone_expires: string | null;
+  cmsp_not_required: boolean;
+  irc_not_required: boolean;
+  arc_not_required: boolean;
+  cpr_not_required: boolean;
+  teach_alone_not_required: boolean;
 }
 
 const CertificationStatusReport = () => {
@@ -91,7 +100,7 @@ const CertificationStatusReport = () => {
       const { data: certs } = ids.length
         ? await supabase
             .from("instructor_certifications")
-            .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires, teach_alone_expires")
+            .select("user_id, cmsp_expires, irc_expires, arc_expires, cpr_expires, teach_alone_expires, cmsp_not_required, irc_not_required, arc_not_required, cpr_not_required, teach_alone_not_required")
             .in("user_id", ids)
         : { data: [] as any[] };
       const certMap = new Map((certs ?? []).map((c: any) => [c.user_id, c]));
@@ -107,6 +116,11 @@ const CertificationStatusReport = () => {
           arc_expires: c.arc_expires ?? null,
           cpr_expires: c.cpr_expires ?? null,
           teach_alone_expires: c.teach_alone_expires ?? null,
+          cmsp_not_required: c.cmsp_not_required ?? false,
+          irc_not_required: c.irc_not_required ?? false,
+          arc_not_required: c.arc_not_required ?? false,
+          cpr_not_required: c.cpr_not_required ?? false,
+          teach_alone_not_required: c.teach_alone_not_required ?? false,
         };
       });
       merged.sort((a, b) => a.full_name.localeCompare(b.full_name));
@@ -116,17 +130,18 @@ const CertificationStatusReport = () => {
   }, []);
 
   const summary = useMemo(() => {
-    let expired = 0, warn = 0, valid = 0, missing = 0;
+    let expired = 0, warn = 0, valid = 0, missing = 0, notRequired = 0;
     for (const r of rows) {
       for (const c of CERTS) {
-        const s = classify(r[c.key]);
-        if (s === "expired") expired++;
+        const s = classify(r[c.key], r[notReqKey(c.key)]);
+        if (s === "not_required") notRequired++;
+        else if (s === "expired") expired++;
         else if (s === "missing") missing++;
         else if (s === "valid") valid++;
         else warn++;
       }
     }
-    return { expired, warn, valid, missing, total: rows.length * CERTS.length };
+    return { expired, warn, valid, missing, notRequired, total: rows.length * CERTS.length };
   }, [rows]);
 
   const filtered = useMemo(() => {
@@ -134,12 +149,12 @@ const CertificationStatusReport = () => {
     return rows.filter((r) => {
       if (q && !(`${r.full_name} ${r.email} ${r.position ?? ""}`.toLowerCase().includes(q))) return false;
       if (filter === "all") return true;
-      const statuses = CERTS.map((c) => classify(r[c.key]));
+      const statuses = CERTS.map((c) => classify(r[c.key], r[notReqKey(c.key)])).filter((s) => s !== "not_required");
       if (filter === "expired")   return statuses.includes("expired");
       if (filter === "expiring")  return statuses.some((s) => s === "warn30" || s === "warn10" || s === "warn1");
       if (filter === "attention") return statuses.some((s) => s === "expired" || s === "warn30" || s === "warn10" || s === "warn1");
       if (filter === "missing")   return statuses.includes("missing");
-      if (filter === "valid")     return statuses.every((s) => s === "valid");
+      if (filter === "valid")     return statuses.length > 0 && statuses.every((s) => s === "valid");
       return true;
     });
   }, [rows, search, filter]);
@@ -151,10 +166,11 @@ const CertificationStatusReport = () => {
       const cells = [r.full_name, r.email, r.position ?? ""];
       for (const c of CERTS) {
         const iso = r[c.key];
-        const s = classify(iso);
+        const s = classify(iso, r[notReqKey(c.key)]);
         const d = daysUntil(iso);
         const status =
-          s === "missing" ? "Not on file"
+          s === "not_required" ? "Not required"
+          : s === "missing" ? "Not on file"
           : s === "expired" ? `Expired ${Math.abs(d!)}d ago`
           : s === "valid" ? `Valid (${d}d)`
           : `Expiring in ${d}d`;
@@ -207,6 +223,9 @@ const CertificationStatusReport = () => {
                 <AlertTriangle className="w-4 h-4 text-muted-foreground" /> Not on file
               </div>
               <div className="text-2xl font-bold mt-1">{summary.missing}</div>
+              {summary.notRequired > 0 && (
+                <div className="text-xs text-muted-foreground mt-1">{summary.notRequired} marked not required</div>
+              )}
             </div>
           </div>
 
@@ -259,7 +278,7 @@ const CertificationStatusReport = () => {
                         {r.position && <div className="text-xs text-muted-foreground">{r.position}</div>}
                       </TableCell>
                       {CERTS.map((c) => (
-                        <TableCell key={c.key}><StatusCell iso={r[c.key]} /></TableCell>
+                        <TableCell key={c.key}><StatusCell iso={r[c.key]} notRequired={r[notReqKey(c.key)]} /></TableCell>
                       ))}
                     </TableRow>
                   ))}

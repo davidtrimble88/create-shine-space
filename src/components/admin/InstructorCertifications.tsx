@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,8 @@ import CertificationStatusReport from "./CertificationStatusReport";
 import { formatPSTDate } from "@/lib/formatDate";
 
 type CertKey = "cmsp_expires" | "irc_expires" | "arc_expires" | "cpr_expires" | "teach_alone_expires";
+type NotReqKey = "cmsp_not_required" | "irc_not_required" | "arc_not_required" | "cpr_not_required" | "teach_alone_not_required";
+const notReqKey = (k: CertKey): NotReqKey => k.replace("_expires", "_not_required") as NotReqKey;
 
 interface CertRow {
   id: string;
@@ -29,6 +32,11 @@ interface CertRow {
   arc_expires: string | null;
   cpr_expires: string | null;
   teach_alone_expires: string | null;
+  cmsp_not_required: boolean;
+  irc_not_required: boolean;
+  arc_not_required: boolean;
+  cpr_not_required: boolean;
+  teach_alone_not_required: boolean;
   notes: string | null;
   updated_at: string;
 }
@@ -57,7 +65,14 @@ const daysUntil = (iso: string | null) => {
   return Math.round((exp.getTime() - today.getTime()) / 86400000);
 };
 
-const StatusBadge = ({ iso }: { iso: string | null }) => {
+const StatusBadge = ({ iso, notRequired }: { iso: string | null; notRequired?: boolean }) => {
+  if (notRequired) {
+    return (
+      <Badge variant="outline" className="text-muted-foreground border-border">
+        Not required
+      </Badge>
+    );
+  }
   if (!iso) {
     return (
       <Badge variant="outline" className="text-muted-foreground border-border">
@@ -96,6 +111,11 @@ const blankForm = {
   arc_expires: "",
   cpr_expires: "",
   teach_alone_expires: "",
+  cmsp_not_required: false,
+  irc_not_required: false,
+  arc_not_required: false,
+  cpr_not_required: false,
+  teach_alone_not_required: false,
   notes: "",
 };
 
@@ -121,6 +141,11 @@ const SelfView = ({ userId, editable = false }: { userId: string; editable?: boo
         arc_expires: c?.arc_expires ?? "",
         cpr_expires: c?.cpr_expires ?? "",
         teach_alone_expires: c?.teach_alone_expires ?? "",
+        cmsp_not_required: c?.cmsp_not_required ?? false,
+        irc_not_required: c?.irc_not_required ?? false,
+        arc_not_required: c?.arc_not_required ?? false,
+        cpr_not_required: c?.cpr_not_required ?? false,
+        teach_alone_not_required: c?.teach_alone_not_required ?? false,
         notes: c?.notes ?? "",
       });
       setLoading(false);
@@ -136,6 +161,11 @@ const SelfView = ({ userId, editable = false }: { userId: string; editable?: boo
       arc_expires: form.arc_expires || null,
       cpr_expires: form.cpr_expires || null,
       teach_alone_expires: form.teach_alone_expires || null,
+      cmsp_not_required: form.cmsp_not_required,
+      irc_not_required: form.irc_not_required,
+      arc_not_required: form.arc_not_required,
+      cpr_not_required: form.cpr_not_required,
+      teach_alone_not_required: form.teach_alone_not_required,
       notes: form.notes.trim() || null,
     };
     const { error } = cert
@@ -177,13 +207,26 @@ const SelfView = ({ userId, editable = false }: { userId: string; editable?: boo
           <div key={key} className="bg-secondary/30 border border-border rounded-lg p-4 space-y-2">
             <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">{label}</div>
             {editable ? (
-              <Input
-                type="date"
-                value={form[key]}
-                onChange={(ev) => setForm((p) => ({ ...p, [key]: ev.target.value }))}
-              />
+              <div className="space-y-2">
+                <Input
+                  type="date"
+                  value={form[key]}
+                  disabled={form[notReqKey(key)]}
+                  onChange={(ev) => setForm((p) => ({ ...p, [key]: ev.target.value }))}
+                />
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Switch
+                    checked={form[notReqKey(key)]}
+                    onCheckedChange={(v) => setForm((p) => ({ ...p, [notReqKey(key)]: v }))}
+                  />
+                  Not required
+                </label>
+              </div>
             ) : (
-              <StatusBadge iso={(cert?.[key] as string | null) ?? null} />
+              <StatusBadge
+                iso={(cert?.[key] as string | null) ?? null}
+                notRequired={!!cert?.[notReqKey(key)]}
+              />
             )}
           </div>
         ))}
@@ -268,6 +311,11 @@ const AdminAllView = () => {
       arc_expires: c?.arc_expires ?? "",
       cpr_expires: c?.cpr_expires ?? "",
       teach_alone_expires: c?.teach_alone_expires ?? "",
+      cmsp_not_required: c?.cmsp_not_required ?? false,
+      irc_not_required: c?.irc_not_required ?? false,
+      arc_not_required: c?.arc_not_required ?? false,
+      cpr_not_required: c?.cpr_not_required ?? false,
+      teach_alone_not_required: c?.teach_alone_not_required ?? false,
       notes: c?.notes ?? "",
     });
   };
@@ -282,6 +330,11 @@ const AdminAllView = () => {
       arc_expires: form.arc_expires || null,
       cpr_expires: form.cpr_expires || null,
       teach_alone_expires: form.teach_alone_expires || null,
+      cmsp_not_required: form.cmsp_not_required,
+      irc_not_required: form.irc_not_required,
+      arc_not_required: form.arc_not_required,
+      cpr_not_required: form.cpr_not_required,
+      teach_alone_not_required: form.teach_alone_not_required,
       notes: form.notes.trim() || null,
     };
     const { error } = editingId
@@ -334,7 +387,7 @@ const AdminAllView = () => {
                     </td>
                     {CERT_LABELS.map((col) => (
                       <td key={col.key} className="px-4 py-3">
-                        <StatusBadge iso={(c?.[col.key] as string | null) ?? null} />
+                        <StatusBadge iso={(c?.[col.key] as string | null) ?? null} notRequired={!!c?.[notReqKey(col.key)]} />
                       </td>
                     ))}
                     <td className="px-4 py-3 text-xs text-muted-foreground">
@@ -361,7 +414,7 @@ const AdminAllView = () => {
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        Status colors: green = valid, yellow = expires within 30 days, red = expired. Instructors see their own dates read-only.
+        Status colors: green = valid, yellow = expires within 30 days, red = expired. Certifications marked "Not required" are excluded from reports and reminders. Instructors see their own dates read-only.
       </p>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
@@ -379,8 +432,16 @@ const AdminAllView = () => {
                     id={`edit-${key}`}
                     type="date"
                     value={form[key]}
+                    disabled={form[notReqKey(key)]}
                     onChange={(ev) => setForm((p) => ({ ...p, [key]: ev.target.value }))}
                   />
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Switch
+                      checked={form[notReqKey(key)]}
+                      onCheckedChange={(v) => setForm((p) => ({ ...p, [notReqKey(key)]: v }))}
+                    />
+                    Not required for this instructor
+                  </label>
                 </div>
               ))}
             </div>
