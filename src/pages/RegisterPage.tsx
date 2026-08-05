@@ -74,6 +74,7 @@ const registrationSchema = z.object({
   emergencyContactName: z.string().trim().min(1, "Emergency contact name is required").max(100),
   emergencyContactRelationship: z.string().trim().min(1, "Relationship is required").max(50),
   emergencyContactPhone: z.string().trim().min(7, "Emergency contact phone is required").max(20),
+  bikeChoice: z.string().optional(),
   bikeYear: z.string().trim().max(10).optional(),
   bikeMake: z.string().trim().max(50).optional(),
   bikeModel: z.string().trim().max(50).optional(),
