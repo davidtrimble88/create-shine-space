@@ -1540,7 +1540,7 @@ const RegisterPage = () => {
                                 <li>Sturdy over-the-ankle boots (no sneakers, sandals, or low-cut shoes)</li>
                                 <li>Long, durable pants — denim jeans or Kevlar riding pants (no shorts, leggings, or sweats)</li>
                                 {is1dpcTrack || isIrcTrack ? (
-                                  <li className="text-foreground font-medium">Leather or armored motorcycle jacket required</li>
+                                  <li>Leather or armored motorcycle jacket required</li>
                                 ) : (
                                   <li>Long-sleeve shirt or jacket (riding jacket strongly recommended)</li>
                                 )}
