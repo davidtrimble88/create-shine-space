@@ -16,6 +16,8 @@ const ChooseSchedulePage = () => {
   const navigate = useNavigate();
   const course = searchParams.get("course") || "basic";
   const location = searchParams.get("location") || "ventura-county";
+  const track = searchParams.get("track");
+  const trackParam = track ? `&track=${track}` : "";
   const [classes, setClasses] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [otherLocations, setOtherLocations] = useState<{ location: string; label: string; count: number }[]>([]);
@@ -75,7 +77,7 @@ const ChooseSchedulePage = () => {
 
   const handleSelectClass = (classId: string) => {
     sessionStorage.setItem("selectedScheduleId", classId);
-    navigate(`/register?course=${course}&location=${location}`);
+    navigate(`/register?course=${course}&location=${location}${trackParam}`);
   };
 
   return (
