@@ -93,6 +93,7 @@ const ChooseCoursePage = () => {
   const [m1Step, setM1Step] = useState<"ask" | "premier">("ask");
   const [m1Ack, setM1Ack] = useState(false);
   const [premierTarget, setPremierTarget] = useState("/choose-location?course=intermediate&track=1dpc");
+  const [premierDirect, setPremierDirect] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -136,8 +137,9 @@ const ChooseCoursePage = () => {
                     to={`/choose-location?course=${course.id}`}
                     onIntercept={() => {
                       setM1Ack(false);
+                      setPremierDirect(isPremier);
                       if (isPremier) {
-                        setPremierTarget("/choose-location?course=premier&track=1dpc");
+                        setPremierTarget("/choose-location?course=intermediate&track=1dpc");
                         setM1Step("premier");
                       } else {
                         setPremierTarget("/choose-location?course=intermediate&track=1dpc");
@@ -256,12 +258,12 @@ const ChooseCoursePage = () => {
               <DialogHeader>
                 <DialogTitle className="text-2xl flex items-center gap-2">
                   <AlertTriangle className="w-6 h-6 text-accent" />
-                  {premierTarget.includes("course=premier")
+                  {premierDirect
                     ? "Entry Skills Test — Required"
                     : "You'll be registered under the 1-Day Premier Course"}
                 </DialogTitle>
                 <DialogDescription>
-                  {premierTarget.includes("course=premier") ? (
+                  {premierDirect ? (
                     <>
                       The <span className="text-foreground font-semibold">1-Day Premier Course with Licensing</span>{" "}
                       requires an entry skills test. Please watch the video below and confirm you can pass
@@ -296,10 +298,10 @@ const ChooseCoursePage = () => {
                 <Button
                   variant="ghost"
                   onClick={() =>
-                    premierTarget.includes("course=premier") ? setM1Open(false) : setM1Step("ask")
+                    premierDirect ? setM1Open(false) : setM1Step("ask")
                   }
                 >
-                  {premierTarget.includes("course=premier") ? "Cancel" : "Back"}
+                  {premierDirect ? "Cancel" : "Back"}
                 </Button>
                 <Button variant="hero" disabled={!m1Ack} onClick={() => navigate(premierTarget)}>
                   Continue to 1-Day Premier <ArrowRight className="ml-2 w-4 h-4" />

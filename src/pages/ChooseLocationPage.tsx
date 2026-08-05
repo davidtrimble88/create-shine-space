@@ -40,6 +40,7 @@ const locations = [
 const ChooseLocationPage = () => {
   const [searchParams] = useSearchParams();
   const course = searchParams.get("course") || "basic";
+  const scheduleCourse = course === "premier" ? "intermediate" : course;
   const track = searchParams.get("track");
   const trackParam = track ? `&track=${track}` : "";
   const filteredLocations = course === "basic" ? locations : locations.filter(l => l.id === "ventura-county");
@@ -52,7 +53,7 @@ const ChooseLocationPage = () => {
       const { data, error } = await supabase
         .from("schedules")
         .select("location")
-        .eq("course", course)
+        .eq("course", scheduleCourse)
         .is("cancelled_at", null)
         .gte("date", today)
         .gt("spots_available", 0);
@@ -65,7 +66,7 @@ const ChooseLocationPage = () => {
       setCounts(tally);
     };
     fetchCounts();
-  }, [course]);
+  }, [scheduleCourse]);
 
   return (
     <div className="min-h-screen bg-background">

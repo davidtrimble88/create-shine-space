@@ -15,6 +15,8 @@ const ChooseSchedulePage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const course = searchParams.get("course") || "basic";
+  // 1-Day Premier shares the same classes/seats as the Intermediate course
+  const scheduleCourse = course === "premier" ? "intermediate" : course;
   const location = searchParams.get("location") || "ventura-county";
   const track = searchParams.get("track");
   const trackParam = track ? `&track=${track}` : "";
@@ -24,6 +26,7 @@ const ChooseSchedulePage = () => {
 
   const courseLabels: Record<string, string> = {
     basic: "Motorcyclist Training Course",
+    premier: "1-Day Premier Course",
     intermediate: "Intermediate Course",
     advanced: "Advanced Riding Clinic",
   };
@@ -40,7 +43,7 @@ const ChooseSchedulePage = () => {
       const { data } = await supabase
         .from("schedules")
         .select("*")
-        .eq("course", course)
+        .eq("course", scheduleCourse)
         .eq("location", location)
         .gte("date", today)
         .gt("spots_available", 0)
@@ -54,7 +57,7 @@ const ChooseSchedulePage = () => {
         const { data: others } = await supabase
           .from("schedules")
           .select("location, location_label")
-          .eq("course", course)
+          .eq("course", scheduleCourse)
           .neq("location", location)
           .gte("date", today)
           .gt("spots_available", 0)
@@ -73,7 +76,7 @@ const ChooseSchedulePage = () => {
       }
     };
     fetchClasses();
-  }, [course, location]);
+  }, [scheduleCourse, location]);
 
   const handleSelectClass = (classId: string) => {
     sessionStorage.setItem("selectedScheduleId", classId);
