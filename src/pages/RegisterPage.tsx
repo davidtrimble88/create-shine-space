@@ -650,9 +650,13 @@ const RegisterPage = () => {
         guardian_phone: isUnder18 ? (data.guardianPhone || null) : null,
         guardian_email: isUnder18 ? (data.guardianEmail || null) : null,
         rider_track: course === "intermediate" ? (is1dpcTrack ? "1dpc" : "irc") : null,
-        bike_info: isIrcTrack
-          ? [data.bikeYear, data.bikeMake, data.bikeModel].map(v => String(v || "").trim()).filter(Boolean).join(" ") || null
-          : null,
+        bike_info:
+          isIrcTrack || (is1dpcTrack && data.bikeChoice === "own")
+            ? [data.bikeYear, data.bikeMake, data.bikeModel].map(v => String(v || "").trim()).filter(Boolean).join(" ") || null
+            : is1dpcTrack && data.bikeChoice === "provided"
+              ? "Provided bike"
+              : null,
+        roster_comment: is1dpcTrack ? "1DPC" : null,
         discount_amount_cents: discountCents,
         discount_reason: discountCents > 0 ? (discountApplied?.source === "code" ? "code" : "returning_student") : null,
         discount_code: discountCents > 0 && discountApplied?.source === "code" ? (discountApplied.code || null) : null,
