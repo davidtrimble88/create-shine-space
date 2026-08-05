@@ -123,6 +123,7 @@ const ChooseCoursePage = () => {
             {courses.map((course, i) => {
               const Icon = course.icon;
               const isIntermediate = course.id === "intermediate";
+              const isPremier = course.id === "premier";
               return (
                 <motion.div
                   key={course.id}
@@ -131,9 +132,19 @@ const ChooseCoursePage = () => {
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                 >
                   <CardShell
-                    isIntermediate={isIntermediate}
+                    intercept={isIntermediate || isPremier}
                     to={`/choose-location?course=${course.id}`}
-                    onIntermediate={() => { setM1Step("ask"); setM1Ack(false); setM1Open(true); }}
+                    onIntercept={() => {
+                      setM1Ack(false);
+                      if (isPremier) {
+                        setPremierTarget("/choose-location?course=premier&track=1dpc");
+                        setM1Step("premier");
+                      } else {
+                        setPremierTarget("/choose-location?course=intermediate&track=1dpc");
+                        setM1Step("ask");
+                      }
+                      setM1Open(true);
+                    }}
                   >
                     <div
                       className={`relative h-full bg-gradient-to-b ${course.color} border ${course.borderColor} rounded-2xl p-8 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group cursor-pointer flex flex-col`}
