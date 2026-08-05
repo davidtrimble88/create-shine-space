@@ -254,7 +254,7 @@ const ChooseCoursePage = () => {
                   variant="heroOutline"
                   size="lg"
                   className="h-auto py-4 px-4 flex-col items-start gap-1 text-left whitespace-normal"
-                  onClick={() => { setM1Ack(false); setM1Step("premier"); }}
+                  onClick={() => { setM1Ack(false); setM1Step("age"); }}
                 >
                   <span className="text-base font-bold whitespace-normal break-words">No — I don't have my M1</span>
                   <span className="text-xs font-normal opacity-80 whitespace-normal break-words leading-snug">
