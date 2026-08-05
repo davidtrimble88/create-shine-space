@@ -96,14 +96,6 @@ const ChooseCoursePage = () => {
             {courses.map((course, i) => {
               const Icon = course.icon;
               const isIntermediate = course.id === "intermediate";
-              const cardBody = (
-                <>
-                  <div
-                    className={`relative h-full bg-gradient-to-b ${course.color} border ${course.borderColor} rounded-2xl p-8 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group cursor-pointer flex flex-col text-left`}
-                  >
-                  </div>
-                </>
-              );
               return (
                 <motion.div
                   key={course.id}
