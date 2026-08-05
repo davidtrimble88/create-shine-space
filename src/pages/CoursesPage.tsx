@@ -515,18 +515,6 @@ const IntermediateCourse = () => (
           </div>
         </div>
 
-        {/* Licensing option */}
-        <div className="bg-card border border-accent/20 rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <Award className="w-5 h-5 text-accent" />
-            <h4 className="font-bold text-foreground">Licensing Option</h4>
-          </div>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-            Not yet licensed? Riders <strong className="text-foreground">21+</strong> can achieve intermediate-level 
-            skills along with their motorcycle license. You must pass a basic riding evaluation at the start, similar to the DMV skills test.
-          </p>
-        </div>
-
         <img src={intermediateRider} alt="Rider training on course" className="rounded-2xl w-full h-48 object-cover" />
 
         {/* Military note */}
