@@ -107,7 +107,7 @@ const ChooseSchedulePage = () => {
               Select a class date for your course.
             </p>
             <p className="text-sm text-muted-foreground">
-              {courseLabels[course] || course} · {locationLabels[location] || location}
+              {(course === "premier" || (course === "intermediate" && track === "1dpc")) ? "1-Day Premier Course / Intermediate" : courseLabels[course] || course} · {locationLabels[location] || location}
             </p>
           </motion.div>
 
