@@ -90,7 +90,7 @@ const CardShell = ({
 const ChooseCoursePage = () => {
   const navigate = useNavigate();
   const [m1Open, setM1Open] = useState(false);
-  const [m1Step, setM1Step] = useState<"ask" | "premier">("ask");
+  const [m1Step, setM1Step] = useState<"ask" | "premierM1" | "age" | "under21" | "premier">("ask");
   const [m1Ack, setM1Ack] = useState(false);
   const [premierTarget, setPremierTarget] = useState("/choose-location?course=intermediate&track=1dpc");
   const [premierDirect, setPremierDirect] = useState(false);
@@ -102,7 +102,7 @@ const ChooseCoursePage = () => {
     setM1Ack(false);
     setPremierTarget("/choose-location?course=intermediate&track=1dpc");
     setPremierDirect(select === "premier");
-    setM1Step(select === "premier" ? "premier" : "ask");
+    setM1Step(select === "premier" ? "premierM1" : "ask");
     setM1Open(true);
   }, [searchParams]);
 
@@ -151,7 +151,7 @@ const ChooseCoursePage = () => {
                       setPremierDirect(isPremier);
                       if (isPremier) {
                         setPremierTarget("/choose-location?course=intermediate&track=1dpc");
-                        setM1Step("premier");
+                        setM1Step("premierM1");
                       } else {
                         setPremierTarget("/choose-location?course=intermediate&track=1dpc");
                         setM1Step("ask");
