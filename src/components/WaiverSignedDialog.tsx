@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, Download, Printer, Loader2 } from "lucide-react";
+import { CheckCircle2, Download, Printer, Loader2, Info } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface Props {
