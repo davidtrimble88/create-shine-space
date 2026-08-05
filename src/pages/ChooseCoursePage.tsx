@@ -151,7 +151,7 @@ const ChooseCoursePage = () => {
                         </span>
                       </div>
                     </div>
-                  </Link>
+                  </CardShell>
                 </motion.div>
               );
             })}
