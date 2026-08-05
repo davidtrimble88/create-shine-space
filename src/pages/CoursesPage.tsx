@@ -322,8 +322,11 @@ const PremierCourse = () => (
           Developed by Total Control Training and based on the most current research in rider safety, this course 
           includes both classroom and riding instruction. It's challenging, fun, and proven to enhance student outcomes.
         </p>
-        <p className="text-muted-foreground leading-relaxed mb-8">
+        <p className="text-muted-foreground leading-relaxed mb-4">
           You must pass a basic riding evaluation at the start of class, similar to the DMV Motorcycle Skills Test.
+        </p>
+        <p className="text-foreground leading-relaxed mb-8 text-sm bg-accent/10 border border-accent/20 rounded-xl p-4">
+          <strong>Bike options:</strong> A training motorcycle and helmet are provided for this course, or you are welcome to ride your own bike if you prefer.
         </p>
 
         {/* Skills grid */}
