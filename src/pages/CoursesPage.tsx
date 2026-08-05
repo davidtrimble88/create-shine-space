@@ -322,8 +322,11 @@ const PremierCourse = () => (
           Developed by Total Control Training and based on the most current research in rider safety, this course 
           includes both classroom and riding instruction. It's challenging, fun, and proven to enhance student outcomes.
         </p>
-        <p className="text-muted-foreground leading-relaxed mb-8">
+        <p className="text-muted-foreground leading-relaxed mb-4">
           You must pass a basic riding evaluation at the start of class, similar to the DMV Motorcycle Skills Test.
+        </p>
+        <p className="text-foreground leading-relaxed mb-8 text-sm bg-accent/10 border border-accent/20 rounded-xl p-4">
+          <strong>Bike options:</strong> A training motorcycle and helmet are provided for this course, or you are welcome to ride your own bike if you prefer.
         </p>
 
         {/* Skills grid */}
@@ -464,9 +467,13 @@ const IntermediateCourse = () => (
           and returning riders getting back in the saddle. This course includes both classroom and riding instruction, 
           completed in one intensive <strong className="text-foreground">8-hour day</strong>.
         </p>
-        <p className="text-muted-foreground leading-relaxed mb-8">
+        <p className="text-muted-foreground leading-relaxed mb-4">
           Based on the most current research in rider safety, this course utilizes modern training methods proven to enhance 
           student outcomes. It's also challenging and fun!
+        </p>
+        <p className="text-foreground leading-relaxed mb-8 text-sm bg-accent/10 border border-accent/20 rounded-xl p-4">
+          <strong>Bring your own bike:</strong> Students are required to ride their own motorcycle in the Intermediate Course.
+          Please make sure your bike is currently registered and insured.
         </p>
 
         {/* Skills grid */}
