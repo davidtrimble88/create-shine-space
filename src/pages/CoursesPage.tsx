@@ -460,7 +460,7 @@ const IntermediateCourse = () => (
       <div className="lg:col-span-3">
         <h3 className="text-2xl font-bold text-foreground mb-4">The Perfect Next Step</h3>
         <p className="text-muted-foreground leading-relaxed mb-4">
-          Developed by Total Control Training, the IRC/1DPC is the perfect next step for newer riders looking to improve 
+          Developed by Total Control Training, the IRC is the perfect next step for newer riders looking to improve 
           and returning riders getting back in the saddle. This course includes both classroom and riding instruction, 
           completed in one intensive <strong className="text-foreground">8-hour day</strong>.
         </p>
