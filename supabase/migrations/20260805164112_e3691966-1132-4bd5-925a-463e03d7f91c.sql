@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS rider_track text, ADD COLUMN IF NOT EXISTS bike_info text;

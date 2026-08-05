@@ -117,6 +117,7 @@ export type Database = {
           archived: boolean
           archived_at: string | null
           archived_by: string | null
+          bike_info: string | null
           booking_status: string
           checkpoint_c1: boolean
           checkpoint_c2: boolean
@@ -177,6 +178,7 @@ export type Database = {
           rescheduled_by: string | null
           result: string | null
           retest_type: string | null
+          rider_track: string | null
           roster_comment: string | null
           schedule_date: string | null
           schedule_id: string | null
@@ -192,6 +194,7 @@ export type Database = {
           archived?: boolean
           archived_at?: string | null
           archived_by?: string | null
+          bike_info?: string | null
           booking_status?: string
           checkpoint_c1?: boolean
           checkpoint_c2?: boolean
@@ -252,6 +255,7 @@ export type Database = {
           rescheduled_by?: string | null
           result?: string | null
           retest_type?: string | null
+          rider_track?: string | null
           roster_comment?: string | null
           schedule_date?: string | null
           schedule_id?: string | null
@@ -267,6 +271,7 @@ export type Database = {
           archived?: boolean
           archived_at?: string | null
           archived_by?: string | null
+          bike_info?: string | null
           booking_status?: string
           checkpoint_c1?: boolean
           checkpoint_c2?: boolean
@@ -327,6 +332,7 @@ export type Database = {
           rescheduled_by?: string | null
           result?: string | null
           retest_type?: string | null
+          rider_track?: string | null
           roster_comment?: string | null
           schedule_date?: string | null
           schedule_id?: string | null
