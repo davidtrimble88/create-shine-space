@@ -256,13 +256,25 @@ const ChooseCoursePage = () => {
               <DialogHeader>
                 <DialogTitle className="text-2xl flex items-center gap-2">
                   <AlertTriangle className="w-6 h-6 text-accent" />
-                  You'll be registered under the 1-Day Premier Course
+                  {premierTarget.includes("course=premier")
+                    ? "Entry Skills Test — Required"
+                    : "You'll be registered under the 1-Day Premier Course"}
                 </DialogTitle>
                 <DialogDescription>
-                  Because you don't have your M1 yet, you'll be enrolled in the{" "}
-                  <span className="text-foreground font-semibold">1-Day Premier Course with Licensing</span>.
-                  This course requires an entry skills test. Please watch the video below and confirm
-                  you can pass the entrance exam before continuing.
+                  {premierTarget.includes("course=premier") ? (
+                    <>
+                      The <span className="text-foreground font-semibold">1-Day Premier Course with Licensing</span>{" "}
+                      requires an entry skills test. Please watch the video below and confirm you can pass
+                      the entrance exam before continuing.
+                    </>
+                  ) : (
+                    <>
+                      Because you don't have your M1 yet, you'll be enrolled in the{" "}
+                      <span className="text-foreground font-semibold">1-Day Premier Course with Licensing</span>.
+                      This course requires an entry skills test. Please watch the video below and confirm
+                      you can pass the entrance exam before continuing.
+                    </>
+                  )}
                 </DialogDescription>
               </DialogHeader>
               <div className="aspect-video w-full rounded-xl overflow-hidden border border-border bg-black">
@@ -281,12 +293,15 @@ const ChooseCoursePage = () => {
                 </span>
               </label>
               <DialogFooter className="gap-2 sm:gap-2">
-                <Button variant="ghost" onClick={() => setM1Step("ask")}>Back</Button>
                 <Button
-                  variant="hero"
-                  disabled={!m1Ack}
-                  onClick={() => navigate("/choose-location?course=intermediate&track=1dpc")}
+                  variant="ghost"
+                  onClick={() =>
+                    premierTarget.includes("course=premier") ? setM1Open(false) : setM1Step("ask")
+                  }
                 >
+                  {premierTarget.includes("course=premier") ? "Cancel" : "Back"}
+                </Button>
+                <Button variant="hero" disabled={!m1Ack} onClick={() => navigate(premierTarget)}>
                   Continue to 1-Day Premier <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </DialogFooter>
