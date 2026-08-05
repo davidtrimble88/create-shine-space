@@ -306,6 +306,13 @@ const RegisterPage = () => {
     }
   }, [returningStudent, discountApplied]);
 
+  // 1DPC students must use a provided training motorcycle.
+  useEffect(() => {
+    if (is1dpcTrack) {
+      form.setValue("bikeChoice", "provided", { shouldValidate: true });
+    }
+  }, [is1dpcTrack, form]);
+
   const formatScheduleDate = (iso: string | null) => {
     if (!iso) return "";
     // Parse YYYY-MM-DD as a local date (avoid UTC shift)
@@ -525,18 +532,8 @@ const RegisterPage = () => {
 
 
   const onSubmit = async (data: RegistrationFormData) => {
-    // 1DPC riders must choose provided vs own bike before we can continue.
-    if (is1dpcTrack && !data.bikeChoice) {
-      form.setError("bikeChoice", { message: "Please select which motorcycle you'll ride" });
-      toast({
-        title: "Motorcycle selection required",
-        description: "Let us know whether you'll use a provided motorcycle or bring your own.",
-        variant: "destructive",
-      });
-      return;
-    }
-    // IRC riders (and 1DPC riders bringing their own bike) must give bike details.
-    if (isIrcTrack || (is1dpcTrack && data.bikeChoice === "own")) {
+    // IRC riders must give bike details. 1DPC riders always use provided bikes.
+    if (isIrcTrack) {
       let missing = false;
       for (const [key, msg] of [
         ["bikeYear", "Year is required"],
@@ -651,9 +648,9 @@ const RegisterPage = () => {
         guardian_email: isUnder18 ? (data.guardianEmail || null) : null,
         rider_track: course === "intermediate" ? (is1dpcTrack ? "1dpc" : "irc") : null,
         bike_info:
-          isIrcTrack || (is1dpcTrack && data.bikeChoice === "own")
+          isIrcTrack
             ? [data.bikeYear, data.bikeMake, data.bikeModel].map(v => String(v || "").trim()).filter(Boolean).join(" ") || null
-            : is1dpcTrack && data.bikeChoice === "provided"
+            : is1dpcTrack
               ? "Provided bike"
               : null,
         roster_comment: is1dpcTrack ? "1DPC" : null,
@@ -1432,58 +1429,18 @@ const RegisterPage = () => {
                   />
                 </div>
 
-                {/* 1DPC — provided bike or own bike */}
+                {/* 1DPC — provided training motorcycle only */}
                 {is1dpcTrack && (
                   <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6">
                     <div>
                       <h2 className="text-xl font-bold">Your Motorcycle</h2>
                       <p className="text-sm text-muted-foreground mt-1">
-                        For the 1-Day Premier Course you can ride one of our provided motorcycles or bring your own.
+                        The 1-Day Premier Course uses one of our provided training motorcycles. Personal motorcycles are not permitted for this course.
                       </p>
                     </div>
-                    <FormField control={form.control} name="bikeChoice" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Which motorcycle will you ride? *</FormLabel>
-                        <FormControl>
-                          <RadioGroup onValueChange={field.onChange} value={field.value} className="grid gap-3 mt-2">
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="provided" id="bike-provided" />
-                              <Label htmlFor="bike-provided">Use a provided motorcycle</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="own" id="bike-own" />
-                              <Label htmlFor="bike-own">I'll bring my own motorcycle</Label>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    {form.watch("bikeChoice") === "own" && (
-                      <div className="grid md:grid-cols-3 gap-6">
-                        <FormField control={form.control} name="bikeYear" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Year *</FormLabel>
-                            <FormControl><Input placeholder="2021" {...field} /></FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                        <FormField control={form.control} name="bikeMake" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Make *</FormLabel>
-                            <FormControl><Input placeholder="Honda" {...field} /></FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                        <FormField control={form.control} name="bikeModel" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Model *</FormLabel>
-                            <FormControl><Input placeholder="CB500F" {...field} /></FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                      </div>
-                    )}
+                    <div className="rounded-lg border border-accent/40 bg-accent/10 p-4 text-sm text-foreground/90">
+                      A training motorcycle and helmet are provided for this course.
+                    </div>
                   </div>
                 )}
 
@@ -1582,7 +1539,11 @@ const RegisterPage = () => {
                               <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
                                 <li>Sturdy over-the-ankle boots (no sneakers, sandals, or low-cut shoes)</li>
                                 <li>Long, durable pants — denim jeans or Kevlar riding pants (no shorts, leggings, or sweats)</li>
-                                <li>Long-sleeve shirt or jacket (riding jacket strongly recommended)</li>
+                                {is1dpcTrack || isIrcTrack ? (
+                                  <li className="text-foreground font-medium">Leather or armored motorcycle jacket required</li>
+                                ) : (
+                                  <li>Long-sleeve shirt or jacket (riding jacket strongly recommended)</li>
+                                )}
                                 <li>Full-finger gloves (no fingerless gloves)</li>
                                 <li>Eye protection if your helmet doesn't have a face shield</li>
                               </ul>
