@@ -202,6 +202,86 @@ const ChooseCoursePage = () => {
         </div>
       </section>
 
+      <Dialog open={m1Open} onOpenChange={setM1Open}>
+        <DialogContent className="max-w-2xl">
+          {m1Step === "ask" ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl">Do you have your M1?</DialogTitle>
+                <DialogDescription>
+                  The Intermediate Course (IRC) is for riders who already hold a California M1
+                  motorcycle license. Your answer determines which course you'll be registered for.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid sm:grid-cols-2 gap-4 py-2">
+                <Button
+                  variant="hero"
+                  size="lg"
+                  className="h-auto py-4 flex-col items-start gap-1"
+                  onClick={() => navigate("/choose-location?course=intermediate&track=irc")}
+                >
+                  <span className="text-base font-bold">Yes — I have my M1</span>
+                  <span className="text-xs font-normal opacity-80">
+                    Continue as Intermediate (IRC). You'll provide your motorcycle information during registration.
+                  </span>
+                </Button>
+                <Button
+                  variant="heroOutline"
+                  size="lg"
+                  className="h-auto py-4 flex-col items-start gap-1"
+                  onClick={() => { setM1Ack(false); setM1Step("premier"); }}
+                >
+                  <span className="text-base font-bold">No — I don't have my M1</span>
+                  <span className="text-xs font-normal opacity-80">
+                    You'll be registered under the 1-Day Premier Course with Licensing.
+                  </span>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl flex items-center gap-2">
+                  <AlertTriangle className="w-6 h-6 text-accent" />
+                  You'll be registered under the 1-Day Premier Course
+                </DialogTitle>
+                <DialogDescription>
+                  Because you don't have your M1 yet, you'll be enrolled in the{" "}
+                  <span className="text-foreground font-semibold">1-Day Premier Course with Licensing</span>.
+                  This course requires an entry skills test. Please watch the video below and confirm
+                  you can pass the entrance exam before continuing.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="aspect-video w-full rounded-xl overflow-hidden border border-border bg-black">
+                <iframe
+                  className="w-full h-full"
+                  src="https://www.youtube.com/embed/sTPMKDZ8Uw0"
+                  title="1-Day Premier Course entrance skills test"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              <label className="flex items-start gap-3 text-sm text-foreground/90 cursor-pointer">
+                <Checkbox checked={m1Ack} onCheckedChange={(v) => setM1Ack(v === true)} className="mt-0.5" />
+                <span>
+                  I have watched the video and I am confident I can pass the entrance skills test.
+                </span>
+              </label>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button variant="ghost" onClick={() => setM1Step("ask")}>Back</Button>
+                <Button
+                  variant="hero"
+                  disabled={!m1Ack}
+                  onClick={() => navigate("/choose-location?course=intermediate&track=1dpc")}
+                >
+                  Continue to 1-Day Premier <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );
