@@ -525,8 +525,18 @@ const RegisterPage = () => {
 
 
   const onSubmit = async (data: RegistrationFormData) => {
-    // IRC riders must tell us about the motorcycle they're bringing.
-    if (isIrcTrack) {
+    // 1DPC riders must choose provided vs own bike before we can continue.
+    if (is1dpcTrack && !data.bikeChoice) {
+      form.setError("bikeChoice", { message: "Please select which motorcycle you'll ride" });
+      toast({
+        title: "Motorcycle selection required",
+        description: "Let us know whether you'll use a provided motorcycle or bring your own.",
+        variant: "destructive",
+      });
+      return;
+    }
+    // IRC riders (and 1DPC riders bringing their own bike) must give bike details.
+    if (isIrcTrack || (is1dpcTrack && data.bikeChoice === "own")) {
       let missing = false;
       for (const [key, msg] of [
         ["bikeYear", "Year is required"],
@@ -547,6 +557,7 @@ const RegisterPage = () => {
         return;
       }
     }
+
     setSubmitting(true);
     try {
       // Look up the actual selected schedule (by id) to get its price + date
