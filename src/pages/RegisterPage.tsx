@@ -648,9 +648,9 @@ const RegisterPage = () => {
         guardian_email: isUnder18 ? (data.guardianEmail || null) : null,
         rider_track: course === "intermediate" ? (is1dpcTrack ? "1dpc" : "irc") : null,
         bike_info:
-          isIrcTrack || (is1dpcTrack && data.bikeChoice === "own")
+          isIrcTrack
             ? [data.bikeYear, data.bikeMake, data.bikeModel].map(v => String(v || "").trim()).filter(Boolean).join(" ") || null
-            : is1dpcTrack && data.bikeChoice === "provided"
+            : is1dpcTrack
               ? "Provided bike"
               : null,
         roster_comment: is1dpcTrack ? "1DPC" : null,
