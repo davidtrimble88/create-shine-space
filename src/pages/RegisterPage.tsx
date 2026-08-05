@@ -952,6 +952,18 @@ const RegisterPage = () => {
             ) : (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                {is1dpcTrack && (
+                  <div className="rounded-2xl border border-accent/40 bg-accent/10 p-5 md:p-6">
+                    <h2 className="text-base md:text-lg font-bold text-accent mb-1">
+                      You are registering for the 1-Day Premier Course with Licensing
+                    </h2>
+                    <p className="text-sm text-foreground/85">
+                      Because you don't have your M1 yet, your seat in this class is booked under the
+                      1-Day Premier Course with Licensing. An entry skills test is required on class day,
+                      and you confirmed you can pass it after reviewing the entrance skills video.
+                    </p>
+                  </div>
+                )}
                 {/* Personal Information */}
                 <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
                   <h2 className="text-xl font-bold text-foreground mb-6">Personal Information</h2>
