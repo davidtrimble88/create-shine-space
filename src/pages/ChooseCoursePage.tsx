@@ -66,7 +66,33 @@ const courses = [
   },
 ];
 
+const CardShell = ({
+  isIntermediate,
+  to,
+  onIntermediate,
+  children,
+}: {
+  isIntermediate: boolean;
+  to: string;
+  onIntermediate: () => void;
+  children: React.ReactNode;
+}) =>
+  isIntermediate ? (
+    <button type="button" onClick={onIntermediate} className="block h-full w-full text-left">
+      {children}
+    </button>
+  ) : (
+    <Link to={to} className="block h-full">
+      {children}
+    </Link>
+  );
+
 const ChooseCoursePage = () => {
+  const navigate = useNavigate();
+  const [m1Open, setM1Open] = useState(false);
+  const [m1Step, setM1Step] = useState<"ask" | "premier">("ask");
+  const [m1Ack, setM1Ack] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
       <Seo title={"Book a Motorcycle Course — Learn to Ride VC"} description={"Choose your motorcycle training course and start registration. Beginner, premier, intermediate, and advanced options available."} path="/choose-course" />
