@@ -40,6 +40,8 @@ const locations = [
 const ChooseLocationPage = () => {
   const [searchParams] = useSearchParams();
   const course = searchParams.get("course") || "basic";
+  const track = searchParams.get("track");
+  const trackParam = track ? `&track=${track}` : "";
   const filteredLocations = course === "basic" ? locations : locations.filter(l => l.id === "ventura-county");
 
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -100,7 +102,7 @@ const ChooseLocationPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                 >
-                  <Link to={`/choose-schedule?course=${course}&location=${loc.id}`} className="block h-full">
+                  <Link to={`/choose-schedule?course=${course}&location=${loc.id}${trackParam}`} className="block h-full">
                     <div className="relative h-full bg-gradient-to-b from-accent/20 to-accent/5 border border-accent/30 rounded-2xl p-8 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group cursor-pointer flex flex-col">
                       <div className="w-14 h-14 rounded-2xl bg-accent/15 flex items-center justify-center mb-5 group-hover:bg-accent/25 transition-colors">
                         <Icon className="w-7 h-7 text-accent" />
