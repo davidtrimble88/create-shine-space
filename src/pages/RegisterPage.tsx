@@ -1539,7 +1539,11 @@ const RegisterPage = () => {
                               <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
                                 <li>Sturdy over-the-ankle boots (no sneakers, sandals, or low-cut shoes)</li>
                                 <li>Long, durable pants — denim jeans or Kevlar riding pants (no shorts, leggings, or sweats)</li>
-                                <li>Long-sleeve shirt or jacket (riding jacket strongly recommended)</li>
+                                {is1dpcTrack || isIrcTrack ? (
+                                  <li className="text-foreground font-medium">Leather or armored motorcycle jacket required</li>
+                                ) : (
+                                  <li>Long-sleeve shirt or jacket (riding jacket strongly recommended)</li>
+                                )}
                                 <li>Full-finger gloves (no fingerless gloves)</li>
                                 <li>Eye protection if your helmet doesn't have a face shield</li>
                               </ul>
