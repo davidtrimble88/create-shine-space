@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, GraduationCap, Gauge, Zap, BookOpen, Clock, Users, Award, Shield } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowRight, GraduationCap, Gauge, Zap, BookOpen, Clock, Users, Award, Shield, AlertTriangle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import Seo from "@/components/Seo";
 import IdRequirementNote from "@/components/IdRequirementNote";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 const courses = [
