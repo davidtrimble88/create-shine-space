@@ -43,7 +43,7 @@ const ChooseSchedulePage = () => {
       const { data } = await supabase
         .from("schedules")
         .select("*")
-        .eq("course", course)
+        .eq("course", scheduleCourse)
         .eq("location", location)
         .gte("date", today)
         .gt("spots_available", 0)
@@ -57,7 +57,7 @@ const ChooseSchedulePage = () => {
         const { data: others } = await supabase
           .from("schedules")
           .select("location, location_label")
-          .eq("course", course)
+          .eq("course", scheduleCourse)
           .neq("location", location)
           .gte("date", today)
           .gt("spots_available", 0)
@@ -76,7 +76,7 @@ const ChooseSchedulePage = () => {
       }
     };
     fetchClasses();
-  }, [course, location]);
+  }, [scheduleCourse, location]);
 
   const handleSelectClass = (classId: string) => {
     sessionStorage.setItem("selectedScheduleId", classId);
