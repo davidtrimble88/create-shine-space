@@ -67,18 +67,18 @@ const courses = [
 ];
 
 const CardShell = ({
-  isIntermediate,
+  intercept,
   to,
-  onIntermediate,
+  onIntercept,
   children,
 }: {
-  isIntermediate: boolean;
+  intercept: boolean;
   to: string;
-  onIntermediate: () => void;
+  onIntercept: () => void;
   children: React.ReactNode;
 }) =>
-  isIntermediate ? (
-    <button type="button" onClick={onIntermediate} className="block h-full w-full text-left">
+  intercept ? (
+    <button type="button" onClick={onIntercept} className="block h-full w-full text-left">
       {children}
     </button>
   ) : (
@@ -92,6 +92,7 @@ const ChooseCoursePage = () => {
   const [m1Open, setM1Open] = useState(false);
   const [m1Step, setM1Step] = useState<"ask" | "premier">("ask");
   const [m1Ack, setM1Ack] = useState(false);
+  const [premierTarget, setPremierTarget] = useState("/choose-location?course=intermediate&track=1dpc");
 
   return (
     <div className="min-h-screen bg-background">
