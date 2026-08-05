@@ -452,7 +452,7 @@ const IntermediateCourse = () => (
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8">
         <p className="text-foreground font-bold text-xl md:text-2xl">Intermediate Riding Clinic</p>
-        <p className="text-foreground/70">CMSP 1-Day Premier Course (With Licensing Option)</p>
+        <p className="text-foreground/70">IRC / Intermediate Riding Course</p>
       </div>
     </div>
 
@@ -460,7 +460,7 @@ const IntermediateCourse = () => (
       <div className="lg:col-span-3">
         <h3 className="text-2xl font-bold text-foreground mb-4">The Perfect Next Step</h3>
         <p className="text-muted-foreground leading-relaxed mb-4">
-          Developed by Total Control Training, the IRC/1DPC is the perfect next step for newer riders looking to improve 
+          Developed by Total Control Training, the IRC is the perfect next step for newer riders looking to improve 
           and returning riders getting back in the saddle. This course includes both classroom and riding instruction, 
           completed in one intensive <strong className="text-foreground">8-hour day</strong>.
         </p>
@@ -513,18 +513,6 @@ const IntermediateCourse = () => (
               <p className="text-[10px] text-accent font-medium mt-1">Call to receive discounted rate</p>
             </div>
           </div>
-        </div>
-
-        {/* Licensing option */}
-        <div className="bg-card border border-accent/20 rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <Award className="w-5 h-5 text-accent" />
-            <h4 className="font-bold text-foreground">Licensing Option</h4>
-          </div>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-            Not yet licensed? Riders <strong className="text-foreground">21+</strong> can achieve intermediate-level 
-            skills along with their motorcycle license. You must pass a basic riding evaluation at the start, similar to the DMV skills test.
-          </p>
         </div>
 
         <img src={intermediateRider} alt="Rider training on course" className="rounded-2xl w-full h-48 object-cover" />
