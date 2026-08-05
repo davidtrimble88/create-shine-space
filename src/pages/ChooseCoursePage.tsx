@@ -90,7 +90,7 @@ const CardShell = ({
 const ChooseCoursePage = () => {
   const navigate = useNavigate();
   const [m1Open, setM1Open] = useState(false);
-  const [m1Step, setM1Step] = useState<"ask" | "premier">("ask");
+  const [m1Step, setM1Step] = useState<"ask" | "premierM1" | "age" | "under21" | "premier">("ask");
   const [m1Ack, setM1Ack] = useState(false);
   const [premierTarget, setPremierTarget] = useState("/choose-location?course=intermediate&track=1dpc");
   const [premierDirect, setPremierDirect] = useState(false);
@@ -102,7 +102,7 @@ const ChooseCoursePage = () => {
     setM1Ack(false);
     setPremierTarget("/choose-location?course=intermediate&track=1dpc");
     setPremierDirect(select === "premier");
-    setM1Step(select === "premier" ? "premier" : "ask");
+    setM1Step(select === "premier" ? "premierM1" : "ask");
     setM1Open(true);
   }, [searchParams]);
 
@@ -151,7 +151,7 @@ const ChooseCoursePage = () => {
                       setPremierDirect(isPremier);
                       if (isPremier) {
                         setPremierTarget("/choose-location?course=intermediate&track=1dpc");
-                        setM1Step("premier");
+                        setM1Step("premierM1");
                       } else {
                         setPremierTarget("/choose-location?course=intermediate&track=1dpc");
                         setM1Step("ask");
@@ -254,7 +254,7 @@ const ChooseCoursePage = () => {
                   variant="heroOutline"
                   size="lg"
                   className="h-auto py-4 px-4 flex-col items-start gap-1 text-left whitespace-normal"
-                  onClick={() => { setM1Ack(false); setM1Step("premier"); }}
+                  onClick={() => { setM1Ack(false); setM1Step("age"); }}
                 >
                   <span className="text-base font-bold whitespace-normal break-words">No — I don't have my M1</span>
                   <span className="text-xs font-normal opacity-80 whitespace-normal break-words leading-snug">
@@ -263,6 +263,96 @@ const ChooseCoursePage = () => {
                 </Button>
               </div>
 
+            </>
+          ) : m1Step === "premierM1" ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl">Do you already have your M1 license?</DialogTitle>
+                <DialogDescription>
+                  The 1-Day Premier Course with Licensing is designed for experienced riders who are
+                  <span className="text-foreground font-semibold"> not yet licensed</span>. If you already hold
+                  your California M1, the Intermediate Course (IRC) is the right fit for you.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid sm:grid-cols-2 gap-4 py-2">
+                <Button
+                  variant="hero"
+                  size="lg"
+                  className="h-auto py-4 px-4 flex-col items-start gap-1 text-left whitespace-normal"
+                  onClick={() => navigate("/choose-location?course=intermediate&track=irc")}
+                >
+                  <span className="text-base font-bold whitespace-normal break-words">Yes — I have my M1</span>
+                  <span className="text-xs font-normal opacity-80 whitespace-normal break-words leading-snug">
+                    We'll take you to the Intermediate Course (IRC) registration instead. You'll ride your own motorcycle.
+                  </span>
+                </Button>
+                <Button
+                  variant="heroOutline"
+                  size="lg"
+                  className="h-auto py-4 px-4 flex-col items-start gap-1 text-left whitespace-normal"
+                  onClick={() => setM1Step("age")}
+                >
+                  <span className="text-base font-bold whitespace-normal break-words">No — I'm not licensed yet</span>
+                  <span className="text-xs font-normal opacity-80 whitespace-normal break-words leading-snug">
+                    Continue with the 1-Day Premier Course with Licensing.
+                  </span>
+                </Button>
+              </div>
+            </>
+          ) : m1Step === "age" ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl">Are you 21 or older?</DialogTitle>
+                <DialogDescription>
+                  California licensing rules limit the 1-Day Premier Course with Licensing to riders who are
+                  <span className="text-foreground font-semibold"> 21 years of age or older</span>.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid sm:grid-cols-2 gap-4 py-2">
+                <Button
+                  variant="hero"
+                  size="lg"
+                  className="h-auto py-4 px-4 flex-col items-start gap-1 text-left whitespace-normal"
+                  onClick={() => { setM1Ack(false); setM1Step("premier"); }}
+                >
+                  <span className="text-base font-bold whitespace-normal break-words">Yes — I'm 21 or older</span>
+                  <span className="text-xs font-normal opacity-80 whitespace-normal break-words leading-snug">
+                    Continue to the required entrance skills test video.
+                  </span>
+                </Button>
+                <Button
+                  variant="heroOutline"
+                  size="lg"
+                  className="h-auto py-4 px-4 flex-col items-start gap-1 text-left whitespace-normal"
+                  onClick={() => setM1Step("under21")}
+                >
+                  <span className="text-base font-bold whitespace-normal break-words">No — I'm under 21</span>
+                  <span className="text-xs font-normal opacity-80 whitespace-normal break-words leading-snug">
+                    We'll point you to the course that fits your age group.
+                  </span>
+                </Button>
+              </div>
+            </>
+          ) : m1Step === "under21" ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl flex items-center gap-2">
+                  <AlertTriangle className="w-6 h-6 text-accent" />
+                  You must be 21 or older for this course
+                </DialogTitle>
+                <DialogDescription>
+                  Riders under 21 aren't eligible for the 1-Day Premier Course with Licensing. The good news:
+                  the <span className="text-foreground font-semibold">Motorcyclist Training Course (MTC)</span> is
+                  open to you, includes a motorcycle and helmet, and earns your CMSP DL389 certificate to waive
+                  the DMV riding skills test.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button variant="ghost" onClick={() => setM1Open(false)}>Cancel</Button>
+                <Button variant="hero" onClick={() => navigate("/choose-location?course=basic")}>
+                  Take me to the MTC registration <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </DialogFooter>
             </>
           ) : (
             <>
@@ -308,11 +398,9 @@ const ChooseCoursePage = () => {
               <DialogFooter className="gap-2 sm:gap-2">
                 <Button
                   variant="ghost"
-                  onClick={() =>
-                    premierDirect ? setM1Open(false) : setM1Step("ask")
-                  }
+                  onClick={() => setM1Step("age")}
                 >
-                  {premierDirect ? "Cancel" : "Back"}
+                  Back
                 </Button>
                 <Button variant="hero" disabled={!m1Ack} onClick={() => navigate(premierTarget)}>
                   Continue to 1-Day Premier <ArrowRight className="ml-2 w-4 h-4" />
