@@ -1403,6 +1403,41 @@ const RegisterPage = () => {
                   />
                 </div>
 
+                {/* IRC — motorcycle information */}
+                {isIrcTrack && (
+                  <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6">
+                    <div>
+                      <h2 className="text-xl font-bold">Your Motorcycle</h2>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        The Intermediate Course (IRC) is ridden on your own motorcycle. Tell us what you'll be bringing.
+                      </p>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-6">
+                      <FormField control={form.control} name="bikeYear" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Year *</FormLabel>
+                          <FormControl><Input placeholder="2021" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="bikeMake" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Make *</FormLabel>
+                          <FormControl><Input placeholder="Honda" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="bikeModel" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Model *</FormLabel>
+                          <FormControl><Input placeholder="CB500F" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+                  </div>
+                )}
+
                 {/* Emergency Contact */}
                 <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6">
                   <div>
