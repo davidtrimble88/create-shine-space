@@ -217,26 +217,27 @@ const ChooseCoursePage = () => {
                 <Button
                   variant="hero"
                   size="lg"
-                  className="h-auto py-4 flex-col items-start gap-1"
+                  className="h-auto py-4 px-4 flex-col items-start gap-1 text-left whitespace-normal"
                   onClick={() => navigate("/choose-location?course=intermediate&track=irc")}
                 >
-                  <span className="text-base font-bold">Yes — I have my M1</span>
-                  <span className="text-xs font-normal opacity-80">
+                  <span className="text-base font-bold whitespace-normal break-words">Yes — I have my M1</span>
+                  <span className="text-xs font-normal opacity-80 whitespace-normal break-words leading-snug">
                     Continue as Intermediate (IRC). You'll provide your motorcycle information during registration.
                   </span>
                 </Button>
                 <Button
                   variant="heroOutline"
                   size="lg"
-                  className="h-auto py-4 flex-col items-start gap-1"
+                  className="h-auto py-4 px-4 flex-col items-start gap-1 text-left whitespace-normal"
                   onClick={() => { setM1Ack(false); setM1Step("premier"); }}
                 >
-                  <span className="text-base font-bold">No — I don't have my M1</span>
-                  <span className="text-xs font-normal opacity-80">
+                  <span className="text-base font-bold whitespace-normal break-words">No — I don't have my M1</span>
+                  <span className="text-xs font-normal opacity-80 whitespace-normal break-words leading-snug">
                     You'll be registered under the 1-Day Premier Course with Licensing.
                   </span>
                 </Button>
               </div>
+
             </>
           ) : (
             <>
