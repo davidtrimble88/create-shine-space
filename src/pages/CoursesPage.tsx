@@ -345,7 +345,7 @@ const PremierCourse = () => (
           ))}
         </div>
 
-        <Link to="/choose-location?course=premier">
+        <Link to="/choose-course?select=premier">
           <Button variant="hero" size="lg" className="group">
             Enroll Now
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -492,7 +492,7 @@ const IntermediateCourse = () => (
           ))}
         </div>
 
-        <Link to="/choose-location?course=intermediate">
+        <Link to="/choose-course?select=intermediate">
           <Button variant="hero" size="lg" className="group">
             Enroll Now
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -826,7 +826,7 @@ const CoursesPage = () => {
               <EditableText contentKey="coursespage.cta.desc" fallback="Choose your course and take the first step toward confident, skilled riding." multiline />
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to={`/choose-location?course=${activeTab}`}>
+              <Link to={activeTab === "premier" || activeTab === "intermediate" ? `/choose-course?select=${activeTab}` : `/choose-location?course=${activeTab}`}>
                 <Button variant="hero" size="lg" className="group w-full sm:w-auto">
                   <EditableText contentKey="coursespage.cta.btn.primary" fallback="Enroll Now" />
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, GraduationCap, Gauge, Zap, BookOpen, Clock, Users, Award, Shield, AlertTriangle } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Seo from "@/components/Seo";
 import IdRequirementNote from "@/components/IdRequirementNote";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -94,6 +94,17 @@ const ChooseCoursePage = () => {
   const [m1Ack, setM1Ack] = useState(false);
   const [premierTarget, setPremierTarget] = useState("/choose-location?course=intermediate&track=1dpc");
   const [premierDirect, setPremierDirect] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const select = searchParams.get("select");
+    if (select !== "premier" && select !== "intermediate") return;
+    setM1Ack(false);
+    setPremierTarget("/choose-location?course=intermediate&track=1dpc");
+    setPremierDirect(select === "premier");
+    setM1Step(select === "premier" ? "premier" : "ask");
+    setM1Open(true);
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-background">
