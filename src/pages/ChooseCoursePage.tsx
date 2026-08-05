@@ -95,6 +95,15 @@ const ChooseCoursePage = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {courses.map((course, i) => {
               const Icon = course.icon;
+              const isIntermediate = course.id === "intermediate";
+              const cardBody = (
+                <>
+                  <div
+                    className={`relative h-full bg-gradient-to-b ${course.color} border ${course.borderColor} rounded-2xl p-8 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group cursor-pointer flex flex-col text-left`}
+                  >
+                  </div>
+                </>
+              );
               return (
                 <motion.div
                   key={course.id}
@@ -102,7 +111,11 @@ const ChooseCoursePage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                 >
-                  <Link to={`/choose-location?course=${course.id}`} className="block h-full">
+                  <CardShell
+                    isIntermediate={isIntermediate}
+                    to={`/choose-location?course=${course.id}`}
+                    onIntermediate={() => { setM1Step("ask"); setM1Ack(false); setM1Open(true); }}
+                  >
                     <div
                       className={`relative h-full bg-gradient-to-b ${course.color} border ${course.borderColor} rounded-2xl p-8 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group cursor-pointer flex flex-col`}
                     >
