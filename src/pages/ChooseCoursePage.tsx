@@ -67,18 +67,18 @@ const courses = [
 ];
 
 const CardShell = ({
-  isIntermediate,
+  intercept,
   to,
-  onIntermediate,
+  onIntercept,
   children,
 }: {
-  isIntermediate: boolean;
+  intercept: boolean;
   to: string;
-  onIntermediate: () => void;
+  onIntercept: () => void;
   children: React.ReactNode;
 }) =>
-  isIntermediate ? (
-    <button type="button" onClick={onIntermediate} className="block h-full w-full text-left">
+  intercept ? (
+    <button type="button" onClick={onIntercept} className="block h-full w-full text-left">
       {children}
     </button>
   ) : (
@@ -92,6 +92,7 @@ const ChooseCoursePage = () => {
   const [m1Open, setM1Open] = useState(false);
   const [m1Step, setM1Step] = useState<"ask" | "premier">("ask");
   const [m1Ack, setM1Ack] = useState(false);
+  const [premierTarget, setPremierTarget] = useState("/choose-location?course=intermediate&track=1dpc");
 
   return (
     <div className="min-h-screen bg-background">
@@ -122,6 +123,7 @@ const ChooseCoursePage = () => {
             {courses.map((course, i) => {
               const Icon = course.icon;
               const isIntermediate = course.id === "intermediate";
+              const isPremier = course.id === "premier";
               return (
                 <motion.div
                   key={course.id}
@@ -130,9 +132,19 @@ const ChooseCoursePage = () => {
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                 >
                   <CardShell
-                    isIntermediate={isIntermediate}
+                    intercept={isIntermediate || isPremier}
                     to={`/choose-location?course=${course.id}`}
-                    onIntermediate={() => { setM1Step("ask"); setM1Ack(false); setM1Open(true); }}
+                    onIntercept={() => {
+                      setM1Ack(false);
+                      if (isPremier) {
+                        setPremierTarget("/choose-location?course=premier&track=1dpc");
+                        setM1Step("premier");
+                      } else {
+                        setPremierTarget("/choose-location?course=intermediate&track=1dpc");
+                        setM1Step("ask");
+                      }
+                      setM1Open(true);
+                    }}
                   >
                     <div
                       className={`relative h-full bg-gradient-to-b ${course.color} border ${course.borderColor} rounded-2xl p-8 hover:border-accent/50 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 group cursor-pointer flex flex-col`}
@@ -244,13 +256,25 @@ const ChooseCoursePage = () => {
               <DialogHeader>
                 <DialogTitle className="text-2xl flex items-center gap-2">
                   <AlertTriangle className="w-6 h-6 text-accent" />
-                  You'll be registered under the 1-Day Premier Course
+                  {premierTarget.includes("course=premier")
+                    ? "Entry Skills Test — Required"
+                    : "You'll be registered under the 1-Day Premier Course"}
                 </DialogTitle>
                 <DialogDescription>
-                  Because you don't have your M1 yet, you'll be enrolled in the{" "}
-                  <span className="text-foreground font-semibold">1-Day Premier Course with Licensing</span>.
-                  This course requires an entry skills test. Please watch the video below and confirm
-                  you can pass the entrance exam before continuing.
+                  {premierTarget.includes("course=premier") ? (
+                    <>
+                      The <span className="text-foreground font-semibold">1-Day Premier Course with Licensing</span>{" "}
+                      requires an entry skills test. Please watch the video below and confirm you can pass
+                      the entrance exam before continuing.
+                    </>
+                  ) : (
+                    <>
+                      Because you don't have your M1 yet, you'll be enrolled in the{" "}
+                      <span className="text-foreground font-semibold">1-Day Premier Course with Licensing</span>.
+                      This course requires an entry skills test. Please watch the video below and confirm
+                      you can pass the entrance exam before continuing.
+                    </>
+                  )}
                 </DialogDescription>
               </DialogHeader>
               <div className="aspect-video w-full rounded-xl overflow-hidden border border-border bg-black">
@@ -269,12 +293,15 @@ const ChooseCoursePage = () => {
                 </span>
               </label>
               <DialogFooter className="gap-2 sm:gap-2">
-                <Button variant="ghost" onClick={() => setM1Step("ask")}>Back</Button>
                 <Button
-                  variant="hero"
-                  disabled={!m1Ack}
-                  onClick={() => navigate("/choose-location?course=intermediate&track=1dpc")}
+                  variant="ghost"
+                  onClick={() =>
+                    premierTarget.includes("course=premier") ? setM1Open(false) : setM1Step("ask")
+                  }
                 >
+                  {premierTarget.includes("course=premier") ? "Cancel" : "Back"}
+                </Button>
+                <Button variant="hero" disabled={!m1Ack} onClick={() => navigate(premierTarget)}>
                   Continue to 1-Day Premier <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </DialogFooter>
