@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, Download, Printer, Loader2 } from "lucide-react";
+import { CheckCircle2, Download, Printer, Loader2, Info } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface Props {
@@ -89,24 +89,34 @@ const WaiverSignedDialog = ({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" onClick={handleDownload} disabled={!signedUrl || loading}>
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-            Download
-          </Button>
-          <Button variant="outline" onClick={handlePrint} disabled={!signedUrl || loading}>
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Printer className="w-4 h-4 mr-2" />}
-            Print
-          </Button>
+        <div className="rounded-lg border border-accent/30 bg-accent/10 p-3 flex items-start gap-2">
+          <Info className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+          <p className="text-sm text-foreground">
+            <strong>Optional — for your records only.</strong> You do not need to download or print anything to continue your registration. Tap Continue when you're ready.
+          </p>
+        </div>
+
+        <Button variant="hero" size="lg" onClick={onContinue} className="w-full">
+          {continueLabel}
+        </Button>
+
+        <div className="border-t border-border pt-4">
+          <p className="text-xs text-muted-foreground mb-2 text-center">Want a copy for your records?</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" onClick={handleDownload} disabled={!signedUrl || loading}>
+              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+              Download
+            </Button>
+            <Button variant="outline" onClick={handlePrint} disabled={!signedUrl || loading}>
+              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Printer className="w-4 h-4 mr-2" />}
+              Print
+            </Button>
+          </div>
         </div>
 
         {!pdfPath && (
           <p className="text-xs text-muted-foreground">{missingPdfMessage}</p>
         )}
-
-        <div className="flex justify-end pt-2">
-          <Button variant="hero" onClick={onContinue}>{continueLabel}</Button>
-        </div>
       </DialogContent>
     </Dialog>
   );
