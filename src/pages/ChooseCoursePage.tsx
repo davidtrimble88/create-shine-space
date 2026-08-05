@@ -398,11 +398,9 @@ const ChooseCoursePage = () => {
               <DialogFooter className="gap-2 sm:gap-2">
                 <Button
                   variant="ghost"
-                  onClick={() =>
-                    premierDirect ? setM1Open(false) : setM1Step("ask")
-                  }
+                  onClick={() => setM1Step("age")}
                 >
-                  {premierDirect ? "Cancel" : "Back"}
+                  Back
                 </Button>
                 <Button variant="hero" disabled={!m1Ack} onClick={() => navigate(premierTarget)}>
                   Continue to 1-Day Premier <ArrowRight className="ml-2 w-4 h-4" />
