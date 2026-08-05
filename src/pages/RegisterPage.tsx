@@ -306,6 +306,13 @@ const RegisterPage = () => {
     }
   }, [returningStudent, discountApplied]);
 
+  // 1DPC students must use a provided training motorcycle.
+  useEffect(() => {
+    if (is1dpcTrack) {
+      form.setValue("bikeChoice", "provided", { shouldValidate: true });
+    }
+  }, [is1dpcTrack, form]);
+
   const formatScheduleDate = (iso: string | null) => {
     if (!iso) return "";
     // Parse YYYY-MM-DD as a local date (avoid UTC shift)
