@@ -74,6 +74,9 @@ const registrationSchema = z.object({
   emergencyContactName: z.string().trim().min(1, "Emergency contact name is required").max(100),
   emergencyContactRelationship: z.string().trim().min(1, "Relationship is required").max(50),
   emergencyContactPhone: z.string().trim().min(7, "Emergency contact phone is required").max(20),
+  bikeYear: z.string().trim().max(10).optional(),
+  bikeMake: z.string().trim().max(50).optional(),
+  bikeModel: z.string().trim().max(50).optional(),
   agreement: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms to continue" }),
   }),
@@ -144,6 +147,11 @@ const RegisterPage = () => {
   const [searchParams] = useSearchParams();
   const course = searchParams.get("course") || "basic";
   const location = searchParams.get("location") || "ventura-county";
+  // Intermediate registrations are split into two tracks: IRC (has M1) and
+  // 1DPC (no M1 — registered under the 1-Day Premier Course with Licensing).
+  const track = searchParams.get("track");
+  const isIrcTrack = course === "intermediate" && track !== "1dpc";
+  const is1dpcTrack = course === "intermediate" && track === "1dpc";
   const schedule = searchParams.get("schedule") || sessionStorage.getItem("selectedScheduleId") || "";
   const isCalibrate = searchParams.get("calibrate") === "1";
   const [referralOptions, setReferralOptions] = useState<string[]>(FALLBACK_REFERRALS);
@@ -222,6 +230,9 @@ const RegisterPage = () => {
       emergencyContactName: "",
       emergencyContactRelationship: "",
       emergencyContactPhone: "",
+      bikeYear: "",
+      bikeMake: "",
+      bikeModel: "",
       guardianFirstName: "",
       guardianLastName: "",
       guardianRelationship: "",
@@ -512,6 +523,28 @@ const RegisterPage = () => {
 
 
   const onSubmit = async (data: RegistrationFormData) => {
+    // IRC riders must tell us about the motorcycle they're bringing.
+    if (isIrcTrack) {
+      let missing = false;
+      for (const [key, msg] of [
+        ["bikeYear", "Year is required"],
+        ["bikeMake", "Make is required"],
+        ["bikeModel", "Model is required"],
+      ] as const) {
+        if (!String((data as any)[key] || "").trim()) {
+          form.setError(key, { message: msg });
+          missing = true;
+        }
+      }
+      if (missing) {
+        toast({
+          title: "Motorcycle information required",
+          description: "Please tell us the year, make and model of the motorcycle you're bringing.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     setSubmitting(true);
     try {
       // Look up the actual selected schedule (by id) to get its price + date
@@ -603,6 +636,10 @@ const RegisterPage = () => {
         guardian_relationship: isUnder18 ? (data.guardianRelationship || null) : null,
         guardian_phone: isUnder18 ? (data.guardianPhone || null) : null,
         guardian_email: isUnder18 ? (data.guardianEmail || null) : null,
+        rider_track: course === "intermediate" ? (is1dpcTrack ? "1dpc" : "irc") : null,
+        bike_info: isIrcTrack
+          ? [data.bikeYear, data.bikeMake, data.bikeModel].map(v => String(v || "").trim()).filter(Boolean).join(" ") || null
+          : null,
         discount_amount_cents: discountCents,
         discount_reason: discountCents > 0 ? (discountApplied?.source === "code" ? "code" : "returning_student") : null,
         discount_code: discountCents > 0 && discountApplied?.source === "code" ? (discountApplied.code || null) : null,
