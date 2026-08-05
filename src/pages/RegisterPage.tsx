@@ -231,6 +231,7 @@ const RegisterPage = () => {
       emergencyContactName: "",
       emergencyContactRelationship: "",
       emergencyContactPhone: "",
+      bikeChoice: "",
       bikeYear: "",
       bikeMake: "",
       bikeModel: "",
