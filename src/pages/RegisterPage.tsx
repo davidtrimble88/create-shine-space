@@ -1432,6 +1432,61 @@ const RegisterPage = () => {
                   />
                 </div>
 
+                {/* 1DPC — provided bike or own bike */}
+                {is1dpcTrack && (
+                  <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6">
+                    <div>
+                      <h2 className="text-xl font-bold">Your Motorcycle</h2>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        For the 1-Day Premier Course you can ride one of our provided motorcycles or bring your own.
+                      </p>
+                    </div>
+                    <FormField control={form.control} name="bikeChoice" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Which motorcycle will you ride? *</FormLabel>
+                        <FormControl>
+                          <RadioGroup onValueChange={field.onChange} value={field.value} className="grid gap-3 mt-2">
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="provided" id="bike-provided" />
+                              <Label htmlFor="bike-provided">Use a provided motorcycle</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="own" id="bike-own" />
+                              <Label htmlFor="bike-own">I'll bring my own motorcycle</Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    {form.watch("bikeChoice") === "own" && (
+                      <div className="grid md:grid-cols-3 gap-6">
+                        <FormField control={form.control} name="bikeYear" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Year *</FormLabel>
+                            <FormControl><Input placeholder="2021" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="bikeMake" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Make *</FormLabel>
+                            <FormControl><Input placeholder="Honda" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="bikeModel" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Model *</FormLabel>
+                            <FormControl><Input placeholder="CB500F" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* IRC — motorcycle information */}
                 {isIrcTrack && (
                   <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6">
@@ -1441,6 +1496,7 @@ const RegisterPage = () => {
                         The Intermediate Course (IRC) is ridden on your own motorcycle. Tell us what you'll be bringing.
                       </p>
                     </div>
+
                     <div className="grid md:grid-cols-3 gap-6">
                       <FormField control={form.control} name="bikeYear" render={({ field }) => (
                         <FormItem>
