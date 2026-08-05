@@ -452,7 +452,7 @@ const IntermediateCourse = () => (
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8">
         <p className="text-foreground font-bold text-xl md:text-2xl">Intermediate Riding Clinic</p>
-        <p className="text-foreground/70">CMSP 1-Day Premier Course (With Licensing Option)</p>
+        <p className="text-foreground/70">IRC / Intermediate Riding Course</p>
       </div>
     </div>
 
