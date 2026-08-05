@@ -15,6 +15,8 @@ const ChooseSchedulePage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const course = searchParams.get("course") || "basic";
+  // 1-Day Premier shares the same classes/seats as the Intermediate course
+  const scheduleCourse = course === "premier" ? "intermediate" : course;
   const location = searchParams.get("location") || "ventura-county";
   const track = searchParams.get("track");
   const trackParam = track ? `&track=${track}` : "";
@@ -24,6 +26,7 @@ const ChooseSchedulePage = () => {
 
   const courseLabels: Record<string, string> = {
     basic: "Motorcyclist Training Course",
+    premier: "1-Day Premier Course",
     intermediate: "Intermediate Course",
     advanced: "Advanced Riding Clinic",
   };
