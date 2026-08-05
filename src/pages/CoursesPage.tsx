@@ -326,7 +326,7 @@ const PremierCourse = () => (
           You must pass a basic riding evaluation at the start of class, similar to the DMV Motorcycle Skills Test.
         </p>
         <p className="text-foreground leading-relaxed mb-8 text-sm bg-accent/10 border border-accent/20 rounded-xl p-4">
-          <strong>Bike options:</strong> A training motorcycle and helmet are provided for this course, or you are welcome to ride your own bike if you prefer.
+          <strong>Equipment:</strong> A training motorcycle and helmet are provided for this course. You're welcome to bring your own helmet if you prefer.
         </p>
 
         {/* Skills grid */}
