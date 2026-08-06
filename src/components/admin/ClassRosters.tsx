@@ -19,7 +19,7 @@ import { formatPSTDate } from "@/lib/formatDate";
 
 type Schedule = Tables<"schedules">;
 type Booking = Tables<"bookings"> & {
-  result?: "pass" | "fail" | null;
+  result?: "pass" | "fail" | "self_drop" | null;
   retest_type?: "skill" | "knowledge" | "both" | "none" | null;
   dl389_completed?: boolean;
   dl389_completed_at?: string | null;
@@ -607,12 +607,13 @@ const ClassRosters = () => {
   })();
 
   // Pick which schedule list drives the current view.
-  // Past Roster excludes schedules that still have DL389 work pending.
-  const dl389PendingScheduleIds = new Set(dl389Schedules.map(s => s.id));
+  // Past Roster shows every class whose date has passed, immediately — the
+  // Evaluation Pending and DL389 queues run as separate, parallel workflows.
+
   const baseSchedules = view === "active"
     ? schedules.filter(s => !s.cancelled_at)
     : view === "past"
-      ? pastSchedules.filter(s => !dl389PendingScheduleIds.has(s.id) && (evalPendingCounts[s.id] || 0) === 0)
+      ? pastSchedules
       : view === "evaluation_pending"
         ? evalPendingSchedules
         : [];
@@ -985,7 +986,7 @@ const ClassRosters = () => {
     return rows;
   };
 
-  const handleSetResult = async (bookingId: string, next: "pass" | "fail" | null) => {
+  const handleSetResult = async (bookingId: string, next: "pass" | "fail" | "self_drop" | null) => {
     // For 'fail' we open a dialog to capture retest eligibility + optional comment
     if (next === "fail") {
       const b = bookings.find(x => x.id === bookingId);
@@ -995,11 +996,29 @@ const ClassRosters = () => {
       setFailComment("");
       return;
     }
+    if (next === "self_drop") {
+      const reason = window.prompt("Reason for self drop (optional — saved to the student's record):", "") ?? "";
+      const current = bookings.find(x => x.id === bookingId);
+      const trimmed = reason.trim();
+      let mergedComment = current?.roster_comment || "";
+      const stamp = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
+      const line = `Self drop ${stamp}${trimmed ? `: ${trimmed}` : ""}`;
+      mergedComment = mergedComment ? `${mergedComment}\n${line}` : line;
+      const updates: any = { result: "self_drop", retest_type: null, roster_comment: mergedComment };
+      const { error } = await (supabase as any).from("bookings").update(updates).eq("id", bookingId);
+      if (error) {
+        toast.error("Failed to mark as self drop");
+        return;
+      }
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...updates } : b));
+      toast.success("Marked as self drop — student stays on the roster");
+      return;
+    }
     const updates: any = { result: next };
     if (next === null) updates.retest_type = null;
     if (next === "pass") updates.retest_type = null;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("bookings")
       .update(updates)
       .eq("id", bookingId);
@@ -1010,6 +1029,7 @@ const ClassRosters = () => {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...updates } : b));
     toast.success(next === null ? "Result cleared" : "Marked as Pass");
   };
+
 
   const closeFailDialog = () => {
     setFailDialogBookingId(null);
@@ -1038,12 +1058,8 @@ const ClassRosters = () => {
       retest_type: failCanReturn === "yes" ? failRetestType : "none",
       roster_comment: mergedComment || null,
     };
-    if (failCanReturn === "no") {
-      updates.dropped = true;
-      updates.dropped_reason = trimmed || "Not eligible to return";
-      updates.dropped_at = new Date().toISOString();
-      updates.dropped_by = user?.id ?? null;
-    }
+    // Failed students always stay on the roster — no dropping/removal here.
+
 
     const { error } = await supabase
       .from("bookings")
@@ -1059,16 +1075,16 @@ const ClassRosters = () => {
     toast.success(
       failCanReturn === "yes"
         ? `Marked as Fail — moved to Pending Retest/Reschedule`
-        : `Marked as Fail — archived (not returning)`
+        : `Marked as Fail — not eligible to return (stays on the roster)`
     );
   };
 
   const renderResultCell = (b: Booking) => {
-    const result = b.result as "pass" | "fail" | null | undefined;
+    const result = b.result as "pass" | "fail" | "self_drop" | null | undefined;
     const retest = b.retest_type as string | null | undefined;
     return (
       <td className="p-3">
-        <div className="flex items-center justify-center gap-1.5">
+        <div className="flex items-center justify-center gap-1.5 flex-wrap">
           <button
             type="button"
             onClick={() => handleSetResult(b.id, result === "pass" ? null : "pass")}
@@ -1095,7 +1111,24 @@ const ClassRosters = () => {
           >
             <Frown className="w-4 h-4" /> Fail
           </button>
+          <button
+            type="button"
+            onClick={() => handleSetResult(b.id, result === "self_drop" ? null : "self_drop")}
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold border transition-colors ${
+              result === "self_drop"
+                ? "bg-amber-500/20 text-amber-500 border-amber-500/40"
+                : "text-muted-foreground border-border hover:text-amber-500 hover:bg-amber-500/10 hover:border-amber-500/40"
+            }`}
+            title={result === "self_drop" ? "Click to clear" : "Mark as Self Drop"}
+            aria-label="Mark as Self Drop"
+          >
+            <UserMinus className="w-4 h-4" /> Self Drop
+          </button>
         </div>
+
+        {result === "self_drop" && (
+          <div className="text-[10px] text-center mt-1 text-amber-500">Self dropped — remains on roster</div>
+        )}
 
         {result === "fail" && retest && (
           <div className="text-[10px] text-center mt-1 text-muted-foreground">
@@ -1105,6 +1138,7 @@ const ClassRosters = () => {
               : "Not eligible"}
           </div>
         )}
+
       </td>
     );
   };
@@ -3059,7 +3093,7 @@ const ClassRosters = () => {
           <DialogHeader>
             <DialogTitle>Mark as Fail</DialogTitle>
             <DialogDescription>
-              Decide whether this student can return. Eligible students move to Pending Retest/Reschedule with a {RETEST_WINDOW_DAYS}-day countdown. Students who can't return are archived. Comments are saved to the student's record.
+              Decide whether this student can return. Eligible students move to Pending Retest/Reschedule with a {RETEST_WINDOW_DAYS}-day countdown. Either way the student stays on the class roster. Comments are saved to the student's record.
             </DialogDescription>
           </DialogHeader>
 
@@ -3086,7 +3120,7 @@ const ClassRosters = () => {
                     <div className="text-sm font-semibold flex items-center gap-2">
                       <Archive className="w-4 h-4 text-destructive" /> No — cannot return
                     </div>
-                    <div className="text-xs text-muted-foreground">Archives the student (Needs Rescheduling / past roster).</div>
+                    <div className="text-xs text-muted-foreground">Recorded as a final fail — student stays on the roster.</div>
                   </div>
                 </label>
               </RadioGroup>
