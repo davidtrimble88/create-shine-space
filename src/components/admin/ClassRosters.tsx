@@ -607,8 +607,9 @@ const ClassRosters = () => {
   })();
 
   // Pick which schedule list drives the current view.
-  // Past Roster excludes schedules that still have DL389 work pending.
-  const dl389PendingScheduleIds = new Set(dl389Schedules.map(s => s.id));
+  // Past Roster shows every class whose date has passed, immediately — the
+  // Evaluation Pending and DL389 queues run as separate, parallel workflows.
+
   const baseSchedules = view === "active"
     ? schedules.filter(s => !s.cancelled_at)
     : view === "past"
@@ -985,7 +986,7 @@ const ClassRosters = () => {
     return rows;
   };
 
-  const handleSetResult = async (bookingId: string, next: "pass" | "fail" | null) => {
+  const handleSetResult = async (bookingId: string, next: "pass" | "fail" | "self_drop" | null) => {
     // For 'fail' we open a dialog to capture retest eligibility + optional comment
     if (next === "fail") {
       const b = bookings.find(x => x.id === bookingId);
@@ -995,11 +996,29 @@ const ClassRosters = () => {
       setFailComment("");
       return;
     }
+    if (next === "self_drop") {
+      const reason = window.prompt("Reason for self drop (optional — saved to the student's record):", "") ?? "";
+      const current = bookings.find(x => x.id === bookingId);
+      const trimmed = reason.trim();
+      let mergedComment = current?.roster_comment || "";
+      const stamp = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
+      const line = `Self drop ${stamp}${trimmed ? `: ${trimmed}` : ""}`;
+      mergedComment = mergedComment ? `${mergedComment}\n${line}` : line;
+      const updates: any = { result: "self_drop", retest_type: null, roster_comment: mergedComment };
+      const { error } = await (supabase as any).from("bookings").update(updates).eq("id", bookingId);
+      if (error) {
+        toast.error("Failed to mark as self drop");
+        return;
+      }
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...updates } : b));
+      toast.success("Marked as self drop — student stays on the roster");
+      return;
+    }
     const updates: any = { result: next };
     if (next === null) updates.retest_type = null;
     if (next === "pass") updates.retest_type = null;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("bookings")
       .update(updates)
       .eq("id", bookingId);
@@ -1010,6 +1029,7 @@ const ClassRosters = () => {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...updates } : b));
     toast.success(next === null ? "Result cleared" : "Marked as Pass");
   };
+
 
   const closeFailDialog = () => {
     setFailDialogBookingId(null);
