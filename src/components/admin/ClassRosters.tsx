@@ -1075,16 +1075,16 @@ const ClassRosters = () => {
     toast.success(
       failCanReturn === "yes"
         ? `Marked as Fail — moved to Pending Retest/Reschedule`
-        : `Marked as Fail — archived (not returning)`
+        : `Marked as Fail — not eligible to return (stays on the roster)`
     );
   };
 
   const renderResultCell = (b: Booking) => {
-    const result = b.result as "pass" | "fail" | null | undefined;
+    const result = b.result as "pass" | "fail" | "self_drop" | null | undefined;
     const retest = b.retest_type as string | null | undefined;
     return (
       <td className="p-3">
-        <div className="flex items-center justify-center gap-1.5">
+        <div className="flex items-center justify-center gap-1.5 flex-wrap">
           <button
             type="button"
             onClick={() => handleSetResult(b.id, result === "pass" ? null : "pass")}
@@ -1111,7 +1111,24 @@ const ClassRosters = () => {
           >
             <Frown className="w-4 h-4" /> Fail
           </button>
+          <button
+            type="button"
+            onClick={() => handleSetResult(b.id, result === "self_drop" ? null : "self_drop")}
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold border transition-colors ${
+              result === "self_drop"
+                ? "bg-amber-500/20 text-amber-500 border-amber-500/40"
+                : "text-muted-foreground border-border hover:text-amber-500 hover:bg-amber-500/10 hover:border-amber-500/40"
+            }`}
+            title={result === "self_drop" ? "Click to clear" : "Mark as Self Drop"}
+            aria-label="Mark as Self Drop"
+          >
+            <UserMinus className="w-4 h-4" /> Self Drop
+          </button>
         </div>
+
+        {result === "self_drop" && (
+          <div className="text-[10px] text-center mt-1 text-amber-500">Self dropped — remains on roster</div>
+        )}
 
         {result === "fail" && retest && (
           <div className="text-[10px] text-center mt-1 text-muted-foreground">
@@ -1121,6 +1138,7 @@ const ClassRosters = () => {
               : "Not eligible"}
           </div>
         )}
+
       </td>
     );
   };
