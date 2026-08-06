@@ -596,6 +596,40 @@ const AdminBookings = () => {
                   <p className="text-xs text-destructive mt-1">⚠ This class is full</p>
                 )}
               </div>
+              {selectedSchedule?.course === "intermediate" && (
+                <div className="space-y-3 rounded-md border border-border p-3">
+                  <div>
+                    <Label>Course Track *</Label>
+                    <Select value={form.rider_track} onValueChange={v => setForm(f => ({ ...f, rider_track: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="irc">Intermediate Riding Clinic (IRC) — has M1, own bike</SelectItem>
+                        <SelectItem value="1dpc">1-Day Premier Course with Licensing (1DPC) — no M1, provided bike</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      IRC and 1DPC share the same class and seats. Selecting 1DPC adds a "1DPC" note to the roster.
+                    </p>
+                  </div>
+                  {form.rider_track === "irc" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <Label>Bike Year *</Label>
+                        <Input value={form.bike_year} onChange={e => setForm(f => ({ ...f, bike_year: e.target.value }))} maxLength={4} />
+                      </div>
+                      <div>
+                        <Label>Bike Make *</Label>
+                        <Input value={form.bike_make} onChange={e => setForm(f => ({ ...f, bike_make: e.target.value }))} maxLength={50} />
+                      </div>
+                      <div>
+                        <Label>Bike Model *</Label>
+                        <Input value={form.bike_model} onChange={e => setForm(f => ({ ...f, bike_model: e.target.value }))} maxLength={50} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label>Legal First Name *</Label>
