@@ -63,6 +63,10 @@ const AdminBookings = () => {
   const [filterDate, setFilterDate] = useState("");
   const [form, setForm] = useState({
     schedule_id: "",
+    rider_track: "irc",
+    bike_year: "",
+    bike_make: "",
+    bike_model: "",
     first_name: "",
     middle_name: "",
     last_name: "",
