@@ -196,7 +196,16 @@ const AdminBookings = () => {
     const sched = schedules.find(s => s.id === form.schedule_id);
     if (!sched) return;
 
+    const isIntermediate = sched.course === "intermediate";
+    const is1dpc = isIntermediate && form.rider_track === "1dpc";
+    const isIrc = isIntermediate && form.rider_track === "irc";
+    if (isIrc && (!form.bike_year.trim() || !form.bike_make.trim() || !form.bike_model.trim())) {
+      toast({ title: "Bike info required", description: "IRC students ride their own bike — year, make, and model are required.", variant: "destructive" });
+      return;
+    }
+
     const basePayload: Record<string, unknown> = {
+
       id: crypto.randomUUID(),
       schedule_id: form.schedule_id,
       course: sched.course,
