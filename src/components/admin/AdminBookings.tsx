@@ -63,6 +63,10 @@ const AdminBookings = () => {
   const [filterDate, setFilterDate] = useState("");
   const [form, setForm] = useState({
     schedule_id: "",
+    rider_track: "irc",
+    bike_year: "",
+    bike_make: "",
+    bike_model: "",
     first_name: "",
     middle_name: "",
     last_name: "",
@@ -192,7 +196,16 @@ const AdminBookings = () => {
     const sched = schedules.find(s => s.id === form.schedule_id);
     if (!sched) return;
 
+    const isIntermediate = sched.course === "intermediate";
+    const is1dpc = isIntermediate && form.rider_track === "1dpc";
+    const isIrc = isIntermediate && form.rider_track === "irc";
+    if (isIrc && (!form.bike_year.trim() || !form.bike_make.trim() || !form.bike_model.trim())) {
+      toast({ title: "Bike info required", description: "IRC students ride their own bike — year, make, and model are required.", variant: "destructive" });
+      return;
+    }
+
     const basePayload: Record<string, unknown> = {
+
       id: crypto.randomUUID(),
       schedule_id: form.schedule_id,
       course: sched.course,
@@ -224,8 +237,16 @@ const AdminBookings = () => {
       guardian_phone: form.guardian_phone || null,
       guardian_email: form.guardian_email || null,
       fee: sched.price,
+      rider_track: isIntermediate ? form.rider_track : null,
+      bike_info: isIrc
+        ? [form.bike_year, form.bike_make, form.bike_model].map(v => v.trim()).filter(Boolean).join(" ")
+        : is1dpc
+          ? "Provided bike"
+          : null,
+      roster_comment: is1dpc ? "1DPC" : null,
       manually_added: true,
     };
+
 
 
     // Take real card payment via Square
@@ -256,7 +277,7 @@ const AdminBookings = () => {
     } else {
       void sendConfirmationForBooking(basePayload);
       toast({ title: "Student Added", description: `${form.first_name} ${form.last_name} has been booked.` });
-      setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
+      setForm({ schedule_id: "", rider_track: "irc", bike_year: "", bike_make: "", bike_model: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
       setStudentPaymentCollected(false);
       setStudentPaymentMethod("cash");
       setDialogOpen(false);
@@ -331,7 +352,7 @@ const AdminBookings = () => {
     if (chargePayload) void sendConfirmationForBooking(chargePayload);
     setChargeOpen(false);
     setChargePayload(null);
-    setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
+    setForm({ schedule_id: "", rider_track: "irc", bike_year: "", bike_make: "", bike_model: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
     setStudentPaymentCollected(false);
     setStudentPaymentMethod("cash");
     setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
@@ -575,6 +596,40 @@ const AdminBookings = () => {
                   <p className="text-xs text-destructive mt-1">⚠ This class is full</p>
                 )}
               </div>
+              {selectedSchedule?.course === "intermediate" && (
+                <div className="space-y-3 rounded-md border border-border p-3">
+                  <div>
+                    <Label>Course Track *</Label>
+                    <Select value={form.rider_track} onValueChange={v => setForm(f => ({ ...f, rider_track: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="irc">Intermediate Riding Clinic (IRC) — has M1, own bike</SelectItem>
+                        <SelectItem value="1dpc">1-Day Premier Course with Licensing (1DPC) — no M1, provided bike</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      IRC and 1DPC share the same class and seats. Selecting 1DPC adds a "1DPC" note to the roster.
+                    </p>
+                  </div>
+                  {form.rider_track === "irc" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <Label>Bike Year *</Label>
+                        <Input value={form.bike_year} onChange={e => setForm(f => ({ ...f, bike_year: e.target.value }))} maxLength={4} />
+                      </div>
+                      <div>
+                        <Label>Bike Make *</Label>
+                        <Input value={form.bike_make} onChange={e => setForm(f => ({ ...f, bike_make: e.target.value }))} maxLength={50} />
+                      </div>
+                      <div>
+                        <Label>Bike Model *</Label>
+                        <Input value={form.bike_model} onChange={e => setForm(f => ({ ...f, bike_model: e.target.value }))} maxLength={50} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label>Legal First Name *</Label>
