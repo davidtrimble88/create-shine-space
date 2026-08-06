@@ -3093,7 +3093,7 @@ const ClassRosters = () => {
           <DialogHeader>
             <DialogTitle>Mark as Fail</DialogTitle>
             <DialogDescription>
-              Decide whether this student can return. Eligible students move to Pending Retest/Reschedule with a {RETEST_WINDOW_DAYS}-day countdown. Students who can't return are archived. Comments are saved to the student's record.
+              Decide whether this student can return. Eligible students move to Pending Retest/Reschedule with a {RETEST_WINDOW_DAYS}-day countdown. Either way the student stays on the class roster. Comments are saved to the student's record.
             </DialogDescription>
           </DialogHeader>
 
@@ -3120,7 +3120,7 @@ const ClassRosters = () => {
                     <div className="text-sm font-semibold flex items-center gap-2">
                       <Archive className="w-4 h-4 text-destructive" /> No — cannot return
                     </div>
-                    <div className="text-xs text-muted-foreground">Archives the student (Needs Rescheduling / past roster).</div>
+                    <div className="text-xs text-muted-foreground">Recorded as a final fail — student stays on the roster.</div>
                   </div>
                 </label>
               </RadioGroup>
