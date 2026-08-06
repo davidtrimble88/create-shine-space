@@ -1058,12 +1058,8 @@ const ClassRosters = () => {
       retest_type: failCanReturn === "yes" ? failRetestType : "none",
       roster_comment: mergedComment || null,
     };
-    if (failCanReturn === "no") {
-      updates.dropped = true;
-      updates.dropped_reason = trimmed || "Not eligible to return";
-      updates.dropped_at = new Date().toISOString();
-      updates.dropped_by = user?.id ?? null;
-    }
+    // Failed students always stay on the roster — no dropping/removal here.
+
 
     const { error } = await supabase
       .from("bookings")
