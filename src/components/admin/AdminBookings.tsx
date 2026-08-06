@@ -260,7 +260,7 @@ const AdminBookings = () => {
     } else {
       void sendConfirmationForBooking(basePayload);
       toast({ title: "Student Added", description: `${form.first_name} ${form.last_name} has been booked.` });
-      setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
+      setForm({ schedule_id: "", rider_track: "irc", bike_year: "", bike_make: "", bike_model: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
       setStudentPaymentCollected(false);
       setStudentPaymentMethod("cash");
       setDialogOpen(false);
@@ -335,7 +335,7 @@ const AdminBookings = () => {
     if (chargePayload) void sendConfirmationForBooking(chargePayload);
     setChargeOpen(false);
     setChargePayload(null);
-    setForm({ schedule_id: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
+    setForm({ schedule_id: "", rider_track: "irc", bike_year: "", bike_make: "", bike_model: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
     setStudentPaymentCollected(false);
     setStudentPaymentMethod("cash");
     setRetestForm({ schedule_id: "", first_name: "", last_name: "", phone: "", license_number: "", date_of_birth: "" });
