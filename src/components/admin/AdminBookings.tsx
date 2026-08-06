@@ -237,8 +237,16 @@ const AdminBookings = () => {
       guardian_phone: form.guardian_phone || null,
       guardian_email: form.guardian_email || null,
       fee: sched.price,
+      rider_track: isIntermediate ? form.rider_track : null,
+      bike_info: isIrc
+        ? [form.bike_year, form.bike_make, form.bike_model].map(v => v.trim()).filter(Boolean).join(" ")
+        : is1dpc
+          ? "Provided bike"
+          : null,
+      roster_comment: is1dpc ? "1DPC" : null,
       manually_added: true,
     };
+
 
 
     // Take real card payment via Square
