@@ -19,7 +19,7 @@ import { formatPSTDate } from "@/lib/formatDate";
 
 type Schedule = Tables<"schedules">;
 type Booking = Tables<"bookings"> & {
-  result?: "pass" | "fail" | null;
+  result?: "pass" | "fail" | "self_drop" | null;
   retest_type?: "skill" | "knowledge" | "both" | "none" | null;
   dl389_completed?: boolean;
   dl389_completed_at?: string | null;
@@ -612,7 +612,7 @@ const ClassRosters = () => {
   const baseSchedules = view === "active"
     ? schedules.filter(s => !s.cancelled_at)
     : view === "past"
-      ? pastSchedules.filter(s => !dl389PendingScheduleIds.has(s.id) && (evalPendingCounts[s.id] || 0) === 0)
+      ? pastSchedules
       : view === "evaluation_pending"
         ? evalPendingSchedules
         : [];
