@@ -57,6 +57,34 @@ const EarningsAnalytics = () => {
     passed: 0, failed: 0, resultsTotal: 0,
   });
   const [loading, setLoading] = useState(true);
+  const { effectiveRole } = useAuth();
+  const isOwner = effectiveRole === "owner";
+  const [financeSearchOpen, setFinanceSearchOpen] = useState(false);
+  const [studentQuery, setStudentQuery] = useState("");
+  const [studentResults, setStudentResults] = useState<StudentHit[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<StudentHit | null>(null);
+
+  const searchStudents = async (q: string) => {
+    const term = q.trim();
+    if (term.length < 2) { setStudentResults([]); return; }
+    const like = `%${term}%`;
+    const { data } = await supabase
+      .from("bookings")
+      .select("id, first_name, last_name, email")
+      .or(`first_name.ilike.${like},last_name.ilike.${like},email.ilike.${like}`)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    const seen = new Set<string>();
+    const unique: StudentHit[] = [];
+    (data || []).forEach((r: any) => {
+      const key = (r.email || `${r.first_name} ${r.last_name}`).toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      unique.push(r as StudentHit);
+    });
+    setStudentResults(unique);
+  };
+
   const [viewMode, setViewMode] = useState<ViewMode>("all");
   const [dateRange, setDateRange] = useState<DateRange>("30days");
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
