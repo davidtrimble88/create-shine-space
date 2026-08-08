@@ -258,9 +258,14 @@ const EarningsAnalytics = () => {
       <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
         <h1 className="text-2xl font-bold text-foreground">Financial</h1>
         {isOwner && (
-          <Button variant="outline" size="sm" onClick={() => { setFinanceSearchOpen(true); setStudentQuery(""); setStudentResults([]); }}>
-            <DollarSign className="w-4 h-4 mr-1" /> Student Financial History
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => { setReportOpen(true); }}>
+              <FileSpreadsheet className="w-4 h-4 mr-1" /> CPA Report
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => { setFinanceSearchOpen(true); setStudentQuery(""); setStudentResults([]); }}>
+              <DollarSign className="w-4 h-4 mr-1" /> Student Financial History
+            </Button>
+          </div>
         )}
       </div>
 
