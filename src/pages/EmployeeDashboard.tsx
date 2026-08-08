@@ -62,7 +62,7 @@ const tabs = [
   { id: "registration-issues", label: "Registration Issues", icon: AlertTriangle, roles: ["owner", "admin"] },
   
   { id: "auto-emails", label: "Auto Emails", icon: Mail, roles: ["owner", "admin"] },
-  { id: "earnings", label: "Earnings", icon: DollarSign, roles: ["owner"] },
+  { id: "earnings", label: "Financial", icon: DollarSign, roles: ["owner"] },
   { id: "discounts", label: "Discounts", icon: Ticket, roles: ["owner", "admin"] },
   { id: "payment-settings", label: "Payment Settings", icon: CreditCard, roles: ["owner"] },
   { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
