@@ -2,10 +2,21 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DollarSign, MapPin, CalendarDays, TrendingUp, Ban, UserX, CalendarX, CheckCircle2, XCircle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
+import PaymentHistoryDialog from "./PaymentHistoryDialog";
+
+interface StudentHit {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+}
 
 type ViewMode = "all" | "by-site" | "by-date";
 type DateRange = "all-time" | "today" | "yesterday" | "7days" | "30days" | "this-month" | "this-year" | "last-year" | "custom";
