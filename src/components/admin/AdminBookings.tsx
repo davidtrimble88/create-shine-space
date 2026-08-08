@@ -15,6 +15,8 @@ import { PaymentDialog, type PaymentProvider } from "@/components/PaymentDialog"
 import type { SquareRegion } from "@/components/SquarePaymentDialog";
 import { formatPSTDate } from "@/lib/formatDate";
 import { sendRegistrationConfirmation } from "@/lib/registrationEmail";
+import { useAuth } from "@/contexts/AuthContext";
+import PaymentHistoryDialog from "./PaymentHistoryDialog";
 
 const regionFor = (location: string): SquareRegion =>
   location.startsWith("high-desert") ? "high_desert" : "ventura";
