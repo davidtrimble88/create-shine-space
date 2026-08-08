@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import PaymentHistoryDialog from "./PaymentHistoryDialog";
+import FinancialReport from "./FinancialReport";
 
 interface StudentHit {
   id: string;
