@@ -536,6 +536,8 @@ const EarningsAnalytics = () => {
           )}
         </>
       )}
+
+      {isOwner && <FinancialReport />}
     </div>
   );
 };
