@@ -153,11 +153,18 @@ Deno.serve(async (req) => {
 
     let imported = 0;
     if (inserts.length) {
-      const { error: insErr, count } = await admin
-        .from("payment_transactions")
-        .upsert(inserts, { onConflict: "provider_payment_id", ignoreDuplicates: true, count: "exact" });
-      if (insErr) return json({ error: insErr.message }, 500);
-      imported = count ?? inserts.length;
+      // Duplicates are already filtered above; a partial unique index guards
+      // against races, so insert row-by-row and skip conflicts silently.
+      for (const row of inserts) {
+        const { error: insErr } = await admin.from("payment_transactions").insert(row);
+        if (insErr) {
+          if (!/duplicate key/i.test(insErr.message)) {
+            console.warn("insert failed", insErr.message);
+          }
+          continue;
+        }
+        imported++;
+      }
     }
 
     return json({
