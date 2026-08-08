@@ -214,7 +214,58 @@ const EarningsAnalytics = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-foreground mb-6">Earnings Analytics</h1>
+      <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
+        <h1 className="text-2xl font-bold text-foreground">Earnings Analytics</h1>
+        {isOwner && (
+          <Button variant="outline" size="sm" onClick={() => { setFinanceSearchOpen(true); setStudentQuery(""); setStudentResults([]); }}>
+            <DollarSign className="w-4 h-4 mr-1" /> Student Financial History
+          </Button>
+        )}
+      </div>
+
+      {isOwner && (
+        <>
+          <Dialog open={financeSearchOpen} onOpenChange={setFinanceSearchOpen}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Find Student</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <Input
+                  autoFocus
+                  placeholder="Search by student name or email…"
+                  value={studentQuery}
+                  onChange={(e) => { setStudentQuery(e.target.value); searchStudents(e.target.value); }}
+                />
+                <div className="max-h-72 overflow-y-auto divide-y divide-border">
+                  {studentResults.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className="w-full text-left py-2 px-1 hover:bg-secondary/40 rounded"
+                      onClick={() => { setSelectedStudent(s); setFinanceSearchOpen(false); }}
+                    >
+                      <p className="text-sm font-medium text-foreground">{s.first_name} {s.last_name}</p>
+                      <p className="text-xs text-muted-foreground">{s.email}</p>
+                    </button>
+                  ))}
+                  {studentQuery.trim().length > 1 && studentResults.length === 0 && (
+                    <p className="text-sm text-muted-foreground py-3">No students found.</p>
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <PaymentHistoryDialog
+            open={!!selectedStudent}
+            onOpenChange={(o) => { if (!o) setSelectedStudent(null); }}
+            email={selectedStudent?.email}
+            studentName={selectedStudent ? `${selectedStudent.first_name} ${selectedStudent.last_name}` : null}
+          />
+        </>
+      )}
+
 
       {/* Date Range Selector */}
       <div className="flex flex-wrap gap-2 mb-4">
