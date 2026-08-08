@@ -309,6 +309,15 @@ const EarningsAnalytics = () => {
             email={selectedStudent?.email}
             studentName={selectedStudent ? `${selectedStudent.first_name} ${selectedStudent.last_name}` : null}
           />
+
+          <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>CPA Financial Report</DialogTitle>
+              </DialogHeader>
+              <FinancialReport />
+            </DialogContent>
+          </Dialog>
         </>
       )}
 
