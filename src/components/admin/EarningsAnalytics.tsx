@@ -2,10 +2,21 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DollarSign, MapPin, CalendarDays, TrendingUp, Ban, UserX, CalendarX, CheckCircle2, XCircle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
+import PaymentHistoryDialog from "./PaymentHistoryDialog";
+
+interface StudentHit {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+}
 
 type ViewMode = "all" | "by-site" | "by-date";
 type DateRange = "all-time" | "today" | "yesterday" | "7days" | "30days" | "this-month" | "this-year" | "last-year" | "custom";
@@ -46,6 +57,34 @@ const EarningsAnalytics = () => {
     passed: 0, failed: 0, resultsTotal: 0,
   });
   const [loading, setLoading] = useState(true);
+  const { effectiveRole } = useAuth();
+  const isOwner = effectiveRole === "owner";
+  const [financeSearchOpen, setFinanceSearchOpen] = useState(false);
+  const [studentQuery, setStudentQuery] = useState("");
+  const [studentResults, setStudentResults] = useState<StudentHit[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<StudentHit | null>(null);
+
+  const searchStudents = async (q: string) => {
+    const term = q.trim();
+    if (term.length < 2) { setStudentResults([]); return; }
+    const like = `%${term}%`;
+    const { data } = await supabase
+      .from("bookings")
+      .select("id, first_name, last_name, email")
+      .or(`first_name.ilike.${like},last_name.ilike.${like},email.ilike.${like}`)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    const seen = new Set<string>();
+    const unique: StudentHit[] = [];
+    (data || []).forEach((r: any) => {
+      const key = (r.email || `${r.first_name} ${r.last_name}`).toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      unique.push(r as StudentHit);
+    });
+    setStudentResults(unique);
+  };
+
   const [viewMode, setViewMode] = useState<ViewMode>("all");
   const [dateRange, setDateRange] = useState<DateRange>("30days");
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
@@ -214,7 +253,58 @@ const EarningsAnalytics = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-foreground mb-6">Earnings Analytics</h1>
+      <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
+        <h1 className="text-2xl font-bold text-foreground">Earnings Analytics</h1>
+        {isOwner && (
+          <Button variant="outline" size="sm" onClick={() => { setFinanceSearchOpen(true); setStudentQuery(""); setStudentResults([]); }}>
+            <DollarSign className="w-4 h-4 mr-1" /> Student Financial History
+          </Button>
+        )}
+      </div>
+
+      {isOwner && (
+        <>
+          <Dialog open={financeSearchOpen} onOpenChange={setFinanceSearchOpen}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Find Student</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <Input
+                  autoFocus
+                  placeholder="Search by student name or email…"
+                  value={studentQuery}
+                  onChange={(e) => { setStudentQuery(e.target.value); searchStudents(e.target.value); }}
+                />
+                <div className="max-h-72 overflow-y-auto divide-y divide-border">
+                  {studentResults.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className="w-full text-left py-2 px-1 hover:bg-secondary/40 rounded"
+                      onClick={() => { setSelectedStudent(s); setFinanceSearchOpen(false); }}
+                    >
+                      <p className="text-sm font-medium text-foreground">{s.first_name} {s.last_name}</p>
+                      <p className="text-xs text-muted-foreground">{s.email}</p>
+                    </button>
+                  ))}
+                  {studentQuery.trim().length > 1 && studentResults.length === 0 && (
+                    <p className="text-sm text-muted-foreground py-3">No students found.</p>
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <PaymentHistoryDialog
+            open={!!selectedStudent}
+            onOpenChange={(o) => { if (!o) setSelectedStudent(null); }}
+            email={selectedStudent?.email}
+            studentName={selectedStudent ? `${selectedStudent.first_name} ${selectedStudent.last_name}` : null}
+          />
+        </>
+      )}
+
 
       {/* Date Range Selector */}
       <div className="flex flex-wrap gap-2 mb-4">

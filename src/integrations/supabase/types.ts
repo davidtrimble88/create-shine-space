@@ -1116,6 +1116,44 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_refunds: {
+        Row: {
+          amount_cents: number
+          comment: string
+          created_at: string
+          created_by: string | null
+          id: string
+          provider_refund_id: string | null
+          transaction_id: string
+        }
+        Insert: {
+          amount_cents: number
+          comment: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          provider_refund_id?: string | null
+          transaction_id: string
+        }
+        Update: {
+          amount_cents?: number
+          comment?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          provider_refund_id?: string | null
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_refunds_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "payment_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_settings: {
         Row: {
           active_provider: string
@@ -1161,6 +1199,60 @@ export type Database = {
           stripe_mode?: string
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      payment_transactions: {
+        Row: {
+          amount_cents: number
+          booking_id: string | null
+          card_brand: string | null
+          card_last4: string | null
+          created_at: string
+          description: string | null
+          id: string
+          provider: string
+          provider_payment_id: string | null
+          refunded_cents: number
+          region: string | null
+          status: string
+          student_email: string | null
+          student_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          booking_id?: string | null
+          card_brand?: string | null
+          card_last4?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          provider?: string
+          provider_payment_id?: string | null
+          refunded_cents?: number
+          region?: string | null
+          status?: string
+          student_email?: string | null
+          student_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          booking_id?: string | null
+          card_brand?: string | null
+          card_last4?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          provider?: string
+          provider_payment_id?: string | null
+          refunded_cents?: number
+          region?: string | null
+          status?: string
+          student_email?: string | null
+          student_name?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

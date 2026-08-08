@@ -273,6 +273,26 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Record the payment transaction for financial history (best effort).
+    try {
+      const card = payment?.card_details?.card ?? {};
+      await supabaseAdmin.from("payment_transactions").insert({
+        booking_id: bookingId,
+        student_email: typeof booking.email === "string" ? booking.email : null,
+        student_name: `${booking.first_name ?? ""} ${booking.last_name ?? ""}`.trim() || null,
+        region,
+        provider: "square",
+        provider_payment_id: paymentId,
+        amount_cents: amountCents,
+        card_brand: card.card_brand ?? null,
+        card_last4: card.last_4 ?? null,
+        description: `${booking.course ?? "Course"} — ${booking.location_label ?? ""} ${booking.schedule_date ?? ""}`.trim(),
+        status: "completed",
+      });
+    } catch (e) {
+      console.warn("Failed to record payment transaction:", e);
+    }
+
     // Record discount code redemption (best effort — never fail the response here).
     if (discountCodeId) {
       try {

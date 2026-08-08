@@ -15,6 +15,8 @@ import { PaymentDialog, type PaymentProvider } from "@/components/PaymentDialog"
 import type { SquareRegion } from "@/components/SquarePaymentDialog";
 import { formatPSTDate } from "@/lib/formatDate";
 import { sendRegistrationConfirmation } from "@/lib/registrationEmail";
+import { useAuth } from "@/contexts/AuthContext";
+import PaymentHistoryDialog from "./PaymentHistoryDialog";
 
 const regionFor = (location: string): SquareRegion =>
   location.startsWith("high-desert") ? "high_desert" : "ventura";
@@ -47,6 +49,9 @@ const FALLBACK_REFERRALS = [
 
 const AdminBookings = () => {
   const { toast } = useToast();
+  const { effectiveRole } = useAuth();
+  const isOwner = effectiveRole === "owner";
+  const [financeBooking, setFinanceBooking] = useState<Booking | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [referralOptions, setReferralOptions] = useState<string[]>(FALLBACK_REFERRALS);
@@ -953,7 +958,17 @@ const AdminBookings = () => {
                       >
                         <Mail className={`w-4 h-4 ${resendingId === b.id || b.is_retest ? "opacity-50" : ""}`} />
                       </Button>
-
+                      {isOwner && (
+                        <button
+                          type="button"
+                          title="Financial history & refunds"
+                          aria-label={`Financial history for ${b.first_name} ${b.last_name}`}
+                          onClick={() => setFinanceBooking(b)}
+                          className="ml-auto inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/25 transition-colors"
+                        >
+                          <DollarSign className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -962,6 +977,17 @@ const AdminBookings = () => {
           </table>
         </div>
       </div>
+
+      {isOwner && (
+        <PaymentHistoryDialog
+          open={!!financeBooking}
+          onOpenChange={(o) => { if (!o) setFinanceBooking(null); }}
+          bookingId={financeBooking?.id}
+          email={financeBooking?.email}
+          studentName={financeBooking ? `${financeBooking.first_name} ${financeBooking.last_name}` : null}
+        />
+      )}
+
 
       {/* Student Detail Dialog */}
       <Dialog open={!!selectedBooking} onOpenChange={(open) => { if (!open) setSelectedBooking(null); }}>
