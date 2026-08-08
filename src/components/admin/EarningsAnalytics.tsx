@@ -64,6 +64,7 @@ const EarningsAnalytics = () => {
   const [studentQuery, setStudentQuery] = useState("");
   const [studentResults, setStudentResults] = useState<StudentHit[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<StudentHit | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const searchStudents = async (q: string) => {
     const term = q.trim();
