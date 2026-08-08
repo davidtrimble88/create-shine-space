@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, MapPin, CalendarDays, TrendingUp, Ban, UserX, CalendarX, CheckCircle2, XCircle, RefreshCcw } from "lucide-react";
+import { DollarSign, MapPin, CalendarDays, TrendingUp, Ban, UserX, CalendarX, CheckCircle2, XCircle, RefreshCcw, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -64,6 +64,7 @@ const EarningsAnalytics = () => {
   const [studentQuery, setStudentQuery] = useState("");
   const [studentResults, setStudentResults] = useState<StudentHit[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<StudentHit | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const searchStudents = async (q: string) => {
     const term = q.trim();
@@ -257,9 +258,14 @@ const EarningsAnalytics = () => {
       <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
         <h1 className="text-2xl font-bold text-foreground">Financial</h1>
         {isOwner && (
-          <Button variant="outline" size="sm" onClick={() => { setFinanceSearchOpen(true); setStudentQuery(""); setStudentResults([]); }}>
-            <DollarSign className="w-4 h-4 mr-1" /> Student Financial History
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => { setReportOpen(true); }}>
+              <FileSpreadsheet className="w-4 h-4 mr-1" /> CPA Report
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => { setFinanceSearchOpen(true); setStudentQuery(""); setStudentResults([]); }}>
+              <DollarSign className="w-4 h-4 mr-1" /> Student Financial History
+            </Button>
+          </div>
         )}
       </div>
 
@@ -303,6 +309,15 @@ const EarningsAnalytics = () => {
             email={selectedStudent?.email}
             studentName={selectedStudent ? `${selectedStudent.first_name} ${selectedStudent.last_name}` : null}
           />
+
+          <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>CPA Financial Report</DialogTitle>
+              </DialogHeader>
+              <FinancialReport />
+            </DialogContent>
+          </Dialog>
         </>
       )}
 
@@ -538,7 +553,6 @@ const EarningsAnalytics = () => {
         </>
       )}
 
-      {isOwner && <FinancialReport />}
     </div>
   );
 };
