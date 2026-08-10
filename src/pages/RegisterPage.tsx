@@ -605,7 +605,7 @@ const RegisterPage = () => {
       const feeCents = Math.max(baseFeeCents - discountCents, 100);
       const feeLabel = discountCents > 0
         ? formatCents(feeCents)
-        : (scheduleCents != null ? (schedulePrice as string) : (isUnder21 ? "$395" : "$425"));
+        : formatCents(baseFeeCents);
       const region: SquareRegion = location.startsWith("high-desert") ? "high_desert" : "ventura";
 
       const bookingPayload = {
