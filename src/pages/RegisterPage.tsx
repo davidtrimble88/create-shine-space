@@ -590,8 +590,9 @@ const RegisterPage = () => {
       };
 
       const scheduleCents = parsePriceCents(schedulePrice);
+      // Under-21 riders never pay more than the under-21 fee ($395).
       const baseFeeCents = scheduleCents != null
-        ? scheduleCents
+        ? (isUnder21 ? Math.min(scheduleCents, 39500) : scheduleCents)
         : (isUnder21 ? 39500 : 42500);
 
       // Apply discount codes for any course; returning-student discount only for Intermediate/Advanced.
