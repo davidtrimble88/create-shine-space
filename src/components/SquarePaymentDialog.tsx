@@ -62,6 +62,9 @@ export const SquarePaymentDialog = ({
   const [submitting, setSubmitting] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [authorized, setAuthorized] = useState(false);
+  const [postalCode, setPostalCode] = useState<string>(
+    typeof bookingPayload?.zip === "string" ? (bookingPayload.zip as string) : "",
+  );
   const [reinitKey, setReinitKey] = useState(0);
 
   useEffect(() => { if (!open) setAuthorized(false); }, [open]);
@@ -139,6 +142,9 @@ export const SquarePaymentDialog = ({
     try {
       let result: any;
       try {
+        if (postalCode.trim()) {
+          try { await cardRef.current.configure({ postalCode: postalCode.trim() }); } catch { /* noop */ }
+        }
         result = await cardRef.current.tokenize();
       } catch (err) {
         // Square throws (rather than returning) when the card element is in a
@@ -270,6 +276,26 @@ export const SquarePaymentDialog = ({
           className="min-h-[90px]"
           style={initializing || initError ? { position: "absolute", opacity: 0, pointerEvents: "none", width: 320, left: -9999 } : undefined}
         />
+
+        {!initializing && !initError && (
+          <div className="space-y-1">
+            <label htmlFor="card-zip" className="text-sm font-medium text-foreground">
+              Billing ZIP code
+            </label>
+            <input
+              id="card-zip"
+              inputMode="numeric"
+              autoComplete="postal-code"
+              maxLength={10}
+              placeholder="93003"
+              value={postalCode}
+              onChange={(e) => setPostalCode(e.target.value.replace(/[^0-9-]/g, ""))}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <p className="text-xs text-muted-foreground">ZIP code on the card's billing statement.</p>
+          </div>
+        )}
+
 
 
         <div className="flex items-center justify-between gap-2 pt-2">
