@@ -1961,6 +1961,10 @@ export type Database = {
           read_ct: number
         }[]
       }
+      record_registration_payment_failure: {
+        Args: { p_fields: Json; p_id: string; p_visitor_id: string }
+        Returns: string
+      }
       set_security_questions: { Args: { _questions: Json }; Returns: undefined }
       update_registration_attempt: {
         Args: { p_fields: Json; p_id: string; p_visitor_id: string }
