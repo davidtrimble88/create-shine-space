@@ -193,12 +193,16 @@ export const SquarePaymentDialog = ({
         </DialogHeader>
 
         {initError ? (
-          <div className="text-sm text-destructive">{initError}</div>
+          <div className="space-y-2">
+            <div className="text-sm text-destructive">{initError}</div>
+            <Button variant="outline" size="sm" onClick={rebuildCardForm}>Reload card form</Button>
+          </div>
         ) : initializing ? (
           <div className="flex items-center justify-center py-8 text-muted-foreground">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading secure card form…
           </div>
         ) : null}
+
 
         {phoneAuthorization && (
           <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
