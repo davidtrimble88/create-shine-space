@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
       if (!isFinite(n) || n <= 0) return null;
       return Math.round(n * 100);
     };
-    const expectedCents = parsePriceCents(sched.price as any);
+    let expectedCents = parsePriceCents(sched.price as any);
     if (expectedCents == null) {
       await recordFailure("payment_request", "This class has no price configured");
       return new Response(
@@ -152,6 +152,21 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Under-21 riders never pay more than the under-21 fee ($395) — mirrors the
+    // pricing shown during registration.
+    const dobRaw = typeof booking.date_of_birth === "string" ? booking.date_of_birth : null;
+    if (dobRaw) {
+      const dob = new Date(dobRaw);
+      const ref = booking.schedule_date ? new Date(String(booking.schedule_date)) : new Date();
+      if (!isNaN(dob.getTime()) && !isNaN(ref.getTime())) {
+        let age = ref.getFullYear() - dob.getFullYear();
+        const m = ref.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && ref.getDate() < dob.getDate())) age--;
+        if (age < 21) expectedCents = Math.min(expectedCents, 39500);
+      }
+    }
+
 
     // Server is authoritative: charge the schedule's price minus any verified discount.
     let discountCents = 0;
