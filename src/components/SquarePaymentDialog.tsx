@@ -176,11 +176,17 @@ export const SquarePaymentDialog = ({
         // Surface the real decline reason from the function's JSON body
         // instead of the generic "non-2xx status code" message.
         let detail = "";
+        let responseStage = "";
         try {
           const body = await (error as any)?.context?.json?.();
           detail = body?.error || "";
+          responseStage = body?.stage || "";
         } catch { /* noop */ }
-        failureStage = detail.toLowerCase().includes("booking") ? "booking" : "processor";
+        failureStage = responseStage === "payment_booking"
+          ? "booking"
+          : responseStage === "payment_processor"
+            ? "processor"
+            : "request";
         throw new Error(detail || error.message || "Payment failed");
       }
 

@@ -75,7 +75,7 @@ export const recordPaymentFailure = async (id: string | null, fields: AttemptFie
   if (!visitorId) return id;
   try {
     const { data, error } = await supabase.rpc("record_registration_payment_failure", {
-      p_id: id,
+      p_id: id ?? "00000000-0000-0000-0000-000000000000",
       p_visitor_id: visitorId,
       p_fields: JSON.parse(JSON.stringify(fields)),
     });
