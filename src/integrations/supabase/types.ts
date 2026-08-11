@@ -1924,6 +1924,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin_strict: { Args: { _user_id: string }; Returns: boolean }
+      is_assigned_instructor: {
+        Args: { _schedule_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_my_employee: { Args: { _employee_id: string }; Returns: boolean }
       is_owner: { Args: { _user_id: string }; Returns: boolean }
       is_thread_participant: {
