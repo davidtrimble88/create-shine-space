@@ -15,10 +15,11 @@ interface Props {
   amountLabel: string;
   bookingPayload: Record<string, unknown>;
   discount?: PaymentDiscount;
+  attemptTracking?: { attemptId: string | null; visitorId: string | null };
   /** Staff-taken card-not-present payment: shows the phone authorization script. */
   phoneAuthorization?: boolean;
   onSuccess: (paymentId: string, provider: PaymentProvider) => void;
-  onFailure?: (info: { stage: "setup" | "charge"; message: string }) => void;
+  onFailure?: (info: { stage: "setup" | "tokenization" | "request" | "processor" | "booking"; message: string }) => void;
 }
 
 /**

@@ -44,15 +44,16 @@ interface Props {
   amountLabel: string; // e.g. "$425"
   bookingPayload: Record<string, unknown>;
   discount?: PaymentDiscount;
+  attemptTracking?: { attemptId: string | null; visitorId: string | null };
   /** Staff-taken card-not-present payment: shows the phone authorization script. */
   phoneAuthorization?: boolean;
   onSuccess: (paymentId: string) => void;
   /** Called when payment can't be completed, so the attempt can be logged. */
-  onFailure?: (info: { stage: "setup" | "charge"; message: string }) => void;
+  onFailure?: (info: { stage: "setup" | "tokenization" | "request" | "processor" | "booking"; message: string }) => void;
 }
 
 export const SquarePaymentDialog = ({
-  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, phoneAuthorization, onSuccess, onFailure,
+  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, attemptTracking, phoneAuthorization, onSuccess, onFailure,
 }: Props) => {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<any>(null);
@@ -129,8 +130,12 @@ export const SquarePaymentDialog = ({
   };
 
   const handlePay = async () => {
-    if (!cardRef.current) return;
+    if (!cardRef.current) {
+      onFailure?.({ stage: "setup", message: "Payment was attempted before the secure card form was ready." });
+      return;
+    }
     setSubmitting(true);
+    let failureStage: "tokenization" | "request" | "processor" | "booking" = "tokenization";
     try {
       let result: any;
       try {
@@ -162,8 +167,9 @@ export const SquarePaymentDialog = ({
       }
       const sourceId = result.token;
 
+      failureStage = "request";
       const { data, error } = await supabase.functions.invoke("square-charge", {
-        body: { sourceId, region, amountCents, booking: bookingPayload, discount },
+        body: { sourceId, region, amountCents, booking: bookingPayload, discount, attemptTracking },
       });
 
       if (error) {
@@ -174,10 +180,14 @@ export const SquarePaymentDialog = ({
           const body = await (error as any)?.context?.json?.();
           detail = body?.error || "";
         } catch { /* noop */ }
+        failureStage = detail.toLowerCase().includes("booking") ? "booking" : "processor";
         throw new Error(detail || error.message || "Payment failed");
       }
 
-      if ((data as any)?.error) throw new Error((data as any).error);
+      if ((data as any)?.error) {
+        failureStage = String((data as any).stage ?? "").includes("booking") ? "booking" : "processor";
+        throw new Error((data as any).error);
+      }
 
       toast({ title: "Payment successful", description: "Your spot is reserved." });
       onSuccess((data as any).paymentId);
@@ -185,7 +195,7 @@ export const SquarePaymentDialog = ({
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Payment failed";
       toast({ title: "Payment failed", description: msg, variant: "destructive" });
-      onFailure?.({ stage: "charge", message: msg });
+      onFailure?.({ stage: failureStage, message: msg });
     }
     setSubmitting(false);
   };

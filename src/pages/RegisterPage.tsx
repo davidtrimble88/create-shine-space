@@ -30,7 +30,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
-import { startAttempt, updateAttempt } from "@/lib/registrationAttempts";
+import { getVisitorId, recordPaymentFailure, startAttempt, updateAttempt } from "@/lib/registrationAttempts";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
 import { type RegistrationFormPrefill } from "@/components/RegistrationFormStep";
@@ -1685,13 +1685,35 @@ const RegisterPage = () => {
           amountLabel={paymentAmountLabel}
           bookingPayload={pendingBooking}
           discount={discountApplied ? { source: discountApplied.source, code: discountApplied.code } : undefined}
+          attemptTracking={{ attemptId: attemptIdRef.current, visitorId: getVisitorId() }}
           onSuccess={handlePaymentSuccess}
           onFailure={({ stage, message }) => {
             lastPaymentErrorRef.current = message;
-            updateAttempt(attemptIdRef.current, {
+            const stageName = stage === "setup"
+              ? "payment_form"
+              : stage === "tokenization"
+                ? "payment_tokenization"
+                : stage === "request"
+                  ? "payment_request"
+                  : stage === "booking"
+                    ? "payment_booking"
+                    : "payment_processor";
+            void recordPaymentFailure(attemptIdRef.current, {
               status: stage === "setup" ? "payment_setup_failed" : "payment_failed",
-              stage: stage === "setup" ? "payment_form" : "payment_charge",
+              stage: stageName,
               error_message: message,
+              course: String(pendingBooking.course ?? ""),
+              location_label: String(pendingBooking.location_label ?? ""),
+              schedule_id: String(pendingBooking.schedule_id ?? "") || null,
+              schedule_date: String(pendingBooking.schedule_date ?? ""),
+              first_name: String(pendingBooking.first_name ?? ""),
+              last_name: String(pendingBooking.last_name ?? ""),
+              email: String(pendingBooking.email ?? ""),
+              phone: String(pendingBooking.phone ?? ""),
+              amount_cents: paymentAmountCents,
+              booking_id: String(pendingBooking.id ?? "") || null,
+            }).then((loggedId) => {
+              if (loggedId) attemptIdRef.current = loggedId;
             });
           }}
 

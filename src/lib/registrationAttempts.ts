@@ -24,7 +24,7 @@ export interface AttemptFields {
   booking_id?: string | null;
 }
 
-const getVisitorId = () => {
+export const getVisitorId = () => {
   try {
     let id = localStorage.getItem("ltrvc_visitor_id");
     if (!id) {
@@ -66,5 +66,23 @@ export const updateAttempt = async (id: string | null, fields: AttemptFields) =>
     });
   } catch (e) {
     console.warn("Failed to update registration attempt", e);
+  }
+};
+
+/** Durably record a payment failure, creating a replacement row if needed. */
+export const recordPaymentFailure = async (id: string | null, fields: AttemptFields): Promise<string | null> => {
+  const visitorId = getVisitorId();
+  if (!visitorId) return id;
+  try {
+    const { data, error } = await supabase.rpc("record_registration_payment_failure", {
+      p_id: id,
+      p_visitor_id: visitorId,
+      p_fields: JSON.parse(JSON.stringify(fields)),
+    });
+    if (error) throw error;
+    return typeof data === "string" ? data : id;
+  } catch (e) {
+    console.warn("Failed to record payment failure", e);
+    return id;
   }
 };

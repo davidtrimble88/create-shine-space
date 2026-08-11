@@ -21,6 +21,10 @@ const BodySchema = z.object({
   amountCents: z.number().int().positive().max(100000), // max $1000 sanity cap
   booking: z.record(z.any()),
   discount: DiscountSchema,
+  attemptTracking: z.object({
+    attemptId: z.string().uuid().nullable(),
+    visitorId: z.string().min(8).max(200).nullable(),
+  }).optional(),
 });
 
 function regionCreds(region: "ventura" | "high_desert") {
@@ -56,10 +60,51 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    const { sourceId, region, amountCents: clientAmountCents, booking, discount } = parsed.data;
+    const { sourceId, region, amountCents: clientAmountCents, booking, discount, attemptTracking } = parsed.data;
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const recordFailure = async (stage: string, message: string) => {
+      try {
+        const fields = {
+          status: stage === "payment_form" ? "payment_setup_failed" : "payment_failed",
+          stage,
+          error_message: message,
+          course: booking.course,
+          location_label: booking.location_label,
+          schedule_id: booking.schedule_id,
+          schedule_date: booking.schedule_date,
+          first_name: booking.first_name,
+          last_name: booking.last_name,
+          email: booking.email,
+          phone: booking.phone,
+          amount_cents: clientAmountCents,
+          booking_id: booking.id,
+        };
+        if (attemptTracking?.attemptId && attemptTracking.visitorId) {
+          const { data } = await supabaseAdmin
+            .from("registration_attempts")
+            .update({ status: fields.status, stage, error_message: message.slice(0, 1000) })
+            .eq("id", attemptTracking.attemptId)
+            .eq("visitor_id", attemptTracking.visitorId)
+            .select("id")
+            .maybeSingle();
+          if (data) return;
+        }
+        await supabaseAdmin.from("registration_attempts").insert({
+          ...fields,
+          visitor_id: attemptTracking?.visitorId ?? `server-${crypto.randomUUID()}`,
+        });
+      } catch (loggingError) {
+        console.error("[square-charge] failure logging failed", loggingError);
+      }
+    };
 
     const { token, locationId } = regionCreds(region);
     if (!token || !locationId) {
+      await recordFailure("payment_provider", `Square not configured for ${region}`);
       return new Response(
         JSON.stringify({ error: `Square not configured for ${region}` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -69,13 +114,9 @@ Deno.serve(async (req) => {
     // Server-side price validation — never trust client-supplied amountCents.
     // Look up the booking's schedule and derive the expected charge from its
     // stored price. If a request tries to submit a lower amount, reject it.
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
     const scheduleId = typeof booking.schedule_id === "string" ? booking.schedule_id : null;
     if (!scheduleId) {
+      await recordFailure("payment_request", "schedule_id is required");
       return new Response(
         JSON.stringify({ error: "schedule_id is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -90,6 +131,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (schedErr || !sched) {
+      await recordFailure("payment_request", "Schedule not found or cancelled");
       return new Response(
         JSON.stringify({ error: "Schedule not found or cancelled" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -104,6 +146,7 @@ Deno.serve(async (req) => {
     };
     const expectedCents = parsePriceCents(sched.price as any);
     if (expectedCents == null) {
+      await recordFailure("payment_request", "This class has no price configured");
       return new Response(
         JSON.stringify({ error: "This class has no price configured" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -183,6 +226,7 @@ Deno.serve(async (req) => {
         discountCents,
         amountCents,
       });
+      await recordFailure("payment_request", "Payment amount mismatch. Please refresh and try again.");
       return new Response(
         JSON.stringify({ error: "Payment amount mismatch. Please refresh and try again." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -212,7 +256,10 @@ Deno.serve(async (req) => {
     if (!sqRes.ok || sqData?.errors?.length) {
       console.error("Square charge failed:", JSON.stringify(sqData));
       const msg = sqData?.errors?.[0]?.detail ?? "Payment failed";
-      return new Response(JSON.stringify({ error: msg }), {
+      const code = sqData?.errors?.[0]?.code;
+      const loggedMessage = code ? `${code}: ${msg}` : msg;
+      await recordFailure("payment_processor", loggedMessage);
+      return new Response(JSON.stringify({ error: msg, code, stage: "payment_processor" }), {
         status: 402,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -227,6 +274,7 @@ Deno.serve(async (req) => {
     const bookingId = typeof booking.id === "string" ? booking.id : null;
 
     if (!bookingId) {
+      await recordFailure("payment_booking", "Booking id is required after payment");
       return new Response(
         JSON.stringify({ error: "Booking id is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -241,6 +289,7 @@ Deno.serve(async (req) => {
 
     if (existingErr) {
       console.error("Booking lookup failed after successful charge:", existingErr);
+      await recordFailure("payment_booking", `Payment succeeded but booking verification failed. Reference: ${paymentId}`);
       return new Response(
         JSON.stringify({
           error: "Payment succeeded but booking verification failed. Please contact us with this reference: " + paymentId,
@@ -263,6 +312,7 @@ Deno.serve(async (req) => {
 
       if (insertErr) {
         console.error("Booking insert failed after successful charge:", insertErr);
+        await recordFailure("payment_booking", `Payment succeeded but booking could not be saved. Reference: ${paymentId}`);
         return new Response(
           JSON.stringify({
             error: "Payment succeeded but booking could not be saved. Please contact us with this reference: " + paymentId,
