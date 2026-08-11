@@ -1686,13 +1686,15 @@ const RegisterPage = () => {
           bookingPayload={pendingBooking}
           discount={discountApplied ? { source: discountApplied.source, code: discountApplied.code } : undefined}
           onSuccess={handlePaymentSuccess}
-          onFailure={({ stage, message }) =>
+          onFailure={({ stage, message }) => {
+            lastPaymentErrorRef.current = message;
             updateAttempt(attemptIdRef.current, {
               status: stage === "setup" ? "payment_setup_failed" : "payment_failed",
               stage: stage === "setup" ? "payment_form" : "payment_charge",
               error_message: message,
-            })
-          }
+            });
+          }}
+
         />
       )}
 
