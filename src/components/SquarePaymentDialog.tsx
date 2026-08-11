@@ -142,6 +142,9 @@ export const SquarePaymentDialog = ({
     try {
       let result: any;
       try {
+        if (postalCode.trim()) {
+          try { await cardRef.current.configure({ postalCode: postalCode.trim() }); } catch { /* noop */ }
+        }
         result = await cardRef.current.tokenize();
       } catch (err) {
         // Square throws (rather than returning) when the card element is in a
