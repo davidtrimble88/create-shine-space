@@ -56,10 +56,12 @@ export const SquarePaymentDialog = ({
 }: Props) => {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<any>(null);
+  const paymentsRef = useRef<any>(null);
   const [initializing, setInitializing] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [authorized, setAuthorized] = useState(false);
+  const [reinitKey, setReinitKey] = useState(0);
 
   useEffect(() => { if (!open) setAuthorized(false); }, [open]);
 
@@ -82,12 +84,26 @@ export const SquarePaymentDialog = ({
         if (!Square) throw new Error("Square SDK unavailable");
 
         const payments = Square.payments(cfgJson.appId, cfgJson.locationId);
+        paymentsRef.current = payments;
         const card = await payments.card();
-        if (cancelled) return;
-        await card.attach(cardContainerRef.current!);
+        if (cancelled) { try { await card.destroy(); } catch { /* noop */ } return; }
+
+        // Wait for the container to actually exist and be visible before
+        // attaching — attaching into a hidden/unmounted node makes Square's
+        // iframe initialize with no size, which later fails tokenization
+        // with "An unknown error occurred".
+        for (let i = 0; i < 50 && !cardContainerRef.current; i++) {
+          await new Promise((r) => setTimeout(r, 50));
+        }
+        if (cancelled) { try { await card.destroy(); } catch { /* noop */ } return; }
+        if (!cardContainerRef.current) throw new Error("Payment form container unavailable");
+
+        await card.attach(cardContainerRef.current);
+        if (cancelled) { try { await card.destroy(); } catch { /* noop */ } return; }
         cardRef.current = card;
         setInitializing(false);
       } catch (e) {
+        if (cancelled) return;
         const msg = e instanceof Error ? e.message : "Failed to initialize payment form";
         setInitError(msg);
         setInitializing(false);
@@ -102,16 +118,47 @@ export const SquarePaymentDialog = ({
         cardRef.current = null;
       }
     };
-  }, [open, region]);
+  }, [open, region, reinitKey]);
+
+  const rebuildCardForm = () => {
+    if (cardRef.current) {
+      try { cardRef.current.destroy(); } catch { /* noop */ }
+      cardRef.current = null;
+    }
+    setReinitKey((k) => k + 1);
+  };
 
   const handlePay = async () => {
     if (!cardRef.current) return;
     setSubmitting(true);
     try {
-      const result = await cardRef.current.tokenize();
+      let result: any;
+      try {
+        result = await cardRef.current.tokenize();
+      } catch (err) {
+        // Square throws (rather than returning) when the card element is in a
+        // bad state. Rebuild the form and ask the customer to try once more.
+        rebuildCardForm();
+        throw new Error(
+          "The card form lost its connection to Square. We've reloaded it — please re-enter your card details and try again.",
+        );
+      }
+
       if (result.status !== "OK") {
-        const msg = result.errors?.[0]?.message || "Card details invalid";
-        throw new Error(msg);
+        const detail = (result.errors ?? [])
+          .map((x: any) => x?.detail || x?.message)
+          .filter(Boolean)
+          .join(" ");
+        const codes = (result.errors ?? []).map((x: any) => x?.code).filter(Boolean);
+        const unknown = codes.length === 0 || codes.includes("UNKNOWN") || !detail;
+        if (unknown) {
+          // Most "unknown error" tokenization failures are a stale card iframe.
+          rebuildCardForm();
+          throw new Error(
+            "We couldn't read the card details. The card form has been reloaded — please re-enter the card number, expiration, CVV and ZIP, then try again.",
+          );
+        }
+        throw new Error(detail);
       }
       const sourceId = result.token;
 
@@ -134,6 +181,7 @@ export const SquarePaymentDialog = ({
   };
 
 
+
   return (
     <Dialog open={open} onOpenChange={(o) => !submitting && onOpenChange(o)}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
@@ -145,12 +193,16 @@ export const SquarePaymentDialog = ({
         </DialogHeader>
 
         {initError ? (
-          <div className="text-sm text-destructive">{initError}</div>
+          <div className="space-y-2">
+            <div className="text-sm text-destructive">{initError}</div>
+            <Button variant="outline" size="sm" onClick={rebuildCardForm}>Reload card form</Button>
+          </div>
         ) : initializing ? (
           <div className="flex items-center justify-center py-8 text-muted-foreground">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading secure card form…
           </div>
         ) : null}
+
 
         {phoneAuthorization && (
           <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
@@ -185,7 +237,14 @@ export const SquarePaymentDialog = ({
           </div>
         )}
 
-        <div ref={cardContainerRef} className={initializing || initError ? "hidden" : "min-h-[90px]"} />
+        {/* Kept mounted and laid out (never display:none) — Square's iframe must
+            render at a real size or tokenization fails with an unknown error. */}
+        <div
+          ref={cardContainerRef}
+          className="min-h-[90px]"
+          style={initializing || initError ? { position: "absolute", opacity: 0, pointerEvents: "none", width: 320, left: -9999 } : undefined}
+        />
+
 
         <div className="flex items-center justify-between gap-2 pt-2">
           <img src={companyLogo} alt="Learn To Ride VC" className="h-24 w-auto opacity-90" />

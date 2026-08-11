@@ -868,11 +868,20 @@ const RegisterPage = () => {
     setCancelConfirmOpen(true);
   };
 
+  const lastPaymentErrorRef = useRef<string | null>(null);
+
   const handleConfirmCancelPayment = () => {
     setCancelConfirmOpen(false);
     setPaymentOpen(false);
     setPendingBooking(null);
-    updateAttempt(attemptIdRef.current, { status: "abandoned", stage: "payment", error_message: "Customer cancelled at the payment step" });
+    updateAttempt(attemptIdRef.current, {
+      status: "abandoned",
+      stage: "payment",
+      error_message: lastPaymentErrorRef.current
+        ? `Customer cancelled at the payment step (last error: ${lastPaymentErrorRef.current})`
+        : "Customer cancelled at the payment step",
+    });
+
     toast({
       title: "Registration cancelled",
       description: "Your spot was not reserved. You can register again anytime.",
@@ -1677,13 +1686,15 @@ const RegisterPage = () => {
           bookingPayload={pendingBooking}
           discount={discountApplied ? { source: discountApplied.source, code: discountApplied.code } : undefined}
           onSuccess={handlePaymentSuccess}
-          onFailure={({ stage, message }) =>
+          onFailure={({ stage, message }) => {
+            lastPaymentErrorRef.current = message;
             updateAttempt(attemptIdRef.current, {
               status: stage === "setup" ? "payment_setup_failed" : "payment_failed",
               stage: stage === "setup" ? "payment_form" : "payment_charge",
               error_message: message,
-            })
-          }
+            });
+          }}
+
         />
       )}
 
