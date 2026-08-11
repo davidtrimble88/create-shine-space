@@ -1,0 +1,1 @@
+CREATE POLICY "Owners and admins read email attachments" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'email-attachments' AND (has_role(auth.uid(), 'owner'::app_role) OR has_role(auth.uid(), 'admin'::app_role)));
