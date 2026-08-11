@@ -237,7 +237,14 @@ export const SquarePaymentDialog = ({
           </div>
         )}
 
-        <div ref={cardContainerRef} className={initializing || initError ? "hidden" : "min-h-[90px]"} />
+        {/* Kept mounted and laid out (never display:none) — Square's iframe must
+            render at a real size or tokenization fails with an unknown error. */}
+        <div
+          ref={cardContainerRef}
+          className="min-h-[90px]"
+          style={initializing || initError ? { position: "absolute", opacity: 0, pointerEvents: "none", width: 320, left: -9999 } : undefined}
+        />
+
 
         <div className="flex items-center justify-between gap-2 pt-2">
           <img src={companyLogo} alt="Learn To Ride VC" className="h-24 w-auto opacity-90" />
