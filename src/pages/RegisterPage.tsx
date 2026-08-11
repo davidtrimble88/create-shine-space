@@ -868,11 +868,20 @@ const RegisterPage = () => {
     setCancelConfirmOpen(true);
   };
 
+  const lastPaymentErrorRef = useRef<string | null>(null);
+
   const handleConfirmCancelPayment = () => {
     setCancelConfirmOpen(false);
     setPaymentOpen(false);
     setPendingBooking(null);
-    updateAttempt(attemptIdRef.current, { status: "abandoned", stage: "payment", error_message: "Customer cancelled at the payment step" });
+    updateAttempt(attemptIdRef.current, {
+      status: "abandoned",
+      stage: "payment",
+      error_message: lastPaymentErrorRef.current
+        ? `Customer cancelled at the payment step (last error: ${lastPaymentErrorRef.current})`
+        : "Customer cancelled at the payment step",
+    });
+
     toast({
       title: "Registration cancelled",
       description: "Your spot was not reserved. You can register again anytime.",
