@@ -17,7 +17,8 @@ const courses = [
     icon: GraduationCap,
     title: "Motorcyclist Training Course",
     subtitle: "CMSP Motorcyclist Training Course",
-    price: "From $395",
+    price: "$425",
+    priceNote: "$395 under 21",
     duration: "2 Days (Weekend)",
     description:
       "Perfect for beginners with no riding experience. Learn to ride, get your CMSP DL389 Certificate, and waive the DMV riding skills test. Motorcycle and helmet provided.",
@@ -30,7 +31,7 @@ const courses = [
     icon: BookOpen,
     title: "1-Day Premier Course",
     subtitle: "For experienced riders · Licensing for 21+",
-    price: "From $300",
+    price: "$350",
     duration: "1 Day (8 Hours)",
     description:
       "Designed for experienced but unlicensed riders. Offers licensing options for riders 21 and older. Includes entry skills test, classroom and riding instruction. Loaner bikes available.",
@@ -43,7 +44,7 @@ const courses = [
     icon: Gauge,
     title: "Intermediate Course",
     subtitle: "IRC / CMSP Intermediate",
-    price: "From $300",
+    price: "$350",
     duration: "1 Day (8 Hours)",
     description:
       "Level up your skills with advanced throttle control, emergency braking, cornering, and evasive maneuvers. For licensed riders looking to improve.",
@@ -196,7 +197,12 @@ const ChooseCoursePage = () => {
                       </ul>
 
                       <div className="mt-auto flex items-center justify-between">
-                        <span className="text-lg font-bold text-accent">{course.price}</span>
+                        <span className="flex flex-col leading-tight">
+                          <span className="text-lg font-bold text-accent">{course.price}</span>
+                          {"priceNote" in course && (course as any).priceNote && (
+                            <span className="text-xs text-muted-foreground">{(course as any).priceNote}</span>
+                          )}
+                        </span>
                         <span className="flex items-center gap-1 text-sm text-accent font-medium group-hover:translate-x-1 transition-transform">
                           Book Now <ArrowRight className="w-4 h-4" />
                         </span>
