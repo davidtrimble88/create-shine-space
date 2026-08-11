@@ -166,7 +166,17 @@ export const SquarePaymentDialog = ({
         body: { sourceId, region, amountCents, booking: bookingPayload, discount },
       });
 
-      if (error) throw new Error(error.message || "Payment failed");
+      if (error) {
+        // Surface the real decline reason from the function's JSON body
+        // instead of the generic "non-2xx status code" message.
+        let detail = "";
+        try {
+          const body = await (error as any)?.context?.json?.();
+          detail = body?.error || "";
+        } catch { /* noop */ }
+        throw new Error(detail || error.message || "Payment failed");
+      }
+
       if ((data as any)?.error) throw new Error((data as any).error);
 
       toast({ title: "Payment successful", description: "Your spot is reserved." });
