@@ -62,6 +62,9 @@ export const SquarePaymentDialog = ({
   const [submitting, setSubmitting] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [authorized, setAuthorized] = useState(false);
+  const [postalCode, setPostalCode] = useState<string>(
+    typeof bookingPayload?.zip === "string" ? (bookingPayload.zip as string) : "",
+  );
   const [reinitKey, setReinitKey] = useState(0);
 
   useEffect(() => { if (!open) setAuthorized(false); }, [open]);
