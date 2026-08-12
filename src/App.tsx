@@ -24,6 +24,7 @@ import ChangePassword from "./pages/ChangePassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import RegistrationConfirmation from "./pages/RegistrationConfirmation";
 import InstallApp from "./pages/InstallApp";
+import CompleteFormsPage from "./pages/CompleteFormsPage";
 import HiddenDuck from "./components/HiddenDuck";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/registration-confirmation" element={<RegistrationConfirmation />} />
             <Route path="/install" element={<InstallApp />} />
+            <Route path="/complete-forms" element={<CompleteFormsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
