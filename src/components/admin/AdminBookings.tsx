@@ -1019,7 +1019,7 @@ const AdminBookings = () => {
                         disabled={formsLinkId === b.id}
                         onClick={() => handleSendFormsLink(b)}
                       >
-                        <FileSignature className={`w-4 h-4 ${formsLinkId === b.id ? "opacity-50" : ""}`} />
+                        <Link2 className={`w-4 h-4 ${formsLinkId === b.id ? "opacity-50" : ""}`} />
                       </Button>
                       {isOwner && (
                         <button
