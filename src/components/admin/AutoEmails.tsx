@@ -112,27 +112,29 @@ const AutoEmails = () => {
     return looksLikeHtml ? body : body.replace(/\n/g, "<br>");
   };
 
-  // Callback ref: populate the contentEditable exactly once per mount with the saved body.
-  // Using useCallback ensures React doesn't re-invoke this on every keystroke (which would
-  // reset innerHTML and send the cursor back to the top).
+  // The body editor is fully uncontrolled: React never re-renders its contents, so
+  // typing can't be clobbered. Live HTML is mirrored into a ref and read on save.
   const initialBodyRef = useRef<string>("");
+  const liveBodyRef = useRef<string>("");
   const setBodyRef = useCallback((el: HTMLDivElement | null) => {
     bodyRef.current = el;
     if (el) {
-      el.innerHTML = toHtml(initialBodyRef.current);
+      const html = toHtml(initialBodyRef.current);
+      if (el.innerHTML !== html) el.innerHTML = html;
+      liveBodyRef.current = el.innerHTML;
     }
   }, []);
 
-
-
+  const syncBody = () => {
+    if (bodyRef.current) liveBodyRef.current = bodyRef.current.innerHTML;
+  };
 
   const exec = (command: string, value?: string) => {
     bodyRef.current?.focus();
     document.execCommand(command, false, value);
-    if (bodyRef.current) {
-      setEditing((prev) => (prev ? { ...prev, body: bodyRef.current!.innerHTML } : prev));
-    }
+    syncBody();
   };
+
 
   const applyHighlight = () => exec("hiliteColor", "#fff59d");
   const applyFontSize = (px: string) => {
