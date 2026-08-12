@@ -49,7 +49,7 @@ const FALLBACK_REFERRALS = [
 
 const AdminBookings = () => {
   const { toast } = useToast();
-  const { effectiveRole } = useAuth();
+  const { effectiveRole, user } = useAuth();
   const isOwner = effectiveRole === "owner";
   const [financeBooking, setFinanceBooking] = useState<Booking | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
