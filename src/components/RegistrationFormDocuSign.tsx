@@ -326,7 +326,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned, continueLabel: co
         signerName={fullName} onContinue={() => onSigned(result.recordId)}
         title="Registration Form Submitted"
         description="Your CMSP Student Registration Form is filled in and saved to your file. It is already marked complete on your class roster — you do not need to bring a printed copy with you."
-        continueLabel="Continue →"
+        continueLabel={continueLabelProp || "Continue →"}
         downloadPrefix="CMSP_Registration_Form_To_Print"
       />
     );
