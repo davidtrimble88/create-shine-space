@@ -155,7 +155,7 @@ const AutoEmails = () => {
       range.insertNode(span);
     }
     sel.removeAllRanges();
-    setEditing((prev) => (prev ? { ...prev, body: bodyRef.current!.innerHTML } : prev));
+    syncBody();
   };
 
 
@@ -192,7 +192,7 @@ const AutoEmails = () => {
       name: editing.name.trim(),
       description: editing.description?.trim() || null,
       subject: editing.subject.trim(),
-      body: editing.body,
+      body: bodyRef.current ? bodyRef.current.innerHTML : (liveBodyRef.current || editing.body),
       enabled: editing.enabled,
       available_variables: editing.available_variables,
       attachments: editing.attachments as any,
@@ -561,9 +561,8 @@ const AutoEmails = () => {
                   ref={setBodyRef}
                   contentEditable
                   suppressContentEditableWarning
-                  onInput={(e) =>
-                    setEditing({ ...editing, body: (e.target as HTMLDivElement).innerHTML })
-                  }
+                  onInput={syncBody}
+
                   className="min-h-[280px] border rounded-b-md p-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring whitespace-pre-wrap break-words"
                   data-placeholder="Hi {{firstName}}, ..."
                 />
