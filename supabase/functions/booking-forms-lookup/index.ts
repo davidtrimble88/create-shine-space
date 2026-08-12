@@ -54,12 +54,14 @@ Deno.serve(async (req) => {
       .update({ last_opened_at: new Date().toISOString() })
       .eq("id", tok.id);
 
-    // Which forms are already on file for this student + class?
+    // Which forms are already on file for THIS booking (signed at/after it was created)?
+    const since = new Date(new Date(b.created_at).getTime() - 60_000).toISOString();
     const { data: existing } = await supabase
       .from("signed_waivers")
       .select("document_type")
       .ilike("signer_email", String(b.email || ""))
-      .eq("schedule_id", b.schedule_id);
+      .eq("schedule_id", b.schedule_id)
+      .gte("signed_at", since);
 
     const done = new Set((existing || []).map((r: any) => String(r.document_type)));
 
