@@ -47,9 +47,10 @@ interface Props {
   prefill: ModelReleasePrefill;
   onBack: () => void;
   onComplete: (recordId: string, decision: "sign" | "decline") => void;
+  continueLabel?: string;
 }
 
-const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
+const ModelReleaseDocuSign = ({ prefill, onBack, onComplete, continueLabel: continueLabelProp }: Props) => {
   const fullName = [prefill.firstName, prefill.middleName, prefill.lastName]
     .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   // Guardian info is entered fresh on this step, NOT auto-filled from registration
@@ -267,7 +268,7 @@ const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
         description={result.decision === "sign"
           ? "Your permission has been recorded. A copy is attached to your registration."
           : "Your declination has been recorded. Staff will not photograph you on class day."}
-        continueLabel="Continue →"
+        continueLabel={continueLabelProp || "Continue →"}
         downloadPrefix="Signed_CMSP_Model_Release"
       />
     );

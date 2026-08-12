@@ -12,6 +12,7 @@ interface Props {
   prefill: RegistrationFormPrefill;
   onBack: () => void;
   onSigned: (recordId: string) => void;
+  continueLabel?: string;
 }
 
 // Matches the 10 real options printed on the CMSP form (no DMV / Brochure)
@@ -23,7 +24,7 @@ type HearOpt = typeof HEAR_OPTIONS[number];
 
 type YN = "yes" | "no" | "";
 
-const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
+const RegistrationFormDocuSign = ({ prefill, onBack, onSigned, continueLabel: continueLabelProp }: Props) => {
   const fullName = [prefill.firstName, prefill.middleName, prefill.lastName].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   const guardianFullName = [prefill.guardianFirstName, prefill.guardianLastName].filter(Boolean).join(" ").trim();
 
@@ -325,7 +326,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         signerName={fullName} onContinue={() => onSigned(result.recordId)}
         title="Registration Form Submitted"
         description="Your CMSP Student Registration Form is filled in and saved to your file. It is already marked complete on your class roster — you do not need to bring a printed copy with you."
-        continueLabel="Continue →"
+        continueLabel={continueLabelProp || "Continue →"}
         downloadPrefix="CMSP_Registration_Form_To_Print"
       />
     );

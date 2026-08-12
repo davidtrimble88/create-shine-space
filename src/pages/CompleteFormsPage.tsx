@@ -187,6 +187,7 @@ const CompleteFormsPage = () => {
                   } as never}
                   onBack={() => {}}
                   onSigned={() => advance("registration")}
+                  continueLabel="Continue to Next Form →"
                 />
               ) : step === "waiver" ? (
                 <WaiverDocuSign
@@ -197,12 +198,15 @@ const CompleteFormsPage = () => {
                   } as never}
                   onBack={() => {}}
                   onSigned={() => advance("waiver")}
+                  continueLabel="Continue to Next Form →"
+                  finishLabel="Finish & Submit Forms"
                 />
               ) : (
                 <ModelReleaseDocuSign
                   prefill={base as never}
                   onBack={() => {}}
                   onComplete={() => advance("release")}
+                  continueLabel="Finish →"
                 />
               )}
             </div>

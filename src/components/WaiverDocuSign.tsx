@@ -68,6 +68,8 @@ interface Props {
   prefill: WaiverPrefill;
   onBack: () => void;
   onSigned: (waiverId: string) => void;
+  continueLabel?: string;
+  finishLabel?: string;
 }
 
 const SignaturePad = ({
@@ -217,7 +219,7 @@ const SignaturePad = ({
   );
 };
 
-const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
+const WaiverDocuSign = ({ prefill, onBack, onSigned, continueLabel: continueLabelProp, finishLabel }: Props) => {
   const isMinor = !!prefill.isMinor;
   const guardianInPerson = !!prefill.guardianInPerson;
   // Guardian only signs online if the minor's guardian is NOT going to sign in person.
@@ -467,7 +469,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
           {submitting ? (
             <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting…</>
           ) : (
-            "Finish & Continue to Payment"
+            finishLabel || "Finish & Continue to Payment"
           )}
         </Button>
       </div>
@@ -608,6 +610,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
         pdfPath={signedResult?.pdfPath || null}
         downloadUrl={signedResult?.downloadUrl || null}
         signerName={fullName}
+        continueLabel={continueLabelProp}
         onContinue={() => signedResult && onSigned(signedResult.waiverId)}
       />
     </div>
