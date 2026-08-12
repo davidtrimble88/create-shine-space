@@ -610,6 +610,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned, continueLabel: continueLabe
         pdfPath={signedResult?.pdfPath || null}
         downloadUrl={signedResult?.downloadUrl || null}
         signerName={fullName}
+        continueLabel={continueLabelProp}
         onContinue={() => signedResult && onSigned(signedResult.waiverId)}
       />
     </div>
