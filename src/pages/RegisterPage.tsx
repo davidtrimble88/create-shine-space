@@ -417,7 +417,8 @@ const RegisterPage = () => {
       email: booking.email,
       firstName: booking.first_name,
       lastName: booking.last_name,
-      courseKey: booking.course,
+      // 1DPC shares the intermediate class but has its own confirmation email.
+      courseKey: booking.rider_track === "1dpc" ? "1dpc" : booking.course,
       courseLabel: courseLabels[booking.course] || booking.course,
       locationLabel: booking.location_label,
       location: booking.location,
