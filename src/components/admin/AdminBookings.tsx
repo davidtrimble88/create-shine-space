@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard, Mail } from "lucide-react";
+import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard, Mail, FileSignature } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminCancellations from "./AdminCancellations";
 import { PaymentDialog, type PaymentProvider } from "@/components/PaymentDialog";
@@ -1001,6 +1001,15 @@ const AdminBookings = () => {
                         onClick={() => handleResend(b)}
                       >
                         <Mail className={`w-4 h-4 ${resendingId === b.id || b.is_retest ? "opacity-50" : ""}`} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Email a link so the student can e-sign their forms online"
+                        disabled={formsLinkId === b.id}
+                        onClick={() => handleSendFormsLink(b)}
+                      >
+                        <FileSignature className={`w-4 h-4 ${formsLinkId === b.id ? "opacity-50" : ""}`} />
                       </Button>
                       {isOwner && (
                         <button
