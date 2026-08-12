@@ -132,6 +132,7 @@ const CompleteFormsPage = () => {
       <Seo
         title="Complete Your Course Forms | Learn to Ride VC"
         description="Electronically sign your CMSP registration form, course waiver, and photo release before class day."
+        path="/complete-forms"
         noindex
       />
       <Navbar />
