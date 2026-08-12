@@ -219,7 +219,7 @@ const SignaturePad = ({
   );
 };
 
-const WaiverDocuSign = ({ prefill, onBack, onSigned }: Props) => {
+const WaiverDocuSign = ({ prefill, onBack, onSigned, continueLabel: continueLabelProp, finishLabel }: Props) => {
   const isMinor = !!prefill.isMinor;
   const guardianInPerson = !!prefill.guardianInPerson;
   // Guardian only signs online if the minor's guardian is NOT going to sign in person.
