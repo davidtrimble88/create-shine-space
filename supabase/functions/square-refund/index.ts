@@ -79,7 +79,51 @@ Deno.serve(async (req) => {
       const { token } = regionCreds(tx.region ?? "ventura");
       if (!token) return json({ error: "Square is not configured for this region" }, 500);
 
+      // Inspect the payment first so we can give an accurate reason when Square rejects.
+      const payRes = await fetch(
+        `https://connect.squareup.com/v2/payments/${tx.provider_payment_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Square-Version": "2024-10-17",
+          },
+        }
+      );
+      const payData = await payRes.json();
+      const payment = payData?.payment;
+      console.log("square payment state", JSON.stringify({
+        id: payment?.id,
+        status: payment?.status,
+        amount: payment?.amount_money,
+        refunded: payment?.refunded_money,
+        approved: payment?.approved_money,
+        delay_action: payment?.delay_action,
+        delayed_until: payment?.delayed_until,
+        errors: payData?.errors,
+      }));
+
+      if (!payRes.ok || !payment) {
+        return json({
+          error: payData?.errors?.[0]?.detail ??
+            "This payment could not be found in Square for this location.",
+        }, 402);
+      }
+      if (payment.status !== "COMPLETED") {
+        return json({
+          error: `Square shows this payment as ${payment.status}, not COMPLETED, so it can't be refunded yet.`,
+        }, 402);
+      }
+      const paidCents = payment.amount_money?.amount ?? 0;
+      const alreadyRefunded = payment.refunded_money?.amount ?? 0;
+      const squareAvailable = paidCents - alreadyRefunded;
+      if (amountCents > squareAvailable) {
+        return json({
+          error: `Square only has $${(squareAvailable / 100).toFixed(2)} available to refund on this payment (charged $${(paidCents / 100).toFixed(2)}, already refunded $${(alreadyRefunded / 100).toFixed(2)}).`,
+        }, 402);
+      }
+
       const sqRes = await fetch("https://connect.squareup.com/v2/refunds", {
+
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
