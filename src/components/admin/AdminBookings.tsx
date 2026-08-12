@@ -336,6 +336,7 @@ const AdminBookings = () => {
       setStudentPaymentCollected(false);
       setStudentPaymentMethod("cash");
       setDialogOpen(false);
+      promptSendFormsLink(basePayload as unknown as Booking);
       fetchData();
     }
   };
