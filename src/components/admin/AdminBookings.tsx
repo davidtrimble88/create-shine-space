@@ -1255,6 +1255,51 @@ const AdminBookings = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Prompt to send forms link after adding a student */}
+      <Dialog open={formsLinkPrompt.open} onOpenChange={(open) => setFormsLinkPrompt((prev) => ({ ...prev, open }))}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send forms link?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p className="text-foreground">
+              {formsLinkPrompt.booking ? (
+                <>
+                  <span className="font-semibold">{formsLinkPrompt.booking.first_name} {formsLinkPrompt.booking.last_name}</span> has been added successfully.
+                </>
+              ) : (
+                "Student has been added successfully."
+              )}
+            </p>
+            <p className="text-muted-foreground">
+              Would you like to email a secure link so they can fill out and e-sign the CMSP registration form, waiver, and photo release online?
+            </p>
+            {formsLinkPrompt.booking?.guardian_email && (
+              <p className="text-xs text-muted-foreground">
+                A copy will also be sent to the parent/guardian at {formsLinkPrompt.booking.guardian_email}.
+              </p>
+            )}
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setFormsLinkPrompt({ open: false, booking: null })}>
+                Not now
+              </Button>
+              <Button
+                onClick={() => {
+                  if (formsLinkPrompt.booking) {
+                    void handleSendFormsLink(formsLinkPrompt.booking).then(() => {
+                      setFormsLinkPrompt({ open: false, booking: null });
+                    });
+                  }
+                }}
+                disabled={!formsLinkPrompt.booking || formsLinkId === formsLinkPrompt.booking.id}
+              >
+                {formsLinkId === formsLinkPrompt.booking?.id ? "Sending…" : "Send forms link"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {chargePayload && (
         <PaymentDialog
           open={chargeOpen}
