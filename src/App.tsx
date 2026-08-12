@@ -56,6 +56,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/registration-confirmation" element={<RegistrationConfirmation />} />
             <Route path="/install" element={<InstallApp />} />
+            <Route path="/complete-forms" element={<CompleteFormsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
