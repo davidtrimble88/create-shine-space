@@ -191,6 +191,49 @@ const AdminBookings = () => {
       setResendingId(null);
     }
   };
+  // Emails the student a secure link where they can e-sign the CMSP registration
+  // form, waiver, and photo release. Submissions attach to their booking exactly
+  // like an online registration.
+  const [formsLinkId, setFormsLinkId] = useState<string | null>(null);
+
+  const handleSendFormsLink = async (b: Booking) => {
+    setFormsLinkId(b.id);
+    try {
+      const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
+      const { error: tokErr } = await supabase
+        .from("booking_form_tokens")
+        .insert({ booking_id: b.id, token, created_by: user?.id ?? null });
+      if (tokErr) throw tokErr;
+
+      const formsLink = `${window.location.origin}/complete-forms?token=${token}`;
+      const guardianEmail = (b.guardian_email || "").trim();
+      const { error } = await supabase.functions.invoke("send-auto-email", {
+        body: {
+          trigger_event: "forms_link",
+          recipientEmail: b.email,
+          location: b.location,
+          course: b.rider_track === "1dpc" ? "1dpc" : b.course,
+          additionalRecipients:
+            guardianEmail && guardianEmail.toLowerCase() !== b.email.toLowerCase() ? [guardianEmail] : [],
+          variables: {
+            firstName: b.first_name,
+            lastName: b.last_name,
+            course: courseLabels[b.course] || b.course,
+            locationLabel: b.location_label,
+            scheduleDate: b.schedule_date || "",
+            formsLink,
+            email: b.email,
+          },
+        },
+      });
+      if (error) throw error;
+      toast({ title: "Forms link sent", description: `${b.email} can now e-sign their forms online.` });
+    } catch (e) {
+      toast({ title: "Send failed", description: e instanceof Error ? e.message : "Could not send forms link.", variant: "destructive" });
+    } finally {
+      setFormsLinkId(null);
+    }
+  };
 
 
 
