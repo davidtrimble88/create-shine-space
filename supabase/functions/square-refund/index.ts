@@ -59,6 +59,7 @@ Deno.serve(async (req) => {
       return json({ error: "Invalid request", details: parsed.error.flatten() }, 400);
     }
     const { transactionId, amountCents, comment } = parsed.data;
+    console.log("refund request", { transactionId, amountCents, user: userData.user.id });
 
     const { data: tx } = await admin
       .from("payment_transactions")
