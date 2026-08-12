@@ -112,27 +112,29 @@ const AutoEmails = () => {
     return looksLikeHtml ? body : body.replace(/\n/g, "<br>");
   };
 
-  // Callback ref: populate the contentEditable exactly once per mount with the saved body.
-  // Using useCallback ensures React doesn't re-invoke this on every keystroke (which would
-  // reset innerHTML and send the cursor back to the top).
+  // The body editor is fully uncontrolled: React never re-renders its contents, so
+  // typing can't be clobbered. Live HTML is mirrored into a ref and read on save.
   const initialBodyRef = useRef<string>("");
+  const liveBodyRef = useRef<string>("");
   const setBodyRef = useCallback((el: HTMLDivElement | null) => {
     bodyRef.current = el;
     if (el) {
-      el.innerHTML = toHtml(initialBodyRef.current);
+      const html = toHtml(initialBodyRef.current);
+      if (el.innerHTML !== html) el.innerHTML = html;
+      liveBodyRef.current = el.innerHTML;
     }
   }, []);
 
-
-
+  const syncBody = () => {
+    if (bodyRef.current) liveBodyRef.current = bodyRef.current.innerHTML;
+  };
 
   const exec = (command: string, value?: string) => {
     bodyRef.current?.focus();
     document.execCommand(command, false, value);
-    if (bodyRef.current) {
-      setEditing((prev) => (prev ? { ...prev, body: bodyRef.current!.innerHTML } : prev));
-    }
+    syncBody();
   };
+
 
   const applyHighlight = () => exec("hiliteColor", "#fff59d");
   const applyFontSize = (px: string) => {
@@ -153,7 +155,7 @@ const AutoEmails = () => {
       range.insertNode(span);
     }
     sel.removeAllRanges();
-    setEditing((prev) => (prev ? { ...prev, body: bodyRef.current!.innerHTML } : prev));
+    syncBody();
   };
 
 
@@ -190,7 +192,7 @@ const AutoEmails = () => {
       name: editing.name.trim(),
       description: editing.description?.trim() || null,
       subject: editing.subject.trim(),
-      body: editing.body,
+      body: bodyRef.current ? bodyRef.current.innerHTML : (liveBodyRef.current || editing.body),
       enabled: editing.enabled,
       available_variables: editing.available_variables,
       attachments: editing.attachments as any,
@@ -559,9 +561,8 @@ const AutoEmails = () => {
                   ref={setBodyRef}
                   contentEditable
                   suppressContentEditableWarning
-                  onInput={(e) =>
-                    setEditing({ ...editing, body: (e.target as HTMLDivElement).innerHTML })
-                  }
+                  onInput={syncBody}
+
                   className="min-h-[280px] border rounded-b-md p-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring whitespace-pre-wrap break-words"
                   data-placeholder="Hi {{firstName}}, ..."
                 />
