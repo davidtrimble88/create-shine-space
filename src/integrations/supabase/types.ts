@@ -110,6 +110,44 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_form_tokens: {
+        Row: {
+          booking_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          last_opened_at: string | null
+          token: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          last_opened_at?: string | null
+          token: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          last_opened_at?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_form_tokens_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           address: string | null
