@@ -68,6 +68,8 @@ interface Props {
   prefill: WaiverPrefill;
   onBack: () => void;
   onSigned: (waiverId: string) => void;
+  continueLabel?: string;
+  finishLabel?: string;
 }
 
 const SignaturePad = ({
