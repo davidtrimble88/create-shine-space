@@ -405,7 +405,10 @@ const AdminBookings = () => {
 
   const handleChargeSuccess = (_paymentId: string, _provider: PaymentProvider) => {
     toast({ title: "Payment received", description: "Student has been booked and marked paid." });
-    if (chargePayload) void sendConfirmationForBooking(chargePayload);
+    if (chargePayload) {
+      void sendConfirmationForBooking(chargePayload);
+      promptSendFormsLink(chargePayload as unknown as Booking);
+    }
     setChargeOpen(false);
     setChargePayload(null);
     setForm({ schedule_id: "", rider_track: "irc", bike_year: "", bike_make: "", bike_model: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
