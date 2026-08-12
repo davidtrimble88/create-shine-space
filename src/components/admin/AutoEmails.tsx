@@ -31,6 +31,7 @@ const COURSE_OPTIONS: { value: string; label: string }[] = [
   { value: "", label: "Any course" },
   { value: "basic", label: "Motorcyclist Training Course (Basic)" },
   { value: "intermediate", label: "Intermediate Course" },
+  { value: "1dpc", label: "1-Day Premier Course with Licensing (1DPC)" },
   { value: "advanced", label: "Advanced Course" },
 ];
 

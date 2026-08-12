@@ -165,7 +165,8 @@ const AdminBookings = () => {
       email,
       firstName: String(payload.first_name || ""),
       lastName: String(payload.last_name || ""),
-      courseKey: course,
+      // 1DPC shares the intermediate class but has its own confirmation email.
+      courseKey: String(payload.rider_track || "") === "1dpc" ? "1dpc" : course,
       courseLabel: courseLabels[course] || course,
       locationLabel: String(payload.location_label || locationLabels[location] || location),
       location,
