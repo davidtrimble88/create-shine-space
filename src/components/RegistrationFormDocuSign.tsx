@@ -24,7 +24,7 @@ type HearOpt = typeof HEAR_OPTIONS[number];
 
 type YN = "yes" | "no" | "";
 
-const RegistrationFormDocuSign = ({ prefill, onBack, onSigned }: Props) => {
+const RegistrationFormDocuSign = ({ prefill, onBack, onSigned, continueLabel: continueLabelProp }: Props) => {
   const fullName = [prefill.firstName, prefill.middleName, prefill.lastName].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   const guardianFullName = [prefill.guardianFirstName, prefill.guardianLastName].filter(Boolean).join(" ").trim();
 

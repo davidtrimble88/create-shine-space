@@ -50,7 +50,7 @@ interface Props {
   continueLabel?: string;
 }
 
-const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
+const ModelReleaseDocuSign = ({ prefill, onBack, onComplete, continueLabel: continueLabelProp }: Props) => {
   const fullName = [prefill.firstName, prefill.middleName, prefill.lastName]
     .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
   // Guardian info is entered fresh on this step, NOT auto-filled from registration
