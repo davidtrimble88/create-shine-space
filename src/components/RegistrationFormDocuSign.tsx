@@ -12,6 +12,7 @@ interface Props {
   prefill: RegistrationFormPrefill;
   onBack: () => void;
   onSigned: (recordId: string) => void;
+  continueLabel?: string;
 }
 
 // Matches the 10 real options printed on the CMSP form (no DMV / Brochure)

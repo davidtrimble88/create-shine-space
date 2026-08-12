@@ -47,6 +47,7 @@ interface Props {
   prefill: ModelReleasePrefill;
   onBack: () => void;
   onComplete: (recordId: string, decision: "sign" | "decline") => void;
+  continueLabel?: string;
 }
 
 const ModelReleaseDocuSign = ({ prefill, onBack, onComplete }: Props) => {
