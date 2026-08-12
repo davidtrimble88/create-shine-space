@@ -179,6 +179,7 @@ const AdminBookings = () => {
   };
 
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const [formsLinkPrompt, setFormsLinkPrompt] = useState<{ open: boolean; booking: Booking | null }>({ open: false, booking: null });
 
   const handleResend = async (b: Booking) => {
     setResendingId(b.id);
@@ -191,6 +192,11 @@ const AdminBookings = () => {
       setResendingId(null);
     }
   };
+
+  const promptSendFormsLink = (booking: Booking) => {
+    setFormsLinkPrompt({ open: true, booking });
+  };
+
   // Emails the student a secure link where they can e-sign the CMSP registration
   // form, waiver, and photo release. Submissions attach to their booking exactly
   // like an online registration.
