@@ -116,12 +116,26 @@ const PaymentHistoryDialog = ({ open, onOpenChange, bookingId, email, studentNam
     const { data, error } = await supabase.functions.invoke("square-refund", {
       body: { transactionId: refundTx.id, amountCents, comment: comment.trim() },
     });
+
+    // functions.invoke hides the response body on non-2xx — read it from the context.
+    let serverError: string | null = (data as any)?.error ?? null;
+    if (error && !serverError) {
+      try {
+        const res = (error as any)?.context as Response | undefined;
+        if (res && typeof res.json === "function") {
+          const body = await res.clone().json();
+          serverError = body?.error || (body?.details ? JSON.stringify(body.details) : null);
+        }
+      } catch {
+        /* ignore parse failures */
+      }
+    }
     setSubmitting(false);
 
-    if (error || (data as any)?.error) {
+    if (error || serverError) {
       toast({
         title: "Refund failed",
-        description: (data as any)?.error || error?.message || "Please try again.",
+        description: serverError || error?.message || "Please try again.",
         variant: "destructive",
       });
       return;
