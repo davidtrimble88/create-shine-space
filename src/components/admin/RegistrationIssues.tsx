@@ -10,8 +10,11 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import FormsDropOff from "./FormsDropOff";
 import { toast } from "@/hooks/use-toast";
 import { AlertTriangle, CheckCircle2, CreditCard, Loader2, RefreshCw, Trash2, XCircle } from "lucide-react";
+
 
 interface Attempt {
   id: string;
@@ -117,11 +120,11 @@ const RegistrationIssues = () => {
     setNoteRow(null);
   };
 
-  return (
+  const issuesView = (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold">Registration Issues</h2>
+          <h3 className="text-xl font-bold">Registration Drop-Offs</h3>
           <p className="text-sm text-muted-foreground">
             People who started registering but didn't make it through — payment failures, errors, and drop-offs.
           </p>
@@ -131,6 +134,7 @@ const RegistrationIssues = () => {
           Refresh
         </Button>
       </div>
+
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Open Issues</CardTitle></CardHeader>
@@ -242,6 +246,26 @@ const RegistrationIssues = () => {
       </Dialog>
     </div>
   );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Registration Issues</h2>
+        <p className="text-sm text-muted-foreground">
+          Everywhere a student can get stuck — from the registration form through their online paperwork.
+        </p>
+      </div>
+      <Tabs defaultValue="registration">
+        <TabsList>
+          <TabsTrigger value="registration">Registration Drop-Offs</TabsTrigger>
+          <TabsTrigger value="forms">Forms Drop-Off</TabsTrigger>
+        </TabsList>
+        <TabsContent value="registration" className="mt-6">{issuesView}</TabsContent>
+        <TabsContent value="forms" className="mt-6"><FormsDropOff /></TabsContent>
+      </Tabs>
+    </div>
+  );
 };
+
 
 export default RegistrationIssues;
