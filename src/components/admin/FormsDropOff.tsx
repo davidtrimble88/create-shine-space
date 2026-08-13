@@ -282,8 +282,8 @@ const FormsDropOff = () => {
         <div>
           <h3 className="text-xl font-bold">Forms Drop-Off</h3>
           <p className="text-sm text-muted-foreground">
-            Adults who registered but never finished their CMSP paperwork. Completed registrations, your own test
-            entries, minors, and active staff members are excluded.
+            Adults with upcoming classes who haven't finished their CMSP paperwork. Completed registrations, past
+            classes, your own test entries, minors, and active staff members are excluded.
           </p>
         </div>
         <Button variant="outline" onClick={load} disabled={loading}>
