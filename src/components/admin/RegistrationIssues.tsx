@@ -117,11 +117,11 @@ const RegistrationIssues = () => {
     setNoteRow(null);
   };
 
-  return (
+  const issuesView = (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold">Registration Issues</h2>
+          <h3 className="text-xl font-bold">Registration Drop-Offs</h3>
           <p className="text-sm text-muted-foreground">
             People who started registering but didn't make it through — payment failures, errors, and drop-offs.
           </p>
@@ -131,6 +131,7 @@ const RegistrationIssues = () => {
           Refresh
         </Button>
       </div>
+
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Open Issues</CardTitle></CardHeader>
