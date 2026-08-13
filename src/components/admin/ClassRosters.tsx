@@ -16,7 +16,7 @@ import { WaiverStatusEditor } from "@/components/admin/WaiverStatusEditor";
 
 import type { Tables } from "@/integrations/supabase/types";
 import { formatPSTDate } from "@/lib/formatDate";
-import { isClassPast } from "@/lib/classDates";
+import { isClassPast, formatClassDates } from "@/lib/classDates";
 
 type Schedule = Tables<"schedules">;
 type Booking = Tables<"bookings"> & {
