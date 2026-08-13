@@ -552,8 +552,8 @@ const AdminSchedule = () => {
           <p className="text-muted-foreground">No classes found. Add your first class above.</p>
         </div>
       ) : (
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-card border border-border rounded-xl overflow-x-auto touch-pan-x">
+          <table className="w-full text-sm min-w-[768px]">
             <thead>
               <tr className="border-b border-border bg-secondary/30">
                 <th className="text-left p-4 font-medium text-muted-foreground">Date</th>
