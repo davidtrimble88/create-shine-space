@@ -58,17 +58,33 @@ const RegistrationIssues = () => {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("registration_attempts")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(2000);
+    const [{ data, error }, { data: bookings }] = await Promise.all([
+      supabase
+        .from("registration_attempts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(2000),
+      supabase
+        .from("bookings")
+        .select("email")
+        .eq("archived", false)
+        .eq("dropped", false)
+        .limit(5000),
+    ]);
     if (error) {
       toast({ title: "Could not load registration issues", description: error.message, variant: "destructive" });
     }
-    setRows((data as Attempt[]) || []);
+    // Anyone who ended up with a real booking isn't a lost registration — hide them.
+    const bookedEmails = new Set(
+      (bookings || []).map((b) => String(b.email || "").trim().toLowerCase()).filter(Boolean)
+    );
+    const attempts = ((data as Attempt[]) || []).filter(
+      (r) => !r.booking_id && !bookedEmails.has(String(r.email || "").trim().toLowerCase())
+    );
+    setRows(attempts);
     setLoading(false);
   };
+
 
   useEffect(() => { load(); }, []);
 
