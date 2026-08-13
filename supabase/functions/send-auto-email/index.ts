@@ -108,8 +108,48 @@ Deno.serve(async (req) => {
       });
     }
 
-    const subject = render(tpl.subject, variables);
-    let body = render(tpl.body, variables);
+    // Class venue addresses by location. Always available to templates as
+    // {{locationAddress}} / {{locationMapLink}}, even if the caller didn't pass them.
+    const VENUES: Record<string, { name: string; address: string }> = {
+      "ventura-county": {
+        name: "Mesa School",
+        address: "3901 Mesa School Rd\nCamarillo, CA 93066\nUnited States",
+      },
+      "high-desert-hesperia": {
+        name: "Elks Lodge",
+        address: "9202 E Ave\nHesperia, CA 92345\nUnited States",
+      },
+      "high-desert-wrightwood": {
+        name: "Wrightwood",
+        address: "24510 State Highway 2\nWrightwood, CA 92397\nUnited States",
+      },
+    };
+    const resolveVenue = () => {
+      const key = String(location || "").toLowerCase();
+      if (VENUES[key]) return VENUES[key];
+      const label = String(variables?.locationLabel || "").toLowerCase();
+      if (label.includes("wrightwood")) return VENUES["high-desert-wrightwood"];
+      if (label.includes("hesperia")) return VENUES["high-desert-hesperia"];
+      if (label.includes("ventura") || label.includes("somis") || label.includes("camarillo")) {
+        return VENUES["ventura-county"];
+      }
+      return null;
+    };
+    const venue = resolveVenue();
+    const vars: Record<string, string> = { ...variables };
+    if (venue) {
+      const full = `${venue.name}\n${venue.address}`;
+      if (!vars.locationAddress) vars.locationAddress = full;
+      if (!vars.locationName) vars.locationName = venue.name;
+      if (!vars.mapLink) {
+        vars.mapLink = `https://maps.google.com/?q=${encodeURIComponent(venue.address.replace(/\n/g, ", "))}`;
+      }
+      if (!vars.locationMapLink) vars.locationMapLink = vars.mapLink;
+    }
+
+    const subject = render(tpl.subject, vars);
+    let body = render(tpl.body, vars);
+
 
     // Refresh attachment URLs at send time. The admin UI stores a short-lived
     // preview URL, which expires; emails need a newly minted signed URL.
