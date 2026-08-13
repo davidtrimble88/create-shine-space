@@ -132,7 +132,7 @@ const FormsDropOff = () => {
         };
       });
 
-      setRows(built);
+      setRows(built.filter((r) => String(r.email || "").toLowerCase() !== currentUserEmail));
     } catch (e) {
       toast({
         title: "Could not load forms tracker",
