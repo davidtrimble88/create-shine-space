@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { AlertTriangle, Check, Clock, Copy, FileWarning, Link2, Loader2, Mail, MousePointerClick, RefreshCw, X } from "lucide-react";
+import { AlertTriangle, Check, Copy, FileWarning, Link2, Loader2, Mail, MousePointerClick, RefreshCw, X } from "lucide-react";
 import { isClassPast } from "@/lib/classDates";
 
 const courseLabels: Record<string, string> = {
