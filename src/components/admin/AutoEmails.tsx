@@ -55,13 +55,13 @@ const TRIGGER_OPTIONS: { value: string; label: string; vars: string[] }[] = [
   {
     value: "registration_confirmation",
     label: "After Registration (Student)",
-    vars: ["firstName", "lastName", "course", "locationLabel", "scheduleDate", "schedule", "fee", "email", "groupName"],
+    vars: ["firstName", "lastName", "course", "locationLabel", "locationName", "locationAddress", "mapLink", "scheduleDate", "schedule", "fee", "email", "groupName"],
   },
   {
     value: "class_location_time",
     label: "Class Location & Time (Pre-Class Details)",
     vars: [
-      "firstName", "lastName", "course", "locationLabel", "locationAddress",
+      "firstName", "lastName", "course", "locationLabel", "locationName", "locationAddress",
       "scheduleDate", "classTime", "schedule", "mapLink", "contactPhone", "email",
     ],
   },
@@ -72,16 +72,18 @@ const SAMPLE_VARS: Record<string, string> = {
   lastName: "Rider",
   course: "Motorcyclist Training Course",
   locationLabel: "Ventura County — Somis",
-  locationAddress: "5500 Somis Rd, Somis, CA 93066",
+  locationName: "Mesa School",
+  locationAddress: "Mesa School\n3901 Mesa School Rd\nCamarillo, CA 93066\nUnited States",
   scheduleDate: "Sat, Jun 14, 2025",
   classTime: "8:00 AM – 5:00 PM",
   schedule: "Sat 8am–5pm & Sun 8am–5pm",
-  mapLink: "https://maps.google.com/?q=5500+Somis+Rd",
+  mapLink: "https://maps.google.com/?q=3901+Mesa+School+Rd,+Camarillo,+CA+93066",
   contactPhone: "(805) 827-0075",
   fee: "$425",
   email: "alex@example.com",
   groupName: "Group A",
 };
+
 
 const render = (tpl: string, vars: Record<string, string>) =>
   tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? `{{${k}}}`);
