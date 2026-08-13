@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import { AlertTriangle, Check, Clock, Copy, FileWarning, Link2, Loader2, Mail, MousePointerClick, RefreshCw, X } from "lucide-react";
+import { isClassPast } from "@/lib/classDates";
 
 const courseLabels: Record<string, string> = {
   basic: "Motorcyclist Training Course",
@@ -31,6 +32,7 @@ interface BookingRow {
   rider_track: string | null;
   guardian_email: string | null;
   date_of_birth: string | null;
+  schedules: { date: string | null; schedule: string | null } | null;
 }
 
 interface Row extends BookingRow {
@@ -88,7 +90,7 @@ const FormsDropOff = () => {
         supabase
           .from("bookings")
           .select(
-            "id, created_at, first_name, last_name, email, phone, course, location, location_label, schedule_id, schedule_date, rider_track, guardian_email, date_of_birth"
+            "id, created_at, first_name, last_name, email, phone, course, location, location_label, schedule_id, schedule_date, rider_track, guardian_email, date_of_birth, schedules!schedule_id(date, schedule)"
           )
           .eq("archived", false)
           .eq("dropped", false)
@@ -167,6 +169,7 @@ const FormsDropOff = () => {
           if (isMinor(r.date_of_birth)) return false;
           const fullName = normalizeName(`${r.first_name || ""} ${r.last_name || ""}`);
           if (staffNames.has(fullName)) return false;
+          if (isClassPast(r.schedule_date, r.schedules?.schedule ?? null)) return false;
           return true;
         })
       );
@@ -279,8 +282,8 @@ const FormsDropOff = () => {
         <div>
           <h3 className="text-xl font-bold">Forms Drop-Off</h3>
           <p className="text-sm text-muted-foreground">
-            Adults who registered but never finished their CMSP paperwork. Completed registrations, your own test
-            entries, minors, and active staff members are excluded.
+            Adults with upcoming classes who haven't finished their CMSP paperwork. Completed registrations, past
+            classes, your own test entries, minors, and active staff members are excluded.
           </p>
         </div>
         <Button variant="outline" onClick={load} disabled={loading}>
