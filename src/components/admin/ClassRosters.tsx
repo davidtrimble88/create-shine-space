@@ -1986,8 +1986,9 @@ const ClassRosters = () => {
             {rescheduleFor && (() => {
               const src = rescheduleFor;
               const todayStr = new Date().toISOString().split("T")[0];
+              // Retest students don't occupy a seat, so open-spot count doesn't limit them.
               const candidates = schedules
-                .filter(s => s.course === src.course && s.date >= todayStr && s.spots_available > 0)
+                .filter(s => s.course === src.course && s.date >= todayStr && s.id !== src.schedule_id && (src.is_retest || s.spots_available > 0))
                 .sort((a, b) => a.date.localeCompare(b.date));
 
               return (
