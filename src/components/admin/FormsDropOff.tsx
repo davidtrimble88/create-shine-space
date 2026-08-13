@@ -303,8 +303,6 @@ const FormsDropOff = () => {
             <SelectItem value="opened_stopped">Opened link, stopped</SelectItem>
             <SelectItem value="partial">Started, incomplete</SelectItem>
             <SelectItem value="not_started">Never started</SelectItem>
-            <SelectItem value="complete">Complete</SelectItem>
-            <SelectItem value="all">All registrations</SelectItem>
           </SelectContent>
         </Select>
       </div>
