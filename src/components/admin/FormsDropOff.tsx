@@ -149,6 +149,10 @@ const FormsDropOff = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (filter === "complete" || filter === "all") setFilter("incomplete");
+  }, [filter]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
