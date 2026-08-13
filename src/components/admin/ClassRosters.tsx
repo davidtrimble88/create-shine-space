@@ -2518,7 +2518,7 @@ const ClassRosters = () => {
               </h2>
             </div>
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-2">
-              <span className="flex items-center gap-1"><CalendarDays className="w-4 h-4" /> {selectedSchedule.date}</span>
+              <span className="flex items-center gap-1"><CalendarDays className="w-4 h-4" /> {formatClassDates(selectedSchedule.date, selectedSchedule.schedule) || selectedSchedule.date}</span>
               <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {selectedSchedule.location_label}</span>
               <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {regularBookings.length} student{regularBookings.length !== 1 ? "s" : ""} enrolled</span>
             </div>
