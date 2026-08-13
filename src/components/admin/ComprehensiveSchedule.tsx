@@ -252,8 +252,8 @@ const ComprehensiveSchedule = () => {
           {Object.entries(groupedByLocation).map(([loc, items]) => (
             <div key={loc} className="mb-8">
               <h2 className="text-lg font-semibold text-foreground mb-3 border-b border-border pb-2">📍 {loc}</h2>
-              <div className="bg-card border border-border rounded-xl overflow-x-auto">
-                <table className="w-full text-sm min-w-[640px]">
+              <div className="bg-card border border-border rounded-xl overflow-x-auto touch-pan-x">
+                <table className="w-full text-sm min-w-[768px]">
 
                   <thead>
                     <tr className="border-b border-border bg-secondary/30">
