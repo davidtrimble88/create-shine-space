@@ -62,6 +62,7 @@ const FormsDropOff = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("incomplete");
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const currentUserEmail = user?.email?.toLowerCase() || null;
 
   const load = async () => {
     setLoading(true);
