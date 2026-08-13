@@ -90,7 +90,7 @@ const FormsDropOff = () => {
         supabase
           .from("bookings")
           .select(
-            "id, created_at, first_name, last_name, email, phone, course, location, location_label, schedule_id, schedule_date, rider_track, guardian_email, date_of_birth"
+            "id, created_at, first_name, last_name, email, phone, course, location, location_label, schedule_id, schedule_date, rider_track, guardian_email, date_of_birth, schedules!schedule_id(date, schedule)"
           )
           .eq("archived", false)
           .eq("dropped", false)
