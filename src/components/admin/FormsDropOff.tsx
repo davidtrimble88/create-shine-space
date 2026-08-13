@@ -191,14 +191,16 @@ const FormsDropOff = () => {
   }, []);
 
   useEffect(() => {
-    if (filter === "complete" || filter === "all") setFilter("incomplete");
+    if (filter === "complete" || filter === "all" || filter === "not_started" || filter === "incomplete") {
+      setFilter("started");
+    }
   }, [filter]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
-      if (filter === "incomplete" && r.stage === "complete") return false;
-      if (filter !== "incomplete" && filter !== "all" && r.stage !== filter) return false;
+      if (filter === "started" && (r.stage === "not_started" || r.stage === "complete")) return false;
+      if (filter !== "started" && filter !== "all" && r.stage !== filter) return false;
       if (!q) return true;
       return [r.first_name, r.last_name, r.email, r.phone, r.location_label]
         .filter(Boolean)
@@ -208,13 +210,13 @@ const FormsDropOff = () => {
 
   const stats = useMemo(
     () => ({
-      incomplete: rows.filter((r) => r.stage !== "complete").length,
+      started: rows.filter((r) => r.stage === "opened_stopped" || r.stage === "partial").length,
       openedStopped: rows.filter((r) => r.stage === "opened_stopped").length,
       partial: rows.filter((r) => r.stage === "partial").length,
-      notStarted: rows.filter((r) => r.stage === "not_started").length,
     }),
     [rows]
   );
+
 
   const createToken = async (b: Row) => {
     const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
