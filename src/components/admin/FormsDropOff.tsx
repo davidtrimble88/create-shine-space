@@ -143,7 +143,11 @@ const FormsDropOff = () => {
         };
       });
 
-      setRows(built.filter((r) => String(r.email || "").toLowerCase() !== currentUserEmail));
+      setRows(
+        built.filter(
+          (r) => String(r.email || "").toLowerCase() !== currentUserEmail && !isMinor(r.date_of_birth)
+        )
+      );
     } catch (e) {
       toast({
         title: "Could not load forms tracker",
