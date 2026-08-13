@@ -243,6 +243,26 @@ const RegistrationIssues = () => {
       </Dialog>
     </div>
   );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Registration Issues</h2>
+        <p className="text-sm text-muted-foreground">
+          Everywhere a student can get stuck — from the registration form through their online paperwork.
+        </p>
+      </div>
+      <Tabs defaultValue="registration">
+        <TabsList>
+          <TabsTrigger value="registration">Registration Drop-Offs</TabsTrigger>
+          <TabsTrigger value="forms">Forms Drop-Off</TabsTrigger>
+        </TabsList>
+        <TabsContent value="registration" className="mt-6">{issuesView}</TabsContent>
+        <TabsContent value="forms" className="mt-6"><FormsDropOff /></TabsContent>
+      </Tabs>
+    </div>
+  );
 };
+
 
 export default RegistrationIssues;
