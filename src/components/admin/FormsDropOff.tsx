@@ -62,6 +62,7 @@ const FormsDropOff = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("incomplete");
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const currentUserEmail = user?.email?.toLowerCase() || null;
 
   const load = async () => {
     setLoading(true);
@@ -131,7 +132,7 @@ const FormsDropOff = () => {
         };
       });
 
-      setRows(built);
+      setRows(built.filter((r) => String(r.email || "").toLowerCase() !== currentUserEmail));
     } catch (e) {
       toast({
         title: "Could not load forms tracker",
@@ -147,6 +148,10 @@ const FormsDropOff = () => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (filter === "complete" || filter === "all") setFilter("incomplete");
+  }, [filter]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -237,8 +242,8 @@ const FormsDropOff = () => {
         <div>
           <h3 className="text-xl font-bold">Forms Drop-Off</h3>
           <p className="text-sm text-muted-foreground">
-            Students who registered but never finished their CMSP paperwork — including anyone who opened the forms link
-            and stopped.
+            Students who registered but never finished their CMSP paperwork. Completed registrations and your own test
+            entries are excluded from this list.
           </p>
         </div>
         <Button variant="outline" onClick={load} disabled={loading}>
@@ -302,8 +307,6 @@ const FormsDropOff = () => {
             <SelectItem value="opened_stopped">Opened link, stopped</SelectItem>
             <SelectItem value="partial">Started, incomplete</SelectItem>
             <SelectItem value="not_started">Never started</SelectItem>
-            <SelectItem value="complete">Complete</SelectItem>
-            <SelectItem value="all">All registrations</SelectItem>
           </SelectContent>
         </Select>
       </div>
