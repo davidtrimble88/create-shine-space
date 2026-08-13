@@ -16,7 +16,7 @@ import { WaiverStatusEditor } from "@/components/admin/WaiverStatusEditor";
 
 import type { Tables } from "@/integrations/supabase/types";
 import { formatPSTDate } from "@/lib/formatDate";
-import { isClassPast } from "@/lib/classDates";
+import { isClassPast, formatClassDates } from "@/lib/classDates";
 
 type Schedule = Tables<"schedules">;
 type Booking = Tables<"bookings"> & {
@@ -2479,7 +2479,7 @@ const ClassRosters = () => {
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
-                        <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {s.date}</span>
+                        <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {formatClassDates(s.date, s.schedule) || s.date}</span>
                         <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {s.location_label}</span>
                         {assignedNames.length > 0 && (
                           <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" /> {assignedNames.join(", ")}</span>
@@ -2518,7 +2518,7 @@ const ClassRosters = () => {
               </h2>
             </div>
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-2">
-              <span className="flex items-center gap-1"><CalendarDays className="w-4 h-4" /> {selectedSchedule.date}</span>
+              <span className="flex items-center gap-1"><CalendarDays className="w-4 h-4" /> {formatClassDates(selectedSchedule.date, selectedSchedule.schedule) || selectedSchedule.date}</span>
               <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {selectedSchedule.location_label}</span>
               <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {regularBookings.length} student{regularBookings.length !== 1 ? "s" : ""} enrolled</span>
             </div>

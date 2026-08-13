@@ -69,3 +69,52 @@ export const isClassPast = (
   if (!startDate) return false;
   return classEndDate(startDate, scheduleText) < today;
 };
+
+/** Every calendar date the class meets, derived from the weekdays in the schedule text. */
+export const classSessionDates = (
+  startDate: string | null | undefined,
+  scheduleText: string | null | undefined,
+): string[] => {
+  if (!startDate) return [];
+  const start = parseISO(startDate);
+  if (Number.isNaN(start.getTime())) return [startDate];
+
+  const tokens = String(scheduleText ?? "")
+    .toLowerCase()
+    .match(/\b(sun|mon|tues|tue|weds|wed|thurs|thur|thu|fri|sat)\b/g);
+  if (!tokens || tokens.length === 0) return [startDate];
+
+  const dates: string[] = [startDate];
+  let cursor = new Date(start);
+  let cursorDow = start.getDay();
+  let started = false;
+  for (const t of tokens) {
+    const dow = DAY_INDEX[t];
+    if (dow === undefined) continue;
+    if (!started) {
+      started = true;
+      cursorDow = dow;
+      continue;
+    }
+    let delta = (dow - cursorDow + 7) % 7;
+    if (delta === 0) delta = 7;
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + delta);
+    cursorDow = dow;
+    dates.push(toISO(cursor));
+  }
+  return dates;
+};
+
+/** Human label listing every class day, e.g. "Fri Aug 14 · Sat Aug 15 · Sun Aug 16". */
+export const formatClassDates = (
+  startDate: string | null | undefined,
+  scheduleText: string | null | undefined,
+): string => {
+  const dates = classSessionDates(startDate, scheduleText);
+  if (dates.length === 0) return "";
+  return dates
+    .map((iso) =>
+      parseISO(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
+    )
+    .join(" · ");
+};
