@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { AlertTriangle, Check, Clock, Copy, FileWarning, Link2, Loader2, Mail, MousePointerClick, RefreshCw, X } from "lucide-react";
+import { AlertTriangle, Check, Copy, FileWarning, Link2, Loader2, Mail, MousePointerClick, RefreshCw, X } from "lucide-react";
 import { isClassPast } from "@/lib/classDates";
 
 const courseLabels: Record<string, string> = {
@@ -73,7 +73,8 @@ const FormsDropOff = () => {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("incomplete");
+  const [filter, setFilter] = useState("started");
+
   const [sendingId, setSendingId] = useState<string | null>(null);
   const currentUserEmail = user?.email?.toLowerCase() || null;
 
@@ -190,14 +191,16 @@ const FormsDropOff = () => {
   }, []);
 
   useEffect(() => {
-    if (filter === "complete" || filter === "all") setFilter("incomplete");
+    if (filter === "complete" || filter === "all" || filter === "not_started" || filter === "incomplete") {
+      setFilter("started");
+    }
   }, [filter]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
-      if (filter === "incomplete" && r.stage === "complete") return false;
-      if (filter !== "incomplete" && filter !== "all" && r.stage !== filter) return false;
+      if (filter === "started" && (r.stage === "not_started" || r.stage === "complete")) return false;
+      if (filter !== "started" && filter !== "all" && r.stage !== filter) return false;
       if (!q) return true;
       return [r.first_name, r.last_name, r.email, r.phone, r.location_label]
         .filter(Boolean)
@@ -207,13 +210,13 @@ const FormsDropOff = () => {
 
   const stats = useMemo(
     () => ({
-      incomplete: rows.filter((r) => r.stage !== "complete").length,
+      started: rows.filter((r) => r.stage === "opened_stopped" || r.stage === "partial").length,
       openedStopped: rows.filter((r) => r.stage === "opened_stopped").length,
       partial: rows.filter((r) => r.stage === "partial").length,
-      notStarted: rows.filter((r) => r.stage === "not_started").length,
     }),
     [rows]
   );
+
 
   const createToken = async (b: Row) => {
     const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
@@ -282,8 +285,9 @@ const FormsDropOff = () => {
         <div>
           <h3 className="text-xl font-bold">Forms Drop-Off</h3>
           <p className="text-sm text-muted-foreground">
-            Adults with upcoming classes who haven't finished their CMSP paperwork. Completed registrations, past
-            classes, your own test entries, minors, and active staff members are excluded.
+            Adults with upcoming classes who started the online forms but didn't finish. People who never clicked
+            the forms link, completed registrations, past classes, your own test entries, minors, and active staff
+            members are excluded.
           </p>
         </div>
         <Button variant="outline" onClick={load} disabled={loading}>
@@ -292,14 +296,14 @@ const FormsDropOff = () => {
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Paperwork Missing</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Started But Stopped</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-2 text-2xl font-bold">
             <FileWarning className="h-5 w-5 text-amber-500" />
-            {stats.incomplete}
+            {stats.started}
           </CardContent>
         </Card>
         <Card>
@@ -320,15 +324,6 @@ const FormsDropOff = () => {
             {stats.partial}
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Never Started</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center gap-2 text-2xl font-bold">
-            <Clock className="h-5 w-5 text-muted-foreground" />
-            {stats.notStarted}
-          </CardContent>
-        </Card>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -343,13 +338,13 @@ const FormsDropOff = () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="incomplete">Missing paperwork only</SelectItem>
+            <SelectItem value="started">Started but stopped</SelectItem>
             <SelectItem value="opened_stopped">Opened link, stopped</SelectItem>
             <SelectItem value="partial">Started, incomplete</SelectItem>
-            <SelectItem value="not_started">Never started</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
 
       <div className="rounded-lg border overflow-x-auto">
         <Table className="min-w-[900px]">
