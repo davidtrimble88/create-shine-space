@@ -103,11 +103,35 @@ const EmployeeDashboard = () => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
   };
+
+  /** Detect if an element (or its ancestor) is horizontally scrollable. */
+  const isInsideHorizontalScroller = (target: EventTarget | null): boolean => {
+    if (!(target instanceof Element)) return false;
+    let el: Element | null = target;
+    while (el && el !== document.body) {
+      const style = window.getComputedStyle(el as Element);
+      const overflowX = style.overflowX;
+      if (overflowX === "auto" || overflowX === "scroll") {
+        const scrollWidth = (el as Element).scrollWidth;
+        const clientWidth = (el as Element).clientWidth;
+        if (scrollWidth > clientWidth) return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
+  };
+
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX.current === null || touchStartY.current === null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     const dy = e.changedTouches[0].clientY - touchStartY.current;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      // Don't hijack horizontal swipes inside scrollable tables/cards.
+      if (isInsideHorizontalScroller(e.target)) {
+        touchStartX.current = null;
+        touchStartY.current = null;
+        return;
+      }
       if (isMobile) {
         if (dx > 0 && !mobileNavOpen && touchStartX.current < 30) setMobileNavOpen(true);
         else if (dx < 0 && mobileNavOpen) setMobileNavOpen(false);
