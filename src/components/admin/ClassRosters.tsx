@@ -244,7 +244,7 @@ const ClassRosters = () => {
           pendingDate = parsed.date ?? null;
           if (pendingDate) {
             // Use the class END date so a multi-day class in progress stays active.
-            const wantPast = isClassPast(pendingDate, (JSON.parse(pending).schedule ?? null), today);
+            const wantPast = isClassPast(pendingDate, parsed.schedule ?? null, today);
             if (wantPast && canManageEvaluations && view !== "past" && view !== "evaluation_pending") { setView("past"); return; }
             if ((!wantPast || !canManageEvaluations) && view !== "active") { setView("active"); return; }
           }
