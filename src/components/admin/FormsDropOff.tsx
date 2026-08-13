@@ -31,6 +31,8 @@ interface BookingRow {
   schedule_date: string | null;
   rider_track: string | null;
   guardian_email: string | null;
+  payment_status: string | null;
+  booking_status: string | null;
   date_of_birth: string | null;
   schedules: { date: string | null; schedule: string | null } | null;
 }
@@ -91,7 +93,7 @@ const FormsDropOff = () => {
         supabase
           .from("bookings")
           .select(
-            "id, created_at, first_name, last_name, email, phone, course, location, location_label, schedule_id, schedule_date, rider_track, guardian_email, date_of_birth, schedules!schedule_id(date, schedule)"
+            "id, created_at, first_name, last_name, email, phone, course, location, location_label, schedule_id, schedule_date, rider_track, guardian_email, date_of_birth, payment_status, booking_status, schedules!schedule_id(date, schedule)"
           )
           .eq("archived", false)
           .eq("dropped", false)
@@ -168,6 +170,10 @@ const FormsDropOff = () => {
         built.filter((r) => {
           if (String(r.email || "").toLowerCase() === currentUserEmail) return false;
           if (isMinor(r.date_of_birth)) return false;
+          // Anyone who completed registration (paid / confirmed) is not a drop-off
+          const pay = String(r.payment_status || "").toLowerCase();
+          const status = String(r.booking_status || "").toLowerCase();
+          if (pay === "paid" || status === "confirmed" || status === "completed") return false;
           const fullName = normalizeName(`${r.first_name || ""} ${r.last_name || ""}`);
           if (staffNames.has(fullName)) return false;
           if (isClassPast(r.schedule_date, r.schedules?.schedule ?? null)) return false;
@@ -285,9 +291,9 @@ const FormsDropOff = () => {
         <div>
           <h3 className="text-xl font-bold">Forms Drop-Off</h3>
           <p className="text-sm text-muted-foreground">
-            Adults with upcoming classes who started the online forms but didn't finish. People who never clicked
-            the forms link, completed registrations, past classes, your own test entries, minors, and active staff
-            members are excluded.
+            Adults with upcoming classes who started the online forms but never completed registration. Anyone who
+            is paid or confirmed, never clicked the forms link, has a past class, plus your own test entries, minors,
+            and active staff members are excluded.
           </p>
         </div>
         <Button variant="outline" onClick={load} disabled={loading}>
