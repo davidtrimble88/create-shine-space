@@ -243,7 +243,8 @@ const ClassRosters = () => {
           pendingId = parsed.id ?? null;
           pendingDate = parsed.date ?? null;
           if (pendingDate) {
-            const wantPast = pendingDate < today;
+            // Use the class END date so a multi-day class in progress stays active.
+            const wantPast = isClassPast(pendingDate, (JSON.parse(pending).schedule ?? null), today);
             if (wantPast && canManageEvaluations && view !== "past" && view !== "evaluation_pending") { setView("past"); return; }
             if ((!wantPast || !canManageEvaluations) && view !== "active") { setView("active"); return; }
           }
@@ -2367,7 +2368,9 @@ const ClassRosters = () => {
                       onClick={() => {
                         if (b.schedule_id) {
                           const today = new Date().toISOString().split("T")[0];
-                          const isPast = b.schedule_date && b.schedule_date < today;
+                          const isPast = !!(sched
+                            ? isClassPast(sched.date, sched.schedule, today)
+                            : b.schedule_date && isClassPast(b.schedule_date, null, today));
                           if (isPast && canManageEvaluations && view === "active") setView("past");
                           else if ((!isPast || !canManageEvaluations) && view !== "active") setView("active");
                           setTimeout(() => setSelectedScheduleId(b.schedule_id!), 50);
