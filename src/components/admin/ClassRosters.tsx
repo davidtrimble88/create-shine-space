@@ -16,6 +16,7 @@ import { WaiverStatusEditor } from "@/components/admin/WaiverStatusEditor";
 
 import type { Tables } from "@/integrations/supabase/types";
 import { formatPSTDate } from "@/lib/formatDate";
+import { isClassPast } from "@/lib/classDates";
 
 type Schedule = Tables<"schedules">;
 type Booking = Tables<"bookings"> & {
@@ -290,7 +291,7 @@ const ClassRosters = () => {
 
       // Build enrollment + eval-pending counts for ALL relevant schedules
       const allIds = [
-        ...(activeRes.data ?? []).map(s => s.id),
+        ...stillRunning.map(s => s.id),
         ...pastList.map(s => s.id),
       ];
       if (allIds.length > 0) {
@@ -400,7 +401,7 @@ const ClassRosters = () => {
       setPendingRetests((retestRows ?? []) as Booking[]);
 
       if (pendingId) {
-        const inActive = (activeRes.data ?? []).some(s => s.id === pendingId);
+        const inActive = stillRunning.some(s => s.id === pendingId);
         const inPast = pastList.some(s => s.id === pendingId);
         if (inActive || inPast) {
           setSelectedScheduleId(pendingId);
