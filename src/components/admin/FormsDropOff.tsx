@@ -169,6 +169,7 @@ const FormsDropOff = () => {
           if (isMinor(r.date_of_birth)) return false;
           const fullName = normalizeName(`${r.first_name || ""} ${r.last_name || ""}`);
           if (staffNames.has(fullName)) return false;
+          if (isClassPast(r.schedule_date, r.schedules?.schedule ?? null)) return false;
           return true;
         })
       );
