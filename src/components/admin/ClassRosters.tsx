@@ -2479,7 +2479,7 @@ const ClassRosters = () => {
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
-                        <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {s.date}</span>
+                        <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {formatClassDates(s.date, s.schedule) || s.date}</span>
                         <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {s.location_label}</span>
                         {assignedNames.length > 0 && (
                           <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" /> {assignedNames.join(", ")}</span>
