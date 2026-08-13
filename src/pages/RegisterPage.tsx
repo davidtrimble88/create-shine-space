@@ -118,6 +118,9 @@ const registrationSchema = z.object({
       ["guardianLastName", "Parent/guardian last name is required"],
       ["guardianRelationship", "Relationship is required"],
       ["guardianPhone", "Parent/guardian phone is required"],
+      ["emergencyContactName", "Emergency contact name is required for minors"],
+      ["emergencyContactRelationship", "Relationship is required for minors"],
+      ["emergencyContactPhone", "Emergency contact phone is required for minors"],
     ];
     for (const [key, msg] of required) {
       const v = (data as any)[key];
