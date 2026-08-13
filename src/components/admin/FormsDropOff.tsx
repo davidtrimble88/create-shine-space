@@ -295,14 +295,14 @@ const FormsDropOff = () => {
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Paperwork Missing</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Started But Stopped</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-2 text-2xl font-bold">
             <FileWarning className="h-5 w-5 text-amber-500" />
-            {stats.incomplete}
+            {stats.started}
           </CardContent>
         </Card>
         <Card>
@@ -323,15 +323,6 @@ const FormsDropOff = () => {
             {stats.partial}
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Never Started</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center gap-2 text-2xl font-bold">
-            <Clock className="h-5 w-5 text-muted-foreground" />
-            {stats.notStarted}
-          </CardContent>
-        </Card>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -346,13 +337,13 @@ const FormsDropOff = () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="incomplete">Missing paperwork only</SelectItem>
+            <SelectItem value="started">Started but stopped</SelectItem>
             <SelectItem value="opened_stopped">Opened link, stopped</SelectItem>
             <SelectItem value="partial">Started, incomplete</SelectItem>
-            <SelectItem value="not_started">Never started</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
 
       <div className="rounded-lg border overflow-x-auto">
         <Table className="min-w-[900px]">
