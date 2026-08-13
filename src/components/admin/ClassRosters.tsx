@@ -265,23 +265,28 @@ const ClassRosters = () => {
         }
       }
 
-      // Active = upcoming/today
-      const activeRes = await supabase
-        .from("schedules")
-        .select("*")
-        .gte("date", today)
-        .is("cancelled_at", null)
-        .order("date");
-      if (activeRes.data) setSchedules(activeRes.data);
+      // A class stays "active" until the day AFTER its final session, so pull a
+      // lookback window and split on the class END date, not the start date.
+      const lookback = new Date();
+      lookback.setDate(lookback.getDate() - 14);
+      const lookbackStr = lookback.toISOString().split("T")[0];
 
-      // Past schedules (date < today). Used for past + eval-pending views.
-      const pastRes = await supabase
-        .from("schedules")
-        .select("*")
-        .lt("date", today)
-        .order("date", { ascending: false });
-      const pastList = pastRes.data ?? [];
+      const [recentRes, olderRes] = await Promise.all([
+        supabase.from("schedules").select("*").gte("date", lookbackStr).order("date"),
+        supabase.from("schedules").select("*").lt("date", lookbackStr).order("date", { ascending: false }),
+      ]);
+
+      const recent = recentRes.data ?? [];
+      const stillRunning = recent.filter(s => !isClassPast(s.date, s.schedule, today));
+      const finishedRecent = recent.filter(s => isClassPast(s.date, s.schedule, today));
+
+      setSchedules(stillRunning.filter(s => !s.cancelled_at));
+
+      // Past schedules = classes whose last day has passed.
+      const pastList = [...finishedRecent, ...(olderRes.data ?? [])]
+        .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
       setPastSchedules(pastList);
+
 
       // Build enrollment + eval-pending counts for ALL relevant schedules
       const allIds = [
