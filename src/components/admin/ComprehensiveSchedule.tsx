@@ -41,6 +41,25 @@ const ComprehensiveSchedule = () => {
     }
   }, [prefLoaded, defaultLocation, initializedLoc]);
   const [filterInstructor, setFilterInstructor] = useState("all");
+  // When arriving from an assignment notification, pre-filter to the logged-in instructor
+  useEffect(() => {
+    if (sessionStorage.getItem("scheduleFilterSelf") !== "1") return;
+    sessionStorage.removeItem("scheduleFilterSelf");
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+      const { data: emp } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", auth.user.id)
+        .maybeSingle();
+      if (emp?.id) {
+        setInitializedLoc(true);
+        setFilterLocation("all");
+        setFilterInstructor(emp.id);
+      }
+    })();
+  }, []);
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [instructorList, setInstructorList] = useState<{ id: string; name: string }[]>([]);
   const printRef = useRef<HTMLDivElement>(null);

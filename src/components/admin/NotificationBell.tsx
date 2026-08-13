@@ -104,6 +104,13 @@ const NotificationBell = ({ onNavigate }: NotificationBellProps) => {
 
   const handleClick = async (n: Notification) => {
     if (!n.read) await markRead(n.id);
+    // Assignment notifications: open the Full Schedule pre-filtered to this instructor
+    if (n.type?.startsWith("assignment") && onNavigate) {
+      sessionStorage.setItem("scheduleFilterSelf", "1");
+      onNavigate("full-schedule");
+      setOpen(false);
+      return;
+    }
     if (n.link && onNavigate) {
       const m = n.link.match(/tab=([^&]+)/);
       if (m) {
