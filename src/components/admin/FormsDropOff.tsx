@@ -79,7 +79,12 @@ const FormsDropOff = () => {
     setLoading(true);
     try {
       const cutoff = new Date(Date.now() - 120 * 86400000).toISOString();
-      const [{ data: bookings, error: bErr }, { data: waivers }, { data: tokens }] = await Promise.all([
+      const [
+        { data: bookings, error: bErr },
+        { data: waivers },
+        { data: tokens },
+        { data: employees },
+      ] = await Promise.all([
         supabase
           .from("bookings")
           .select(
@@ -100,6 +105,11 @@ const FormsDropOff = () => {
           .select("booking_id, created_at, last_opened_at")
           .order("created_at", { ascending: false })
           .limit(2000),
+        supabase
+          .from("employees")
+          .select("full_name")
+          .eq("is_active", true)
+          .limit(1000),
       ]);
       if (bErr) throw bErr;
 
@@ -110,6 +120,14 @@ const FormsDropOff = () => {
         if (!prev) tokenMap.set(t.booking_id as string, { created_at: t.created_at as string, last_opened_at: opened });
         else tokenMap.set(t.booking_id as string, { ...prev, last_opened_at: opened });
       }
+
+      const normalizeName = (s: string) =>
+        s
+          .toLowerCase()
+          .replace(/[^a-z\s]/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+      const staffNames = new Set((employees || []).map((e) => normalizeName(e.full_name || "")).filter(Boolean));
 
       const built: Row[] = (bookings || []).map((b: BookingRow) => {
         const since = new Date(b.created_at).getTime() - 60_000;
@@ -144,9 +162,13 @@ const FormsDropOff = () => {
       });
 
       setRows(
-        built.filter(
-          (r) => String(r.email || "").toLowerCase() !== currentUserEmail && !isMinor(r.date_of_birth)
-        )
+        built.filter((r) => {
+          if (String(r.email || "").toLowerCase() === currentUserEmail) return false;
+          if (isMinor(r.date_of_birth)) return false;
+          const fullName = normalizeName(`${r.first_name || ""} ${r.last_name || ""}`);
+          if (staffNames.has(fullName)) return false;
+          return true;
+        })
       );
     } catch (e) {
       toast({
