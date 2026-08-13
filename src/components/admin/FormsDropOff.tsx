@@ -32,6 +32,7 @@ interface BookingRow {
   rider_track: string | null;
   guardian_email: string | null;
   date_of_birth: string | null;
+  schedules: { date: string | null; schedule: string | null } | null;
 }
 
 interface Row extends BookingRow {
