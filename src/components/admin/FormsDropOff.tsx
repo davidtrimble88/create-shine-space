@@ -52,6 +52,17 @@ const stageMeta: Record<Row["stage"], { label: string; className: string }> = {
 const fmt = (s: string | null) => (s ? new Date(s).toLocaleString() : "—");
 const daysSince = (s: string) => Math.floor((Date.now() - new Date(s).getTime()) / 86400000);
 
+const isMinor = (dateOfBirth: string | null) => {
+  if (!dateOfBirth) return false;
+  const dob = new Date(dateOfBirth);
+  if (isNaN(dob.getTime())) return false;
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  const monthDiff = now.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < dob.getDate())) age--;
+  return age < 18;
+};
+
 const Tick = ({ ok }: { ok: boolean }) =>
   ok ? <Check className="h-4 w-4 text-emerald-500" /> : <X className="h-4 w-4 text-destructive" />;
 
