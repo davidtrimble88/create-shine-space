@@ -54,6 +54,7 @@ const ComprehensiveSchedule = () => {
         .eq("user_id", auth.user.id)
         .maybeSingle();
       if (emp?.id) {
+        setInitializedLoc(true);
         setFilterLocation("all");
         setFilterInstructor(emp.id);
       }
