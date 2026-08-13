@@ -16,6 +16,7 @@ import { WaiverStatusEditor } from "@/components/admin/WaiverStatusEditor";
 
 import type { Tables } from "@/integrations/supabase/types";
 import { formatPSTDate } from "@/lib/formatDate";
+import { isClassPast } from "@/lib/classDates";
 
 type Schedule = Tables<"schedules">;
 type Booking = Tables<"bookings"> & {
@@ -242,7 +243,8 @@ const ClassRosters = () => {
           pendingId = parsed.id ?? null;
           pendingDate = parsed.date ?? null;
           if (pendingDate) {
-            const wantPast = pendingDate < today;
+            // Use the class END date so a multi-day class in progress stays active.
+            const wantPast = isClassPast(pendingDate, parsed.schedule ?? null, today);
             if (wantPast && canManageEvaluations && view !== "past" && view !== "evaluation_pending") { setView("past"); return; }
             if ((!wantPast || !canManageEvaluations) && view !== "active") { setView("active"); return; }
           }
@@ -265,27 +267,32 @@ const ClassRosters = () => {
         }
       }
 
-      // Active = upcoming/today
-      const activeRes = await supabase
-        .from("schedules")
-        .select("*")
-        .gte("date", today)
-        .is("cancelled_at", null)
-        .order("date");
-      if (activeRes.data) setSchedules(activeRes.data);
+      // A class stays "active" until the day AFTER its final session, so pull a
+      // lookback window and split on the class END date, not the start date.
+      const lookback = new Date();
+      lookback.setDate(lookback.getDate() - 14);
+      const lookbackStr = lookback.toISOString().split("T")[0];
 
-      // Past schedules (date < today). Used for past + eval-pending views.
-      const pastRes = await supabase
-        .from("schedules")
-        .select("*")
-        .lt("date", today)
-        .order("date", { ascending: false });
-      const pastList = pastRes.data ?? [];
+      const [recentRes, olderRes] = await Promise.all([
+        supabase.from("schedules").select("*").gte("date", lookbackStr).order("date"),
+        supabase.from("schedules").select("*").lt("date", lookbackStr).order("date", { ascending: false }),
+      ]);
+
+      const recent = recentRes.data ?? [];
+      const stillRunning = recent.filter(s => !isClassPast(s.date, s.schedule, today));
+      const finishedRecent = recent.filter(s => isClassPast(s.date, s.schedule, today));
+
+      setSchedules(stillRunning.filter(s => !s.cancelled_at));
+
+      // Past schedules = classes whose last day has passed.
+      const pastList = [...finishedRecent, ...(olderRes.data ?? [])]
+        .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
       setPastSchedules(pastList);
+
 
       // Build enrollment + eval-pending counts for ALL relevant schedules
       const allIds = [
-        ...(activeRes.data ?? []).map(s => s.id),
+        ...stillRunning.map(s => s.id),
         ...pastList.map(s => s.id),
       ];
       if (allIds.length > 0) {
@@ -395,7 +402,7 @@ const ClassRosters = () => {
       setPendingRetests((retestRows ?? []) as Booking[]);
 
       if (pendingId) {
-        const inActive = (activeRes.data ?? []).some(s => s.id === pendingId);
+        const inActive = stillRunning.some(s => s.id === pendingId);
         const inPast = pastList.some(s => s.id === pendingId);
         if (inActive || inPast) {
           setSelectedScheduleId(pendingId);
@@ -2361,7 +2368,9 @@ const ClassRosters = () => {
                       onClick={() => {
                         if (b.schedule_id) {
                           const today = new Date().toISOString().split("T")[0];
-                          const isPast = b.schedule_date && b.schedule_date < today;
+                          const isPast = !!(sched
+                            ? isClassPast(sched.date, sched.schedule, today)
+                            : b.schedule_date && isClassPast(b.schedule_date, null, today));
                           if (isPast && canManageEvaluations && view === "active") setView("past");
                           else if ((!isPast || !canManageEvaluations) && view !== "active") setView("active");
                           setTimeout(() => setSelectedScheduleId(b.schedule_id!), 50);
