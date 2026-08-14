@@ -875,10 +875,10 @@ const RegisterPage = () => {
             variables: {
               firstName: pendingBooking.first_name,
               lastName: pendingBooking.last_name,
-              course: courseLabels[pendingBooking.course] || pendingBooking.course,
+              course: courseLabels[String(pendingBooking.course)] || String(pendingBooking.course),
               locationLabel: pendingBooking.location_label,
-              scheduleDate: formatScheduleDate(pendingBooking.schedule_date),
-              scheduleDetail: expandScheduleDetailWithDates(pendingScheduleDetail, pendingBooking.schedule_date),
+              scheduleDate: formatScheduleDate(String(pendingBooking.schedule_date ?? "") || null),
+              scheduleDetail: expandScheduleDetailWithDates(pendingScheduleDetail, String(pendingBooking.schedule_date ?? "") || null),
               fee: pendingBooking.fee || "",
               payLink,
               email: pendingBooking.email,
