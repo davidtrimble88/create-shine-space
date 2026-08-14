@@ -343,12 +343,13 @@ const ViewerSchedule = () => {
   }
 
   const displayList = buildDisplayList();
-  const filtered = filterLocation === "all"
-    ? displayList
-    : displayList.filter(entry => {
-        if (entry.type === "schedule") return entry.data.location === filterLocation;
-        return entry.location.filterKey === filterLocation;
-      });
+  const filtered = displayList.filter(entry => {
+    const locationMatch = filterLocation === "all" ||
+      (entry.type === "schedule" ? entry.data.location === filterLocation : entry.location.filterKey === filterLocation);
+    if (!locationMatch) return false;
+    if (entry.type === "placeholder") return filterCourse === "all";
+    return filterCourse === "all" || entry.data.course === filterCourse;
+  });
 
 
   return (
