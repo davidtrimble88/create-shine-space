@@ -49,6 +49,11 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned, continueLabel: co
 
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ recordId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
+  // The CMSP form requires a photo ID number. Manually-booked students often
+  // have no license on file, so collect it here instead of failing on submit.
+  const needsIdNumber = !((prefill.idNumber || "").trim());
+  const [idNumber, setIdNumber] = useState((prefill.idNumber || "").trim());
+
 
 
 
