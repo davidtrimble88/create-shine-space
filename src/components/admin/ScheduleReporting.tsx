@@ -1,4 +1,5 @@
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Users, MapPin } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AvailabilityReport from "./AvailabilityReport";
 import SiteCoverageReport from "./SiteCoverageReport";
 
@@ -15,8 +16,26 @@ const ScheduleReporting = () => {
         </div>
       </div>
 
-      <SiteCoverageReport inline />
-      <AvailabilityReport inline />
+      <Tabs defaultValue="instructor-availability" className="w-full">
+        <TabsList className="bg-muted border border-border">
+          <TabsTrigger value="instructor-availability" className="gap-2">
+            <Users className="w-4 h-4" />
+            Instructor Availability
+          </TabsTrigger>
+          <TabsTrigger value="schedule-coverage" className="gap-2">
+            <MapPin className="w-4 h-4" />
+            Schedule Coverage
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="instructor-availability" className="mt-4">
+          <AvailabilityReport inline />
+        </TabsContent>
+
+        <TabsContent value="schedule-coverage" className="mt-4">
+          <SiteCoverageReport inline />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
