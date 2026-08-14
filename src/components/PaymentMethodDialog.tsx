@@ -106,7 +106,7 @@ export const PaymentMethodDialog = ({ open, onOpenChange, amountLabel, onChooseC
                   Monday – Friday, 9:00 AM – 5:00 PM
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed pt-1">
-                  Call our office to complete payment. As soon as we take it, we'll confirm your seat and email your
+                  Call our office to complete payment. As soon as payment is received, we'll confirm your seat and email your
                   class details. If your class fills before then, we'll help you pick the next available date.
                 </p>
               </div>
