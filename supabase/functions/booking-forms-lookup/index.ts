@@ -93,6 +93,12 @@ Deno.serve(async (req) => {
         guardianRelationship: b.guardian_relationship,
         guardianEmail: b.guardian_email,
         guardianPhone: b.guardian_phone,
+        fee: b.fee,
+        course_key: b.course,
+        paymentStatus: b.payment_status,
+        bookingStatus: b.booking_status,
+        pendingPayment: b.pending_payment,
+        riderTrack: b.rider_track,
       },
       completed: Array.from(done),
     });

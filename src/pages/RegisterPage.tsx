@@ -852,7 +852,43 @@ const RegisterPage = () => {
   const handleChooseCash = async () => {
     if (!pendingBooking) return;
     try {
-      await saveBooking(pendingBooking, "cash_pending", "cash");
+      const res: any = await saveBooking(pendingBooking, "cash_pending", "cash");
+
+      // Official "registration on hold" notice to the student (and the office),
+      // including a personal pay-by-card link in case they change their mind.
+      try {
+        const payToken = res?.payToken as string | undefined;
+        const payLink = payToken ? `${window.location.origin}/pay-registration?token=${payToken}` : "";
+        const guardianEmail = (waiverPrefill?.guardianEmail || "").trim();
+        const extra = ["Office@LearnToRideVC.com"];
+        if (waiverPrefill?.isMinor && guardianEmail && guardianEmail.toLowerCase() !== String(pendingBooking.email).toLowerCase()) {
+          extra.push(guardianEmail);
+        }
+        await supabase.functions.invoke("send-auto-email", {
+          body: {
+            trigger_event: "cash_payment_hold",
+            recipientEmail: pendingBooking.email,
+            location: pendingBooking.location,
+            groupName: pendingGroupName,
+            course: pendingBooking.rider_track === "1dpc" ? "1dpc" : pendingBooking.course,
+            additionalRecipients: extra,
+            variables: {
+              firstName: pendingBooking.first_name,
+              lastName: pendingBooking.last_name,
+              course: courseLabels[String(pendingBooking.course)] || String(pendingBooking.course),
+              locationLabel: pendingBooking.location_label,
+              scheduleDate: formatScheduleDate(String(pendingBooking.schedule_date ?? "") || null),
+              scheduleDetail: expandScheduleDetailWithDates(pendingScheduleDetail, String(pendingBooking.schedule_date ?? "") || null),
+              fee: pendingBooking.fee || "",
+              payLink,
+              email: pendingBooking.email,
+            },
+          },
+        });
+      } catch (mailErr) {
+        console.warn("Cash hold email failed", mailErr);
+      }
+
       updateAttempt(attemptIdRef.current, {
         status: "completed",
         stage: "cash_pending",
