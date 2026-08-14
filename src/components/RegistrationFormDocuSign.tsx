@@ -287,7 +287,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned, continueLabel: co
         address_state: prefill.addressState || null,
         address_zip: prefill.addressZip || null,
         id_type: prefill.idType,
-        id_number: prefill.idNumber,
+        id_number: idNumber.trim() || (prefill.idNumber || "").trim(),
         id_state: prefill.idState || null,
         id_country: prefill.idCountry || null,
         id_expiration: prefill.idExpiration || null,
