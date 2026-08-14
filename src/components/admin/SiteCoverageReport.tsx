@@ -32,6 +32,7 @@ interface ClassRow {
   course: string;
   groupName: string | null;
   category: Category | null;
+  createdAt: string | null;
 }
 
 interface SiteReport {
@@ -57,7 +58,7 @@ const SiteCoverageReport = ({ onClose, inline }: Props) => {
       const today = new Date().toISOString().split("T")[0];
       const { data } = await supabase
         .from("schedules")
-        .select("id, date, course, location, location_label, group_name, schedule")
+        .select("id, date, course, location, location_label, group_name, schedule, created_at")
         .gte("date", today)
         .is("cancelled_at", null)
         .order("date");
@@ -84,6 +85,7 @@ const SiteCoverageReport = ({ onClose, inline }: Props) => {
           course: s.course,
           groupName: s.group_name,
           category,
+          createdAt: s.created_at ?? null,
         });
       });
 
@@ -116,12 +118,13 @@ const SiteCoverageReport = ({ onClose, inline }: Props) => {
       <p class="sub">${CATEGORIES.map(c => `${c}: ${s.counts[c]}`).join(" · ")} · Total: ${s.total}</p>
       ${s.classes.length === 0 ? '<p class="none">No upcoming classes scheduled.</p>' : `
       <table>
-        <tr><th>Dates</th><th>Course</th><th>Type</th><th>Schedule</th></tr>
+        <tr><th>Dates</th><th>Course</th><th>Type</th><th>Schedule</th><th>Released for booking</th></tr>
         ${s.classes.map(c => `<tr>
           <td>${formatClassDates(c.date, c.scheduleText)}</td>
           <td>${courseLabels[c.course] || c.course}${c.groupName ? ` (${c.groupName})` : ""}</td>
           <td>${c.category ?? "—"}</td>
           <td>${c.scheduleText}</td>
+          <td>${c.createdAt ? format(new Date(c.createdAt), "MMM d, yyyy") : "—"}</td>
         </tr>`).join("")}
       </table>`}
     `).join("");
@@ -237,6 +240,9 @@ const SiteCoverageReport = ({ onClose, inline }: Props) => {
                           {c.category ? ` · ${c.category}` : ""}
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">{c.scheduleText}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          Released for booking: {c.createdAt ? format(new Date(c.createdAt), "MMM d, yyyy 'at' h:mm a") : "—"}
+                        </div>
                       </div>
                     ))}
                   </div>
