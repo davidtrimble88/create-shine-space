@@ -396,6 +396,16 @@ const ViewerSchedule = () => {
             <SelectItem value="ventura-county">Ventura County — Somis</SelectItem>
           </SelectContent>
         </Select>
+
+        <Select value={filterCourse} onValueChange={setFilterCourse}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="All Class Levels" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Class Levels</SelectItem>
+            <SelectItem value="basic">Motorcyclist Training Course</SelectItem>
+            <SelectItem value="intermediate">Intermediate Course</SelectItem>
+            <SelectItem value="advanced">Advanced Riding Clinic</SelectItem>
+          </SelectContent>
+        </Select>
         {filterLocation !== "all" && defaultLocation !== filterLocation && (
           <Button
             variant="outline"
