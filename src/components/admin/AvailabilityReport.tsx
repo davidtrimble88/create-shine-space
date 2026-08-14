@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Loader2, Printer, CalendarDays, CalendarPlus, Users, CalendarCheck } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { classSessionDates, formatClassDates } from "@/lib/classDates";
 
 const courseLabels: Record<string, string> = {
   basic: "Motorcyclist Training Course",
@@ -44,8 +45,7 @@ interface DateRow {
 }
 
 interface AssignmentSession {
-  sessionKey: string;
-  scheduleIds: string[];
+  scheduleId: string;
   dates: string[];
   label: string;
   locationLabel: string;
@@ -86,24 +86,6 @@ const AvailabilityReport = ({ onClose }: Props) => {
       const schedById = new Map((schedRes.data ?? []).map(s => [s.id, s]));
       const employeeById = new Map((empRes.data ?? []).map(e => [e.id, e]));
 
-      // Group schedule rows into class sessions (multi-day classes share the same schedule pattern).
-      const sessionByKey = new Map<string, { scheduleIds: string[]; dates: string[]; schedule: any }>();
-      (schedRes.data ?? []).forEach((s: any) => {
-        const key = `${s.course}|${s.location}|${s.group_name || ""}|${s.schedule}`;
-        if (!sessionByKey.has(key)) {
-          sessionByKey.set(key, { scheduleIds: [], dates: [], schedule: s });
-        }
-        const session = sessionByKey.get(key)!;
-        session.scheduleIds.push(s.id);
-        session.dates.push(s.date);
-      });
-      sessionByKey.forEach(s => s.dates.sort());
-
-      const scheduleIdToSessionKey = new Map<string, string>();
-      sessionByKey.forEach((session, key) => {
-        session.scheduleIds.forEach(id => scheduleIdToSessionKey.set(id, key));
-      });
-
       const byUser = new Map<string, InstructorReport>();
       employees.forEach(e => {
         byUser.set(e.user_id as string, {
@@ -143,15 +125,11 @@ const AvailabilityReport = ({ onClose }: Props) => {
         const rep = byUser.get(emp.user_id as string);
         const s = schedById.get(a.schedule_id);
         if (!rep || !s) return;
-        const sessionKey = scheduleIdToSessionKey.get(a.schedule_id);
-        if (!sessionKey) return;
-        let session = rep.assignmentSessions.find(x => x.sessionKey === sessionKey);
+        let session = rep.assignmentSessions.find(x => x.scheduleId === a.schedule_id);
         if (!session) {
-          const sessionData = sessionByKey.get(sessionKey)!;
           session = {
-            sessionKey,
-            scheduleIds: sessionData.scheduleIds,
-            dates: sessionData.dates,
+            scheduleId: s.id,
+            dates: classSessionDates(s.date, s.schedule),
             label: `${courseLabels[s.course] || s.course}${s.group_name ? ` (${s.group_name})` : ""}`,
             locationLabel: s.location_label,
             scheduleText: s.schedule,
@@ -191,7 +169,7 @@ const AvailabilityReport = ({ onClose }: Props) => {
       <h2>${r.name}</h2>
       <p class="sub">${r.assignmentSessions.length} scheduled class(es) · ${r.classes.length} availability class(es) · ${r.dates.length} placeholder day(s)</p>
       ${r.assignmentSessions.length === 0 && r.classes.length === 0 && r.dates.length === 0 ? '<p class="none">No availability or assignments submitted.</p>' : ""}
-      ${r.assignmentSessions.length > 0 ? `<table><tr><th>Dates</th><th>Class</th><th>Location</th><th>Schedule</th><th>Roles</th></tr>
+      ${r.assignmentSessions.length > 0 ? `<table><tr><th>Dates</th><th>Class</th><th>Location</th><th>Schedule</th><th>Parts</th></tr>
         ${r.assignmentSessions.map(s => `<tr>
           <td>${s.dates.map(d => format(parseISO(d), "EEE, MMM d")).join(" · ")}</td>
           <td>${s.label}</td>
@@ -326,12 +304,12 @@ const AvailabilityReport = ({ onClose }: Props) => {
                   <div className="space-y-3 mb-3">
                     <p className="text-xs text-muted-foreground uppercase tracking-wide">Scheduled classes</p>
                     {r.assignmentSessions.map(s => (
-                      <div key={s.sessionKey} className="bg-background/50 border border-border/60 rounded-lg p-3">
+                      <div key={s.scheduleId} className="bg-background/50 border border-border/60 rounded-lg p-3">
                         <div className="flex items-start gap-2 text-sm mb-1">
                           <CalendarCheck className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
                           <div className="flex-1">
                             <div className="text-foreground font-medium">
-                              {s.dates.map(d => format(parseISO(d), "EEE, MMM d")).join(" · ")}
+                              {formatClassDates(s.dates[0], s.scheduleText)}
                             </div>
                             <div className="text-muted-foreground">
                               {s.label} · {s.locationLabel}
@@ -359,7 +337,7 @@ const AvailabilityReport = ({ onClose }: Props) => {
                       <div key={c.scheduleId} className="flex items-start gap-2 text-sm">
                         <CalendarDays className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
                         <div>
-                          <span className="text-foreground font-medium">{format(parseISO(c.date), "EEE, MMM d, yyyy")}</span>
+                          <span className="text-foreground font-medium">{formatClassDates(c.date, c.scheduleText ?? c.date)}</span>
                           <span className="text-muted-foreground"> — {c.label} · {c.locationLabel}</span>
                           <div className="text-xs text-green-400">
                             {c.parts === null ? "Available: full class" : `Available: ${c.parts.join(", ")}`}
