@@ -107,6 +107,7 @@ const AvailabilityReport = ({ onClose }: Props) => {
           date: s.date,
           label: `${courseLabels[s.course] || s.course}${s.group_name ? ` (${s.group_name})` : ""}`,
           locationLabel: s.location_label,
+          scheduleText: s.schedule,
           parts: (a.parts as string[] | null) ?? null,
         });
       });
