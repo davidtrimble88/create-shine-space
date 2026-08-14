@@ -199,6 +199,8 @@ export type Database = {
           location: string
           location_label: string
           manually_added: boolean
+          marked_paid_at: string | null
+          marked_paid_by: string | null
           middle_name: string | null
           needs_reschedule: boolean
           original_course: string | null
@@ -207,6 +209,8 @@ export type Database = {
           original_schedule_id: string | null
           payment_provider: string | null
           payment_status: string
+          pending_payment: boolean
+          pending_payment_note: string | null
           phone: string
           preferred_name: string | null
           referral_source: string | null
@@ -276,6 +280,8 @@ export type Database = {
           location: string
           location_label: string
           manually_added?: boolean
+          marked_paid_at?: string | null
+          marked_paid_by?: string | null
           middle_name?: string | null
           needs_reschedule?: boolean
           original_course?: string | null
@@ -284,6 +290,8 @@ export type Database = {
           original_schedule_id?: string | null
           payment_provider?: string | null
           payment_status?: string
+          pending_payment?: boolean
+          pending_payment_note?: string | null
           phone: string
           preferred_name?: string | null
           referral_source?: string | null
@@ -353,6 +361,8 @@ export type Database = {
           location?: string
           location_label?: string
           manually_added?: boolean
+          marked_paid_at?: string | null
+          marked_paid_by?: string | null
           middle_name?: string | null
           needs_reschedule?: boolean
           original_course?: string | null
@@ -361,6 +371,8 @@ export type Database = {
           original_schedule_id?: string | null
           payment_provider?: string | null
           payment_status?: string
+          pending_payment?: boolean
+          pending_payment_note?: string | null
           phone?: string
           preferred_name?: string | null
           referral_source?: string | null
@@ -1915,6 +1927,16 @@ export type Database = {
               _archived: boolean
               _dropped: boolean
               _is_retest: boolean
+              _schedule_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              _archived: boolean
+              _dropped: boolean
+              _is_retest: boolean
+              _pending_payment: boolean
               _schedule_id: string
             }
             Returns: boolean
