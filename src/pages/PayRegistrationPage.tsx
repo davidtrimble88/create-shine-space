@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SquarePaymentDialog, type SquareRegion } from "@/components/SquarePaymentDialog";
 import { sendRegistrationConfirmation, formatScheduleDate } from "@/lib/registrationEmail";
-import { CheckCircle, Loader2, CreditCard, Phone } from "lucide-react";
+import { CheckCircle, Loader2, CreditCard, Phone, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 const courseLabels: Record<string, string> = {
   basic: "Motorcyclist Training Course",
@@ -30,6 +31,24 @@ const PayRegistrationPage = () => {
   const [schedule, setSchedule] = useState<any>(null);
   const [payOpen, setPayOpen] = useState(false);
   const [paid, setPaid] = useState(false);
+  const [alternatives, setAlternatives] = useState<any[]>([]);
+  const [selectedAlt, setSelectedAlt] = useState<string>("");
+  const [switching, setSwitching] = useState(false);
+  const [switched, setSwitched] = useState(false);
+
+  const loadAlternatives = async (b: any, currentScheduleId: string | null) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const { data } = await supabase
+      .from("schedules")
+      .select("*")
+      .eq("location", b.location)
+      .eq("course", b.course)
+      .is("cancelled_at", null)
+      .gte("date", today)
+      .gt("spots_available", 0)
+      .order("date", { ascending: true });
+    setAlternatives((data || []).filter((s: any) => s.id !== currentScheduleId));
+  };
 
   useEffect(() => {
     (async () => {
@@ -46,6 +65,8 @@ const PayRegistrationPage = () => {
       if (b.scheduleId) {
         const { data: s } = await supabase.from("schedules").select("*").eq("id", b.scheduleId).maybeSingle();
         setSchedule(s);
+        const isFull = !s || !!s.cancelled_at || (s.spots_available ?? 0) <= 0;
+        if (isFull && b.paymentStatus !== "paid") await loadAlternatives(b, b.scheduleId);
       }
       setLoading(false);
     })();
@@ -75,6 +96,33 @@ const PayRegistrationPage = () => {
       zip: booking.addressZip,
     };
   }, [booking]);
+
+  const classFull = !!booking && !paid && (!schedule || !!schedule.cancelled_at || (schedule.spots_available ?? 0) <= 0);
+
+  const handleSwitch = async () => {
+    if (!selectedAlt) return;
+    setSwitching(true);
+    const { data, error: fnErr } = await supabase.functions.invoke("booking-change-schedule", {
+      body: { token, scheduleId: selectedAlt },
+    });
+    setSwitching(false);
+    if (fnErr || !data || (data as any).error) {
+      toast.error((data as any)?.error || "We couldn't move your registration. Please call the office.");
+      return;
+    }
+    const s = (data as any).schedule;
+    setSchedule(s);
+    setBooking((prev: any) => ({
+      ...prev,
+      scheduleId: s.id,
+      scheduleDate: s.date,
+      course: s.course,
+      locationLabel: s.location_label,
+      fee: s.price,
+    }));
+    setSwitched(true);
+    toast.success("Your class has been updated. Complete payment to lock in your seat.");
+  };
 
   const handleSuccess = async () => {
     setPaid(true);
@@ -153,9 +201,66 @@ const PayRegistrationPage = () => {
                 </p>
               </div>
 
-              <Button size="lg" className="w-full" disabled={!feeCents} onClick={() => setPayOpen(true)}>
-                <CreditCard className="w-4 h-4 mr-2" /> Pay by Card
-              </Button>
+              {switched && (
+                <p className="text-sm text-accent font-medium text-center">
+                  Your registration has been moved to the class shown above.
+                </p>
+              )}
+
+              {classFull ? (
+                <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-destructive mt-0.5 shrink-0" />
+                    <div className="space-y-1">
+                      <p className="font-semibold text-foreground">This class is now full</p>
+                      <p className="text-sm text-muted-foreground">
+                        Because your seat wasn't reserved, the class you chose filled up. Pick another available class
+                        at the same location below — your registration updates automatically, then you can pay.
+                      </p>
+                    </div>
+                  </div>
+
+                  {alternatives.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      There are no other open classes right now. Please call our office at{" "}
+                      <a href="tel:+18058270075" className="text-accent font-semibold">(805) 827-0075</a>.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {alternatives.map((s) => (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => setSelectedAlt(s.id)}
+                            className={`w-full text-left rounded-lg border p-3 transition-colors ${
+                              selectedAlt === s.id
+                                ? "border-accent bg-accent/10"
+                                : "border-border bg-background hover:bg-muted/50"
+                            }`}
+                          >
+                            <p className="font-medium text-foreground">{formatScheduleDate(s.date)}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {s.location_label}
+                              {s.group_name ? ` (${s.group_name})` : ""} · {s.spots_available} seat
+                              {s.spots_available === 1 ? "" : "s"} open
+                            </p>
+                            {s.schedule && <p className="text-xs text-muted-foreground mt-1">{s.schedule}</p>}
+                          </button>
+                        ))}
+                      </div>
+                      <Button className="w-full" disabled={!selectedAlt || switching} onClick={handleSwitch}>
+                        {switching ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                        Move me to this class
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Button size="lg" className="w-full" disabled={!feeCents} onClick={() => setPayOpen(true)}>
+                  <CreditCard className="w-4 h-4 mr-2" /> Pay by Card
+                </Button>
+              )}
 
               <p className="text-center text-sm text-muted-foreground">
                 Prefer to pay cash? Call our office at{" "}
