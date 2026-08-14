@@ -36,6 +36,7 @@ interface ClassRow {
   date: string;
   label: string;
   locationLabel: string;
+  scheduleText: string;
   parts: string[] | null; // null = full class
 }
 
