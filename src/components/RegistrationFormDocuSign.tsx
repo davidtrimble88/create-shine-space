@@ -327,8 +327,26 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned, continueLabel: co
         document_version: CMSP_REGISTRATION_FORM_VERSION,
       };
       const { data, error } = await supabase.functions.invoke("record-registration-form", { body });
-      if (error) throw new Error(error.message);
+      if (error) {
+        // invoke() collapses any non-2xx into a generic message — pull the real
+        // reason out of the response body so students/staff know what to fix.
+        let detail = "";
+        try {
+          const res = (error as any)?.context;
+          if (res && typeof res.json === "function") {
+            const j = await res.json();
+            detail = j?.error || "";
+            const fieldErrors = j?.details?.fieldErrors as Record<string, string[]> | undefined;
+            if (fieldErrors) {
+              const fields = Object.keys(fieldErrors).join(", ");
+              if (fields) detail = `${detail || "Invalid request"} — missing or invalid: ${fields}`;
+            }
+          }
+        } catch { /* body already consumed or not JSON */ }
+        throw new Error(detail || error.message);
+      }
       if ((data as any)?.error) throw new Error((data as any).error);
+
       setResult({
         recordId: (data as any).record_id,
         pdfPath: (data as any).pdf_path || null,
