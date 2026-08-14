@@ -928,7 +928,7 @@ const RegisterPage = () => {
 
   const handleGoBackToPayment = () => {
     setCancelConfirmOpen(false);
-    setPaymentOpen(true);
+    setMethodOpen(true);
   };
 
 
