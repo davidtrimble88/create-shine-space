@@ -30,6 +30,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
+import PaymentMethodDialog from "@/components/PaymentMethodDialog";
 import { getVisitorId, recordPaymentFailure, startAttempt, updateAttempt } from "@/lib/registrationAttempts";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
@@ -1713,6 +1714,20 @@ const RegisterPage = () => {
       </section>
 
       <Footer />
+
+      {pendingBooking && (
+        <PaymentMethodDialog
+          open={methodOpen}
+          onOpenChange={(o) => {
+            if (o) { setMethodOpen(true); return; }
+            setMethodOpen(false);
+            if (!paymentCompletedRef.current && pendingBooking) setCancelConfirmOpen(true);
+          }}
+          amountLabel={paymentAmountLabel}
+          onChooseCard={() => { setMethodOpen(false); setPaymentOpen(true); }}
+          onChooseCash={handleChooseCash}
+        />
+      )}
 
       {pendingBooking && (
         <PaymentDialog
