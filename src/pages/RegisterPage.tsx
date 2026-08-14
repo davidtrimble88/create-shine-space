@@ -1168,10 +1168,13 @@ const RegisterPage = () => {
                           <FormControl>
                             <Input
                               type="date"
+                              min={`${new Date().getFullYear() - 100}-01-01`}
+                              max={new Date().toISOString().slice(0, 10)}
                               value={field.value}
                               onChange={(e) => {
                                 field.onChange(e.target.value);
                               }}
+
                               onBlur={field.onBlur}
                               name={field.name}
                               ref={field.ref}
