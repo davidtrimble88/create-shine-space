@@ -57,7 +57,7 @@ const tabs = [
   { id: "certifications", label: "Certifications", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
   { id: "work-log", label: "Work Log", icon: ClipboardList, roles: ["owner", "admin", "manager", "employee"] },
   { id: "sub-coverage", label: "Sub Coverage", icon: UserMinus, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "schedule-reporting", label: "Schedule Reporting", icon: BarChart3, roles: ["owner", "admin"] },
+  { id: "schedule-reporting", label: "Schedule Reporting", icon: BarChart3, roles: ["owner"] },
   
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
