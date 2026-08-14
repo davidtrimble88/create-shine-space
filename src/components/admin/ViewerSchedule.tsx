@@ -64,6 +64,7 @@ const ViewerSchedule = () => {
   const [toggling, setToggling] = useState<string | null>(null);
   const [dismissing, setDismissing] = useState<string | null>(null);
   const [filterLocation, setFilterLocation] = useState<string>("all");
+  const [filterCourse, setFilterCourse] = useState<string>("all");
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [showReport, setShowReport] = useState(false);
   const { defaultLocation, setDefaultLocation, loaded: prefLoaded } = useDefaultLocation();
@@ -342,12 +343,13 @@ const ViewerSchedule = () => {
   }
 
   const displayList = buildDisplayList();
-  const filtered = filterLocation === "all"
-    ? displayList
-    : displayList.filter(entry => {
-        if (entry.type === "schedule") return entry.data.location === filterLocation;
-        return entry.location.filterKey === filterLocation;
-      });
+  const filtered = displayList.filter(entry => {
+    const locationMatch = filterLocation === "all" ||
+      (entry.type === "schedule" ? entry.data.location === filterLocation : entry.location.filterKey === filterLocation);
+    if (!locationMatch) return false;
+    if (entry.type === "placeholder") return filterCourse === "all";
+    return filterCourse === "all" || entry.data.course === filterCourse;
+  });
 
 
   return (
@@ -392,6 +394,16 @@ const ViewerSchedule = () => {
             <SelectItem value="high-desert-hesperia">High Desert — Hesperia</SelectItem>
             <SelectItem value="high-desert-wrightwood">High Desert — Wrightwood</SelectItem>
             <SelectItem value="ventura-county">Ventura County — Somis</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filterCourse} onValueChange={setFilterCourse}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="All Class Levels" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Class Levels</SelectItem>
+            <SelectItem value="basic">Motorcyclist Training Course</SelectItem>
+            <SelectItem value="intermediate">Intermediate Course</SelectItem>
+            <SelectItem value="advanced">Advanced Riding Clinic</SelectItem>
           </SelectContent>
         </Select>
         {filterLocation !== "all" && defaultLocation !== filterLocation && (
