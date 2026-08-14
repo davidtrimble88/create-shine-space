@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Printer, CalendarDays, CalendarPlus, Users } from "lucide-react";
+import { Loader2, Printer, CalendarDays, CalendarPlus, Users, CalendarCheck } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 const courseLabels: Record<string, string> = {
@@ -32,11 +32,21 @@ interface DateRow {
   locationLabel: string;
 }
 
+interface AssignmentRow {
+  scheduleId: string;
+  date: string;
+  label: string;
+  locationLabel: string;
+  assignmentRole: string;
+  part: string | null;
+}
+
 interface InstructorReport {
   employeeId: string;
   name: string;
   classes: ClassRow[];
   dates: DateRow[];
+  assignments: AssignmentRow[];
 }
 
 interface Props {
@@ -50,15 +60,17 @@ const AvailabilityReport = ({ onClose }: Props) => {
   useEffect(() => {
     const load = async () => {
       const today = new Date().toISOString().split("T")[0];
-      const [empRes, schedRes, availRes, dateAvailRes] = await Promise.all([
+      const [empRes, schedRes, availRes, dateAvailRes, assignRes] = await Promise.all([
         supabase.from("employees").select("id, full_name, user_id, is_active").eq("is_active", true),
         supabase.from("schedules").select("*").gte("date", today).is("cancelled_at", null).order("date"),
         supabase.from("instructor_availability").select("schedule_id, user_id, parts"),
         supabase.from("instructor_date_availability").select("user_id, date, location").gte("date", today),
+        supabase.from("instructor_assignments").select("schedule_id, employee_id, assignment_role, part").gte("created_at", "2025-01-01"),
       ]);
 
       const employees = (empRes.data ?? []).filter(e => e.user_id);
       const schedById = new Map((schedRes.data ?? []).map(s => [s.id, s]));
+      const employeeById = new Map((empRes.data ?? []).map(e => [e.id, e]));
 
       const byUser = new Map<string, InstructorReport>();
       employees.forEach(e => {
@@ -67,6 +79,7 @@ const AvailabilityReport = ({ onClose }: Props) => {
           name: e.full_name,
           classes: [],
           dates: [],
+          assignments: [],
         });
       });
 
@@ -92,10 +105,27 @@ const AvailabilityReport = ({ onClose }: Props) => {
         });
       });
 
+      (assignRes.data ?? []).forEach((a: any) => {
+        const emp = employeeById.get(a.employee_id);
+        if (!emp || !emp.user_id) return;
+        const rep = byUser.get(emp.user_id as string);
+        const s = schedById.get(a.schedule_id);
+        if (!rep || !s) return;
+        rep.assignments.push({
+          scheduleId: s.id,
+          date: s.date,
+          label: `${courseLabels[s.course] || s.course}${s.group_name ? ` (${s.group_name})` : ""}`,
+          locationLabel: s.location_label,
+          assignmentRole: a.assignment_role ?? "Instructor",
+          part: a.part ?? null,
+        });
+      });
+
       const list = Array.from(byUser.values()).map(r => ({
         ...r,
         classes: r.classes.sort((a, b) => a.date.localeCompare(b.date)),
         dates: r.dates.sort((a, b) => a.date.localeCompare(b.date) || a.locationLabel.localeCompare(b.locationLabel)),
+        assignments: r.assignments.sort((a, b) => a.date.localeCompare(b.date)),
       }));
       list.sort((a, b) => a.name.localeCompare(b.name));
       setReports(list);
@@ -107,10 +137,21 @@ const AvailabilityReport = ({ onClose }: Props) => {
   const handlePrint = () => {
     const win = window.open("", "_blank");
     if (!win) return;
+    const summaryRows = reports.map(r => `
+      <tr>
+        <td>${r.name}</td>
+        <td class="num">${r.assignments.length}</td>
+        <td class="num">${r.classes.length}</td>
+        <td class="num">${r.dates.length}</td>
+      </tr>
+    `).join("");
     const rowsHtml = reports.map(r => `
       <h2>${r.name}</h2>
-      <p class="sub">${r.classes.length} scheduled class(es) · ${r.dates.length} placeholder day(s)</p>
-      ${r.classes.length === 0 && r.dates.length === 0 ? '<p class="none">No availability submitted.</p>' : ""}
+      <p class="sub">${r.assignments.length} scheduled assignment(s) · ${r.classes.length} availability class(es) · ${r.dates.length} placeholder day(s)</p>
+      ${r.assignments.length > 0 ? `<table><tr><th>Date</th><th>Class</th><th>Location</th><th>Role</th><th>Part</th></tr>
+        ${r.assignments.map(c => `<tr><td>${format(parseISO(c.date), "EEE, MMM d, yyyy")}</td><td>${c.label}</td><td>${c.locationLabel}</td><td>${c.assignmentRole}</td><td>${c.part ?? "Full"}</td></tr>`).join("")}
+      </table>` : ""}
+      ${r.classes.length === 0 && r.dates.length === 0 && r.assignments.length === 0 ? '<p class="none">No availability or assignments submitted.</p>' : ""}
       ${r.classes.length > 0 ? `<table><tr><th>Date</th><th>Class</th><th>Location</th><th>Available for</th></tr>
         ${r.classes.map(c => `<tr><td>${format(parseISO(c.date), "EEE, MMM d, yyyy")}</td><td>${c.label}</td><td>${c.locationLabel}</td><td>${c.parts === null ? "Full class" : c.parts.join(", ")}</td></tr>`).join("")}
       </table>` : ""}
@@ -127,9 +168,19 @@ const AvailabilityReport = ({ onClose }: Props) => {
       table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:11px}
       th{background:#f3f4f6;text-align:left;padding:6px;border:1px solid #d1d5db}
       td{padding:6px;border:1px solid #d1d5db}
+      td.num{text-align:center}
+      .summary-box{border:1px solid #d1d5db;padding:12px;margin-bottom:16px;background:#fafafa}
+      .summary-title{font-size:14px;font-weight:bold;margin-bottom:8px}
     </style></head><body>
       <h1>Instructor Availability Report</h1>
       <p class="sub">Generated ${format(new Date(), "MMMM d, yyyy")}</p>
+      <div class="summary-box">
+        <div class="summary-title">Summary — Scheduled Classes per Instructor</div>
+        <table>
+          <tr><th>Instructor</th><th class="num">Scheduled Classes</th><th class="num">Available Classes</th><th class="num">Placeholder Days</th></tr>
+          ${summaryRows}
+        </table>
+      </div>
       ${rowsHtml}
     </body></html>`);
     win.document.close();
@@ -138,7 +189,7 @@ const AvailabilityReport = ({ onClose }: Props) => {
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="w-5 h-5 text-accent" /> Instructor Availability Report
@@ -159,13 +210,59 @@ const AvailabilityReport = ({ onClose }: Props) => {
               <p className="text-muted-foreground text-sm">No active instructors found.</p>
             )}
 
+            {reports.length > 0 && (
+              <div className="border border-border rounded-xl p-4 bg-card">
+                <div className="flex items-center gap-2 mb-3">
+                  <CalendarCheck className="w-5 h-5 text-accent" />
+                  <h3 className="font-bold text-foreground">Summary — Scheduled Classes per Instructor</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-2 px-3 font-semibold text-foreground">Instructor</th>
+                        <th className="text-center py-2 px-3 font-semibold text-foreground">Scheduled Classes</th>
+                        <th className="text-center py-2 px-3 font-semibold text-foreground">Available Classes</th>
+                        <th className="text-center py-2 px-3 font-semibold text-foreground">Placeholder Days</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reports.map(r => (
+                        <tr key={`summary-${r.employeeId}`} className="border-b border-border/50 last:border-0">
+                          <td className="py-2 px-3 text-foreground">{r.name}</td>
+                          <td className="py-2 px-3 text-center">
+                            <span className={`inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full text-xs font-medium ${r.assignments.length > 0 ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"}`}>
+                              {r.assignments.length}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-center">
+                            <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                              {r.classes.length}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-center">
+                            <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                              {r.dates.length}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {reports.map(r => (
               <div key={r.employeeId} className="border border-border rounded-xl p-4 bg-card">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
                   <h3 className="font-bold text-foreground">{r.name}</h3>
                   <div className="flex gap-2 text-xs">
                     <span className="px-2 py-0.5 rounded-full bg-accent/10 text-accent">
-                      {r.classes.length} class{r.classes.length === 1 ? "" : "es"}
+                      {r.assignments.length} scheduled
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-blue-400/10 text-blue-400">
+                      {r.classes.length} available
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                       {r.dates.length} placeholder day{r.dates.length === 1 ? "" : "s"}
@@ -173,12 +270,31 @@ const AvailabilityReport = ({ onClose }: Props) => {
                   </div>
                 </div>
 
-                {r.classes.length === 0 && r.dates.length === 0 && (
-                  <p className="text-sm text-muted-foreground italic">No availability submitted.</p>
+                {r.assignments.length === 0 && r.classes.length === 0 && r.dates.length === 0 && (
+                  <p className="text-sm text-muted-foreground italic">No availability or assignments submitted.</p>
+                )}
+
+                {r.assignments.length > 0 && (
+                  <div className="space-y-1.5 mb-3">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Scheduled assignments</p>
+                    {r.assignments.map(c => (
+                      <div key={`assign-${c.scheduleId}`} className="flex items-start gap-2 text-sm">
+                        <CalendarCheck className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="text-foreground font-medium">{format(parseISO(c.date), "EEE, MMM d, yyyy")}</span>
+                          <span className="text-muted-foreground"> — {c.label} · {c.locationLabel}</span>
+                          <div className="text-xs text-accent">
+                            {c.assignmentRole}{c.part ? ` · Part ${c.part}` : " · Full class"}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 {r.classes.length > 0 && (
                   <div className="space-y-1.5 mb-3">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Availability</p>
                     {r.classes.map(c => (
                       <div key={c.scheduleId} className="flex items-start gap-2 text-sm">
                         <CalendarDays className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
@@ -217,3 +333,4 @@ const AvailabilityReport = ({ onClose }: Props) => {
 };
 
 export default AvailabilityReport;
+
