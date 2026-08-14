@@ -431,6 +431,7 @@ const ClassRosters = () => {
         .from("bookings")
         .select("*")
         .eq("schedule_id", selectedScheduleId)
+        .eq("pending_payment", false)
         .order("last_name");
       if (data) setBookings(data as Booking[]);
       // Look up which of these bookings actually have a signed waiver on file
