@@ -251,6 +251,7 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [methodOpen, setMethodOpen] = useState(false);
   const [pendingBooking, setPendingBooking] = useState<Record<string, unknown> | null>(null);
   const [pendingGroupName, setPendingGroupName] = useState<string | null>(null);
   const [pendingScheduleDetail, setPendingScheduleDetail] = useState<string | null>(null);
@@ -445,7 +446,7 @@ const RegisterPage = () => {
 
   const saveBooking = async (
     booking: any,
-    paymentStatus: "skipped" | "unpaid",
+    paymentStatus: "skipped" | "unpaid" | "cash_pending",
     paymentProvider?: string,
   ) => {
     const { data, error } = await supabase.functions.invoke("create-booking", {
@@ -817,7 +818,7 @@ const RegisterPage = () => {
     setGuardianSignsInPerson(false);
     setWaiverGateOpen(false);
     paymentCompletedRef.current = false;
-    setPaymentOpen(true);
+    setMethodOpen(true);
   };
 
   const handleRegistrationFormSigned = (_recordId: string) => {
