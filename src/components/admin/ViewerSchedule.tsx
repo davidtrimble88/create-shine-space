@@ -3,11 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft, Pin, PinOff } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft, Pin, PinOff, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, parseISO, addDays, addYears } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 import { useDefaultLocation } from "@/lib/defaultLocation";
+import AvailabilityReport from "./AvailabilityReport";
+
 
 type Schedule = Tables<"schedules">;
 
@@ -63,7 +65,9 @@ const ViewerSchedule = () => {
   const [dismissing, setDismissing] = useState<string | null>(null);
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
+  const [showReport, setShowReport] = useState(false);
   const { defaultLocation, setDefaultLocation, loaded: prefLoaded } = useDefaultLocation();
+
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
     if (prefLoaded && !initialized) {
@@ -359,16 +363,26 @@ const ViewerSchedule = () => {
               : "Review the schedule and mark which classes you're available to teach."}
           </p>
         </div>
-        {canViewPast && (view === "upcoming" ? (
-          <Button variant="outline" onClick={() => setView("past")}>
-            <History className="w-4 h-4 mr-2" /> Past Classes
-          </Button>
-        ) : (
-          <Button variant="outline" onClick={() => setView("upcoming")}>
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
-          </Button>
-        ))}
+        <div className="flex gap-2 flex-wrap">
+          {(effectiveRole === "owner" || effectiveRole === "admin") && (
+            <Button variant="outline" onClick={() => setShowReport(true)}>
+              <Users className="w-4 h-4 mr-2" /> Availability Report
+            </Button>
+          )}
+          {canViewPast && (view === "upcoming" ? (
+            <Button variant="outline" onClick={() => setView("past")}>
+              <History className="w-4 h-4 mr-2" /> Past Classes
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={() => setView("upcoming")}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
+            </Button>
+          ))}
+        </div>
       </div>
+
+      {showReport && <AvailabilityReport onClose={() => setShowReport(false)} />}
+
 
       <div className="flex flex-wrap gap-2 mb-6 items-center">
         <Select value={filterLocation} onValueChange={setFilterLocation}>
