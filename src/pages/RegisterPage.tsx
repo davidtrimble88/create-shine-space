@@ -110,7 +110,12 @@ const registrationSchema = z.object({
   let a = today.getFullYear() - birth.getFullYear();
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) a--;
+  if (isNaN(birth.getTime()) || a < 0 || a > 100) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateOfBirth"], message: "Please enter a valid date of birth (check the year)" });
+    return;
+  }
   if (a < 18) {
+
     if (data.parentGuardianAck !== true) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["parentGuardianAck"], message: "A parent or legal guardian must acknowledge and sign for the minor" });
     }
