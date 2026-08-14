@@ -49,10 +49,11 @@ const BookingSchema = z.object({
 
 const BodySchema = z.object({
   booking: BookingSchema,
-  paymentStatus: z.enum(["skipped", "unpaid"]),
+  paymentStatus: z.enum(["skipped", "unpaid", "cash_pending"]),
   paymentProvider: z.string().trim().min(1).optional(),
   discountCodeId: z.string().uuid().optional(),
 });
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
