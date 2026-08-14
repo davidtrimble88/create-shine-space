@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Banknote, Phone, Clock, AlertTriangle, Loader2, ArrowLeft } from "lucide-react";
+import { CreditCard, Banknote, Phone, Clock, AlertTriangle, Loader2 } from "lucide-react";
 
 interface Props {
   open: boolean;
