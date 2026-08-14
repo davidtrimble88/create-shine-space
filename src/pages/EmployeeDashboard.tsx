@@ -28,6 +28,7 @@ import InstructorCertifications from "@/components/admin/InstructorCertification
 import AdminDiscounts from "@/components/admin/AdminDiscounts";
 import WorkLog from "@/components/admin/WorkLog";
 import SubCoverage from "@/components/admin/SubCoverage";
+import ScheduleReporting from "@/components/admin/ScheduleReporting";
 
 import SignedWaivers from "@/components/admin/SignedWaivers";
 import RegistrationIssues from "@/components/admin/RegistrationIssues";
@@ -56,6 +57,7 @@ const tabs = [
   { id: "certifications", label: "Certifications", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
   { id: "work-log", label: "Work Log", icon: ClipboardList, roles: ["owner", "admin", "manager", "employee"] },
   { id: "sub-coverage", label: "Sub Coverage", icon: UserMinus, roles: ["owner", "admin", "manager", "employee"] },
+  { id: "schedule-reporting", label: "Schedule Reporting", icon: BarChart3, roles: ["owner", "admin"] },
   
   
   { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
@@ -667,6 +669,7 @@ const EmployeeDashboard = () => {
           {activeTab === "messages" && <MessagingCenter />}
           {activeTab === "work-log" && <WorkLog />}
           {activeTab === "sub-coverage" && <SubCoverage />}
+          {activeTab === "schedule-reporting" && <ScheduleReporting />}
           {activeTab === "signed-waivers" && <SignedWaivers />}
           {activeTab === "registration-issues" && <RegistrationIssues />}
           
