@@ -104,12 +104,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    const isCashPending = paymentStatus === "cash_pending";
+
     const payload = {
       ...booking,
-      booking_status: "confirmed",
-      payment_status: paymentStatus,
-      payment_provider: paymentProvider ?? null,
+      booking_status: isCashPending ? "pending_payment" : "confirmed",
+      payment_status: isCashPending ? "unpaid" : paymentStatus,
+      payment_provider: isCashPending ? "cash" : (paymentProvider ?? null),
+      pending_payment: isCashPending,
+      pending_payment_note: isCashPending ? "Student selected cash — awaiting office payment" : null,
     };
+
 
     const { data: inserted, error: insertError } = await supabase
       .from("bookings")
