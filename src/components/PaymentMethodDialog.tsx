@@ -106,18 +106,18 @@ export const PaymentMethodDialog = ({ open, onOpenChange, amountLabel, onChooseC
                   Monday – Friday, 9:00 AM – 5:00 PM
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed pt-1">
-                  Call our office to complete payment. As soon as we take it, we'll confirm your seat and email your
+                  Call our office to complete payment. As soon as payment is received, we'll confirm your seat and email your
                   class details. If your class fills before then, we'll help you pick the next available date.
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 justify-end">
-                <Button variant="ghost" onClick={onChooseCard} disabled={saving}>
-                  <CreditCard className="w-4 h-4 mr-1" /> Pay by card instead
-                </Button>
-                <Button onClick={confirmCash} disabled={saving}>
+              <div className="flex flex-col gap-2">
+                <Button onClick={confirmCash} disabled={saving} className="w-full">
                   {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   I understand — hold my registration
+                </Button>
+                <Button variant="ghost" onClick={onChooseCard} disabled={saving} className="w-full">
+                  <CreditCard className="w-4 h-4 mr-1" /> Pay by card instead
                 </Button>
               </div>
             </div>
