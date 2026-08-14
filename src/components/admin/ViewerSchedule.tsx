@@ -359,16 +359,26 @@ const ViewerSchedule = () => {
               : "Review the schedule and mark which classes you're available to teach."}
           </p>
         </div>
-        {canViewPast && (view === "upcoming" ? (
-          <Button variant="outline" onClick={() => setView("past")}>
-            <History className="w-4 h-4 mr-2" /> Past Classes
-          </Button>
-        ) : (
-          <Button variant="outline" onClick={() => setView("upcoming")}>
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
-          </Button>
-        ))}
+        <div className="flex gap-2 flex-wrap">
+          {(effectiveRole === "owner" || effectiveRole === "admin") && (
+            <Button variant="outline" onClick={() => setShowReport(true)}>
+              <Users className="w-4 h-4 mr-2" /> Availability Report
+            </Button>
+          )}
+          {canViewPast && (view === "upcoming" ? (
+            <Button variant="outline" onClick={() => setView("past")}>
+              <History className="w-4 h-4 mr-2" /> Past Classes
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={() => setView("upcoming")}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upcoming
+            </Button>
+          ))}
+        </div>
       </div>
+
+      {showReport && <AvailabilityReport onClose={() => setShowReport(false)} />}
+
 
       <div className="flex flex-wrap gap-2 mb-6 items-center">
         <Select value={filterLocation} onValueChange={setFilterLocation}>
