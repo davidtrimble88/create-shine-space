@@ -132,7 +132,7 @@ const PendingCashPayments = ({ onBack }: Props) => {
     setSaving(true);
     const dest = moving ? scheduleById[newScheduleId] : targetSchedule;
 
-    const update: Record<string, unknown> = {
+    const update: Partial<Booking> & Record<string, unknown> = {
       pending_payment: false,
       payment_status: "paid",
       booking_status: "confirmed",
@@ -155,7 +155,7 @@ const PendingCashPayments = ({ onBack }: Props) => {
       update.rescheduled_by = user?.id ?? null;
     }
 
-    const { error } = await supabase.from("bookings").update(update).eq("id", payTarget.id);
+    const { error } = await supabase.from("bookings").update(update as never).eq("id", payTarget.id);
     if (error) {
       setSaving(false);
       toast({ title: "Could not mark as paid", description: error.message, variant: "destructive" });
