@@ -843,8 +843,40 @@ const RegisterPage = () => {
     setPendingBooking(prev => prev ? { ...prev, waiver_id: waiverId } : prev);
     setWaiverOpen(false);
     paymentCompletedRef.current = false;
-    setPaymentOpen(true);
+    setMethodOpen(true);
   };
+
+  /** Student chose cash: save the booking as a pending-payment hold (no seat held). */
+  const handleChooseCash = async () => {
+    if (!pendingBooking) return;
+    try {
+      await saveBooking(pendingBooking, "cash_pending", "cash");
+      updateAttempt(attemptIdRef.current, {
+        status: "completed",
+        stage: "cash_pending",
+        error_message: null,
+        booking_id: String(pendingBooking.id ?? "") || null,
+      });
+      paymentCompletedRef.current = true;
+      setMethodOpen(false);
+      setPaymentOpen(false);
+      form.reset();
+      setPendingBooking(null);
+      setPendingGroupName(null);
+      setPendingScheduleDetail(null);
+      setWaiverPrefill(null);
+      setRegFormPrefill(null);
+      setModelReleasePrefill(null);
+      navigate("/registration-confirmation?pending=1");
+    } catch (e) {
+      toast({
+        title: "Could not save your registration",
+        description: e instanceof Error ? e.message : "Please try again or call our office at (805) 827-0075.",
+        variant: "destructive",
+      });
+    }
+  };
+
 
   const handlePaymentSuccess = () => {
     paymentCompletedRef.current = true;
