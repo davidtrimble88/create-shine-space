@@ -30,6 +30,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
+import PaymentMethodDialog from "@/components/PaymentMethodDialog";
 import { getVisitorId, recordPaymentFailure, startAttempt, updateAttempt } from "@/lib/registrationAttempts";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
@@ -251,6 +252,7 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [methodOpen, setMethodOpen] = useState(false);
   const [pendingBooking, setPendingBooking] = useState<Record<string, unknown> | null>(null);
   const [pendingGroupName, setPendingGroupName] = useState<string | null>(null);
   const [pendingScheduleDetail, setPendingScheduleDetail] = useState<string | null>(null);
@@ -445,7 +447,7 @@ const RegisterPage = () => {
 
   const saveBooking = async (
     booking: any,
-    paymentStatus: "skipped" | "unpaid",
+    paymentStatus: "skipped" | "unpaid" | "cash_pending",
     paymentProvider?: string,
   ) => {
     const { data, error } = await supabase.functions.invoke("create-booking", {
@@ -817,7 +819,7 @@ const RegisterPage = () => {
     setGuardianSignsInPerson(false);
     setWaiverGateOpen(false);
     paymentCompletedRef.current = false;
-    setPaymentOpen(true);
+    setMethodOpen(true);
   };
 
   const handleRegistrationFormSigned = (_recordId: string) => {
@@ -843,8 +845,40 @@ const RegisterPage = () => {
     setPendingBooking(prev => prev ? { ...prev, waiver_id: waiverId } : prev);
     setWaiverOpen(false);
     paymentCompletedRef.current = false;
-    setPaymentOpen(true);
+    setMethodOpen(true);
   };
+
+  /** Student chose cash: save the booking as a pending-payment hold (no seat held). */
+  const handleChooseCash = async () => {
+    if (!pendingBooking) return;
+    try {
+      await saveBooking(pendingBooking, "cash_pending", "cash");
+      updateAttempt(attemptIdRef.current, {
+        status: "completed",
+        stage: "cash_pending",
+        error_message: null,
+        booking_id: String(pendingBooking.id ?? "") || null,
+      });
+      paymentCompletedRef.current = true;
+      setMethodOpen(false);
+      setPaymentOpen(false);
+      form.reset();
+      setPendingBooking(null);
+      setPendingGroupName(null);
+      setPendingScheduleDetail(null);
+      setWaiverPrefill(null);
+      setRegFormPrefill(null);
+      setModelReleasePrefill(null);
+      navigate("/registration-confirmation?pending=1");
+    } catch (e) {
+      toast({
+        title: "Could not save your registration",
+        description: e instanceof Error ? e.message : "Please try again or call our office at (805) 827-0075.",
+        variant: "destructive",
+      });
+    }
+  };
+
 
   const handlePaymentSuccess = () => {
     paymentCompletedRef.current = true;
@@ -894,7 +928,7 @@ const RegisterPage = () => {
 
   const handleGoBackToPayment = () => {
     setCancelConfirmOpen(false);
-    setPaymentOpen(true);
+    setMethodOpen(true);
   };
 
 
@@ -1680,6 +1714,20 @@ const RegisterPage = () => {
       </section>
 
       <Footer />
+
+      {pendingBooking && (
+        <PaymentMethodDialog
+          open={methodOpen}
+          onOpenChange={(o) => {
+            if (o) { setMethodOpen(true); return; }
+            setMethodOpen(false);
+            if (!paymentCompletedRef.current && pendingBooking) setCancelConfirmOpen(true);
+          }}
+          amountLabel={paymentAmountLabel}
+          onChooseCard={() => { setMethodOpen(false); setPaymentOpen(true); }}
+          onChooseCash={handleChooseCash}
+        />
+      )}
 
       {pendingBooking && (
         <PaymentDialog

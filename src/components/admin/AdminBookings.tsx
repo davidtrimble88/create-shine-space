@@ -8,9 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard, Mail, Link2 } from "lucide-react";
+import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard, Banknote, Mail, Link2 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminCancellations from "./AdminCancellations";
+import PendingCashPayments from "./PendingCashPayments";
 import { PaymentDialog, type PaymentProvider } from "@/components/PaymentDialog";
 import type { SquareRegion } from "@/components/SquarePaymentDialog";
 import { formatPSTDate } from "@/lib/formatDate";
@@ -59,7 +60,8 @@ const AdminBookings = () => {
   const [retestDialogOpen, setRetestDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
-  const [view, setView] = useState<"bookings" | "cancellations">("bookings");
+  const [view, setView] = useState<"bookings" | "cancellations" | "pending-cash">("bookings");
+  const [pendingCashCount, setPendingCashCount] = useState(0);
   const [pendingRescheduleCount, setPendingRescheduleCount] = useState(0);
   
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -120,7 +122,7 @@ const AdminBookings = () => {
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
     const [bookRes, schedRes, refRes] = await Promise.all([
-      supabase.from("bookings").select("*").order("created_at", { ascending: false }).limit(200),
+      supabase.from("bookings").select("*").eq("pending_payment", false).order("created_at", { ascending: false }).limit(200),
       supabase.from("schedules").select("*").gte("date", today).order("date"),
       supabase.from("referral_sources").select("name").eq("is_active", true).order("sort_order").order("name"),
     ]);
@@ -135,6 +137,13 @@ const AdminBookings = () => {
       .select("id", { count: "exact", head: true })
       .eq("needs_reschedule", true);
     setPendingRescheduleCount(count ?? 0);
+
+    const { count: cashCount } = await supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("pending_payment", true)
+      .eq("archived", false);
+    setPendingCashCount(cashCount ?? 0);
   };
 
   useEffect(() => { fetchData(); fetchPendingCount(); }, []);
@@ -495,11 +504,24 @@ const AdminBookings = () => {
     return <AdminCancellations onBack={() => { setView("bookings"); fetchPendingCount(); }} />;
   }
 
+  if (view === "pending-cash") {
+    return <PendingCashPayments onBack={() => { setView("bookings"); fetchData(); fetchPendingCount(); }} />;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
         <div className="flex items-center gap-2">
+        <Button variant="outline" onClick={() => setView("pending-cash")} className={pendingCashCount > 0 ? "border-accent text-accent" : ""}>
+          <Banknote className="w-4 h-4 mr-2" />
+          Pending Payment (Cash)
+          {pendingCashCount > 0 && (
+            <span className="ml-2 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold">
+              {pendingCashCount}
+            </span>
+          )}
+        </Button>
         <Button variant="outline" onClick={() => setView("cancellations")} className={pendingRescheduleCount > 0 ? "border-accent text-accent" : ""}>
           <AlertTriangle className="w-4 h-4 mr-2" />
           Cancellations &amp; Rescheduling

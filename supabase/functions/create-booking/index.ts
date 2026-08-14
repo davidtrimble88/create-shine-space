@@ -49,10 +49,11 @@ const BookingSchema = z.object({
 
 const BodySchema = z.object({
   booking: BookingSchema,
-  paymentStatus: z.enum(["skipped", "unpaid"]),
+  paymentStatus: z.enum(["skipped", "unpaid", "cash_pending"]),
   paymentProvider: z.string().trim().min(1).optional(),
   discountCodeId: z.string().uuid().optional(),
 });
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -103,12 +104,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    const isCashPending = paymentStatus === "cash_pending";
+
     const payload = {
       ...booking,
-      booking_status: "confirmed",
-      payment_status: paymentStatus,
-      payment_provider: paymentProvider ?? null,
+      booking_status: isCashPending ? "pending_payment" : "confirmed",
+      payment_status: isCashPending ? "unpaid" : paymentStatus,
+      payment_provider: isCashPending ? "cash" : (paymentProvider ?? null),
+      pending_payment: isCashPending,
+      pending_payment_note: isCashPending ? "Student selected cash — awaiting office payment" : null,
     };
+
 
     const { data: inserted, error: insertError } = await supabase
       .from("bookings")
