@@ -111,13 +111,13 @@ export const PaymentMethodDialog = ({ open, onOpenChange, amountLabel, onChooseC
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 justify-end">
-                <Button variant="ghost" onClick={onChooseCard} disabled={saving}>
-                  <CreditCard className="w-4 h-4 mr-1" /> Pay by card instead
-                </Button>
-                <Button onClick={confirmCash} disabled={saving}>
+              <div className="flex flex-col gap-2">
+                <Button onClick={confirmCash} disabled={saving} className="w-full">
                   {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   I understand — hold my registration
+                </Button>
+                <Button variant="ghost" onClick={onChooseCard} disabled={saving} className="w-full">
+                  <CreditCard className="w-4 h-4 mr-1" /> Pay by card instead
                 </Button>
               </div>
             </div>
