@@ -49,6 +49,11 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned, continueLabel: co
 
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ recordId: string; pdfPath: string | null; downloadUrl: string | null } | null>(null);
+  // The CMSP form requires a photo ID number. Manually-booked students often
+  // have no license on file, so collect it here instead of failing on submit.
+  const needsIdNumber = !((prefill.idNumber || "").trim());
+  const [idNumber, setIdNumber] = useState((prefill.idNumber || "").trim());
+
 
 
 
@@ -111,6 +116,22 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned, continueLabel: co
   );
 
   const steps: Step[] = [
+    ...(needsIdNumber ? [{
+      id: "id_number",
+      title: "What is your driver's license or photo ID number?",
+      subtitle: "Required by the CMSP registration form. It must match the ID you bring to class.",
+      render: () => (
+        <Input
+          value={idNumber}
+          onChange={(e) => setIdNumber(e.target.value.toUpperCase())}
+          placeholder="e.g. D1234567"
+          maxLength={50}
+          autoFocus
+        />
+      ),
+      valid: () => idNumber.trim().length > 0,
+    } as Step] : []),
+
     {
       id: "q1", title: "Have you ridden a motorcycle regularly in the last 5 years?",
       render: () => <YesNo v={q1v} onChange={setQ1v} />,
@@ -266,7 +287,7 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned, continueLabel: co
         address_state: prefill.addressState || null,
         address_zip: prefill.addressZip || null,
         id_type: prefill.idType,
-        id_number: prefill.idNumber,
+        id_number: idNumber.trim() || (prefill.idNumber || "").trim(),
         id_state: prefill.idState || null,
         id_country: prefill.idCountry || null,
         id_expiration: prefill.idExpiration || null,
@@ -306,8 +327,26 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned, continueLabel: co
         document_version: CMSP_REGISTRATION_FORM_VERSION,
       };
       const { data, error } = await supabase.functions.invoke("record-registration-form", { body });
-      if (error) throw new Error(error.message);
+      if (error) {
+        // invoke() collapses any non-2xx into a generic message — pull the real
+        // reason out of the response body so students/staff know what to fix.
+        let detail = "";
+        try {
+          const res = (error as any)?.context;
+          if (res && typeof res.json === "function") {
+            const j = await res.json();
+            detail = j?.error || "";
+            const fieldErrors = j?.details?.fieldErrors as Record<string, string[]> | undefined;
+            if (fieldErrors) {
+              const fields = Object.keys(fieldErrors).join(", ");
+              if (fields) detail = `${detail || "Invalid request"} — missing or invalid: ${fields}`;
+            }
+          }
+        } catch { /* body already consumed or not JSON */ }
+        throw new Error(detail || error.message);
+      }
       if ((data as any)?.error) throw new Error((data as any).error);
+
       setResult({
         recordId: (data as any).record_id,
         pdfPath: (data as any).pdf_path || null,
