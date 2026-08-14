@@ -63,12 +63,14 @@ interface InstructorReport {
 }
 
 interface Props {
-  onClose: () => void;
+  onClose?: () => void;
+  /** Render inline on the page instead of inside a modal dialog. */
+  inline?: boolean;
 }
 
 const formatRole = (role: string) => roleDisplay[role] ?? role.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
-const AvailabilityReport = ({ onClose }: Props) => {
+const AvailabilityReport = ({ onClose, inline }: Props) => {
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<InstructorReport[]>([]);
 
@@ -215,15 +217,8 @@ const AvailabilityReport = ({ onClose }: Props) => {
     win.print();
   };
 
-  return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-accent" /> Instructor Availability Report
-          </DialogTitle>
-        </DialogHeader>
-
+  const body = (
+    <>
         {loading ? (
           <div className="flex justify-center py-12"><Loader2 className="w-7 h-7 animate-spin text-accent" /></div>
         ) : (
@@ -367,6 +362,30 @@ const AvailabilityReport = ({ onClose }: Props) => {
             ))}
           </div>
         )}
+    </>
+  );
+
+  if (inline) {
+    return (
+      <div className="border border-border rounded-xl p-4 bg-card">
+        <div className="flex items-center gap-2 mb-3">
+          <Users className="w-5 h-5 text-accent" />
+          <h3 className="font-bold text-foreground">Instructor Availability Report</h3>
+        </div>
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose?.()}>
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-accent" /> Instructor Availability Report
+          </DialogTitle>
+        </DialogHeader>
+        {body}
       </DialogContent>
     </Dialog>
   );

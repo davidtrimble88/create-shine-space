@@ -43,10 +43,12 @@ interface SiteReport {
 }
 
 interface Props {
-  onClose: () => void;
+  onClose?: () => void;
+  /** Render inline on the page instead of inside a modal dialog. */
+  inline?: boolean;
 }
 
-const SiteCoverageReport = ({ onClose }: Props) => {
+const SiteCoverageReport = ({ onClose, inline }: Props) => {
   const [loading, setLoading] = useState(true);
   const [sites, setSites] = useState<SiteReport[]>([]);
 
@@ -149,15 +151,8 @@ const SiteCoverageReport = ({ onClose }: Props) => {
     win.print();
   };
 
-  return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-accent" /> Schedule Coverage by Location
-          </DialogTitle>
-        </DialogHeader>
-
+  const body = (
+    <>
         {loading ? (
           <div className="flex justify-center py-12"><Loader2 className="w-7 h-7 animate-spin text-accent" /></div>
         ) : (
@@ -250,6 +245,30 @@ const SiteCoverageReport = ({ onClose }: Props) => {
             ))}
           </div>
         )}
+    </>
+  );
+
+  if (inline) {
+    return (
+      <div className="border border-border rounded-xl p-4 bg-card">
+        <div className="flex items-center gap-2 mb-3">
+          <MapPin className="w-5 h-5 text-accent" />
+          <h3 className="font-bold text-foreground">Schedule Coverage by Location</h3>
+        </div>
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose?.()}>
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-accent" /> Schedule Coverage by Location
+          </DialogTitle>
+        </DialogHeader>
+        {body}
       </DialogContent>
     </Dialog>
   );
