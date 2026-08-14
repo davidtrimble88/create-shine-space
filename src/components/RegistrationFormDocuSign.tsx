@@ -116,6 +116,22 @@ const RegistrationFormDocuSign = ({ prefill, onBack, onSigned, continueLabel: co
   );
 
   const steps: Step[] = [
+    ...(needsIdNumber ? [{
+      id: "id_number",
+      title: "What is your driver's license or photo ID number?",
+      subtitle: "Required by the CMSP registration form. It must match the ID you bring to class.",
+      render: () => (
+        <Input
+          value={idNumber}
+          onChange={(e) => setIdNumber(e.target.value.toUpperCase())}
+          placeholder="e.g. D1234567"
+          maxLength={50}
+          autoFocus
+        />
+      ),
+      valid: () => idNumber.trim().length > 0,
+    } as Step] : []),
+
     {
       id: "q1", title: "Have you ridden a motorcycle regularly in the last 5 years?",
       render: () => <YesNo v={q1v} onChange={setQ1v} />,
