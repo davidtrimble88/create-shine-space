@@ -64,6 +64,7 @@ const ViewerSchedule = () => {
   const [toggling, setToggling] = useState<string | null>(null);
   const [dismissing, setDismissing] = useState<string | null>(null);
   const [filterLocation, setFilterLocation] = useState<string>("all");
+  const [filterCourse, setFilterCourse] = useState<string>("all");
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [showReport, setShowReport] = useState(false);
   const { defaultLocation, setDefaultLocation, loaded: prefLoaded } = useDefaultLocation();
