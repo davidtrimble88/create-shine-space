@@ -314,6 +314,21 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (existing) {
+      // Existing row (e.g. a cash hold being paid online) — flip it to paid.
+      const { error: updErr } = await supabase
+        .from("bookings")
+        .update({
+          payment_status: "paid",
+          booking_status: "confirmed",
+          payment_provider: "square",
+          pending_payment: false,
+          marked_paid_at: new Date().toISOString(),
+        })
+        .eq("id", bookingId);
+      if (updErr) console.error("Booking update failed after successful charge:", updErr);
+    }
+
     if (!existing) {
       const { error: insertErr } = await supabase.from("bookings").insert({
         ...booking,

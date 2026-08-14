@@ -25,6 +25,7 @@ const PUBLIC_TRIGGERS = new Set<string>([
   "registration_confirmation",
   "waiver_signed",
   "model_release_signed",
+  "cash_payment_hold",
 ]);
 
 Deno.serve(async (req) => {

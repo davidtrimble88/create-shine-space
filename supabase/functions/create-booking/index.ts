@@ -147,7 +147,24 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ success: true, bookingId: inserted.id, existing: false }), {
+    // For cash holds, mint a personal pay-by-card link so the student can
+    // change their mind and pay online without calling the office.
+    let payToken: string | null = null;
+    if (isCashPending) {
+      try {
+        payToken = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+        const { error: tokErr } = await supabase.from("booking_form_tokens").insert({
+          booking_id: inserted.id,
+          token: payToken,
+        });
+        if (tokErr) { console.warn("pay token insert failed", tokErr); payToken = null; }
+      } catch (e) {
+        console.warn("pay token failed", e);
+        payToken = null;
+      }
+    }
+
+    return new Response(JSON.stringify({ success: true, bookingId: inserted.id, existing: false, payToken }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
