@@ -60,9 +60,14 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
                 <p className="font-bold text-foreground">Reschedule deadline</p>
                 <p className="text-sm text-foreground/90 leading-relaxed">
                   You may reschedule your class no later than{" "}
-                  <strong className="text-accent-foreground">5 days before the class start date</strong>.
-                  Late reschedules and no-shows are subject to{" "}
-                  <strong className="text-accent-foreground">additional rescheduling fees</strong>.
+                  <strong className="text-base text-foreground underline">
+                    5 days before the class start date
+                  </strong>
+                  . Late reschedules and no-shows are subject to{" "}
+                  <strong className="text-base text-foreground underline">
+                    additional rescheduling fees
+                  </strong>
+                  .
                 </p>
               </div>
             </div>
@@ -75,10 +80,14 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
                 <p className="font-bold text-foreground">Arrive early</p>
                 <p className="text-sm text-foreground/90 leading-relaxed">
                   You must arrive to each class session{" "}
-                  <strong className="text-accent-foreground">15 minutes early</strong>. If you arrive late,
-                  you will{" "}
-                  <strong className="text-accent-foreground">not be admitted to class</strong> and will be
-                  asked to leave. You will then need to call our office to reschedule, and a fee will apply.
+                  <strong className="text-base text-foreground underline">
+                    15 minutes early
+                  </strong>
+                  . If you arrive late, you will{" "}
+                  <strong className="text-base text-foreground underline">
+                    not be admitted to class
+                  </strong>{" "}
+                  and will be asked to leave. You will then need to call our office to reschedule, and a fee will apply.
                 </p>
               </div>
             </div>
