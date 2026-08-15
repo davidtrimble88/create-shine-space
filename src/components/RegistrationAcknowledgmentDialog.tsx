@@ -60,9 +60,14 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
                 <p className="font-bold text-foreground">Reschedule deadline</p>
                 <p className="text-sm text-foreground/90 leading-relaxed">
                   You may reschedule your class no later than{" "}
-                  <strong className="text-accent-foreground">5 days before the class start date</strong>.
-                  Late reschedules and no-shows are subject to{" "}
-                  <strong className="text-accent-foreground">additional rescheduling fees</strong>.
+                  <strong className="text-base text-foreground underline">
+                    5 days before the class start date
+                  </strong>
+                  . Late reschedules and no-shows are subject to{" "}
+                  <strong className="text-base text-foreground underline">
+                    additional rescheduling fees
+                  </strong>
+                  .
                 </p>
               </div>
             </div>
