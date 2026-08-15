@@ -31,6 +31,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentDialog from "@/components/PaymentDialog";
 import PaymentMethodDialog from "@/components/PaymentMethodDialog";
+import RegistrationAcknowledgmentDialog from "@/components/RegistrationAcknowledgmentDialog";
 import { getVisitorId, recordPaymentFailure, startAttempt, updateAttempt } from "@/lib/registrationAttempts";
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
@@ -289,6 +290,9 @@ const RegisterPage = () => {
   // When true, the parent/guardian will sign the minor's forms IN PERSON at the first class.
   // Guardian signature blocks in the online DocuSign flow are skipped.
   const [guardianSignsInPerson, setGuardianSignsInPerson] = useState(false);
+  // Acknowledgment shown after forms are signed / gate decision made, before payment.
+  const [ackOpen, setAckOpen] = useState(false);
+  const [ackSource, setAckSource] = useState<"waiver" | "gate" | null>(null);
 
   const isDiscountEligibleCourse = course === "intermediate" || course === "advanced";
   const defaultDiscountCents = course === "advanced" ? advReturnCents : intReturnCents;
@@ -820,11 +824,12 @@ const RegisterPage = () => {
   };
 
   const handleGateSignInPerson = () => {
-    // Skip all three online signing steps and go straight to payment.
+    // Skip all three online signing steps and show the acknowledgment before payment.
     setGuardianSignsInPerson(false);
     setWaiverGateOpen(false);
     paymentCompletedRef.current = false;
-    setMethodOpen(true);
+    setAckSource("gate");
+    setAckOpen(true);
   };
 
   const handleRegistrationFormSigned = (_recordId: string) => {
@@ -850,7 +855,24 @@ const RegisterPage = () => {
     setPendingBooking(prev => prev ? { ...prev, waiver_id: waiverId } : prev);
     setWaiverOpen(false);
     paymentCompletedRef.current = false;
+    setAckSource("waiver");
+    setAckOpen(true);
+  };
+
+  const handleAckContinue = () => {
+    setAckOpen(false);
+    setAckSource(null);
     setMethodOpen(true);
+  };
+
+  const handleAckBack = () => {
+    setAckOpen(false);
+    if (ackSource === "waiver") {
+      setWaiverOpen(true);
+    } else if (ackSource === "gate") {
+      setWaiverGateOpen(true);
+    }
+    setAckSource(null);
   };
 
   /** Student chose cash: save the booking as a pending-payment hold (no seat held). */
@@ -1758,6 +1780,15 @@ const RegisterPage = () => {
       </section>
 
       <Footer />
+
+      {pendingBooking && (
+        <RegistrationAcknowledgmentDialog
+          open={ackOpen}
+          onOpenChange={setAckOpen}
+          onContinue={handleAckContinue}
+          onBack={handleAckBack}
+        />
+      )}
 
       {pendingBooking && (
         <PaymentMethodDialog
