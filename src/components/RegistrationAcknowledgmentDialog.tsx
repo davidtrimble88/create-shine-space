@@ -1,0 +1,135 @@
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CalendarClock, Clock, AlertTriangle, CircleArrowRight } from "lucide-react";
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onContinue: () => void;
+  onBack: () => void;
+}
+
+/**
+ * Hard-to-miss acknowledgment shown after the registration forms are signed
+ * but before the student enters payment. The main policies are visually
+ * emphasized so they cannot be skipped or claimed to have been missed.
+ */
+export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinue, onBack }: Props) => {
+  const [confirmed, setConfirmed] = useState(false);
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) setConfirmed(false);
+    onOpenChange(next);
+  };
+
+  const handleContinue = () => {
+    if (!confirmed) return;
+    setConfirmed(false);
+    onContinue();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-lg border-accent/50 bg-background">
+        <DialogHeader className="text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-accent/20 text-accent">
+            <AlertTriangle className="h-6 w-6" />
+          </div>
+          <DialogTitle className="text-2xl font-bold text-foreground">
+            Important — read before you pay
+          </DialogTitle>
+          <DialogDescription className="text-base text-muted-foreground">
+            By continuing, you are agreeing to our class attendance and rescheduling policies.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="rounded-xl border border-accent/40 bg-accent/10 p-4">
+            <div className="flex items-start gap-3">
+              <CalendarClock className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent" />
+              <div>
+                <p className="font-bold text-foreground">Reschedule deadline</p>
+                <p className="text-sm text-foreground/90 leading-relaxed">
+                  You may reschedule your class no later than{" "}
+                  <strong className="text-accent-foreground">5 days before the class start date</strong>.
+                  Late reschedules and no-shows are subject to{" "}
+                  <strong className="text-accent-foreground">additional rescheduling fees</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-accent/40 bg-accent/10 p-4">
+            <div className="flex items-start gap-3">
+              <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent" />
+              <div>
+                <p className="font-bold text-foreground">Arrive early</p>
+                <p className="text-sm text-foreground/90 leading-relaxed">
+                  You must arrive to each class session{" "}
+                  <strong className="text-accent-foreground">15 minutes early</strong>. If you arrive late,
+                  you will{" "}
+                  <strong className="text-accent-foreground">not be admitted to class</strong> and will be
+                  asked to leave. You will then need to call our office to reschedule, and a fee will apply.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+            <p className="text-sm font-semibold text-foreground/90">
+              Please make sure you can attend every scheduled session on time before completing payment.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary/30 p-4">
+          <Checkbox
+            id="ack-policy"
+            checked={confirmed}
+            onCheckedChange={(checked) => setConfirmed(checked === true)}
+            className="mt-0.5 border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground"
+          />
+          <label htmlFor="ack-policy" className="cursor-pointer text-sm font-medium leading-relaxed text-foreground">
+            I have read and understand the reschedule and arrival policies above. I understand that late
+            reschedules, no-shows, and late arrivals will result in additional fees and may require me to
+            retake the course.
+          </label>
+        </div>
+
+        <DialogFooter className="flex-col-reverse gap-2 sm:flex-col-reverse">
+          <Button
+            onClick={handleContinue}
+            disabled={!confirmed}
+            className="w-full text-base font-semibold"
+            size="lg"
+          >
+            <CircleArrowRight className="mr-2 h-4 w-4" />
+            Continue to payment
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setConfirmed(false);
+              onBack();
+            }}
+            className="w-full"
+            size="lg"
+          >
+            Go back
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default RegistrationAcknowledgmentDialog;
