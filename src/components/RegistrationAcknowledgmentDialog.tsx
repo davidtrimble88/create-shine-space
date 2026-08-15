@@ -85,7 +85,7 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
                   </strong>
                   . If you arrive late, you will{" "}
                   <strong className="text-base !text-foreground underline underline-offset-2 decoration-foreground/60">
-                    not be admitted to class
+                    NOT BE ADMITTED TO CLASS
                   </strong>{" "}
                   and will be asked to leave. You will then need to call our office to reschedule, and a fee will apply.
                 </p>
