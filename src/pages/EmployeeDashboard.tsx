@@ -267,7 +267,6 @@ const EmployeeDashboard = () => {
   }, [user]);
 
   // Larry's personal greeting: once per day, remind him to rotate his phone and have a great day
-  const [searchParams] = useSearchParams();
   const [larryPopupOpen, setLarryPopupOpen] = useState(false);
   useEffect(() => {
     if (!user) return;
