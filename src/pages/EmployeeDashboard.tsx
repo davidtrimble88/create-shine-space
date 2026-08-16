@@ -271,13 +271,18 @@ const EmployeeDashboard = () => {
   useEffect(() => {
     if (!user) return;
     const email = user.email?.toLowerCase() || "";
-    if (email !== "larry@learntoridevc.com") return;
+    const forceTest = searchParams.get("larry-popup") === "1";
+    if (email !== "larry@learntoridevc.com" && !forceTest) return;
     try {
+      if (forceTest) {
+        setLarryPopupOpen(true);
+        return;
+      }
       const today = new Date().toISOString().slice(0, 10);
       const dismissed = localStorage.getItem(`larryGreetingDismissed:${today}`);
       if (!dismissed) setLarryPopupOpen(true);
     } catch {}
-  }, [user]);
+  }, [user, searchParams]);
   const dismissLarryPopup = () => {
     try {
       const today = new Date().toISOString().slice(0, 10);
