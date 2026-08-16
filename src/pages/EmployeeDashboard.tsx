@@ -266,6 +266,26 @@ const EmployeeDashboard = () => {
     } catch {}
   }, [user]);
 
+  // Larry's personal greeting: once per day, remind him to rotate his phone and have a great day
+  const [larryPopupOpen, setLarryPopupOpen] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    const email = user.email?.toLowerCase() || "";
+    if (email !== "larry@learntoridevc.com") return;
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const dismissed = localStorage.getItem(`larryGreetingDismissed:${today}`);
+      if (!dismissed) setLarryPopupOpen(true);
+    } catch {}
+  }, [user]);
+  const dismissLarryPopup = () => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      localStorage.setItem(`larryGreetingDismissed:${today}`, "true");
+    } catch {}
+    setLarryPopupOpen(false);
+  };
+
   // If owner switches to a view that hides the active tab, send them back to overview
   useEffect(() => {
     const stillVisible = tabs.find(t => t.id === activeTab)?.roles.includes(effectiveRole as any);
