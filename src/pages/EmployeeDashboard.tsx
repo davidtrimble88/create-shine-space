@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -264,6 +265,26 @@ const EmployeeDashboard = () => {
       if (!seen) setTourOpen(true);
     } catch {}
   }, [user]);
+
+  // Larry's personal greeting: once per day, remind him to rotate his phone and have a great day
+  const [larryPopupOpen, setLarryPopupOpen] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    const email = user.email?.toLowerCase() || "";
+    if (email !== "larry@learntoridevc.com") return;
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const dismissed = localStorage.getItem(`larryGreetingDismissed:${today}`);
+      if (!dismissed) setLarryPopupOpen(true);
+    } catch {}
+  }, [user]);
+  const dismissLarryPopup = () => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      localStorage.setItem(`larryGreetingDismissed:${today}`, "true");
+    } catch {}
+    setLarryPopupOpen(false);
+  };
 
   // If owner switches to a view that hides the active tab, send them back to overview
   useEffect(() => {
@@ -652,6 +673,31 @@ const EmployeeDashboard = () => {
             onOpenChange={setTourOpen}
             onNavigateTab={(t) => handleTabSelect(t as TabId)}
           />
+
+          {/* Larry's personalized greeting popup */}
+          <Dialog open={larryPopupOpen} onOpenChange={setLarryPopupOpen}>
+            <DialogContent className="sm:max-w-md" onInteractOutside={dismissLarryPopup}>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Smartphone className="w-5 h-5 text-accent" />
+                  Hey Larry!
+                </DialogTitle>
+                <DialogDescription className="text-base text-foreground/90 pt-2 space-y-2">
+                  <p>
+                    For the best view of the dashboard, try rotating your phone to landscape.
+                  </p>
+                  <p className="text-lg font-medium text-accent">
+                    Have a duck awesome day! 🦆
+                  </p>
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-4 flex justify-end">
+                <Button onClick={dismissLarryPopup} className="w-full sm:w-auto">
+                  Quack on! 🦆
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           {activeTab === "overview" && <AdminOverview />}
           {activeTab === "schedule" && <AdminSchedule />}
           {activeTab === "full-schedule" && <ComprehensiveSchedule />}
