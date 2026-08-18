@@ -406,13 +406,25 @@ const ClassRosters = () => {
         setDl389Schedules([]);
       }
 
-      // Pending retests = failed students with retest_type skill/knowledge/both
-      const { data: retestRows } = await (supabase as any)
-        .from("bookings")
-        .select("*")
-        .eq("result", "fail")
-        .in("retest_type", ["skill", "knowledge", "both"]);
-      setPendingRetests((retestRows ?? []) as Booking[]);
+      // Pending retest/reschedule = failed students eligible to return, plus
+      // students who self-dropped (they leave the roster but stay visible here).
+      const [{ data: retestRows }, { data: selfDropRows }] = await Promise.all([
+        (supabase as any)
+          .from("bookings")
+          .select("*")
+          .eq("result", "fail")
+          .in("retest_type", ["skill", "knowledge", "both"]),
+        (supabase as any)
+          .from("bookings")
+          .select("*")
+          .eq("result", "self_drop")
+          .eq("needs_reschedule", true)
+          .eq("archived", false),
+      ]);
+      const merged = [...((retestRows ?? []) as Booking[]), ...((selfDropRows ?? []) as Booking[])];
+      const seen = new Set<string>();
+      setPendingRetests(merged.filter(b => (seen.has(b.id) ? false : (seen.add(b.id), true))));
+
 
       if (pendingId) {
         const inActive = stillRunning.some(s => s.id === pendingId);
