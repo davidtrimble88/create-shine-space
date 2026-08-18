@@ -336,7 +336,8 @@ const AdminBookings = () => {
       guardian_relationship: form.guardian_relationship || null,
       guardian_phone: form.guardian_phone || null,
       guardian_email: form.guardian_email || null,
-      fee: sched.price,
+      fee: centsToLabel(feeCentsForRider(sched.price, form.date_of_birth || null, sched.date)),
+
       rider_track: isIntermediate ? form.rider_track : null,
       bike_info: isIrc
         ? [form.bike_year, form.bike_make, form.bike_model].map(v => v.trim()).filter(Boolean).join(" ")
