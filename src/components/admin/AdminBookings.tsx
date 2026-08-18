@@ -304,6 +304,26 @@ const AdminBookings = () => {
       return;
     }
 
+    // Minors (under 18 on the class date) must have emergency contact + guardian info.
+    const riderAge = ageOnDate(form.date_of_birth || null, sched.date);
+    if (riderAge !== null && riderAge < 18) {
+      const missing: string[] = [];
+      if (!form.emergency_contact_name.trim()) missing.push("emergency contact name");
+      if (!form.emergency_contact_phone.trim()) missing.push("emergency contact phone");
+      if (!form.guardian_name.trim()) missing.push("parent/guardian name");
+      if (!form.guardian_phone.trim()) missing.push("parent/guardian phone");
+      if (!form.guardian_email.trim()) missing.push("parent/guardian email");
+      if (missing.length) {
+        toast({
+          title: "Required for minors",
+          description: `This student is ${riderAge} on the class date. Please provide: ${missing.join(", ")}.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+
     const basePayload: Record<string, unknown> = {
 
       id: crypto.randomUUID(),
