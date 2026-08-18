@@ -3690,7 +3690,83 @@ const ClassRosters = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Self drop confirmation */}
+      <Dialog open={!!selfDropFor} onOpenChange={o => { if (!o) { setSelfDropFor(null); setSelfDropNote(""); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm self drop</DialogTitle>
+            <DialogDescription>
+              {selfDropFor ? `${selfDropFor.first_name} ${selfDropFor.last_name}` : "This student"} will not be marked
+              pass or fail. They'll be removed from this roster, their seat reopens immediately, and they'll appear
+              under Pending Retest/Reschedule.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Why is the student self-dropping? (optional)</Label>
+            <Textarea
+              value={selfDropNote}
+              onChange={e => setSelfDropNote(e.target.value)}
+              placeholder="e.g. Not comfortable riding today — wants to come back later"
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setSelfDropFor(null); setSelfDropNote(""); }}>Cancel</Button>
+            <Button onClick={submitSelfDrop} disabled={savingSelfDrop}>
+              {savingSelfDrop ? "Saving…" : "Confirm self drop"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Retest / reschedule fee payment link */}
+      <Dialog open={!!feeLinkFor} onOpenChange={o => { if (!o) setFeeLinkFor(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send a fee payment link</DialogTitle>
+            <DialogDescription>
+              {feeLinkFor ? `${feeLinkFor.first_name} ${feeLinkFor.last_name} (${feeLinkFor.email})` : ""} will get an
+              email with a secure card-payment link for the exact amount you set here.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Fee type</Label>
+              <Select value={feeType} onValueChange={v => setFeeType(v as typeof feeType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="retest">Retest fee</SelectItem>
+                  <SelectItem value="reschedule">Rescheduling fee</SelectItem>
+                  <SelectItem value="other">Other fee</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Amount (USD)</Label>
+              <Input
+                inputMode="decimal"
+                value={feeAmount}
+                onChange={e => setFeeAmount(e.target.value)}
+                placeholder="e.g. 75.00"
+              />
+              <p className="text-xs text-muted-foreground">Any amount — no course pricing rules apply to this charge.</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Note to the student (optional)</Label>
+              <Textarea value={feeNote} onChange={e => setFeeNote(e.target.value)} rows={3} placeholder="e.g. Skills retest on the next available Sunday." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setFeeLinkFor(null)}>Cancel</Button>
+            <Button onClick={sendFeeLink} disabled={sendingFeeLink}>
+              {sendingFeeLink ? "Sending…" : "Send payment link"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 
 };
