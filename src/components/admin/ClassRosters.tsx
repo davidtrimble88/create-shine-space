@@ -222,6 +222,29 @@ const ClassRosters = () => {
   const [feeType, setFeeType] = useState<"retest" | "reschedule" | "other">("retest");
   const [feeNote, setFeeNote] = useState("");
   const [sendingFeeLink, setSendingFeeLink] = useState(false);
+  // Latest fee payment request per booking (for the sent / paid indicators)
+  type FeeStatus = { status: string; amount_cents: number; created_at: string; paid_at: string | null; fee_type: string };
+  const [feeStatuses, setFeeStatuses] = useState<Record<string, FeeStatus>>({});
+
+  const loadFeeStatuses = async (ids: string[]) => {
+    if (ids.length === 0) { setFeeStatuses({}); return; }
+    const { data } = await (supabase as any)
+      .from("fee_payment_requests")
+      .select("booking_id, status, amount_cents, created_at, paid_at, fee_type")
+      .in("booking_id", ids)
+      .order("created_at", { ascending: false });
+    const map: Record<string, FeeStatus> = {};
+    for (const row of (data ?? []) as (FeeStatus & { booking_id: string })[]) {
+      const existing = map[row.booking_id];
+      // Prefer a paid request, otherwise keep the most recent one
+      if (!existing || (row.status === "paid" && existing.status !== "paid")) {
+        map[row.booking_id] = row;
+      }
+    }
+    setFeeStatuses(map);
+  };
+
+
 
 
   // Delete → archive dialog (any student)
@@ -423,7 +446,9 @@ const ClassRosters = () => {
       ]);
       const merged = [...((retestRows ?? []) as Booking[]), ...((selfDropRows ?? []) as Booking[])];
       const seen = new Set<string>();
-      setPendingRetests(merged.filter(b => (seen.has(b.id) ? false : (seen.add(b.id), true))));
+      const deduped = merged.filter(b => (seen.has(b.id) ? false : (seen.add(b.id), true)));
+      setPendingRetests(deduped);
+      loadFeeStatuses(deduped.map(b => b.id));
 
 
       if (pendingId) {
@@ -1011,6 +1036,16 @@ const ClassRosters = () => {
         },
       });
       if (error) throw error;
+      setFeeStatuses(prev => ({
+        ...prev,
+        [feeLinkFor.id]: {
+          status: "pending",
+          amount_cents: amountCents,
+          created_at: new Date().toISOString(),
+          paid_at: null,
+          fee_type: feeType,
+        },
+      }));
       toast.success(`${amountLabel} payment link sent to ${feeLinkFor.email}`);
       setFeeLinkFor(null);
     } catch (e) {
@@ -1991,6 +2026,27 @@ const ClassRosters = () => {
                           >
                             <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
                           </Button>
+                          {(() => {
+                            const fee = feeStatuses[b.id];
+                            if (!fee) return null;
+                            const amt = (fee.amount_cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+                            const paid = fee.status === "paid";
+                            const when = new Date(paid && fee.paid_at ? fee.paid_at : fee.created_at)
+                              .toLocaleDateString("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric" });
+                            return (
+                              <span
+                                className={`inline-flex items-center justify-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold border ${
+                                  paid
+                                    ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/40"
+                                    : "bg-amber-500/15 text-amber-500 border-amber-500/40"
+                                }`}
+                                title={paid ? `Fee paid ${when}` : `Payment link sent ${when} — not paid yet`}
+                              >
+                                {paid ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                {paid ? `Fee paid ${amt}` : `Fee link sent ${amt}`}
+                              </span>
+                            );
+                          })()}
                           {canManageEvaluations && (
                             <Button
                               size="sm"
@@ -1998,9 +2054,11 @@ const ClassRosters = () => {
                               className="border border-border/60"
                               onClick={() => openFeeLink(b)}
                             >
-                              <CreditCard className="w-3.5 h-3.5 mr-1.5" /> Send Fee Payment Link
+                              <CreditCard className="w-3.5 h-3.5 mr-1.5" />
+                              {feeStatuses[b.id] ? "Send Another Fee Link" : "Send Fee Payment Link"}
                             </Button>
                           )}
+
                           <Button
                             size="sm"
                             variant="ghost"
