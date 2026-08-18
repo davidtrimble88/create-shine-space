@@ -866,56 +866,74 @@ const AdminBookings = () => {
                 </div>
               </div>
 
-              {/* Emergency Contact (optional for manual entry) */}
-              <div className="pt-2 border-t border-border/40">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  Emergency Contact <span className="normal-case font-normal tracking-normal">(optional)</span>
-                </p>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <Label>Contact Name</Label>
-                      <Input value={form.emergency_contact_name} onChange={e => setForm(f => ({ ...f, emergency_contact_name: e.target.value }))} maxLength={100} />
+              {/* Emergency Contact — required for minors */}
+              {(() => {
+                const schedSel = schedules.find(s => s.id === form.schedule_id);
+                const age = ageOnDate(form.date_of_birth || null, schedSel?.date || null);
+                const isMinor = age !== null && age < 18;
+                const req = isMinor ? <span className="text-destructive"> *</span> : null;
+                return (
+                  <>
+                    <div className="pt-2 border-t border-border/40">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                        Emergency Contact{" "}
+                        <span className={`normal-case font-normal tracking-normal ${isMinor ? "text-destructive" : ""}`}>
+                          {isMinor ? "(required — student is a minor)" : "(optional)"}
+                        </span>
+                      </p>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <Label>Contact Name{req}</Label>
+                            <Input value={form.emergency_contact_name} onChange={e => setForm(f => ({ ...f, emergency_contact_name: e.target.value }))} maxLength={100} />
+                          </div>
+                          <div>
+                            <Label>Relationship</Label>
+                            <Input value={form.emergency_contact_relationship} onChange={e => setForm(f => ({ ...f, emergency_contact_relationship: e.target.value }))} maxLength={50} />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Contact Phone{req}</Label>
+                          <Input type="tel" value={form.emergency_contact_phone} onChange={e => setForm(f => ({ ...f, emergency_contact_phone: e.target.value }))} maxLength={25} />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <Label>Relationship</Label>
-                      <Input value={form.emergency_contact_relationship} onChange={e => setForm(f => ({ ...f, emergency_contact_relationship: e.target.value }))} maxLength={50} />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Contact Phone</Label>
-                    <Input type="tel" value={form.emergency_contact_phone} onChange={e => setForm(f => ({ ...f, emergency_contact_phone: e.target.value }))} maxLength={25} />
-                  </div>
-                </div>
-              </div>
 
-              {/* Parent / Legal Guardian (optional for manual entry) */}
-              <div className="pt-2 border-t border-border/40">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  Parent / Legal Guardian <span className="normal-case font-normal tracking-normal">(optional — required for students under 18)</span>
-                </p>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <Label>Guardian Name</Label>
-                      <Input value={form.guardian_name} onChange={e => setForm(f => ({ ...f, guardian_name: e.target.value }))} maxLength={100} />
+                    {/* Parent / Legal Guardian — required for minors */}
+                    <div className="pt-2 border-t border-border/40">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                        Parent / Legal Guardian{" "}
+                        <span className={`normal-case font-normal tracking-normal ${isMinor ? "text-destructive" : ""}`}>
+                          {isMinor ? "(required — student is under 18)" : "(optional — required for students under 18)"}
+                        </span>
+                      </p>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <Label>Guardian Name{req}</Label>
+                            <Input value={form.guardian_name} onChange={e => setForm(f => ({ ...f, guardian_name: e.target.value }))} maxLength={100} />
+                          </div>
+                          <div>
+                            <Label>Relationship to Student</Label>
+                            <Input value={form.guardian_relationship} onChange={e => setForm(f => ({ ...f, guardian_relationship: e.target.value }))} maxLength={50} />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <Label>Guardian Phone{req}</Label>
+                            <Input type="tel" value={form.guardian_phone} onChange={e => setForm(f => ({ ...f, guardian_phone: e.target.value }))} maxLength={25} />
+                          </div>
+                          <div>
+                            <Label>Guardian Email{req}</Label>
+                            <Input type="email" value={form.guardian_email} onChange={e => setForm(f => ({ ...f, guardian_email: e.target.value }))} maxLength={150} />
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <Label>Relationship to Student</Label>
-                      <Input value={form.guardian_relationship} onChange={e => setForm(f => ({ ...f, guardian_relationship: e.target.value }))} maxLength={50} />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <Label>Guardian Phone</Label>
-                      <Input type="tel" value={form.guardian_phone} onChange={e => setForm(f => ({ ...f, guardian_phone: e.target.value }))} maxLength={25} />
-                    </div>
-                    <div>
-                      <Label>Guardian Email</Label>
-                      <Input type="email" value={form.guardian_email} onChange={e => setForm(f => ({ ...f, guardian_email: e.target.value }))} maxLength={150} />
-                    </div>
-                  </div>
-                </div>
+                  </>
+                );
+              })()}
+
               </div>
 
 
