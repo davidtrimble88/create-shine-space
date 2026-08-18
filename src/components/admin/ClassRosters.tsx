@@ -222,6 +222,29 @@ const ClassRosters = () => {
   const [feeType, setFeeType] = useState<"retest" | "reschedule" | "other">("retest");
   const [feeNote, setFeeNote] = useState("");
   const [sendingFeeLink, setSendingFeeLink] = useState(false);
+  // Latest fee payment request per booking (for the sent / paid indicators)
+  type FeeStatus = { status: string; amount_cents: number; created_at: string; paid_at: string | null; fee_type: string };
+  const [feeStatuses, setFeeStatuses] = useState<Record<string, FeeStatus>>({});
+
+  const loadFeeStatuses = async (ids: string[]) => {
+    if (ids.length === 0) { setFeeStatuses({}); return; }
+    const { data } = await (supabase as any)
+      .from("fee_payment_requests")
+      .select("booking_id, status, amount_cents, created_at, paid_at, fee_type")
+      .in("booking_id", ids)
+      .order("created_at", { ascending: false });
+    const map: Record<string, FeeStatus> = {};
+    for (const row of (data ?? []) as (FeeStatus & { booking_id: string })[]) {
+      const existing = map[row.booking_id];
+      // Prefer a paid request, otherwise keep the most recent one
+      if (!existing || (row.status === "paid" && existing.status !== "paid")) {
+        map[row.booking_id] = row;
+      }
+    }
+    setFeeStatuses(map);
+  };
+
+
 
 
   // Delete → archive dialog (any student)
