@@ -26,6 +26,7 @@ import RegistrationConfirmation from "./pages/RegistrationConfirmation";
 import InstallApp from "./pages/InstallApp";
 import CompleteFormsPage from "./pages/CompleteFormsPage";
 import PayRegistrationPage from "./pages/PayRegistrationPage";
+import PayFeePage from "./pages/PayFeePage";
 import HiddenDuck from "./components/HiddenDuck";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/install" element={<InstallApp />} />
             <Route path="/complete-forms" element={<CompleteFormsPage />} />
             <Route path="/pay-registration" element={<PayRegistrationPage />} />
+            <Route path="/pay-fee" element={<PayFeePage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
