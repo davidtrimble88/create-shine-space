@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CalendarClock, Clock, AlertTriangle, CircleArrowRight } from "lucide-react";
+import { CalendarClock, Clock, AlertTriangle, CircleArrowRight, ArrowDown } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -25,6 +25,26 @@ interface Props {
  */
 export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinue, onBack }: Props) => {
   const [confirmed, setConfirmed] = useState(false);
+  const [scrolledToEnd, setScrolledToEnd] = useState(false);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // If the content fits entirely, nothing to scroll — count as viewed.
+    if (el.scrollHeight - el.clientHeight <= 4) {
+      setScrolledToEnd(true);
+      return;
+    }
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 8) setScrolledToEnd(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    setScrolledToEnd(false);
+    const id = window.setTimeout(checkScroll, 80);
+    return () => window.clearTimeout(id);
+  }, [open, checkScroll]);
 
   const handleOpenChange = (next: boolean) => {
     if (!next) setConfirmed(false);
@@ -52,7 +72,7 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 overflow-y-auto px-6 py-2">
+        <div ref={scrollRef} onScroll={checkScroll} className="space-y-4 overflow-y-auto px-6 py-2">
           <div className="rounded-xl border border-accent/40 bg-accent/10 p-4">
             <div className="flex items-start gap-3">
               <CalendarClock className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent" />
@@ -100,10 +120,24 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
           </div>
         </div>
 
-        <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary/30 p-4 mx-6">
+        {!scrolledToEnd && (
+          <button
+            type="button"
+            onClick={() =>
+              scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
+            }
+            className="mx-6 flex items-center justify-center gap-2 rounded-lg border border-accent/50 bg-accent/10 px-3 py-2 text-sm font-semibold text-accent"
+          >
+            <ArrowDown className="h-4 w-4" />
+            Scroll to read everything
+          </button>
+        )}
+
+        <div className={`flex items-start gap-3 rounded-lg border border-border bg-secondary/30 p-4 mx-6 ${!scrolledToEnd ? "opacity-50" : ""}`}>
           <Checkbox
             id="ack-policy"
             checked={confirmed}
+            disabled={!scrolledToEnd}
             onCheckedChange={(checked) => setConfirmed(checked === true)}
             className="mt-0.5 border-accent data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground"
           />
@@ -117,7 +151,7 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
         <DialogFooter className="flex-col-reverse gap-2 sm:flex-col-reverse px-6 pb-6">
           <Button
             onClick={handleContinue}
-            disabled={!confirmed}
+            disabled={!confirmed || !scrolledToEnd}
             className="w-full text-base font-semibold"
             size="lg"
           >
