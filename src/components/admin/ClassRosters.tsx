@@ -2026,6 +2026,27 @@ const ClassRosters = () => {
                           >
                             <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
                           </Button>
+                          {(() => {
+                            const fee = feeStatuses[b.id];
+                            if (!fee) return null;
+                            const amt = (fee.amount_cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+                            const paid = fee.status === "paid";
+                            const when = new Date(paid && fee.paid_at ? fee.paid_at : fee.created_at)
+                              .toLocaleDateString("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric" });
+                            return (
+                              <span
+                                className={`inline-flex items-center justify-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold border ${
+                                  paid
+                                    ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/40"
+                                    : "bg-amber-500/15 text-amber-500 border-amber-500/40"
+                                }`}
+                                title={paid ? `Fee paid ${when}` : `Payment link sent ${when} — not paid yet`}
+                              >
+                                {paid ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                {paid ? `Fee paid ${amt}` : `Fee link sent ${amt}`}
+                              </span>
+                            );
+                          })()}
                           {canManageEvaluations && (
                             <Button
                               size="sm"
@@ -2033,9 +2054,11 @@ const ClassRosters = () => {
                               className="border border-border/60"
                               onClick={() => openFeeLink(b)}
                             >
-                              <CreditCard className="w-3.5 h-3.5 mr-1.5" /> Send Fee Payment Link
+                              <CreditCard className="w-3.5 h-3.5 mr-1.5" />
+                              {feeStatuses[b.id] ? "Send Another Fee Link" : "Send Fee Payment Link"}
                             </Button>
                           )}
+
                           <Button
                             size="sm"
                             variant="ghost"
