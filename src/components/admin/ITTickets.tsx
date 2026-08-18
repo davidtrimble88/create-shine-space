@@ -321,8 +321,11 @@ export default function ITTickets() {
     let query = supabase.from("it_tickets").select("*");
     // Non-admins can only ever see tickets they created
     if ((!isAdmin || filter === "mine") && user) query = query.eq("user_id", user.id);
-    if (view === "closed") query = query.eq("status", "closed");
-    else query = query.neq("status", "closed");
+    if (focusTicketId) {
+      // Coming from a notification: show that exact ticket regardless of Active/Closed view
+      query = query.eq("id", focusTicketId);
+    } else if (view === "closed") query = query.eq("status", "closed");
+    else if (!focusTicketId) query = query.neq("status", "closed");
     if (sortBy === "alpha") query = query.order("title", { ascending: true });
     else query = query.order("created_at", { ascending: false });
     const { data, error } = await query;
@@ -333,7 +336,7 @@ export default function ITTickets() {
 
   useEffect(() => {
     load();
-  }, [filter, view, sortBy]);
+  }, [filter, view, sortBy, focusTicketId]);
 
   // Countdown for "I need a moment" — stops halfway (at 5) and reveals a joke
   useEffect(() => {
