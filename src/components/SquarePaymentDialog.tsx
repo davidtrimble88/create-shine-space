@@ -44,7 +44,10 @@ interface Props {
   amountLabel: string; // e.g. "$425"
   bookingPayload: Record<string, unknown>;
   discount?: PaymentDiscount;
+  /** When set, charges a staff-set fee via square-charge-fee instead of a course registration. */
+  feeToken?: string;
   attemptTracking?: { attemptId: string | null; visitorId: string | null };
+
   /** Staff-taken card-not-present payment: shows the phone authorization script. */
   phoneAuthorization?: boolean;
   onSuccess: (paymentId: string) => void;
@@ -53,7 +56,8 @@ interface Props {
 }
 
 export const SquarePaymentDialog = ({
-  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, attemptTracking, phoneAuthorization, onSuccess, onFailure,
+  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, feeToken, attemptTracking, phoneAuthorization, onSuccess, onFailure,
+
 }: Props) => {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<any>(null);
@@ -174,9 +178,12 @@ export const SquarePaymentDialog = ({
       const sourceId = result.token;
 
       failureStage = "request";
-      const { data, error } = await supabase.functions.invoke("square-charge", {
-        body: { sourceId, region, amountCents, booking: bookingPayload, discount, attemptTracking },
-      });
+      const { data, error } = feeToken
+        ? await supabase.functions.invoke("square-charge-fee", { body: { token: feeToken, sourceId } })
+        : await supabase.functions.invoke("square-charge", {
+            body: { sourceId, region, amountCents, booking: bookingPayload, discount, attemptTracking },
+          });
+
 
       if (error) {
         // Surface the real decline reason from the function's JSON body

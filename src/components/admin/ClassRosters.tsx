@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2, ShieldCheck, ShieldAlert, Archive } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2, ShieldCheck, ShieldAlert, Archive, CreditCard } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -211,6 +211,19 @@ const ClassRosters = () => {
   const [dropCanReschedule, setDropCanReschedule] = useState<"yes" | "no" | null>(null);
   const [savingDrop, setSavingDrop] = useState(false);
 
+  // Self-drop confirmation dialog state
+  const [selfDropFor, setSelfDropFor] = useState<Booking | null>(null);
+  const [selfDropNote, setSelfDropNote] = useState("");
+  const [savingSelfDrop, setSavingSelfDrop] = useState(false);
+
+  // Retest / reschedule fee payment link dialog state
+  const [feeLinkFor, setFeeLinkFor] = useState<Booking | null>(null);
+  const [feeAmount, setFeeAmount] = useState("");
+  const [feeType, setFeeType] = useState<"retest" | "reschedule" | "other">("retest");
+  const [feeNote, setFeeNote] = useState("");
+  const [sendingFeeLink, setSendingFeeLink] = useState(false);
+
+
   // Delete → archive dialog (any student)
   const [deleteFor, setDeleteFor] = useState<Booking | null>(null);
   const [deleteReason, setDeleteReason] = useState("");
@@ -393,13 +406,25 @@ const ClassRosters = () => {
         setDl389Schedules([]);
       }
 
-      // Pending retests = failed students with retest_type skill/knowledge/both
-      const { data: retestRows } = await (supabase as any)
-        .from("bookings")
-        .select("*")
-        .eq("result", "fail")
-        .in("retest_type", ["skill", "knowledge", "both"]);
-      setPendingRetests((retestRows ?? []) as Booking[]);
+      // Pending retest/reschedule = failed students eligible to return, plus
+      // students who self-dropped (they leave the roster but stay visible here).
+      const [{ data: retestRows }, { data: selfDropRows }] = await Promise.all([
+        (supabase as any)
+          .from("bookings")
+          .select("*")
+          .eq("result", "fail")
+          .in("retest_type", ["skill", "knowledge", "both"]),
+        (supabase as any)
+          .from("bookings")
+          .select("*")
+          .eq("result", "self_drop")
+          .eq("needs_reschedule", true)
+          .eq("archived", false),
+      ]);
+      const merged = [...((retestRows ?? []) as Booking[]), ...((selfDropRows ?? []) as Booking[])];
+      const seen = new Set<string>();
+      setPendingRetests(merged.filter(b => (seen.has(b.id) ? false : (seen.add(b.id), true))));
+
 
       if (pendingId) {
         const inActive = stillRunning.some(s => s.id === pendingId);
@@ -889,6 +914,114 @@ const ClassRosters = () => {
       : `${name} dropped — recorded in past roster.`);
   };
 
+  // ===== Self drop: student withdraws themselves =====
+  const submitSelfDrop = async () => {
+    if (!selfDropFor) return;
+    setSavingSelfDrop(true);
+    const b = selfDropFor;
+    const sched = selectedSchedule;
+    const trimmed = selfDropNote.trim();
+    const stamp = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
+    const line = `Self drop ${stamp}${trimmed ? `: ${trimmed}` : ""}`;
+    const mergedComment = b.roster_comment ? `${b.roster_comment}\n${line}` : line;
+
+    const updates: Record<string, unknown> = {
+      result: "self_drop",
+      retest_type: null,
+      roster_comment: mergedComment,
+      dropped: true,
+      dropped_reason: trimmed ? `Self drop: ${trimmed}` : "Self drop",
+      dropped_at: new Date().toISOString(),
+      dropped_by: user?.id ?? null,
+      needs_reschedule: true,
+      reschedule_part: "full",
+      reschedule_reason: trimmed ? `Self drop: ${trimmed}` : "Self drop",
+      original_schedule_id: sched?.id ?? b.schedule_id,
+      original_schedule_date: sched?.date ?? b.schedule_date,
+      original_location_label: sched?.location_label ?? b.location_label,
+      original_course: sched?.course ?? b.course,
+    };
+
+    const { error } = await (supabase as any).from("bookings").update(updates).eq("id", b.id);
+    setSavingSelfDrop(false);
+    if (error) {
+      toast.error("Failed to record the self drop");
+      return;
+    }
+    setBookings(prev => prev.map(x => x.id === b.id ? { ...x, ...updates } as Booking : x));
+    setPendingRetests(prev => (prev.some(x => x.id === b.id) ? prev : [...prev, { ...b, ...updates } as Booking]));
+    setSelfDropFor(null);
+    setSelfDropNote("");
+    toast.success(`${b.first_name} ${b.last_name} self-dropped — moved to Pending Retest/Reschedule.`);
+  };
+
+  // ===== Retest / reschedule fee: email a manually-priced payment link =====
+  const openFeeLink = (b: Booking) => {
+    setFeeLinkFor(b);
+    setFeeAmount("");
+    setFeeType(b.result === "fail" ? "retest" : "reschedule");
+    setFeeNote("");
+  };
+
+  const sendFeeLink = async () => {
+    if (!feeLinkFor) return;
+    const dollars = Number(feeAmount.replace(/[^0-9.]/g, ""));
+    if (!isFinite(dollars) || dollars <= 0) {
+      toast.error("Enter the fee amount in dollars");
+      return;
+    }
+    const amountCents = Math.round(dollars * 100);
+    setSendingFeeLink(true);
+    try {
+      const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
+      const { error: insErr } = await (supabase as any).from("fee_payment_requests").insert({
+        booking_id: feeLinkFor.id,
+        token,
+        fee_type: feeType,
+        amount_cents: amountCents,
+        note: feeNote.trim() || null,
+        created_by: user?.id ?? null,
+      });
+      if (insErr) throw insErr;
+
+      const payLink = `${window.location.origin}/pay-fee?token=${token}`;
+      const amountLabel = (amountCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+      const feeLabel = feeType === "retest" ? "retest fee" : feeType === "reschedule" ? "rescheduling fee" : "course fee";
+      const guardianEmail = (feeLinkFor.guardian_email || "").trim();
+      const { error } = await supabase.functions.invoke("send-auto-email", {
+        body: {
+          trigger_event: "fee_payment_link",
+          recipientEmail: feeLinkFor.email,
+          location: feeLinkFor.location,
+          course: feeLinkFor.course,
+          additionalRecipients:
+            guardianEmail && guardianEmail.toLowerCase() !== feeLinkFor.email.toLowerCase() ? [guardianEmail] : [],
+          variables: {
+            firstName: feeLinkFor.first_name,
+            lastName: feeLinkFor.last_name,
+            course: courseLabels[feeLinkFor.course] || feeLinkFor.course,
+            locationLabel: feeLinkFor.location_label,
+            scheduleDate: feeLinkFor.schedule_date ? ` — ${feeLinkFor.schedule_date}` : "",
+            amount: amountLabel,
+            feeLabel,
+            note: feeNote.trim(),
+            payLink,
+            email: feeLinkFor.email,
+          },
+        },
+      });
+      if (error) throw error;
+      toast.success(`${amountLabel} payment link sent to ${feeLinkFor.email}`);
+      setFeeLinkFor(null);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not send the payment link");
+    } finally {
+      setSendingFeeLink(false);
+    }
+  };
+
+
+
 
   const handleUndropStudent = async (b: Booking) => {
     if (!confirm(`Restore ${b.first_name} ${b.last_name} to the active roster?`)) return;
@@ -1005,23 +1138,12 @@ const ClassRosters = () => {
       return;
     }
     if (next === "self_drop") {
-      const reason = window.prompt("Reason for self drop (optional — saved to the student's record):", "") ?? "";
-      const current = bookings.find(x => x.id === bookingId);
-      const trimmed = reason.trim();
-      let mergedComment = current?.roster_comment || "";
-      const stamp = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
-      const line = `Self drop ${stamp}${trimmed ? `: ${trimmed}` : ""}`;
-      mergedComment = mergedComment ? `${mergedComment}\n${line}` : line;
-      const updates: any = { result: "self_drop", retest_type: null, roster_comment: mergedComment };
-      const { error } = await (supabase as any).from("bookings").update(updates).eq("id", bookingId);
-      if (error) {
-        toast.error("Failed to mark as self drop");
-        return;
-      }
-      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...updates } : b));
-      toast.success("Marked as self drop — student stays on the roster");
+      const current = bookings.find(x => x.id === bookingId) || null;
+      setSelfDropFor(current);
+      setSelfDropNote("");
       return;
     }
+
     const updates: any = { result: next };
     if (next === null) updates.retest_type = null;
     if (next === "pass") updates.retest_type = null;
@@ -1135,7 +1257,7 @@ const ClassRosters = () => {
         </div>
 
         {result === "self_drop" && (
-          <div className="text-[10px] text-center mt-1 text-amber-500">Self dropped — remains on roster</div>
+          <div className="text-[10px] text-center mt-1 text-amber-500">Self dropped — pending reschedule</div>
         )}
 
         {result === "fail" && retest && (
@@ -1827,14 +1949,19 @@ const ClassRosters = () => {
                       </td>
                       <td className="p-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                          b.retest_type === "skill" ? "bg-primary/20 text-primary"
+                          b.result === "self_drop" ? "bg-muted text-muted-foreground"
+                            : b.retest_type === "skill" ? "bg-primary/20 text-primary"
                             : b.retest_type === "both" ? "bg-accent/30 text-foreground"
                             : "bg-amber-500/20 text-amber-500"
                         }`}>
-                          {b.retest_type === "skill" ? "Skill"
+                          {b.result === "self_drop" ? "Self drop"
+                            : b.retest_type === "skill" ? "Skill"
                             : b.retest_type === "both" ? "Skill & Knowledge"
                             : "Knowledge"}
                         </span>
+                        {b.result === "self_drop" && b.dropped_reason && (
+                          <div className="text-[10px] text-muted-foreground mt-1 max-w-[180px]">{b.dropped_reason}</div>
+                        )}
                       </td>
                       <td className={`p-3 text-center font-semibold ${urgent ? "text-destructive" : "text-foreground"}`}>
                         {daysLeft} {daysLeft === 1 ? "day" : "days"}
@@ -1842,13 +1969,15 @@ const ClassRosters = () => {
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex flex-col gap-1.5 items-stretch">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => { setScheduleRetestFor(b); setRetestTargetScheduleId(""); }}
-                          >
-                            <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Schedule Retest
-                          </Button>
+                          {b.result !== "self_drop" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => { setScheduleRetestFor(b); setRetestTargetScheduleId(""); }}
+                            >
+                              <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Schedule Retest
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
@@ -1862,6 +1991,16 @@ const ClassRosters = () => {
                           >
                             <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
                           </Button>
+                          {canManageEvaluations && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="border border-border/60"
+                              onClick={() => openFeeLink(b)}
+                            >
+                              <CreditCard className="w-3.5 h-3.5 mr-1.5" /> Send Fee Payment Link
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
@@ -3551,7 +3690,83 @@ const ClassRosters = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Self drop confirmation */}
+      <Dialog open={!!selfDropFor} onOpenChange={o => { if (!o) { setSelfDropFor(null); setSelfDropNote(""); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm self drop</DialogTitle>
+            <DialogDescription>
+              {selfDropFor ? `${selfDropFor.first_name} ${selfDropFor.last_name}` : "This student"} will not be marked
+              pass or fail. They'll be removed from this roster, their seat reopens immediately, and they'll appear
+              under Pending Retest/Reschedule.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Why is the student self-dropping? (optional)</Label>
+            <Textarea
+              value={selfDropNote}
+              onChange={e => setSelfDropNote(e.target.value)}
+              placeholder="e.g. Not comfortable riding today — wants to come back later"
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setSelfDropFor(null); setSelfDropNote(""); }}>Cancel</Button>
+            <Button onClick={submitSelfDrop} disabled={savingSelfDrop}>
+              {savingSelfDrop ? "Saving…" : "Confirm self drop"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Retest / reschedule fee payment link */}
+      <Dialog open={!!feeLinkFor} onOpenChange={o => { if (!o) setFeeLinkFor(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send a fee payment link</DialogTitle>
+            <DialogDescription>
+              {feeLinkFor ? `${feeLinkFor.first_name} ${feeLinkFor.last_name} (${feeLinkFor.email})` : ""} will get an
+              email with a secure card-payment link for the exact amount you set here.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Fee type</Label>
+              <Select value={feeType} onValueChange={v => setFeeType(v as typeof feeType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="retest">Retest fee</SelectItem>
+                  <SelectItem value="reschedule">Rescheduling fee</SelectItem>
+                  <SelectItem value="other">Other fee</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Amount (USD)</Label>
+              <Input
+                inputMode="decimal"
+                value={feeAmount}
+                onChange={e => setFeeAmount(e.target.value)}
+                placeholder="e.g. 75.00"
+              />
+              <p className="text-xs text-muted-foreground">Any amount — no course pricing rules apply to this charge.</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Note to the student (optional)</Label>
+              <Textarea value={feeNote} onChange={e => setFeeNote(e.target.value)} rows={3} placeholder="e.g. Skills retest on the next available Sunday." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setFeeLinkFor(null)}>Cancel</Button>
+            <Button onClick={sendFeeLink} disabled={sendingFeeLink}>
+              {sendingFeeLink ? "Sending…" : "Send payment link"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 
 };
