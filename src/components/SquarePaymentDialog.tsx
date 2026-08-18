@@ -56,7 +56,8 @@ interface Props {
 }
 
 export const SquarePaymentDialog = ({
-  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, attemptTracking, phoneAuthorization, onSuccess, onFailure,
+  open, onOpenChange, region, amountCents, amountLabel, bookingPayload, discount, feeToken, attemptTracking, phoneAuthorization, onSuccess, onFailure,
+
 }: Props) => {
   const cardContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<any>(null);
