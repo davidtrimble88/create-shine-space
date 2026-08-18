@@ -2013,19 +2013,21 @@ const ClassRosters = () => {
                               <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Schedule Retest
                             </Button>
                           )}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="border border-border/60"
-                            onClick={() => {
-                              setRescheduleFor(b);
-                              setRescheduleTargetScheduleId("");
-                              setRescheduleScope("full");
-                              setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
-                            }}
-                          >
-                            <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
-                          </Button>
+                          {b.result === "self_drop" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="border border-border/60"
+                              onClick={() => {
+                                setRescheduleFor(b);
+                                setRescheduleTargetScheduleId("");
+                                setRescheduleScope("full");
+                                setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
+                              }}
+                            >
+                              <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
+                            </Button>
+                          )}
                           {(() => {
                             // Retests are never charged a fee — only self-drop reschedules can get a link
                             if (b.result !== "self_drop") return null;
@@ -3030,23 +3032,6 @@ const ClassRosters = () => {
                           {canManageEvaluations && renderResultCell(b)}
                           <td className="p-3 text-center">
                             <div className="flex items-center justify-center gap-1">
-                              {canManageEvaluations && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setRescheduleFor(b);
-                                    setRescheduleActive(true);
-                                    setRescheduleTargetScheduleId("");
-                                    setRescheduleScope("full");
-                                    setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
-                                  }}
-                                  title="Reschedule this retest student to another class"
-                                  aria-label="Reschedule retest student"
-                                  className="p-1 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                                >
-                                  <RotateCcw className="w-3.5 h-3.5" />
-                                </button>
-                              )}
                               <button onClick={() => handleRemoveRetest(b.id)} className="text-destructive hover:text-destructive/80">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
