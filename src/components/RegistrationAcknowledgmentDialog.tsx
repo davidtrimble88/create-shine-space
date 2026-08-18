@@ -151,7 +151,7 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
         <DialogFooter className="flex-col-reverse gap-2 sm:flex-col-reverse px-6 pb-6">
           <Button
             onClick={handleContinue}
-            disabled={!confirmed}
+            disabled={!confirmed || !scrolledToEnd}
             className="w-full text-base font-semibold"
             size="lg"
           >
