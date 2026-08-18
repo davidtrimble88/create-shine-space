@@ -1036,6 +1036,16 @@ const ClassRosters = () => {
         },
       });
       if (error) throw error;
+      setFeeStatuses(prev => ({
+        ...prev,
+        [feeLinkFor.id]: {
+          status: "pending",
+          amount_cents: amountCents,
+          created_at: new Date().toISOString(),
+          paid_at: null,
+          fee_type: feeType,
+        },
+      }));
       toast.success(`${amountLabel} payment link sent to ${feeLinkFor.email}`);
       setFeeLinkFor(null);
     } catch (e) {
