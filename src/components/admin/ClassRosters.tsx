@@ -1257,7 +1257,7 @@ const ClassRosters = () => {
         </div>
 
         {result === "self_drop" && (
-          <div className="text-[10px] text-center mt-1 text-amber-500">Self dropped — remains on roster</div>
+          <div className="text-[10px] text-center mt-1 text-amber-500">Self dropped — pending reschedule</div>
         )}
 
         {result === "fail" && retest && (
