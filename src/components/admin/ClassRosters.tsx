@@ -219,7 +219,7 @@ const ClassRosters = () => {
   // Retest / reschedule fee payment link dialog state
   const [feeLinkFor, setFeeLinkFor] = useState<Booking | null>(null);
   const [feeAmount, setFeeAmount] = useState("");
-  const [feeType, setFeeType] = useState<"retest" | "reschedule" | "other">("retest");
+  const [feeType, setFeeType] = useState<"reschedule" | "other">("reschedule");
   const [feeNote, setFeeNote] = useState("");
   const [sendingFeeLink, setSendingFeeLink] = useState(false);
   // Latest fee payment request per booking (for the sent / paid indicators)
@@ -980,11 +980,11 @@ const ClassRosters = () => {
     toast.success(`${b.first_name} ${b.last_name} self-dropped — moved to Pending Retest/Reschedule.`);
   };
 
-  // ===== Retest / reschedule fee: email a manually-priced payment link =====
+  // ===== Rescheduling fee: email a manually-priced payment link (retests are never charged) =====
   const openFeeLink = (b: Booking) => {
     setFeeLinkFor(b);
     setFeeAmount("");
-    setFeeType(b.result === "fail" ? "retest" : "reschedule");
+    setFeeType("reschedule");
     setFeeNote("");
   };
 
@@ -1011,7 +1011,7 @@ const ClassRosters = () => {
 
       const payLink = `${window.location.origin}/pay-fee?token=${token}`;
       const amountLabel = (amountCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
-      const feeLabel = feeType === "retest" ? "retest fee" : feeType === "reschedule" ? "rescheduling fee" : "course fee";
+      const feeLabel = feeType === "reschedule" ? "rescheduling fee" : "course fee";
       const guardianEmail = (feeLinkFor.guardian_email || "").trim();
       const { error } = await supabase.functions.invoke("send-auto-email", {
         body: {
@@ -2027,6 +2027,8 @@ const ClassRosters = () => {
                             <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
                           </Button>
                           {(() => {
+                            // Retests are never charged a fee — only self-drop reschedules can get a link
+                            if (b.result !== "self_drop") return null;
                             const fee = feeStatuses[b.id];
                             if (!fee) return null;
                             const amt = (fee.amount_cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -2047,7 +2049,7 @@ const ClassRosters = () => {
                               </span>
                             );
                           })()}
-                          {canManageEvaluations && (
+                          {canManageEvaluations && b.result === "self_drop" && (
                             <Button
                               size="sm"
                               variant="ghost"
@@ -2055,7 +2057,7 @@ const ClassRosters = () => {
                               onClick={() => openFeeLink(b)}
                             >
                               <CreditCard className="w-3.5 h-3.5 mr-1.5" />
-                              {feeStatuses[b.id] ? "Send Another Fee Link" : "Send Fee Payment Link"}
+                              {feeStatuses[b.id] ? "Send Another Fee Link" : "Send Rescheduling Fee Link"}
                             </Button>
                           )}
 
@@ -3794,7 +3796,7 @@ const ClassRosters = () => {
               <Select value={feeType} onValueChange={v => setFeeType(v as typeof feeType)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="retest">Retest fee</SelectItem>
+                  
                   <SelectItem value="reschedule">Rescheduling fee</SelectItem>
                   <SelectItem value="other">Other fee</SelectItem>
                 </SelectContent>
