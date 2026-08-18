@@ -28,6 +28,42 @@ const parseFeeCents = (price: string | null | undefined): number => {
   return Number.isFinite(n) ? Math.round(n * 100) : 0;
 };
 
+/** Age on the class date (or today when no class date is known). */
+const ageOnDate = (dob?: string | null, classDate?: string | null): number | null => {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  if (isNaN(birth.getTime())) return null;
+  const ref = classDate ? new Date(classDate) : new Date();
+  if (isNaN(ref.getTime())) return null;
+  let age = ref.getFullYear() - birth.getFullYear();
+  const m = ref.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && ref.getDate() < birth.getDate())) age--;
+  return age;
+};
+
+const UNDER_21_CENTS = 39500;
+const ADULT_DEFAULT_CENTS = 42500;
+
+/**
+ * Price a manual booking the same way the public site does: riders under 21 on
+ * the class date never pay more than the under-21 fee ($395).
+ */
+const feeCentsForRider = (
+  price: string | null | undefined,
+  dob?: string | null,
+  classDate?: string | null,
+): number => {
+  const scheduleCents = parseFeeCents(price);
+  const age = ageOnDate(dob, classDate);
+  const isUnder21 = age !== null && age < 21;
+  if (scheduleCents > 0) return isUnder21 ? Math.min(scheduleCents, UNDER_21_CENTS) : scheduleCents;
+  return isUnder21 ? UNDER_21_CENTS : ADULT_DEFAULT_CENTS;
+};
+
+const centsToLabel = (cents: number) =>
+  cents % 100 === 0 ? `$${cents / 100}` : `$${(cents / 100).toFixed(2)}`;
+
+
 type Booking = Tables<"bookings">;
 type Schedule = Tables<"schedules">;
 
@@ -300,7 +336,8 @@ const AdminBookings = () => {
       guardian_relationship: form.guardian_relationship || null,
       guardian_phone: form.guardian_phone || null,
       guardian_email: form.guardian_email || null,
-      fee: sched.price,
+      fee: centsToLabel(feeCentsForRider(sched.price, form.date_of_birth || null, sched.date)),
+
       rider_track: isIntermediate ? form.rider_track : null,
       bike_info: isIrc
         ? [form.bike_year, form.bike_make, form.bike_model].map(v => v.trim()).filter(Boolean).join(" ")
@@ -315,7 +352,7 @@ const AdminBookings = () => {
 
     // Take real card payment via Square
     if (studentPaymentCollected && studentPaymentMethod === "charge_card") {
-      const cents = parseFeeCents(sched.price);
+      const cents = feeCentsForRider(sched.price, form.date_of_birth || null, sched.date);
       if (cents <= 0) {
         toast({ title: "Invalid fee", description: "This class has no price set.", variant: "destructive" });
         return;
@@ -323,7 +360,8 @@ const AdminBookings = () => {
       setChargePayload(basePayload);
       setChargeRegion(regionFor(sched.location));
       setChargeAmountCents(cents);
-      setChargeAmountLabel(sched.price);
+      setChargeAmountLabel(centsToLabel(cents));
+
       setDialogOpen(false);
       setChargeOpen(true);
       return;
@@ -879,6 +917,30 @@ const AdminBookings = () => {
                   </div>
                   <Switch checked={studentPaymentCollected} onCheckedChange={setStudentPaymentCollected} />
                 </div>
+                {(() => {
+                  const sched = schedules.find(s => s.id === form.schedule_id);
+                  if (!sched) return null;
+                  const age = ageOnDate(form.date_of_birth || null, sched.date);
+                  const cents = feeCentsForRider(sched.price, form.date_of_birth || null, sched.date);
+                  return (
+                    <div className="rounded-md bg-muted/40 px-3 py-2 text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Amount due</span>
+                        <span className="font-semibold text-foreground text-sm">{centsToLabel(cents)}</span>
+                      </div>
+                      <p className="text-muted-foreground">
+                        {age === null
+                          ? "Enter a date of birth to apply under-21 pricing automatically."
+                          : age < 18
+                            ? `Age ${age} on the class date — minor / under-21 rate applied.`
+                            : age < 21
+                              ? `Age ${age} on the class date — under-21 rate applied.`
+                              : `Age ${age} on the class date — adult rate.`}
+                      </p>
+                    </div>
+                  );
+                })()}
+
                 {studentPaymentCollected && (
                   <div>
                     <Label className="text-xs">Payment Method</Label>
