@@ -642,11 +642,32 @@ export default function ITTickets() {
         </div>
 
         {/* Right: ticket list */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 space-y-3">
+          {focusTicketId && (
+            <div className="flex items-center justify-between gap-3 flex-wrap rounded-md border border-accent/40 bg-accent/10 px-3 py-2">
+              <p className="text-sm text-accent">
+                Opened from a notification — showing just this ticket (including closed ones).
+              </p>
+              <Button size="sm" variant="outline" onClick={clearFocus}>Show all tickets</Button>
+            </div>
+          )}
           {loading ? (
             <div className="text-muted-foreground">Loading...</div>
           ) : tickets.length === 0 ? (
-            <Card><CardContent className="py-10 text-center text-muted-foreground">No tickets yet.</CardContent></Card>
+            <Card>
+              <CardContent className="py-10 text-center text-muted-foreground space-y-3">
+                {focusTicketId ? (
+                  <>
+                    <p>This ticket was deleted or you no longer have access to it.</p>
+                    <Button size="sm" variant="outline" onClick={clearFocus}>Show all tickets</Button>
+                  </>
+                ) : view === "closed" ? (
+                  <p>No closed tickets in the archive.</p>
+                ) : (
+                  <p>No active tickets. Check “Closed (Archive)” for finished ones.</p>
+                )}
+              </CardContent>
+            </Card>
           ) : (
             <div className="space-y-3">
               {tickets.map((t) => (
