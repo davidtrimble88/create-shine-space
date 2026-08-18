@@ -934,7 +934,7 @@ const AdminBookings = () => {
                 );
               })()}
 
-              </div>
+
 
 
 
