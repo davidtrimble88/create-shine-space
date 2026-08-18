@@ -1949,14 +1949,19 @@ const ClassRosters = () => {
                       </td>
                       <td className="p-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                          b.retest_type === "skill" ? "bg-primary/20 text-primary"
+                          b.result === "self_drop" ? "bg-muted text-muted-foreground"
+                            : b.retest_type === "skill" ? "bg-primary/20 text-primary"
                             : b.retest_type === "both" ? "bg-accent/30 text-foreground"
                             : "bg-amber-500/20 text-amber-500"
                         }`}>
-                          {b.retest_type === "skill" ? "Skill"
+                          {b.result === "self_drop" ? "Self drop"
+                            : b.retest_type === "skill" ? "Skill"
                             : b.retest_type === "both" ? "Skill & Knowledge"
                             : "Knowledge"}
                         </span>
+                        {b.result === "self_drop" && b.dropped_reason && (
+                          <div className="text-[10px] text-muted-foreground mt-1 max-w-[180px]">{b.dropped_reason}</div>
+                        )}
                       </td>
                       <td className={`p-3 text-center font-semibold ${urgent ? "text-destructive" : "text-foreground"}`}>
                         {daysLeft} {daysLeft === 1 ? "day" : "days"}
@@ -1964,13 +1969,15 @@ const ClassRosters = () => {
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex flex-col gap-1.5 items-stretch">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => { setScheduleRetestFor(b); setRetestTargetScheduleId(""); }}
-                          >
-                            <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Schedule Retest
-                          </Button>
+                          {b.result !== "self_drop" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => { setScheduleRetestFor(b); setRetestTargetScheduleId(""); }}
+                            >
+                              <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Schedule Retest
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
@@ -1984,6 +1991,16 @@ const ClassRosters = () => {
                           >
                             <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
                           </Button>
+                          {canManageEvaluations && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="border border-border/60"
+                              onClick={() => openFeeLink(b)}
+                            >
+                              <CreditCard className="w-3.5 h-3.5 mr-1.5" /> Send Fee Payment Link
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
@@ -1992,6 +2009,9 @@ const ClassRosters = () => {
                           >
                             <FileText className="w-3.5 h-3.5 mr-1.5" /> Fail Notes / Change Status
                           </Button>
+                        </div>
+                      </td>
+
                         </div>
                       </td>
                     </tr>
