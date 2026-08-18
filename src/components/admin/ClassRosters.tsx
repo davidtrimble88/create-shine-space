@@ -970,7 +970,7 @@ const ClassRosters = () => {
     const { error } = await (supabase as any).from("bookings").update(updates).eq("id", b.id);
     setSavingSelfDrop(false);
     if (error) {
-      toast.error("Failed to record the self drop");
+      toast.error("Failed to record the self drop: " + error.message);
       return;
     }
     setBookings(prev => prev.map(x => x.id === b.id ? { ...x, ...updates } as Booking : x));
