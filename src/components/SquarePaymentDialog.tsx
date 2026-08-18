@@ -178,9 +178,12 @@ export const SquarePaymentDialog = ({
       const sourceId = result.token;
 
       failureStage = "request";
-      const { data, error } = await supabase.functions.invoke("square-charge", {
-        body: { sourceId, region, amountCents, booking: bookingPayload, discount, attemptTracking },
-      });
+      const { data, error } = feeToken
+        ? await supabase.functions.invoke("square-charge-fee", { body: { token: feeToken, sourceId } })
+        : await supabase.functions.invoke("square-charge", {
+            body: { sourceId, region, amountCents, booking: bookingPayload, discount, attemptTracking },
+          });
+
 
       if (error) {
         // Surface the real decline reason from the function's JSON body
