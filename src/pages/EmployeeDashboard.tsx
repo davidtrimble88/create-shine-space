@@ -45,9 +45,9 @@ import Seo from "@/components/Seo";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "schedule", label: "Schedule", icon: CalendarDays, roles: ["owner", "admin", "manager"] },
+  { id: "schedule", label: "schedule management", icon: CalendarDays, roles: ["owner", "admin", "manager"] },
   { id: "full-schedule", label: "Full Schedule", icon: FileText, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "my-schedule", label: "Upcoming Classes", icon: Hand, roles: ["owner", "admin", "manager", "employee"] },
+  { id: "my-schedule", label: "upcoming availability", icon: Hand, roles: ["owner", "admin", "manager", "employee"] },
   { id: "employees", label: "Employees", icon: Users, roles: ["owner", "admin"] },
   { id: "bookings", label: "Bookings", icon: ClipboardList, roles: ["owner", "admin"] },
   { id: "referrals", label: "Referral Sources", icon: ListPlus, roles: ["owner", "admin"] },
