@@ -2013,19 +2013,21 @@ const ClassRosters = () => {
                               <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Schedule Retest
                             </Button>
                           )}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="border border-border/60"
-                            onClick={() => {
-                              setRescheduleFor(b);
-                              setRescheduleTargetScheduleId("");
-                              setRescheduleScope("full");
-                              setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
-                            }}
-                          >
-                            <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
-                          </Button>
+                          {b.result === "self_drop" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="border border-border/60"
+                              onClick={() => {
+                                setRescheduleFor(b);
+                                setRescheduleTargetScheduleId("");
+                                setRescheduleScope("full");
+                                setReschedulePortions({ c1: false, r1: false, c2: false, r2: false });
+                              }}
+                            >
+                              <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Reschedule
+                            </Button>
+                          )}
                           {(() => {
                             // Retests are never charged a fee — only self-drop reschedules can get a link
                             if (b.result !== "self_drop") return null;
