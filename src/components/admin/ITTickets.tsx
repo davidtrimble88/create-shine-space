@@ -61,6 +61,13 @@ export default function ITTickets() {
   const [filter, setFilter] = useState<"all" | "mine">(isAdmin ? "all" : "mine");
   const [view, setView] = useState<"active" | "closed">("active");
   const [sortBy, setSortBy] = useState<"alpha" | "newest">("alpha");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const focusTicketId = searchParams.get("ticket");
+  const clearFocus = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("ticket");
+    setSearchParams(next, { replace: true });
+  };
   const [funOpen, setFunOpen] = useState(false);
   const [funStep, setFunStep] = useState<string>("start");
   const [funTrail, setFunTrail] = useState(0);
