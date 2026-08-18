@@ -446,7 +446,9 @@ const ClassRosters = () => {
       ]);
       const merged = [...((retestRows ?? []) as Booking[]), ...((selfDropRows ?? []) as Booking[])];
       const seen = new Set<string>();
-      setPendingRetests(merged.filter(b => (seen.has(b.id) ? false : (seen.add(b.id), true))));
+      const deduped = merged.filter(b => (seen.has(b.id) ? false : (seen.add(b.id), true)));
+      setPendingRetests(deduped);
+      loadFeeStatuses(deduped.map(b => b.id));
 
 
       if (pendingId) {
