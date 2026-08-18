@@ -39,8 +39,8 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg border-accent/50 bg-background">
-        <DialogHeader className="text-center">
+      <DialogContent className="sm:max-w-lg border-accent/50 bg-background max-h-[90vh] flex flex-col overflow-hidden p-0">
+        <DialogHeader className="text-center px-6 pt-6">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-accent/20 text-accent">
             <AlertTriangle className="h-6 w-6" />
           </div>
@@ -52,7 +52,7 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <div className="space-y-4 overflow-y-auto px-6 py-2">
           <div className="rounded-xl border border-accent/40 bg-accent/10 p-4">
             <div className="flex items-start gap-3">
               <CalendarClock className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent" />
@@ -100,7 +100,7 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
           </div>
         </div>
 
-        <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary/30 p-4">
+        <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary/30 p-4 mx-6">
           <Checkbox
             id="ack-policy"
             checked={confirmed}
@@ -114,7 +114,7 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
           </label>
         </div>
 
-        <DialogFooter className="flex-col-reverse gap-2 sm:flex-col-reverse">
+        <DialogFooter className="flex-col-reverse gap-2 sm:flex-col-reverse px-6 pb-6">
           <Button
             onClick={handleContinue}
             disabled={!confirmed}
