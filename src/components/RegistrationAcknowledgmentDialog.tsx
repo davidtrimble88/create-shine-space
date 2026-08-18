@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CalendarClock, Clock, AlertTriangle, CircleArrowRight } from "lucide-react";
+import { CalendarClock, Clock, AlertTriangle, CircleArrowRight, ArrowDown } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -25,6 +25,26 @@ interface Props {
  */
 export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinue, onBack }: Props) => {
   const [confirmed, setConfirmed] = useState(false);
+  const [scrolledToEnd, setScrolledToEnd] = useState(false);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // If the content fits entirely, nothing to scroll — count as viewed.
+    if (el.scrollHeight - el.clientHeight <= 4) {
+      setScrolledToEnd(true);
+      return;
+    }
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 8) setScrolledToEnd(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    setScrolledToEnd(false);
+    const id = window.setTimeout(checkScroll, 80);
+    return () => window.clearTimeout(id);
+  }, [open, checkScroll]);
 
   const handleOpenChange = (next: boolean) => {
     if (!next) setConfirmed(false);
