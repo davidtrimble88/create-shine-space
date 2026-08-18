@@ -2011,9 +2011,6 @@ const ClassRosters = () => {
                           </Button>
                         </div>
                       </td>
-
-                        </div>
-                      </td>
                     </tr>
                   );
                 })}
