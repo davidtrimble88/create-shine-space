@@ -917,6 +917,30 @@ const AdminBookings = () => {
                   </div>
                   <Switch checked={studentPaymentCollected} onCheckedChange={setStudentPaymentCollected} />
                 </div>
+                {(() => {
+                  const sched = schedules.find(s => s.id === form.schedule_id);
+                  if (!sched) return null;
+                  const age = ageOnDate(form.date_of_birth || null, sched.date);
+                  const cents = feeCentsForRider(sched.price, form.date_of_birth || null, sched.date);
+                  return (
+                    <div className="rounded-md bg-muted/40 px-3 py-2 text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Amount due</span>
+                        <span className="font-semibold text-foreground text-sm">{centsToLabel(cents)}</span>
+                      </div>
+                      <p className="text-muted-foreground">
+                        {age === null
+                          ? "Enter a date of birth to apply under-21 pricing automatically."
+                          : age < 18
+                            ? `Age ${age} on the class date — minor / under-21 rate applied.`
+                            : age < 21
+                              ? `Age ${age} on the class date — under-21 rate applied.`
+                              : `Age ${age} on the class date — adult rate.`}
+                      </p>
+                    </div>
+                  );
+                })()}
+
                 {studentPaymentCollected && (
                   <div>
                     <Label className="text-xs">Payment Method</Label>
