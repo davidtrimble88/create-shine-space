@@ -776,6 +776,62 @@ export type Database = {
           },
         ]
       }
+      fee_payment_requests: {
+        Row: {
+          amount_cents: number
+          booking_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          fee_type: string
+          id: string
+          note: string | null
+          paid_at: string | null
+          provider_payment_id: string | null
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          booking_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          fee_type?: string
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          provider_payment_id?: string | null
+          status?: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          booking_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          fee_type?: string
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          provider_payment_id?: string | null
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_payment_requests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instructor_assignments: {
         Row: {
           assigned_by: string | null
