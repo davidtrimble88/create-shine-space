@@ -352,7 +352,7 @@ const AdminBookings = () => {
 
     // Take real card payment via Square
     if (studentPaymentCollected && studentPaymentMethod === "charge_card") {
-      const cents = parseFeeCents(sched.price);
+      const cents = feeCentsForRider(sched.price, form.date_of_birth || null, sched.date);
       if (cents <= 0) {
         toast({ title: "Invalid fee", description: "This class has no price set.", variant: "destructive" });
         return;
@@ -360,7 +360,8 @@ const AdminBookings = () => {
       setChargePayload(basePayload);
       setChargeRegion(regionFor(sched.location));
       setChargeAmountCents(cents);
-      setChargeAmountLabel(sched.price);
+      setChargeAmountLabel(centsToLabel(cents));
+
       setDialogOpen(false);
       setChargeOpen(true);
       return;
