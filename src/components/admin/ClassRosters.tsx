@@ -211,6 +211,19 @@ const ClassRosters = () => {
   const [dropCanReschedule, setDropCanReschedule] = useState<"yes" | "no" | null>(null);
   const [savingDrop, setSavingDrop] = useState(false);
 
+  // Self-drop confirmation dialog state
+  const [selfDropFor, setSelfDropFor] = useState<Booking | null>(null);
+  const [selfDropNote, setSelfDropNote] = useState("");
+  const [savingSelfDrop, setSavingSelfDrop] = useState(false);
+
+  // Retest / reschedule fee payment link dialog state
+  const [feeLinkFor, setFeeLinkFor] = useState<Booking | null>(null);
+  const [feeAmount, setFeeAmount] = useState("");
+  const [feeType, setFeeType] = useState<"retest" | "reschedule" | "other">("retest");
+  const [feeNote, setFeeNote] = useState("");
+  const [sendingFeeLink, setSendingFeeLink] = useState(false);
+
+
   // Delete → archive dialog (any student)
   const [deleteFor, setDeleteFor] = useState<Booking | null>(null);
   const [deleteReason, setDeleteReason] = useState("");
