@@ -28,6 +28,42 @@ const parseFeeCents = (price: string | null | undefined): number => {
   return Number.isFinite(n) ? Math.round(n * 100) : 0;
 };
 
+/** Age on the class date (or today when no class date is known). */
+const ageOnDate = (dob?: string | null, classDate?: string | null): number | null => {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  if (isNaN(birth.getTime())) return null;
+  const ref = classDate ? new Date(classDate) : new Date();
+  if (isNaN(ref.getTime())) return null;
+  let age = ref.getFullYear() - birth.getFullYear();
+  const m = ref.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && ref.getDate() < birth.getDate())) age--;
+  return age;
+};
+
+const UNDER_21_CENTS = 39500;
+const ADULT_DEFAULT_CENTS = 42500;
+
+/**
+ * Price a manual booking the same way the public site does: riders under 21 on
+ * the class date never pay more than the under-21 fee ($395).
+ */
+const feeCentsForRider = (
+  price: string | null | undefined,
+  dob?: string | null,
+  classDate?: string | null,
+): number => {
+  const scheduleCents = parseFeeCents(price);
+  const age = ageOnDate(dob, classDate);
+  const isUnder21 = age !== null && age < 21;
+  if (scheduleCents > 0) return isUnder21 ? Math.min(scheduleCents, UNDER_21_CENTS) : scheduleCents;
+  return isUnder21 ? UNDER_21_CENTS : ADULT_DEFAULT_CENTS;
+};
+
+const centsToLabel = (cents: number) =>
+  cents % 100 === 0 ? `$${cents / 100}` : `$${(cents / 100).toFixed(2)}`;
+
+
 type Booking = Tables<"bookings">;
 type Schedule = Tables<"schedules">;
 
