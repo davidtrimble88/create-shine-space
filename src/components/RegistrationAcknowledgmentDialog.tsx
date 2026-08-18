@@ -100,7 +100,7 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
           </div>
         </div>
 
-        <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary/30 p-4">
+        <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary/30 p-4 mx-6">
           <Checkbox
             id="ack-policy"
             checked={confirmed}
@@ -114,7 +114,7 @@ export const RegistrationAcknowledgmentDialog = ({ open, onOpenChange, onContinu
           </label>
         </div>
 
-        <DialogFooter className="flex-col-reverse gap-2 sm:flex-col-reverse">
+        <DialogFooter className="flex-col-reverse gap-2 sm:flex-col-reverse px-6 pb-6">
           <Button
             onClick={handleContinue}
             disabled={!confirmed}
