@@ -902,6 +902,114 @@ const ClassRosters = () => {
       : `${name} dropped — recorded in past roster.`);
   };
 
+  // ===== Self drop: student withdraws themselves =====
+  const submitSelfDrop = async () => {
+    if (!selfDropFor) return;
+    setSavingSelfDrop(true);
+    const b = selfDropFor;
+    const sched = selectedSchedule;
+    const trimmed = selfDropNote.trim();
+    const stamp = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
+    const line = `Self drop ${stamp}${trimmed ? `: ${trimmed}` : ""}`;
+    const mergedComment = b.roster_comment ? `${b.roster_comment}\n${line}` : line;
+
+    const updates: Record<string, unknown> = {
+      result: "self_drop",
+      retest_type: null,
+      roster_comment: mergedComment,
+      dropped: true,
+      dropped_reason: trimmed ? `Self drop: ${trimmed}` : "Self drop",
+      dropped_at: new Date().toISOString(),
+      dropped_by: user?.id ?? null,
+      needs_reschedule: true,
+      reschedule_part: "full",
+      reschedule_reason: trimmed ? `Self drop: ${trimmed}` : "Self drop",
+      original_schedule_id: sched?.id ?? b.schedule_id,
+      original_schedule_date: sched?.date ?? b.schedule_date,
+      original_location_label: sched?.location_label ?? b.location_label,
+      original_course: sched?.course ?? b.course,
+    };
+
+    const { error } = await (supabase as any).from("bookings").update(updates).eq("id", b.id);
+    setSavingSelfDrop(false);
+    if (error) {
+      toast.error("Failed to record the self drop");
+      return;
+    }
+    setBookings(prev => prev.map(x => x.id === b.id ? { ...x, ...updates } as Booking : x));
+    setPendingRetests(prev => (prev.some(x => x.id === b.id) ? prev : [...prev, { ...b, ...updates } as Booking]));
+    setSelfDropFor(null);
+    setSelfDropNote("");
+    toast.success(`${b.first_name} ${b.last_name} self-dropped — moved to Pending Retest/Reschedule.`);
+  };
+
+  // ===== Retest / reschedule fee: email a manually-priced payment link =====
+  const openFeeLink = (b: Booking) => {
+    setFeeLinkFor(b);
+    setFeeAmount("");
+    setFeeType(b.result === "fail" ? "retest" : "reschedule");
+    setFeeNote("");
+  };
+
+  const sendFeeLink = async () => {
+    if (!feeLinkFor) return;
+    const dollars = Number(feeAmount.replace(/[^0-9.]/g, ""));
+    if (!isFinite(dollars) || dollars <= 0) {
+      toast.error("Enter the fee amount in dollars");
+      return;
+    }
+    const amountCents = Math.round(dollars * 100);
+    setSendingFeeLink(true);
+    try {
+      const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
+      const { error: insErr } = await (supabase as any).from("fee_payment_requests").insert({
+        booking_id: feeLinkFor.id,
+        token,
+        fee_type: feeType,
+        amount_cents: amountCents,
+        note: feeNote.trim() || null,
+        created_by: user?.id ?? null,
+      });
+      if (insErr) throw insErr;
+
+      const payLink = `${window.location.origin}/pay-fee?token=${token}`;
+      const amountLabel = (amountCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+      const feeLabel = feeType === "retest" ? "retest fee" : feeType === "reschedule" ? "rescheduling fee" : "course fee";
+      const guardianEmail = (feeLinkFor.guardian_email || "").trim();
+      const { error } = await supabase.functions.invoke("send-auto-email", {
+        body: {
+          trigger_event: "fee_payment_link",
+          recipientEmail: feeLinkFor.email,
+          location: feeLinkFor.location,
+          course: feeLinkFor.course,
+          additionalRecipients:
+            guardianEmail && guardianEmail.toLowerCase() !== feeLinkFor.email.toLowerCase() ? [guardianEmail] : [],
+          variables: {
+            firstName: feeLinkFor.first_name,
+            lastName: feeLinkFor.last_name,
+            course: courseLabels[feeLinkFor.course] || feeLinkFor.course,
+            locationLabel: feeLinkFor.location_label,
+            scheduleDate: feeLinkFor.schedule_date ? ` — ${feeLinkFor.schedule_date}` : "",
+            amount: amountLabel,
+            feeLabel,
+            note: feeNote.trim(),
+            payLink,
+            email: feeLinkFor.email,
+          },
+        },
+      });
+      if (error) throw error;
+      toast.success(`${amountLabel} payment link sent to ${feeLinkFor.email}`);
+      setFeeLinkFor(null);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not send the payment link");
+    } finally {
+      setSendingFeeLink(false);
+    }
+  };
+
+
+
 
   const handleUndropStudent = async (b: Booking) => {
     if (!confirm(`Restore ${b.first_name} ${b.last_name} to the active roster?`)) return;
