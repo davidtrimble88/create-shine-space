@@ -1789,7 +1789,7 @@ const ClassRosters = () => {
   };
 
 
-  const handleMarkDl389Created = async (booking: Booking, completed: boolean) => {
+  const handleMarkDl389Created = async (booking: Booking, completed: boolean, schedule?: Schedule) => {
     setSavingDl389(true);
     const updates: any = {
       dl389_completed: completed,
@@ -1805,7 +1805,7 @@ const ClassRosters = () => {
       toast.error("Failed to update DL389 status");
       return;
     }
-    if (completed) await sendDl389ReadyEmail(booking);
+    if (completed) await sendDl389ReadyEmail(booking, schedule);
     if (completed) {
       // Remove from list — student moves to Past Roster
       setDl389Students(prev => prev.filter(b => b.id !== booking.id));
