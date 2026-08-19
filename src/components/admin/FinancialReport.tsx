@@ -85,6 +85,7 @@ const FinancialReport = () => {
   const [to, setTo] = useState<Date | undefined>(new Date());
   const [rows, setRows] = useState<Row[]>([]);
   const [refunds, setRefunds] = useState<RefundRow[]>([]);
+  const [fees, setFees] = useState<FeeRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [backfilling, setBackfilling] = useState(false);
 
@@ -93,7 +94,7 @@ const FinancialReport = () => {
     setLoading(true);
     const start = ptStart(ptDay(from));
     const end = ptStart(shiftDay(ptDay(to), 1));
-    const [bRes, rRes] = await Promise.all([
+    const [bRes, rRes, fRes] = await Promise.all([
       supabase
         .from("bookings")
         .select("id, created_at, first_name, last_name, email, course, location_label, schedule_date, fee, payment_provider, payment_status, discount_amount_cents, discount_code, manually_added")
@@ -107,9 +108,17 @@ const FinancialReport = () => {
         .gte("created_at", start)
         .lt("created_at", end)
         .order("created_at", { ascending: true }),
+      supabase
+        .from("fee_payment_requests")
+        .select("id, amount_cents, fee_type, note, paid_at, bookings(first_name, last_name, email, location_label, course)")
+        .eq("status", "paid")
+        .gte("paid_at", start)
+        .lt("paid_at", end)
+        .order("paid_at", { ascending: true }),
     ]);
     setRows((bRes.data as unknown as Row[]) || []);
     setRefunds((rRes.data as unknown as RefundRow[]) || []);
+    setFees((fRes.data as unknown as FeeRow[]) || []);
     setLoading(false);
   }, [from, to]);
 
@@ -135,7 +144,8 @@ const FinancialReport = () => {
   const gross = rows.reduce((s, r) => s + parseFee(r.fee), 0);
   const discounts = rows.reduce((s, r) => s + (r.discount_amount_cents || 0), 0) / 100;
   const refundTotal = refunds.reduce((s, r) => s + r.amount_cents, 0) / 100;
-  const net = gross - refundTotal;
+  const feeTotal = fees.reduce((s, f) => s + f.amount_cents, 0) / 100;
+  const net = gross + feeTotal - refundTotal;
 
   const group = (key: (r: Row) => string) => {
     const m: Record<string, { total: number; count: number }> = {};
@@ -151,6 +161,35 @@ const FinancialReport = () => {
   const byLocation = group((r) => r.location_label);
   const byCourse = group((r) => r.course);
   const byMethod = group((r) => (r.payment_provider ? r.payment_provider : "unrecorded"));
+
+  const groupFees = (key: (f: FeeRow) => string) => {
+    const m: Record<string, { total: number; count: number }> = {};
+    fees.forEach((f) => {
+      const k = key(f) || "Unknown";
+      if (!m[k]) m[k] = { total: 0, count: 0 };
+      m[k].total += f.amount_cents / 100;
+      m[k].count += 1;
+    });
+    return Object.entries(m).sort((a, b) => b[1].total - a[1].total);
+  };
+
+  const feesByLocation = groupFees((f) => f.bookings?.location_label || "Unknown");
+  const feesByType = groupFees((f) => feeLabel(f.fee_type));
+
+  // Combined per-site: registrations + fees
+  const combinedBySite = (() => {
+    const m: Record<string, { reg: number; regCount: number; fee: number; feeCount: number }> = {};
+    byLocation.forEach(([k, v]) => {
+      m[k] = { reg: v.total, regCount: v.count, fee: 0, feeCount: 0 };
+    });
+    feesByLocation.forEach(([k, v]) => {
+      if (!m[k]) m[k] = { reg: 0, regCount: 0, fee: 0, feeCount: 0 };
+      m[k].fee += v.total;
+      m[k].feeCount += v.count;
+    });
+    return Object.entries(m).sort((a, b) => (b[1].reg + b[1].fee) - (a[1].reg + a[1].fee));
+  })();
+
   const byMonth = Object.entries(
     rows.reduce((m: Record<string, number>, r) => {
       const k = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit" }).format(new Date(r.created_at));
@@ -158,6 +197,7 @@ const FinancialReport = () => {
       return m;
     }, {})
   ).sort((a, b) => a[0].localeCompare(b[0]));
+
 
   const downloadCsv = () => {
     const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
