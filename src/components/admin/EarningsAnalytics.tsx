@@ -252,6 +252,32 @@ const EarningsAnalytics = () => {
     bySite[loc].count += 1;
   });
 
+  // Fees
+  const feeTotal = fees.reduce((s, f) => s + f.amount_cents, 0) / 100;
+  const groupFees = (key: (f: FeeRow) => string) => {
+    const m: Record<string, { total: number; count: number }> = {};
+    fees.forEach((f) => {
+      const k = key(f) || "Unknown";
+      if (!m[k]) m[k] = { total: 0, count: 0 };
+      m[k].total += f.amount_cents / 100;
+      m[k].count += 1;
+    });
+    return Object.entries(m).sort((a, b) => b[1].total - a[1].total);
+  };
+  const feesByLocation = groupFees((f) => f.bookings?.location_label || "Unknown");
+  const feesByType = groupFees((f) => feeLabel(f.fee_type));
+
+  const combinedBySite = (() => {
+    const m: Record<string, { reg: number; regCount: number; fee: number; feeCount: number }> = {};
+    Object.entries(bySite).forEach(([k, v]) => { m[k] = { reg: v.total, regCount: v.count, fee: 0, feeCount: 0 }; });
+    feesByLocation.forEach(([k, v]) => {
+      if (!m[k]) m[k] = { reg: 0, regCount: 0, fee: 0, feeCount: 0 };
+      m[k].fee += v.total;
+      m[k].feeCount += v.count;
+    });
+    return Object.entries(m).sort((a, b) => (b[1].reg + b[1].fee) - (a[1].reg + a[1].fee));
+  })();
+
   // Group by date
   const byDate: Record<string, { total: number; count: number }> = {};
   rows.forEach((r) => {
