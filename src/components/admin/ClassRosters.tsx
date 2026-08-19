@@ -334,13 +334,13 @@ const ClassRosters = () => {
       if (allIds.length > 0) {
         const { data: bookingRows } = await (supabase as any)
           .from("bookings")
-          .select("schedule_id, result, is_retest, dl389_completed, archived, dropped")
+          .select("schedule_id, result, is_retest, dl389_completed, archived, dropped, course, rider_track")
           .in("schedule_id", allIds);
         const counts: Record<string, number> = {};
         const retestCountsLocal: Record<string, number> = {};
         const evalCounts: Record<string, number> = {};
         const dl389Counts: Record<string, number> = {};
-        (bookingRows ?? []).forEach((b: { schedule_id: string | null; result: string | null; is_retest: boolean; dl389_completed: boolean; archived?: boolean | null; dropped?: boolean | null }) => {
+        (bookingRows ?? []).forEach((b: { schedule_id: string | null; result: string | null; is_retest: boolean; dl389_completed: boolean; archived?: boolean | null; dropped?: boolean | null; course?: string | null; rider_track?: string | null }) => {
           if (!b.schedule_id) return;
           // Archived (soft-deleted) and dropped students are not on the roster,
           // so they must not be counted as registered/pending either.
@@ -352,10 +352,12 @@ const ClassRosters = () => {
           }
           if (!b.result) {
             evalCounts[b.schedule_id] = (evalCounts[b.schedule_id] || 0) + 1;
-          } else if (b.result === "pass" && !b.dl389_completed) {
+          } else if (b.result === "pass" && !b.dl389_completed && issuesDl389(b)) {
+            // Only MTC (basic) and 1DPC students receive a DL389 certificate.
             dl389Counts[b.schedule_id] = (dl389Counts[b.schedule_id] || 0) + 1;
           }
         });
+
 
         setEnrollmentCounts(counts);
         setRetestCounts(retestCountsLocal);
