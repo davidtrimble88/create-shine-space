@@ -574,6 +574,11 @@ const EarningsAnalytics = () => {
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <MapPin className="w-8 h-8 text-blue-400" />
+          </div>
+          <p className="text-3xl font-bold text-foreground">${offlineTotal.toFixed(2)}</p>
+          <p className="text-sm text-muted-foreground mt-1">Recorded Offline ({offlineCount})</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Cash / in-office card entered by staff</p>
+        </div>
       </div>
 
       {/* Revenue Trend */}
@@ -618,11 +623,6 @@ const EarningsAnalytics = () => {
         )}
       </div>
 
-          <p className="text-3xl font-bold text-foreground">${offlineTotal.toFixed(2)}</p>
-          <p className="text-sm text-muted-foreground mt-1">Recorded Offline ({offlineCount})</p>
-          <p className="text-[11px] text-muted-foreground mt-1">Cash / in-office card entered by staff</p>
-        </div>
-      </div>
 
       {unverifiedRows.length > 0 && (
         <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-4 mb-8 text-sm">
