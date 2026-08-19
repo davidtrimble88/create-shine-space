@@ -381,9 +381,9 @@ const FinancialReport = () => {
         {loading && <span className="text-sm text-muted-foreground">Loading…</span>}
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
         {[
-          { label: "Registration Revenue", value: money(gross) },
+          { label: `Registration Money Received (${paidRows.length})`, value: money(gross) },
           { label: "Fees Collected", value: money(feeTotal) },
           { label: "Discounts Applied", value: money(discounts) },
           { label: "Refunds Issued", value: money(refundTotal) },
@@ -395,6 +395,32 @@ const FinancialReport = () => {
           </div>
         ))}
       </div>
+
+      <div className="grid sm:grid-cols-2 gap-4 mb-6">
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-lg font-bold text-foreground">{money(processedTotal)}</p>
+          <p className="text-xs text-muted-foreground mt-1">Processed on site (Square) · {processedCount} payment(s)</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-lg font-bold text-foreground">{money(offlineTotal)}</p>
+          <p className="text-xs text-muted-foreground mt-1">Recorded offline by staff (cash / office card) · {offlineCount} payment(s)</p>
+        </div>
+      </div>
+
+      {unverifiedRows.length > 0 && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 mb-6 print:hidden">
+          <p className="font-semibold text-foreground text-sm mb-2">
+            {unverifiedRows.length} booking(s) marked paid with no payment record — excluded from all totals
+          </p>
+          <ul className="text-xs text-muted-foreground space-y-1 max-h-40 overflow-y-auto">
+            {unverifiedRows.map((r) => (
+              <li key={r.id}>
+                {formatPSTDate(r.created_at)} — {r.first_name} {r.last_name} · {r.location_label} · list {money(parseFee(r.fee))}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="bg-card border border-border rounded-xl p-5 mb-6">
         <h3 className="font-semibold text-foreground mb-3">Registrations &amp; Fees by Site</h3>
