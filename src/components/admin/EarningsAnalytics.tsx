@@ -75,6 +75,8 @@ const feeLabel = (t: string) =>
   ({ late: "Late Arrival Fee", retest: "Retest Fee", reschedule: "Reschedule Fee", replacement: "Replacement Fee", other: "Other Fee" } as Record<string, string>)[t] ||
   t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+const siteRegion = (label: string | null | undefined) => (label || "").split(" — ")[0];
+
 const EarningsAnalytics = () => {
   const [rows, setRows] = useState<EarningRow[]>([]);
   const [fees, setFees] = useState<FeeRow[]>([]);
