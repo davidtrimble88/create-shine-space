@@ -174,6 +174,8 @@ const FinancialReport = () => {
   const unverifiedRows = rows.filter((r) => collected(r) <= 0);
   const processedTotal = rows.reduce((s, r) => s + (isProcessed(r) ? txByBooking[r.id] : 0), 0);
   const offlineTotal = rows.reduce((s, r) => s + offlineAmount(r), 0);
+  const processedCount = rows.filter((r) => isProcessed(r)).length;
+  const offlineCount = rows.filter((r) => offlineAmount(r) > 0).length;
   const gross = processedTotal + offlineTotal;
   const discounts = rows.reduce((s, r) => s + (r.discount_amount_cents || 0), 0) / 100;
   const refundTotal = refunds.reduce((s, r) => s + r.amount_cents, 0) / 100;
