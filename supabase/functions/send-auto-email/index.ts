@@ -149,6 +149,9 @@ Deno.serve(async (req) => {
         vars.mapLink = `https://maps.google.com/?q=${encodeURIComponent(venue.address.replace(/\n/g, ", "))}`;
       }
       if (!vars.locationMapLink) vars.locationMapLink = vars.mapLink;
+      if (venue.name === "Wrightwood" && !vars.siteMapImage) {
+        vars.siteMapImage = WRIGHTWOOD_SITEMAP_URL;
+      }
     }
 
     const subject = render(tpl.subject, vars);
