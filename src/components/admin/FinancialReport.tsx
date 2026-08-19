@@ -52,6 +52,31 @@ interface RefundRow {
   payment_transactions?: { student_name: string | null; student_email: string | null; description: string | null } | null;
 }
 
+interface FeeRow {
+  id: string;
+  amount_cents: number;
+  fee_type: string;
+  note: string | null;
+  paid_at: string | null;
+  bookings?: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    location_label: string | null;
+    course: string | null;
+  } | null;
+}
+
+const feeTypeLabels: Record<string, string> = {
+  late: "Late Arrival Fee",
+  retest: "Retest Fee",
+  reschedule: "Reschedule Fee",
+  no_show: "No-Show Fee",
+  other: "Other Fee",
+};
+const feeLabel = (t: string) => feeTypeLabels[t] || t.replace(/_/g, " ");
+
+
 const FinancialReport = () => {
   const [from, setFrom] = useState<Date | undefined>(() => {
     const d = new Date();
@@ -60,6 +85,7 @@ const FinancialReport = () => {
   const [to, setTo] = useState<Date | undefined>(new Date());
   const [rows, setRows] = useState<Row[]>([]);
   const [refunds, setRefunds] = useState<RefundRow[]>([]);
+  const [fees, setFees] = useState<FeeRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [backfilling, setBackfilling] = useState(false);
 
@@ -68,7 +94,7 @@ const FinancialReport = () => {
     setLoading(true);
     const start = ptStart(ptDay(from));
     const end = ptStart(shiftDay(ptDay(to), 1));
-    const [bRes, rRes] = await Promise.all([
+    const [bRes, rRes, fRes] = await Promise.all([
       supabase
         .from("bookings")
         .select("id, created_at, first_name, last_name, email, course, location_label, schedule_date, fee, payment_provider, payment_status, discount_amount_cents, discount_code, manually_added")
@@ -82,9 +108,17 @@ const FinancialReport = () => {
         .gte("created_at", start)
         .lt("created_at", end)
         .order("created_at", { ascending: true }),
+      supabase
+        .from("fee_payment_requests")
+        .select("id, amount_cents, fee_type, note, paid_at, bookings(first_name, last_name, email, location_label, course)")
+        .eq("status", "paid")
+        .gte("paid_at", start)
+        .lt("paid_at", end)
+        .order("paid_at", { ascending: true }),
     ]);
     setRows((bRes.data as unknown as Row[]) || []);
     setRefunds((rRes.data as unknown as RefundRow[]) || []);
+    setFees((fRes.data as unknown as FeeRow[]) || []);
     setLoading(false);
   }, [from, to]);
 
@@ -110,7 +144,8 @@ const FinancialReport = () => {
   const gross = rows.reduce((s, r) => s + parseFee(r.fee), 0);
   const discounts = rows.reduce((s, r) => s + (r.discount_amount_cents || 0), 0) / 100;
   const refundTotal = refunds.reduce((s, r) => s + r.amount_cents, 0) / 100;
-  const net = gross - refundTotal;
+  const feeTotal = fees.reduce((s, f) => s + f.amount_cents, 0) / 100;
+  const net = gross + feeTotal - refundTotal;
 
   const group = (key: (r: Row) => string) => {
     const m: Record<string, { total: number; count: number }> = {};
@@ -126,6 +161,35 @@ const FinancialReport = () => {
   const byLocation = group((r) => r.location_label);
   const byCourse = group((r) => r.course);
   const byMethod = group((r) => (r.payment_provider ? r.payment_provider : "unrecorded"));
+
+  const groupFees = (key: (f: FeeRow) => string) => {
+    const m: Record<string, { total: number; count: number }> = {};
+    fees.forEach((f) => {
+      const k = key(f) || "Unknown";
+      if (!m[k]) m[k] = { total: 0, count: 0 };
+      m[k].total += f.amount_cents / 100;
+      m[k].count += 1;
+    });
+    return Object.entries(m).sort((a, b) => b[1].total - a[1].total);
+  };
+
+  const feesByLocation = groupFees((f) => f.bookings?.location_label || "Unknown");
+  const feesByType = groupFees((f) => feeLabel(f.fee_type));
+
+  // Combined per-site: registrations + fees
+  const combinedBySite = (() => {
+    const m: Record<string, { reg: number; regCount: number; fee: number; feeCount: number }> = {};
+    byLocation.forEach(([k, v]) => {
+      m[k] = { reg: v.total, regCount: v.count, fee: 0, feeCount: 0 };
+    });
+    feesByLocation.forEach(([k, v]) => {
+      if (!m[k]) m[k] = { reg: 0, regCount: 0, fee: 0, feeCount: 0 };
+      m[k].fee += v.total;
+      m[k].feeCount += v.count;
+    });
+    return Object.entries(m).sort((a, b) => (b[1].reg + b[1].fee) - (a[1].reg + a[1].fee));
+  })();
+
   const byMonth = Object.entries(
     rows.reduce((m: Record<string, number>, r) => {
       const k = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit" }).format(new Date(r.created_at));
@@ -134,18 +198,42 @@ const FinancialReport = () => {
     }, {})
   ).sort((a, b) => a[0].localeCompare(b[0]));
 
+
   const downloadCsv = () => {
     const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const lines: string[] = [];
     lines.push(`Financial Report,${formatPSTDate(from)} to ${formatPSTDate(to)}`);
     lines.push("");
     lines.push("SUMMARY");
-    lines.push(`Gross revenue,${gross.toFixed(2)}`);
+    lines.push(`Gross registration revenue,${gross.toFixed(2)}`);
+    lines.push(`Fees collected,${feeTotal.toFixed(2)}`);
     lines.push(`Discounts applied,${discounts.toFixed(2)}`);
     lines.push(`Refunds,${refundTotal.toFixed(2)}`);
-    lines.push(`Net revenue,${net.toFixed(2)}`);
-    lines.push(`Paid transactions,${rows.length}`);
+    lines.push(`Net revenue (registrations + fees - refunds),${net.toFixed(2)}`);
+    lines.push(`Paid registrations,${rows.length}`);
+    lines.push(`Paid fees,${fees.length}`);
     lines.push("");
+    lines.push("BY SITE — REGISTRATIONS + FEES");
+    lines.push(["Site", "Registrations", "Registration Revenue", "Fees Paid", "Fee Revenue", "Combined"].join(","));
+    combinedBySite.forEach(([site, v]) => {
+      lines.push([site, v.regCount, v.reg.toFixed(2), v.feeCount, v.fee.toFixed(2), (v.reg + v.fee).toFixed(2)].map(esc).join(","));
+    });
+    lines.push(["ALL SITES", rows.length, gross.toFixed(2), fees.length, feeTotal.toFixed(2), (gross + feeTotal).toFixed(2)].map(esc).join(","));
+    lines.push("");
+    lines.push("FEES COLLECTED");
+    lines.push(["Date (PT)", "Student", "Site", "Fee Type", "Note", "Amount"].join(","));
+    fees.forEach((f) => {
+      lines.push([
+        formatPSTDate(f.paid_at),
+        `${f.bookings?.first_name ?? ""} ${f.bookings?.last_name ?? ""}`.trim(),
+        f.bookings?.location_label ?? "",
+        feeLabel(f.fee_type),
+        f.note ?? "",
+        (f.amount_cents / 100).toFixed(2),
+      ].map(esc).join(","));
+    });
+    lines.push("");
+
     lines.push("TRANSACTIONS");
     lines.push(["Date (PT)", "Student", "Email", "Course", "Location", "Class Date", "Payment Method", "Source", "Discount", "Amount"].join(","));
     rows.forEach((r) => {
@@ -248,9 +336,10 @@ const FinancialReport = () => {
         {loading && <span className="text-sm text-muted-foreground">Loading…</span>}
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {[
-          { label: "Gross Revenue", value: money(gross) },
+          { label: "Registration Revenue", value: money(gross) },
+          { label: "Fees Collected", value: money(feeTotal) },
           { label: "Discounts Applied", value: money(discounts) },
           { label: "Refunds Issued", value: money(refundTotal) },
           { label: "Net Revenue", value: money(net) },
@@ -262,11 +351,90 @@ const FinancialReport = () => {
         ))}
       </div>
 
+      <div className="bg-card border border-border rounded-xl p-5 mb-6">
+        <h3 className="font-semibold text-foreground mb-3">Registrations &amp; Fees by Site</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-muted-foreground border-b border-border">
+                <th className="py-2 pr-3">Site</th>
+                <th className="py-2 pr-3 text-right">Registrations</th>
+                <th className="py-2 pr-3 text-right">Registration $</th>
+                <th className="py-2 pr-3 text-right">Fees Paid</th>
+                <th className="py-2 pr-3 text-right">Fee $</th>
+                <th className="py-2 text-right">Combined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {combinedBySite.length === 0 && (
+                <tr><td colSpan={6} className="py-3 text-muted-foreground">No revenue in this period.</td></tr>
+              )}
+              {combinedBySite.map(([site, v]) => (
+                <tr key={site} className="border-b border-border/50">
+                  <td className="py-2 pr-3">{site}</td>
+                  <td className="py-2 pr-3 text-right text-muted-foreground">{v.regCount}</td>
+                  <td className="py-2 pr-3 text-right">{money(v.reg)}</td>
+                  <td className="py-2 pr-3 text-right text-muted-foreground">{v.feeCount}</td>
+                  <td className="py-2 pr-3 text-right">{money(v.fee)}</td>
+                  <td className="py-2 text-right font-semibold">{money(v.reg + v.fee)}</td>
+                </tr>
+              ))}
+              <tr className="border-t-2 border-border font-semibold">
+                <td className="py-2 pr-3">All Sites</td>
+                <td className="py-2 pr-3 text-right">{rows.length}</td>
+                <td className="py-2 pr-3 text-right">{money(gross)}</td>
+                <td className="py-2 pr-3 text-right">{fees.length}</td>
+                <td className="py-2 pr-3 text-right">{money(feeTotal)}</td>
+                <td className="py-2 text-right text-accent">{money(gross + feeTotal)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <Section title="Revenue by Location" data={byLocation} />
+        <Section title="Registration Revenue by Location" data={byLocation} />
+        <Section title="Fees by Location" data={feesByLocation} />
+        <Section title="Fees by Type" data={feesByType} />
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4 mb-6">
         <Section title="Revenue by Course" data={byCourse} />
         <Section title="Revenue by Payment Method" data={byMethod} />
       </div>
+
+      <div className="bg-card border border-border rounded-xl p-5 mb-6">
+        <h3 className="font-semibold text-foreground mb-3">Fees Collected ({fees.length})</h3>
+        {fees.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No fees paid in this period.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-muted-foreground border-b border-border">
+                  <th className="py-2 pr-3">Date</th>
+                  <th className="py-2 pr-3">Student</th>
+                  <th className="py-2 pr-3">Site</th>
+                  <th className="py-2 pr-3">Fee Type</th>
+                  <th className="py-2 text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fees.map((f) => (
+                  <tr key={f.id} className="border-b border-border/50">
+                    <td className="py-2 pr-3">{formatPSTDate(f.paid_at)}</td>
+                    <td className="py-2 pr-3">{`${f.bookings?.first_name ?? ""} ${f.bookings?.last_name ?? ""}`.trim() || "—"}</td>
+                    <td className="py-2 pr-3 text-muted-foreground">{f.bookings?.location_label ?? "—"}</td>
+                    <td className="py-2 pr-3 capitalize">{feeLabel(f.fee_type)}</td>
+                    <td className="py-2 text-right font-medium">{money(f.amount_cents / 100)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
 
       {byMonth.length > 0 && (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">
