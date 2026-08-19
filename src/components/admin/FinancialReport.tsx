@@ -336,9 +336,10 @@ const FinancialReport = () => {
         {loading && <span className="text-sm text-muted-foreground">Loading…</span>}
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {[
-          { label: "Gross Revenue", value: money(gross) },
+          { label: "Registration Revenue", value: money(gross) },
+          { label: "Fees Collected", value: money(feeTotal) },
           { label: "Discounts Applied", value: money(discounts) },
           { label: "Refunds Issued", value: money(refundTotal) },
           { label: "Net Revenue", value: money(net) },
@@ -350,11 +351,90 @@ const FinancialReport = () => {
         ))}
       </div>
 
+      <div className="bg-card border border-border rounded-xl p-5 mb-6">
+        <h3 className="font-semibold text-foreground mb-3">Registrations &amp; Fees by Site</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-muted-foreground border-b border-border">
+                <th className="py-2 pr-3">Site</th>
+                <th className="py-2 pr-3 text-right">Registrations</th>
+                <th className="py-2 pr-3 text-right">Registration $</th>
+                <th className="py-2 pr-3 text-right">Fees Paid</th>
+                <th className="py-2 pr-3 text-right">Fee $</th>
+                <th className="py-2 text-right">Combined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {combinedBySite.length === 0 && (
+                <tr><td colSpan={6} className="py-3 text-muted-foreground">No revenue in this period.</td></tr>
+              )}
+              {combinedBySite.map(([site, v]) => (
+                <tr key={site} className="border-b border-border/50">
+                  <td className="py-2 pr-3">{site}</td>
+                  <td className="py-2 pr-3 text-right text-muted-foreground">{v.regCount}</td>
+                  <td className="py-2 pr-3 text-right">{money(v.reg)}</td>
+                  <td className="py-2 pr-3 text-right text-muted-foreground">{v.feeCount}</td>
+                  <td className="py-2 pr-3 text-right">{money(v.fee)}</td>
+                  <td className="py-2 text-right font-semibold">{money(v.reg + v.fee)}</td>
+                </tr>
+              ))}
+              <tr className="border-t-2 border-border font-semibold">
+                <td className="py-2 pr-3">All Sites</td>
+                <td className="py-2 pr-3 text-right">{rows.length}</td>
+                <td className="py-2 pr-3 text-right">{money(gross)}</td>
+                <td className="py-2 pr-3 text-right">{fees.length}</td>
+                <td className="py-2 pr-3 text-right">{money(feeTotal)}</td>
+                <td className="py-2 text-right text-accent">{money(gross + feeTotal)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <Section title="Revenue by Location" data={byLocation} />
+        <Section title="Registration Revenue by Location" data={byLocation} />
+        <Section title="Fees by Location" data={feesByLocation} />
+        <Section title="Fees by Type" data={feesByType} />
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4 mb-6">
         <Section title="Revenue by Course" data={byCourse} />
         <Section title="Revenue by Payment Method" data={byMethod} />
       </div>
+
+      <div className="bg-card border border-border rounded-xl p-5 mb-6">
+        <h3 className="font-semibold text-foreground mb-3">Fees Collected ({fees.length})</h3>
+        {fees.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No fees paid in this period.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-muted-foreground border-b border-border">
+                  <th className="py-2 pr-3">Date</th>
+                  <th className="py-2 pr-3">Student</th>
+                  <th className="py-2 pr-3">Site</th>
+                  <th className="py-2 pr-3">Fee Type</th>
+                  <th className="py-2 text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fees.map((f) => (
+                  <tr key={f.id} className="border-b border-border/50">
+                    <td className="py-2 pr-3">{formatPSTDate(f.paid_at)}</td>
+                    <td className="py-2 pr-3">{`${f.bookings?.first_name ?? ""} ${f.bookings?.last_name ?? ""}`.trim() || "—"}</td>
+                    <td className="py-2 pr-3 text-muted-foreground">{f.bookings?.location_label ?? "—"}</td>
+                    <td className="py-2 pr-3 capitalize">{feeLabel(f.fee_type)}</td>
+                    <td className="py-2 text-right font-medium">{money(f.amount_cents / 100)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
 
       {byMonth.length > 0 && (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">
