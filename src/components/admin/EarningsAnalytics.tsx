@@ -272,15 +272,35 @@ const EarningsAnalytics = () => {
     run();
   }, [dateRange, customFrom, customTo]);
 
-  const totalEarnings = rows.reduce((s, r) => s + parseFee(r.fee), 0);
-  const transactionCount = rows.length;
+  // Money actually collected for a booking:
+  // - Processed through the site (Square) -> the real charge, net of refunds
+  // - Otherwise recorded offline by staff (cash / card taken in office) -> price after discount
+  // Skipped / unpaid / pending-payment bookings are never included (query filters payment_status = 'paid').
+  const OFFLINE_PROVIDERS = ["cash", "card", "other"];
+  const processedAmount = (r: EarningRow) => txByBooking[r.id] ?? 0;
+  const isProcessed = (r: EarningRow) => txByBooking[r.id] !== undefined;
+  const offlineAmount = (r: EarningRow) =>
+    isProcessed(r) || !OFFLINE_PROVIDERS.includes((r.payment_provider || "").toLowerCase())
+      ? 0
+      : Math.max(0, parseFee(r.fee) - (r.discount_amount_cents || 0) / 100);
+  const collected = (r: EarningRow) => (isProcessed(r) ? processedAmount(r) : offlineAmount(r));
+
+  const processedTotal = rows.reduce((s, r) => s + processedAmount(r), 0);
+  const offlineTotal = rows.reduce((s, r) => s + offlineAmount(r), 0);
+  const processedCount = rows.filter((r) => isProcessed(r)).length;
+  const offlineCount = rows.filter((r) => offlineAmount(r) > 0).length;
+  const unverifiedRows = rows.filter((r) => !isProcessed(r) && offlineAmount(r) === 0);
+  const totalEarnings = processedTotal + offlineTotal;
+  const transactionCount = processedCount + offlineCount;
 
   // Group by site
   const bySite: Record<string, { total: number; count: number }> = {};
   rows.forEach((r) => {
+    const amt = collected(r);
+    if (amt <= 0) return;
     const loc = r.location_label || "Unknown";
     if (!bySite[loc]) bySite[loc] = { total: 0, count: 0 };
-    bySite[loc].total += parseFee(r.fee);
+    bySite[loc].total += amt;
     bySite[loc].count += 1;
   });
 
