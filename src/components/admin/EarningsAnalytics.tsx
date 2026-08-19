@@ -8,6 +8,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+
 import { useAuth } from "@/contexts/AuthContext";
 import PaymentHistoryDialog from "./PaymentHistoryDialog";
 import FinancialReport from "./FinancialReport";
