@@ -20,6 +20,7 @@ const render = (tpl: string, vars: Record<string, string>) =>
   });
 
 const WRIGHTWOOD_SITEMAP_URL = "https://learntoridevc.com/__l5e/assets-v1/933f135b-19d6-4b37-bd22-6b8b1ed5ef8e/wrightwood-site-map.png";
+const VENTURA_SITEMAP_URL = "https://learntoridevc.com/__l5e/assets-v1/9e5d2098-aca5-444f-bff4-40d0621277a7/ventura-site-map.png";
 
 
 // Only these triggers may be invoked anonymously (e.g. from the public
@@ -151,6 +152,9 @@ Deno.serve(async (req) => {
       if (!vars.locationMapLink) vars.locationMapLink = vars.mapLink;
       if (venue.name === "Wrightwood" && !vars.siteMapImage) {
         vars.siteMapImage = WRIGHTWOOD_SITEMAP_URL;
+      }
+      if (venue.name === "Mesa School" && !vars.siteMapImage) {
+        vars.siteMapImage = VENTURA_SITEMAP_URL;
       }
     }
 
