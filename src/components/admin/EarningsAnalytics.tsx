@@ -474,23 +474,44 @@ const EarningsAnalytics = () => {
             <span className="text-xs text-muted-foreground font-medium bg-green-400/10 px-2 py-1 rounded-full">Total</span>
           </div>
           <p className="text-3xl font-bold text-foreground">${totalEarnings.toFixed(2)}</p>
-          <p className="text-sm text-muted-foreground mt-1">Total Earned</p>
+          <p className="text-sm text-muted-foreground mt-1">Money Received ({transactionCount})</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Net of refunds · excludes skipped &amp; unpaid</p>
         </div>
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <TrendingUp className="w-8 h-8 text-accent" />
           </div>
-          <p className="text-3xl font-bold text-foreground">{transactionCount}</p>
-          <p className="text-sm text-muted-foreground mt-1">Paid Transactions</p>
+          <p className="text-3xl font-bold text-foreground">${processedTotal.toFixed(2)}</p>
+          <p className="text-sm text-muted-foreground mt-1">Processed on Site ({processedCount})</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Card payments captured by Square</p>
         </div>
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <MapPin className="w-8 h-8 text-blue-400" />
           </div>
-          <p className="text-3xl font-bold text-foreground">{Object.keys(bySite).length}</p>
-          <p className="text-sm text-muted-foreground mt-1">Active Locations</p>
+          <p className="text-3xl font-bold text-foreground">${offlineTotal.toFixed(2)}</p>
+          <p className="text-sm text-muted-foreground mt-1">Recorded Offline ({offlineCount})</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Cash / in-office card entered by staff</p>
         </div>
       </div>
+
+      {unverifiedRows.length > 0 && (
+        <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-4 mb-8 text-sm">
+          <p className="font-medium text-foreground">
+            {unverifiedRows.length} booking{unverifiedRows.length !== 1 ? "s are" : " is"} marked paid with no payment record — excluded from totals
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            No Square transaction and no cash/card method recorded, so no money can be verified. Set the payment method on these bookings to include them.
+          </p>
+          <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground max-h-40 overflow-y-auto">
+            {unverifiedRows.map((r) => (
+              <li key={r.id}>
+                {format(new Date(r.created_at), "MMM d, yyyy")} · {[r.first_name, r.last_name].filter(Boolean).join(" ") || "—"} · {r.location_label} · list price ${parseFee(r.fee).toFixed(2)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Fees & Combined Revenue */}
       <h2 className="text-lg font-semibold text-foreground mb-3">Fees &amp; Combined Revenue</h2>
