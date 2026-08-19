@@ -386,12 +386,14 @@ const EarningsAnalytics = () => {
     const m: Record<string, { registrations: number; fees: number }> = {};
     const touch = (k: string) => (m[k] ||= { registrations: 0, fees: 0 });
     rows.forEach((r) => {
+      if (siteFilter !== "all" && siteRegion(r.location_label) !== siteFilter) return;
       const amt = collected(r);
       if (amt <= 0) return;
       touch(bucketKey(r.created_at)).registrations += amt;
     });
     fees.forEach((f) => {
       if (!f.paid_at) return;
+      if (siteFilter !== "all" && siteRegion(f.bookings?.location_label) !== siteFilter) return;
       touch(bucketKey(f.paid_at)).fees += f.amount_cents / 100;
     });
 
