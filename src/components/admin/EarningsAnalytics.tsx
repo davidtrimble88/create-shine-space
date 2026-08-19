@@ -44,13 +44,27 @@ interface OpsStats {
   resultsTotal: number;
 }
 
+interface FeeRow {
+  id: string;
+  amount_cents: number;
+  fee_type: string;
+  note: string | null;
+  paid_at: string | null;
+  bookings: { first_name: string; last_name: string; location_label: string | null } | null;
+}
+
 const parseFee = (fee: string | null) => {
   const val = parseFloat((fee || "0").replace(/[^0-9.]/g, ""));
   return isNaN(val) ? 0 : val;
 };
 
+const feeLabel = (t: string) =>
+  ({ late: "Late Arrival Fee", retest: "Retest Fee", reschedule: "Reschedule Fee", replacement: "Replacement Fee", other: "Other Fee" } as Record<string, string>)[t] ||
+  t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
 const EarningsAnalytics = () => {
   const [rows, setRows] = useState<EarningRow[]>([]);
+  const [fees, setFees] = useState<FeeRow[]>([]);
   const [ops, setOps] = useState<OpsStats>({
     cancellations: 0, fullCancellations: 0, partialCancellations: 0,
     drops: 0, dropsRescheduleable: 0, dropsFinal: 0,
