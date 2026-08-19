@@ -224,9 +224,9 @@ const FinancialReport = () => {
   })();
 
   const byMonth = Object.entries(
-    rows.reduce((m: Record<string, number>, r) => {
+    paidRows.reduce((m: Record<string, number>, r) => {
       const k = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit" }).format(new Date(r.created_at));
-      m[k] = (m[k] || 0) + parseFee(r.fee);
+      m[k] = (m[k] || 0) + collected(r);
       return m;
     }, {})
   ).sort((a, b) => a[0].localeCompare(b[0]));
