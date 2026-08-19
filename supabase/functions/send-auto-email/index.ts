@@ -363,6 +363,7 @@ Deno.serve(async (req) => {
           .from("email_bcc_settings")
           .select("*").eq("id", true).maybeSingle();
         if (
+          !suppressCopies &&
           bccCfg?.enabled &&
           bccCfg.bcc_email &&
           !(bccCfg.excluded_triggers ?? []).includes(trigger_event) &&
