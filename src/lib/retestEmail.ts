@@ -52,6 +52,14 @@ export const sendRetestScheduledEmail = async (payload: RetestEmailPayload) => {
     return { skipped: true as const, reason: "no_email" };
   }
 
+  // This email covers the on-range skill evaluation retest only. Knowledge-test-only
+  // retests are handled in the office and must never receive range arrival details.
+  const type = (payload.retestType || "").toLowerCase();
+  if (type !== "skill" && type !== "both") {
+    return { skipped: true as const, reason: "not_skill_retest" };
+  }
+
+
   const endIso = classEndDate(payload.scheduleDate, payload.scheduleDetail);
   const arrivalTime = retestArrivalTime(payload.scheduleDetail);
   const classEndTime = (() => {
