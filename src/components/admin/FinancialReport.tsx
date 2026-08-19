@@ -117,9 +117,26 @@ const FinancialReport = () => {
         .lt("paid_at", end)
         .order("paid_at", { ascending: true }),
     ]);
-    setRows((bRes.data as unknown as Row[]) || []);
+    const bookingRows = (bRes.data as unknown as Row[]) || [];
+    setRows(bookingRows);
     setRefunds((rRes.data as unknown as RefundRow[]) || []);
     setFees((fRes.data as unknown as FeeRow[]) || []);
+
+    // Real charges processed through the site, per booking (gross; refunds are reported separately)
+    const txMap: Record<string, number> = {};
+    const ids = bookingRows.map((r) => r.id);
+    for (let i = 0; i < ids.length; i += 100) {
+      const { data: txData } = await supabase
+        .from("payment_transactions")
+        .select("booking_id, amount_cents, status")
+        .in("booking_id", ids.slice(i, i + 100));
+      ((txData as Array<{ booking_id: string | null; amount_cents: number; status: string }>) || []).forEach((t) => {
+        if (!t.booking_id) return;
+        if (["failed", "canceled", "refunded"].includes(t.status)) return;
+        txMap[t.booking_id] = (txMap[t.booking_id] || 0) + t.amount_cents / 100;
+      });
+    }
+    setTxByBooking(txMap);
     setLoading(false);
   }, [from, to]);
 
