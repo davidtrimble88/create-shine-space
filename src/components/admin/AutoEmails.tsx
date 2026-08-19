@@ -65,6 +65,11 @@ const TRIGGER_OPTIONS: { value: string; label: string; vars: string[] }[] = [
       "scheduleDate", "classTime", "schedule", "mapLink", "contactPhone", "email",
     ],
   },
+  {
+    value: "dl389_ready",
+    label: "DL389 Ready for Pickup (MTC only)",
+    vars: ["firstName", "lastName", "course", "locationLabel", "scheduleDate", "pickupDeadline", "email"],
+  },
 ];
 
 const SAMPLE_VARS: Record<string, string> = {
@@ -82,6 +87,7 @@ const SAMPLE_VARS: Record<string, string> = {
   fee: "$425",
   email: "alex@example.com",
   groupName: "Group A",
+  pickupDeadline: "Tuesday, June 17, 2025",
 };
 
 

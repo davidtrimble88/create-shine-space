@@ -1729,6 +1729,45 @@ const ClassRosters = () => {
     fetchDl389();
   }, [view, canManageEvaluations]);
 
+  // First Tuesday strictly after the student's class date (pickup deadline).
+  const firstTuesdayAfter = (iso: string | null | undefined): string => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || "");
+    const base = m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date();
+    const offset = ((2 - base.getDay() + 7) % 7) || 7; // 2 = Tuesday, never same day
+    const d = new Date(base);
+    d.setDate(base.getDate() + offset);
+    return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  };
+
+  const sendDl389ReadyEmail = async (booking: Booking) => {
+    // MTC (basic) students only — no other course issues a DL389.
+    if (booking.course !== "basic") return;
+    const guardianEmail = ((booking as any).guardian_email || "").trim();
+    try {
+      await supabase.functions.invoke("send-auto-email", {
+        body: {
+          trigger_event: "dl389_ready",
+          recipientEmail: booking.email,
+          location: booking.location,
+          course: booking.course,
+          additionalRecipients:
+            guardianEmail && guardianEmail.toLowerCase() !== booking.email.toLowerCase() ? [guardianEmail] : [],
+          variables: {
+            firstName: booking.first_name,
+            lastName: booking.last_name,
+            course: courseLabels[booking.course] || booking.course,
+            locationLabel: booking.location_label,
+            scheduleDate: booking.schedule_date ? formatPSTDate(booking.schedule_date) : "",
+            pickupDeadline: firstTuesdayAfter(booking.schedule_date),
+            email: booking.email,
+          },
+        },
+      });
+    } catch (e) {
+      console.warn("DL389 ready email failed to dispatch:", e);
+    }
+  };
+
   const handleMarkDl389Created = async (booking: Booking, completed: boolean) => {
     setSavingDl389(true);
     const updates: any = {
@@ -1745,6 +1784,7 @@ const ClassRosters = () => {
       toast.error("Failed to update DL389 status");
       return;
     }
+    if (completed) await sendDl389ReadyEmail(booking);
     if (completed) {
       // Remove from list — student moves to Past Roster
       setDl389Students(prev => prev.filter(b => b.id !== booking.id));
@@ -1763,7 +1803,11 @@ const ClassRosters = () => {
         });
       }
       setDl389Detail(null);
-      toast.success("DL389 marked as created — student moved to Past Roster");
+      toast.success(
+        booking.course === "basic"
+          ? "DL389 marked as created — pickup email sent, student moved to Past Roster"
+          : "DL389 marked as created — student moved to Past Roster",
+      );
     } else {
       toast.success("DL389 status cleared");
     }
