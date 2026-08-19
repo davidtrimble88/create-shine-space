@@ -31,7 +31,7 @@ const PUBLIC_TRIGGERS = new Set<string>([
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
-    const { trigger_event, recipientEmail, variables = {}, location = null, groupName = null, course = null, additionalRecipients = [] } = await req.json();
+    const { trigger_event, recipientEmail, variables = {}, location = null, groupName = null, course = null, additionalRecipients = [], suppressCopies = false } = await req.json();
     if (!trigger_event || !recipientEmail) {
       return new Response(JSON.stringify({ error: "trigger_event and recipientEmail are required" }), {
         status: 400, headers: { ...cors, "Content-Type": "application/json" },
@@ -337,7 +337,7 @@ Deno.serve(async (req) => {
         });
       };
 
-      if (recipientEmail.toLowerCase() !== ccEmail.toLowerCase()) {
+      if (!suppressCopies && recipientEmail.toLowerCase() !== ccEmail.toLowerCase()) {
         const { error: ccErr } = await enqueueExtra(ccEmail, `[CC: ${recipientEmail}] ${subject}`, "cc");
         if (ccErr) console.warn("[send-auto-email] CC enqueue failed:", ccErr.message);
       }
@@ -363,6 +363,7 @@ Deno.serve(async (req) => {
           .from("email_bcc_settings")
           .select("*").eq("id", true).maybeSingle();
         if (
+          !suppressCopies &&
           bccCfg?.enabled &&
           bccCfg.bcc_email &&
           !(bccCfg.excluded_triggers ?? []).includes(trigger_event) &&
