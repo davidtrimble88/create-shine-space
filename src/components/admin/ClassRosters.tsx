@@ -73,10 +73,16 @@ interface FullAssignment {
   assignment_role: string;
 }
 
+// Only MTC (basic) and 1-Day Premier Course students are issued a DL389.
+// Everyone else goes straight to the past roster once evaluated.
+const issuesDl389 = (b: { course?: string | null; rider_track?: string | null }) =>
+  b?.course === "basic" || b?.rider_track === "1dpc";
+
 const daysBetween = (from: Date, to: Date) => {
   const ms = to.getTime() - from.getTime();
   return Math.ceil(ms / (1000 * 60 * 60 * 24));
 };
+
 
 const ClassRosters = () => {
   const { user, effectiveRole, userRole } = useAuth();
@@ -334,13 +340,13 @@ const ClassRosters = () => {
       if (allIds.length > 0) {
         const { data: bookingRows } = await (supabase as any)
           .from("bookings")
-          .select("schedule_id, result, is_retest, dl389_completed, archived, dropped")
+          .select("schedule_id, result, is_retest, dl389_completed, archived, dropped, course, rider_track")
           .in("schedule_id", allIds);
         const counts: Record<string, number> = {};
         const retestCountsLocal: Record<string, number> = {};
         const evalCounts: Record<string, number> = {};
         const dl389Counts: Record<string, number> = {};
-        (bookingRows ?? []).forEach((b: { schedule_id: string | null; result: string | null; is_retest: boolean; dl389_completed: boolean; archived?: boolean | null; dropped?: boolean | null }) => {
+        (bookingRows ?? []).forEach((b: { schedule_id: string | null; result: string | null; is_retest: boolean; dl389_completed: boolean; archived?: boolean | null; dropped?: boolean | null; course?: string | null; rider_track?: string | null }) => {
           if (!b.schedule_id) return;
           // Archived (soft-deleted) and dropped students are not on the roster,
           // so they must not be counted as registered/pending either.
@@ -352,10 +358,12 @@ const ClassRosters = () => {
           }
           if (!b.result) {
             evalCounts[b.schedule_id] = (evalCounts[b.schedule_id] || 0) + 1;
-          } else if (b.result === "pass" && !b.dl389_completed) {
+          } else if (b.result === "pass" && !b.dl389_completed && issuesDl389(b)) {
+            // Only MTC (basic) and 1DPC students receive a DL389 certificate.
             dl389Counts[b.schedule_id] = (dl389Counts[b.schedule_id] || 0) + 1;
           }
         });
+
 
         setEnrollmentCounts(counts);
         setRetestCounts(retestCountsLocal);
@@ -1710,8 +1718,10 @@ const ClassRosters = () => {
         .eq("dl389_completed", false)
         .lt("schedule_date", today)
         .order("schedule_date", { ascending: false });
-      const list = (data ?? []) as Booking[];
+      // Only MTC and 1DPC students receive a DL389; all other courses skip this queue.
+      const list = ((data ?? []) as Booking[]).filter(b => issuesDl389(b as any));
       setDl389Students(list);
+
       // Build a quick lookup for the student's class info
       const ids = Array.from(new Set(list.map(b => b.schedule_id).filter(Boolean))) as string[];
       if (ids.length > 0) {
@@ -1740,9 +1750,11 @@ const ClassRosters = () => {
   };
 
   const sendDl389ReadyEmail = async (booking: Booking, schedule?: Schedule) => {
-    // MTC (basic) students only — no other course issues a DL389.
-    if (booking.course !== "basic") return;
+    // MTC (basic) and 1DPC students only — no other course issues a DL389.
+    if (!issuesDl389(booking as any)) return;
+    const is1dpc = (booking as any).rider_track === "1dpc";
     const guardianEmail = ((booking as any).guardian_email || "").trim();
+
 
     // Compute the actual class completion date (last session) and the rider's age on that date.
     const completionDateISO =
@@ -1767,13 +1779,14 @@ const ClassRosters = () => {
           trigger_event: "dl389_ready",
           recipientEmail: booking.email,
           location: booking.location,
-          course: booking.course,
+          course: is1dpc ? "1dpc" : booking.course,
           additionalRecipients:
             guardianEmail && guardianEmail.toLowerCase() !== booking.email.toLowerCase() ? [guardianEmail] : [],
           variables: {
             firstName: booking.first_name,
             lastName: booking.last_name,
-            course: courseLabels[booking.course] || booking.course,
+            course: is1dpc ? "1-Day Premier Course" : (courseLabels[booking.course] || booking.course),
+
             locationLabel: booking.location_label,
             scheduleDate: booking.schedule_date ? formatPSTDate(booking.schedule_date) : "",
             pickupDeadline: firstTuesdayAfter(booking.schedule_date),
