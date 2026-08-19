@@ -52,18 +52,27 @@ export const sendRetestScheduledEmail = async (payload: RetestEmailPayload) => {
     return { skipped: true as const, reason: "no_email" };
   }
 
+  // This email covers the on-range skill evaluation retest only. Knowledge-test-only
+  // retests are handled in the office and must never receive range arrival details.
+  const type = (payload.retestType || "").toLowerCase();
+  if (type !== "skill" && type !== "both") {
+    return { skipped: true as const, reason: "not_skill_retest" };
+  }
+
+
   const endIso = classEndDate(payload.scheduleDate, payload.scheduleDetail);
-  const arrivalTime = retestArrivalTime(payload.scheduleDetail);
-  const classEndTime = (() => {
-    const end = lastEndMinutes(payload.scheduleDetail);
-    return end === null ? "" : minutesToLabel(end);
-  })();
+  // Arrival is always derived from the class this retest was scheduled into:
+  // 30 minutes before that class's own end time — never a fixed clock time.
+  const endMinutes = lastEndMinutes(payload.scheduleDetail);
+  const arrivalTime = endMinutes === null
+    ? "30 minutes before the class ends — call the office at (805) 827-0075 to confirm"
+    : retestArrivalTime(payload.scheduleDetail);
+  const classEndTime = endMinutes === null ? "the scheduled end of class" : minutesToLabel(endMinutes);
 
   const retestLabel =
-    payload.retestType === "skill" ? "Skill Retest"
-      : payload.retestType === "knowledge" ? "Knowledge Retest"
-        : payload.retestType === "both" ? "Skill & Knowledge Retest"
-          : "Retest";
+    type === "both"
+      ? "Skill Evaluation Retest (knowledge test also required)"
+      : "Skill Evaluation Retest";
 
   const { data, error } = await supabase.functions.invoke("send-auto-email", {
     body: {
