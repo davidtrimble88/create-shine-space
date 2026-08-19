@@ -117,6 +117,7 @@ const EarningsAnalytics = () => {
 
   const [viewMode, setViewMode] = useState<ViewMode>("all");
   const [dateRange, setDateRange] = useState<DateRange>("30days");
+  const [siteFilter, setSiteFilter] = useState<"all" | "High Desert" | "Ventura County">("all");
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
   const [customTo, setCustomTo] = useState<Date | undefined>();
 
