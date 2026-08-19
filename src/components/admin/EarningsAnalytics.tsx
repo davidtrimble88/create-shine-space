@@ -161,7 +161,7 @@ const EarningsAnalytics = () => {
       setLoading(true);
       const { from, to } = getDateBounds();
 
-      const [earningsRes, dropsRes, noShowRes, rescheduleRes, resultsRes, cancelRes] = await Promise.all([
+      const [earningsRes, dropsRes, noShowRes, rescheduleRes, resultsRes, cancelRes, feesRes] = await Promise.all([
         supabase
           .from("bookings")
           .select("fee, location_label, created_at, first_name, last_name")
@@ -199,9 +199,17 @@ const EarningsAnalytics = () => {
           .select("id, cancelled_part, cancelled_at")
           .gte("cancelled_at", from)
           .lt("cancelled_at", to),
+        supabase
+          .from("fee_payment_requests")
+          .select("id, amount_cents, fee_type, note, paid_at, bookings(first_name, last_name, location_label)")
+          .eq("status", "paid")
+          .gte("paid_at", from)
+          .lt("paid_at", to)
+          .order("paid_at", { ascending: false }),
       ]);
 
       setRows((earningsRes.data as EarningRow[]) || []);
+      setFees((feesRes.data as unknown as FeeRow[]) || []);
 
       const dropsArr = (dropsRes.data as Array<{ needs_reschedule: boolean }>) || [];
       const noShowArr = noShowRes.data || [];
