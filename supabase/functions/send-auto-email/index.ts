@@ -19,6 +19,9 @@ const render = (tpl: string, vars: Record<string, string>) =>
     return v === undefined || v === null ? "" : String(v);
   });
 
+const WRIGHTWOOD_SITEMAP_URL = "https://learntoridevc.com/__l5e/assets-v1/933f135b-19d6-4b37-bd22-6b8b1ed5ef8e/wrightwood-site-map.png";
+
+
 // Only these triggers may be invoked anonymously (e.g. from the public
 // registration/waiver flow). All others require an authenticated staff caller.
 const PUBLIC_TRIGGERS = new Set<string>([
@@ -146,6 +149,9 @@ Deno.serve(async (req) => {
         vars.mapLink = `https://maps.google.com/?q=${encodeURIComponent(venue.address.replace(/\n/g, ", "))}`;
       }
       if (!vars.locationMapLink) vars.locationMapLink = vars.mapLink;
+      if (venue.name === "Wrightwood" && !vars.siteMapImage) {
+        vars.siteMapImage = WRIGHTWOOD_SITEMAP_URL;
+      }
     }
 
     const subject = render(tpl.subject, vars);
