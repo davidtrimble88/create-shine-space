@@ -342,6 +342,90 @@ const EarningsAnalytics = () => {
   });
   const sortedDates = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
 
+  // ---- Trend over time (follows the selected date range) ----
+  const bounds = getDateBounds();
+  const rangeDays = Math.max(
+    1,
+    Math.round((new Date(bounds.to).getTime() - new Date(bounds.from).getTime()) / 86400000)
+  );
+  const granularity: "hour" | "day" | "month" =
+    dateRange === "today" || dateRange === "yesterday" || rangeDays <= 2
+      ? "hour"
+      : rangeDays <= 92
+      ? "day"
+      : "month";
+
+  const bucketKey = (iso: string) => {
+    const d = new Date(iso);
+    const day = ptDay(d);
+    if (granularity === "hour") {
+      const h = new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "2-digit", hour12: false }).format(d);
+      return `${day}T${h.padStart(2, "0")}`;
+    }
+    if (granularity === "month") return day.slice(0, 7);
+    return day;
+  };
+  const bucketLabel = (k: string) => {
+    if (granularity === "hour") {
+      const h = Number(k.split("T")[1]);
+      const ampm = h < 12 ? "AM" : "PM";
+      return `${h % 12 === 0 ? 12 : h % 12}${ampm}`;
+    }
+    if (granularity === "month") return format(new Date(`${k}-01T12:00:00`), "MMM yy");
+    return format(new Date(`${k}T12:00:00`), "MMM d");
+  };
+
+  const trendData = (() => {
+    const m: Record<string, { registrations: number; fees: number }> = {};
+    const touch = (k: string) => (m[k] ||= { registrations: 0, fees: 0 });
+    rows.forEach((r) => {
+      const amt = collected(r);
+      if (amt <= 0) return;
+      touch(bucketKey(r.created_at)).registrations += amt;
+    });
+    fees.forEach((f) => {
+      if (!f.paid_at) return;
+      touch(bucketKey(f.paid_at)).fees += f.amount_cents / 100;
+    });
+
+    // fill gaps so the line reads as a continuous trend
+    const keys = Object.keys(m);
+    if (keys.length) {
+      const start = keys.sort()[0];
+      if (granularity === "day") {
+        let cur = start;
+        const last = keys[keys.length - 1];
+        let guard = 0;
+        while (cur <= last && guard++ < 400) {
+          touch(cur);
+          cur = shiftDay(cur, 1);
+        }
+      } else if (granularity === "month") {
+        let [y, mo] = start.split("-").map(Number);
+        const last = keys[keys.length - 1];
+        let guard = 0;
+        let cur = start;
+        while (cur <= last && guard++ < 240) {
+          touch(cur);
+          mo += 1;
+          if (mo > 12) { mo = 1; y += 1; }
+          cur = `${y}-${String(mo).padStart(2, "0")}`;
+        }
+      }
+    }
+
+    return Object.entries(m)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([k, v]) => ({
+        key: k,
+        label: bucketLabel(k),
+        registrations: Number(v.registrations.toFixed(2)),
+        fees: Number(v.fees.toFixed(2)),
+        total: Number((v.registrations + v.fees).toFixed(2)),
+      }));
+  })();
+
+
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
     { value: "all-time", label: "All Time" },
