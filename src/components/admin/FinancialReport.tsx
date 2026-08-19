@@ -270,9 +270,9 @@ const FinancialReport = () => {
     });
     lines.push("");
 
-    lines.push("TRANSACTIONS");
-    lines.push(["Date (PT)", "Student", "Email", "Course", "Location", "Class Date", "Payment Method", "Source", "Discount", "Amount"].join(","));
-    rows.forEach((r) => {
+    lines.push("TRANSACTIONS (money received)");
+    lines.push(["Date (PT)", "Student", "Email", "Course", "Location", "Class Date", "Payment Method", "Verified", "Source", "Discount", "Amount Received"].join(","));
+    paidRows.forEach((r) => {
       lines.push([
         formatPSTDate(r.created_at),
         `${r.first_name} ${r.last_name}`,
@@ -281,12 +281,21 @@ const FinancialReport = () => {
         r.location_label,
         r.schedule_date ?? "",
         r.payment_provider ?? "unrecorded",
+        isProcessed(r) ? "Square transaction" : "Staff recorded",
         r.manually_added ? "Office" : "Website",
         ((r.discount_amount_cents || 0) / 100).toFixed(2),
-        parseFee(r.fee).toFixed(2),
+        collected(r).toFixed(2),
       ].map(esc).join(","));
     });
     lines.push("");
+    if (unverifiedRows.length > 0) {
+      lines.push("MARKED PAID — NO PAYMENT RECORD (excluded from totals)");
+      lines.push(["Date (PT)", "Student", "Email", "Location", "List Price"].join(","));
+      unverifiedRows.forEach((r) => {
+        lines.push([formatPSTDate(r.created_at), `${r.first_name} ${r.last_name}`, r.email, r.location_label, parseFee(r.fee).toFixed(2)].map(esc).join(","));
+      });
+      lines.push("");
+    }
     lines.push("REFUNDS");
     lines.push(["Date (PT)", "Student", "Description", "Comment", "Amount"].join(","));
     refunds.forEach((r) => {
