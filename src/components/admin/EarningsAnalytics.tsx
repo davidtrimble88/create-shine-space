@@ -44,13 +44,27 @@ interface OpsStats {
   resultsTotal: number;
 }
 
+interface FeeRow {
+  id: string;
+  amount_cents: number;
+  fee_type: string;
+  note: string | null;
+  paid_at: string | null;
+  bookings: { first_name: string; last_name: string; location_label: string | null } | null;
+}
+
 const parseFee = (fee: string | null) => {
   const val = parseFloat((fee || "0").replace(/[^0-9.]/g, ""));
   return isNaN(val) ? 0 : val;
 };
 
+const feeLabel = (t: string) =>
+  ({ late: "Late Arrival Fee", retest: "Retest Fee", reschedule: "Reschedule Fee", replacement: "Replacement Fee", other: "Other Fee" } as Record<string, string>)[t] ||
+  t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
 const EarningsAnalytics = () => {
   const [rows, setRows] = useState<EarningRow[]>([]);
+  const [fees, setFees] = useState<FeeRow[]>([]);
   const [ops, setOps] = useState<OpsStats>({
     cancellations: 0, fullCancellations: 0, partialCancellations: 0,
     drops: 0, dropsRescheduleable: 0, dropsFinal: 0,
@@ -147,7 +161,7 @@ const EarningsAnalytics = () => {
       setLoading(true);
       const { from, to } = getDateBounds();
 
-      const [earningsRes, dropsRes, noShowRes, rescheduleRes, resultsRes, cancelRes] = await Promise.all([
+      const [earningsRes, dropsRes, noShowRes, rescheduleRes, resultsRes, cancelRes, feesRes] = await Promise.all([
         supabase
           .from("bookings")
           .select("fee, location_label, created_at, first_name, last_name")
@@ -185,9 +199,17 @@ const EarningsAnalytics = () => {
           .select("id, cancelled_part, cancelled_at")
           .gte("cancelled_at", from)
           .lt("cancelled_at", to),
+        supabase
+          .from("fee_payment_requests")
+          .select("id, amount_cents, fee_type, note, paid_at, bookings(first_name, last_name, location_label)")
+          .eq("status", "paid")
+          .gte("paid_at", from)
+          .lt("paid_at", to)
+          .order("paid_at", { ascending: false }),
       ]);
 
       setRows((earningsRes.data as EarningRow[]) || []);
+      setFees((feesRes.data as unknown as FeeRow[]) || []);
 
       const dropsArr = (dropsRes.data as Array<{ needs_reschedule: boolean }>) || [];
       const noShowArr = noShowRes.data || [];
@@ -229,6 +251,32 @@ const EarningsAnalytics = () => {
     bySite[loc].total += parseFee(r.fee);
     bySite[loc].count += 1;
   });
+
+  // Fees
+  const feeTotal = fees.reduce((s, f) => s + f.amount_cents, 0) / 100;
+  const groupFees = (key: (f: FeeRow) => string) => {
+    const m: Record<string, { total: number; count: number }> = {};
+    fees.forEach((f) => {
+      const k = key(f) || "Unknown";
+      if (!m[k]) m[k] = { total: 0, count: 0 };
+      m[k].total += f.amount_cents / 100;
+      m[k].count += 1;
+    });
+    return Object.entries(m).sort((a, b) => b[1].total - a[1].total);
+  };
+  const feesByLocation = groupFees((f) => f.bookings?.location_label || "Unknown");
+  const feesByType = groupFees((f) => feeLabel(f.fee_type));
+
+  const combinedBySite = (() => {
+    const m: Record<string, { reg: number; regCount: number; fee: number; feeCount: number }> = {};
+    Object.entries(bySite).forEach(([k, v]) => { m[k] = { reg: v.total, regCount: v.count, fee: 0, feeCount: 0 }; });
+    feesByLocation.forEach(([k, v]) => {
+      if (!m[k]) m[k] = { reg: 0, regCount: 0, fee: 0, feeCount: 0 };
+      m[k].fee += v.total;
+      m[k].feeCount += v.count;
+    });
+    return Object.entries(m).sort((a, b) => (b[1].reg + b[1].fee) - (a[1].reg + a[1].fee));
+  })();
 
   // Group by date
   const byDate: Record<string, { total: number; count: number }> = {};
@@ -389,6 +437,122 @@ const EarningsAnalytics = () => {
           <p className="text-sm text-muted-foreground mt-1">Active Locations</p>
         </div>
       </div>
+
+      {/* Fees & Combined Revenue */}
+      <h2 className="text-lg font-semibold text-foreground mb-3">Fees &amp; Combined Revenue</h2>
+      <div className="grid md:grid-cols-3 gap-6 mb-6">
+        <div className="bg-card border border-border rounded-xl p-6">
+          <p className="text-3xl font-bold text-foreground">${feeTotal.toFixed(2)}</p>
+          <p className="text-sm text-muted-foreground mt-1">Fees Collected ({fees.length})</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-6">
+          <p className="text-3xl font-bold text-foreground">${totalEarnings.toFixed(2)}</p>
+          <p className="text-sm text-muted-foreground mt-1">Registrations ({transactionCount})</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-6">
+          <p className="text-3xl font-bold text-foreground">${(totalEarnings + feeTotal).toFixed(2)}</p>
+          <p className="text-sm text-muted-foreground mt-1">Combined Revenue (all up)</p>
+        </div>
+      </div>
+
+      <div className="bg-card border border-border rounded-xl p-6 mb-6 overflow-x-auto">
+        <h3 className="font-semibold text-foreground mb-3">Registrations &amp; Fees by Site</h3>
+        <table className="w-full text-sm min-w-[560px]">
+          <thead>
+            <tr className="border-b border-border text-muted-foreground">
+              <th className="py-2 pr-3 text-left font-medium">Site</th>
+              <th className="py-2 pr-3 text-right font-medium">Regs</th>
+              <th className="py-2 pr-3 text-right font-medium">Registration $</th>
+              <th className="py-2 pr-3 text-right font-medium">Fees Paid</th>
+              <th className="py-2 pr-3 text-right font-medium">Fee $</th>
+              <th className="py-2 text-right font-medium">Combined</th>
+            </tr>
+          </thead>
+          <tbody>
+            {combinedBySite.length === 0 ? (
+              <tr><td colSpan={6} className="py-3 text-center text-muted-foreground">No data for this period</td></tr>
+            ) : (
+              combinedBySite.map(([site, v]) => (
+                <tr key={site} className="border-b border-border last:border-0">
+                  <td className="py-2 pr-3 text-foreground">{site}</td>
+                  <td className="py-2 pr-3 text-right text-foreground">{v.regCount}</td>
+                  <td className="py-2 pr-3 text-right text-foreground">${v.reg.toFixed(2)}</td>
+                  <td className="py-2 pr-3 text-right text-foreground">{v.feeCount}</td>
+                  <td className="py-2 pr-3 text-right text-foreground">${v.fee.toFixed(2)}</td>
+                  <td className="py-2 text-right font-medium text-foreground">${(v.reg + v.fee).toFixed(2)}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+          {combinedBySite.length > 0 && (
+            <tfoot>
+              <tr className="border-t border-border font-semibold text-foreground">
+                <td className="py-2 pr-3">All Sites</td>
+                <td className="py-2 pr-3 text-right">{transactionCount}</td>
+                <td className="py-2 pr-3 text-right">${totalEarnings.toFixed(2)}</td>
+                <td className="py-2 pr-3 text-right">{fees.length}</td>
+                <td className="py-2 pr-3 text-right">${feeTotal.toFixed(2)}</td>
+                <td className="py-2 text-right">${(totalEarnings + feeTotal).toFixed(2)}</td>
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6 mb-6">
+        <div className="bg-card border border-border rounded-xl p-6">
+          <h3 className="font-semibold text-foreground mb-3">Fees by Location</h3>
+          {feesByLocation.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No fees collected in this period</p>
+          ) : feesByLocation.map(([k, v]) => (
+            <div key={k} className="flex justify-between py-1.5 border-b border-border last:border-0 text-sm">
+              <span className="text-foreground">{k} <span className="text-muted-foreground">({v.count})</span></span>
+              <span className="font-medium text-foreground">${v.total.toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="bg-card border border-border rounded-xl p-6">
+          <h3 className="font-semibold text-foreground mb-3">Fees by Type</h3>
+          {feesByType.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No fees collected in this period</p>
+          ) : feesByType.map(([k, v]) => (
+            <div key={k} className="flex justify-between py-1.5 border-b border-border last:border-0 text-sm">
+              <span className="text-foreground">{k} <span className="text-muted-foreground">({v.count})</span></span>
+              <span className="font-medium text-foreground">${v.total.toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {fees.length > 0 && (
+        <div className="bg-card border border-border rounded-xl p-6 mb-8 overflow-x-auto">
+          <h3 className="font-semibold text-foreground mb-3">Fees Collected ({fees.length})</h3>
+          <table className="w-full text-sm min-w-[640px]">
+            <thead>
+              <tr className="border-b border-border text-muted-foreground">
+                <th className="py-2 pr-3 text-left font-medium">Date</th>
+                <th className="py-2 pr-3 text-left font-medium">Student</th>
+                <th className="py-2 pr-3 text-left font-medium">Site</th>
+                <th className="py-2 pr-3 text-left font-medium">Type</th>
+                <th className="py-2 pr-3 text-left font-medium">Note</th>
+                <th className="py-2 text-right font-medium">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {fees.map((f) => (
+                <tr key={f.id} className="border-b border-border last:border-0">
+                  <td className="py-2 pr-3 text-foreground">{f.paid_at ? format(new Date(f.paid_at), "MMM d, yyyy") : "—"}</td>
+                  <td className="py-2 pr-3 text-foreground">{f.bookings ? `${f.bookings.first_name} ${f.bookings.last_name}` : "—"}</td>
+                  <td className="py-2 pr-3 text-foreground">{f.bookings?.location_label || "—"}</td>
+                  <td className="py-2 pr-3 text-foreground">{feeLabel(f.fee_type)}</td>
+                  <td className="py-2 pr-3 text-muted-foreground">{f.note || "—"}</td>
+                  <td className="py-2 text-right font-medium text-foreground">${(f.amount_cents / 100).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Operations Stats */}
       <h2 className="text-lg font-semibold text-foreground mb-3">Operations</h2>
