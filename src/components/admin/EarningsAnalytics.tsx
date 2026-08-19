@@ -572,7 +572,50 @@ const EarningsAnalytics = () => {
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <MapPin className="w-8 h-8 text-blue-400" />
+      </div>
+
+      {/* Revenue Trend */}
+      <div className="bg-card border border-border rounded-xl p-6 mb-8">
+        <div className="flex items-center justify-between gap-2 flex-wrap mb-4">
+          <h3 className="font-semibold text-foreground">Revenue Trend</h3>
+          <span className="text-xs text-muted-foreground">
+            {dateRangeOptions.find((o) => o.value === dateRange)?.label} · by {granularity}
+          </span>
+        </div>
+        {trendData.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-10 text-center">No revenue in this range</p>
+        ) : (
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={trendData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={11} minTickGap={16} />
+                <YAxis
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={11}
+                  tickFormatter={(v) => `$${v}`}
+                  width={62}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "0.5rem",
+                    color: "hsl(var(--foreground))",
+                    fontSize: 12,
+                  }}
+                  formatter={(v: number, n: string) => [`$${Number(v).toFixed(2)}`, n]}
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Line type="monotone" dataKey="total" name="Combined" stroke="hsl(var(--accent))" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="registrations" name="Registrations" stroke="#22c55e" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="fees" name="Fees" stroke="#3b82f6" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
+        )}
+      </div>
+
           <p className="text-3xl font-bold text-foreground">${offlineTotal.toFixed(2)}</p>
           <p className="text-sm text-muted-foreground mt-1">Recorded Offline ({offlineCount})</p>
           <p className="text-[11px] text-muted-foreground mt-1">Cash / in-office card entered by staff</p>
