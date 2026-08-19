@@ -132,6 +132,57 @@ const ContactPage = () => {
             })}
           </div>
 
+          {/* Office / Mailing Address */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="max-w-4xl mx-auto mb-16"
+          >
+            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
+              <EditableText contentKey="contact.office.title.a" fallback="Office" />{" "}
+              <span className="text-accent">
+                <EditableText contentKey="contact.office.title.b" fallback="Location" />
+              </span>
+            </h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-card border border-border rounded-2xl p-8">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground mb-2">
+                      <EditableText contentKey="contact.office.address.label" fallback="Mailing & Office Address" />
+                    </h3>
+                    <p className="text-foreground text-sm leading-relaxed">
+                      <EditableText
+                        contentKey="contact.office.address.value"
+                        fallback="345 Willis Ave. #106\nCamarillo, CA 93010"
+                        multiline
+                      />
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-card border border-border rounded-2xl p-8">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground mb-2">
+                      <EditableText contentKey="contact.office.hours.label" fallback="Office Hours" />
+                    </h3>
+                    <p className="text-foreground text-sm leading-relaxed">
+                      <EditableText
+                        contentKey="contact.office.hours.value"
+                        fallback="Monday – Friday: 9:00 AM – 5:00 PM\nSaturday – Sunday: Closed"
+                        multiline
+                      />
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Locations */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
