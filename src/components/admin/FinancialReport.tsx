@@ -52,6 +52,31 @@ interface RefundRow {
   payment_transactions?: { student_name: string | null; student_email: string | null; description: string | null } | null;
 }
 
+interface FeeRow {
+  id: string;
+  amount_cents: number;
+  fee_type: string;
+  note: string | null;
+  paid_at: string | null;
+  bookings?: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    location_label: string | null;
+    course: string | null;
+  } | null;
+}
+
+const feeTypeLabels: Record<string, string> = {
+  late: "Late Arrival Fee",
+  retest: "Retest Fee",
+  reschedule: "Reschedule Fee",
+  no_show: "No-Show Fee",
+  other: "Other Fee",
+};
+const feeLabel = (t: string) => feeTypeLabels[t] || t.replace(/_/g, " ");
+
+
 const FinancialReport = () => {
   const [from, setFrom] = useState<Date | undefined>(() => {
     const d = new Date();
