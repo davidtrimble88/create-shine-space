@@ -1,0 +1,1 @@
+update public.auto_email_templates set enabled = true where id = 'd4e4c30e-c912-4f88-9f22-2029ac21d3e2';
