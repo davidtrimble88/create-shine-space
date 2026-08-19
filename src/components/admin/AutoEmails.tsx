@@ -87,6 +87,7 @@ const SAMPLE_VARS: Record<string, string> = {
   fee: "$425",
   email: "alex@example.com",
   groupName: "Group A",
+  pickupDeadline: "Tuesday, June 17, 2025",
 };
 
 
