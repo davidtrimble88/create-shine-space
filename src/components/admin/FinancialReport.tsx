@@ -454,7 +454,7 @@ const FinancialReport = () => {
               ))}
               <tr className="border-t-2 border-border font-semibold">
                 <td className="py-2 pr-3">All Sites</td>
-                <td className="py-2 pr-3 text-right">{rows.length}</td>
+                <td className="py-2 pr-3 text-right">{paidRows.length}</td>
                 <td className="py-2 pr-3 text-right">{money(gross)}</td>
                 <td className="py-2 pr-3 text-right">{fees.length}</td>
                 <td className="py-2 pr-3 text-right">{money(feeTotal)}</td>
