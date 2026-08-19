@@ -1963,7 +1963,7 @@ const ClassRosters = () => {
                       id={`dl389-${b.id}`}
                       checked={!!b.dl389_completed}
                       disabled={savingDl389}
-                      onCheckedChange={checked => handleMarkDl389Created(b, checked === true)}
+                      onCheckedChange={checked => handleMarkDl389Created(b, checked === true, sched)}
                       className="mt-0.5"
                     />
                     <label htmlFor={`dl389-${b.id}`} className="text-sm text-foreground cursor-pointer select-none">
