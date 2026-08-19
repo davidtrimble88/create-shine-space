@@ -220,10 +220,13 @@ Deno.serve(async (req) => {
         .map((p) => {
           if (isHtml) {
             const withBreaks = p.replace(/\n/g, "<br>");
+            // Only auto-link bare URLs in text. URLs inside attributes
+            // (href="...", src="...") must be left alone or images/links break.
             const linked = withBreaks.replace(
-              /(?<!href=["'])(https?:\/\/[^\s<"']+[^\s<.,;:!?)\]}'"])/g,
+              /(?<!["'=])(https?:\/\/[^\s<"']+[^\s<.,;:!?)\]}'"])/g,
               '<a href="$1" style="color:#c2410c;text-decoration:underline" target="_blank" rel="noopener">$1</a>'
             );
+
             return `<div style="margin:0 0 16px 0;line-height:1.6">${replaceEmailHighlights(linked)}</div>`;
           }
           const esc = p.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
