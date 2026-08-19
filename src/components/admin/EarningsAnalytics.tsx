@@ -175,7 +175,7 @@ const EarningsAnalytics = () => {
       const [earningsRes, dropsRes, noShowRes, rescheduleRes, resultsRes, cancelRes, feesRes] = await Promise.all([
         supabase
           .from("bookings")
-          .select("fee, location_label, created_at, first_name, last_name")
+          .select("id, fee, location_label, created_at, first_name, last_name, discount_amount_cents, payment_provider")
           .eq("payment_status", "paid")
           .gte("created_at", from)
           .lt("created_at", to)
