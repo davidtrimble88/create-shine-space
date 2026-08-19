@@ -73,10 +73,16 @@ interface FullAssignment {
   assignment_role: string;
 }
 
+// Only MTC (basic) and 1-Day Premier Course students are issued a DL389.
+// Everyone else goes straight to the past roster once evaluated.
+const issuesDl389 = (b: { course?: string | null; rider_track?: string | null }) =>
+  b?.course === "basic" || b?.rider_track === "1dpc";
+
 const daysBetween = (from: Date, to: Date) => {
   const ms = to.getTime() - from.getTime();
   return Math.ceil(ms / (1000 * 60 * 60 * 24));
 };
+
 
 const ClassRosters = () => {
   const { user, effectiveRole, userRole } = useAuth();
