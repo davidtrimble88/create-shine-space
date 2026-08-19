@@ -61,11 +61,13 @@ export const sendRetestScheduledEmail = async (payload: RetestEmailPayload) => {
 
 
   const endIso = classEndDate(payload.scheduleDate, payload.scheduleDetail);
-  const arrivalTime = retestArrivalTime(payload.scheduleDetail);
-  const classEndTime = (() => {
-    const end = lastEndMinutes(payload.scheduleDetail);
-    return end === null ? "" : minutesToLabel(end);
-  })();
+  // Arrival is always derived from the class this retest was scheduled into:
+  // 30 minutes before that class's own end time — never a fixed clock time.
+  const endMinutes = lastEndMinutes(payload.scheduleDetail);
+  const arrivalTime = endMinutes === null
+    ? "30 minutes before the class ends — call the office at (805) 827-0075 to confirm"
+    : retestArrivalTime(payload.scheduleDetail);
+  const classEndTime = endMinutes === null ? "the scheduled end of class" : minutesToLabel(endMinutes);
 
   const retestLabel =
     type === "both"
