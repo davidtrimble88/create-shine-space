@@ -333,9 +333,11 @@ const EarningsAnalytics = () => {
   // Group by date
   const byDate: Record<string, { total: number; count: number }> = {};
   rows.forEach((r) => {
+    const amt = collected(r);
+    if (amt <= 0) return;
     const d = r.created_at.split("T")[0];
     if (!byDate[d]) byDate[d] = { total: 0, count: 0 };
-    byDate[d].total += parseFee(r.fee);
+    byDate[d].total += amt;
     byDate[d].count += 1;
   });
   const sortedDates = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
