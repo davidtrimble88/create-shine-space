@@ -86,6 +86,7 @@ const FinancialReport = () => {
   const [rows, setRows] = useState<Row[]>([]);
   const [refunds, setRefunds] = useState<RefundRow[]>([]);
   const [fees, setFees] = useState<FeeRow[]>([]);
+  const [txByBooking, setTxByBooking] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [backfilling, setBackfilling] = useState(false);
 
