@@ -1750,9 +1750,11 @@ const ClassRosters = () => {
   };
 
   const sendDl389ReadyEmail = async (booking: Booking, schedule?: Schedule) => {
-    // MTC (basic) students only — no other course issues a DL389.
-    if (booking.course !== "basic") return;
+    // MTC (basic) and 1DPC students only — no other course issues a DL389.
+    if (!issuesDl389(booking as any)) return;
+    const is1dpc = (booking as any).rider_track === "1dpc";
     const guardianEmail = ((booking as any).guardian_email || "").trim();
+
 
     // Compute the actual class completion date (last session) and the rider's age on that date.
     const completionDateISO =
