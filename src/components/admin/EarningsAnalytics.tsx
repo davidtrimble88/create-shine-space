@@ -371,10 +371,11 @@ const EarningsAnalytics = () => {
     if (granularity === "hour") {
       const h = Number(k.split("T")[1]);
       const ampm = h < 12 ? "AM" : "PM";
-      return `${h % 12 === 0 ? 12 : h % 12}${ampm}`;
+      const day = format(new Date(`${k.slice(0, 10)}T12:00:00`), "EEE");
+      return `${h % 12 === 0 ? 12 : h % 12}${ampm}\n${day}`;
     }
     if (granularity === "month") return format(new Date(`${k}-01T12:00:00`), "MMM yy");
-    return format(new Date(`${k}T12:00:00`), "MMM d");
+    return `${format(new Date(`${k}T12:00:00`), "MMM d")}\n${format(new Date(`${k}T12:00:00`), "EEE")}`;
   };
 
   const trendData = (() => {
