@@ -1,0 +1,1 @@
+update public.auto_email_templates set enabled = true where trigger_event = 'dl389_ready';
