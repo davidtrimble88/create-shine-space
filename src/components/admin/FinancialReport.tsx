@@ -159,7 +159,22 @@ const FinancialReport = () => {
     load();
   };
 
-  const gross = rows.reduce((s, r) => s + parseFee(r.fee), 0);
+  // Only money actually received: Square charges captured on the site, or cash /
+  // in-office card recorded by staff. Skipped, unpaid and pending-payment bookings
+  // are excluded by the query; "paid" rows with no payment evidence are excluded here.
+  const OFFLINE_PROVIDERS = ["cash", "card", "other"];
+  const isProcessed = (r: Row) => txByBooking[r.id] !== undefined;
+  const offlineAmount = (r: Row) =>
+    isProcessed(r) || !OFFLINE_PROVIDERS.includes((r.payment_provider || "").toLowerCase())
+      ? 0
+      : Math.max(0, parseFee(r.fee) - (r.discount_amount_cents || 0) / 100);
+  const collected = (r: Row) => (isProcessed(r) ? txByBooking[r.id] : offlineAmount(r));
+
+  const paidRows = rows.filter((r) => collected(r) > 0);
+  const unverifiedRows = rows.filter((r) => collected(r) <= 0);
+  const processedTotal = rows.reduce((s, r) => s + (isProcessed(r) ? txByBooking[r.id] : 0), 0);
+  const offlineTotal = rows.reduce((s, r) => s + offlineAmount(r), 0);
+  const gross = processedTotal + offlineTotal;
   const discounts = rows.reduce((s, r) => s + (r.discount_amount_cents || 0), 0) / 100;
   const refundTotal = refunds.reduce((s, r) => s + r.amount_cents, 0) / 100;
   const feeTotal = fees.reduce((s, f) => s + f.amount_cents, 0) / 100;
@@ -167,10 +182,10 @@ const FinancialReport = () => {
 
   const group = (key: (r: Row) => string) => {
     const m: Record<string, { total: number; count: number }> = {};
-    rows.forEach((r) => {
+    paidRows.forEach((r) => {
       const k = key(r) || "Unknown";
       if (!m[k]) m[k] = { total: 0, count: 0 };
-      m[k].total += parseFee(r.fee);
+      m[k].total += collected(r);
       m[k].count += 1;
     });
     return Object.entries(m).sort((a, b) => b[1].total - a[1].total);
@@ -178,7 +193,7 @@ const FinancialReport = () => {
 
   const byLocation = group((r) => r.location_label);
   const byCourse = group((r) => r.course);
-  const byMethod = group((r) => (r.payment_provider ? r.payment_provider : "unrecorded"));
+  const byMethod = group((r) => (isProcessed(r) ? "square (site)" : `${r.payment_provider} (offline)`));
 
   const groupFees = (key: (f: FeeRow) => string) => {
     const m: Record<string, { total: number; count: number }> = {};
