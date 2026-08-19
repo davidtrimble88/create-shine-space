@@ -219,8 +219,29 @@ const EarningsAnalytics = () => {
           .order("paid_at", { ascending: false }),
       ]);
 
-      setRows((earningsRes.data as EarningRow[]) || []);
+      const bookingRows = (earningsRes.data as EarningRow[]) || [];
+      setRows(bookingRows);
       setFees((feesRes.data as unknown as FeeRow[]) || []);
+
+      // Actual money processed through the site, net of refunds, per booking
+      const txMap: Record<string, number> = {};
+      const ids = bookingRows.map((r) => r.id).filter(Boolean);
+      for (let i = 0; i < ids.length; i += 100) {
+        const { data: txData } = await supabase
+          .from("payment_transactions")
+          .select("booking_id, amount_cents, refunded_cents, status")
+          .in("booking_id", ids.slice(i, i + 100));
+        ((txData as TxRow[]) || []).forEach((t) => {
+          if (!t.booking_id) return;
+          if (t.status === "failed" || t.status === "canceled" || t.status === "refunded") {
+            txMap[t.booking_id] = txMap[t.booking_id] || 0;
+            if (t.status === "refunded") return;
+            return;
+          }
+          txMap[t.booking_id] = (txMap[t.booking_id] || 0) + (t.amount_cents - (t.refunded_cents || 0)) / 100;
+        });
+      }
+      setTxByBooking(txMap);
 
       const dropsArr = (dropsRes.data as Array<{ needs_reschedule: boolean }>) || [];
       const noShowArr = noShowRes.data || [];
