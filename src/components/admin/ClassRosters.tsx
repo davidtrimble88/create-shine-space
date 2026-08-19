@@ -1739,10 +1739,28 @@ const ClassRosters = () => {
     return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
   };
 
-  const sendDl389ReadyEmail = async (booking: Booking) => {
+  const sendDl389ReadyEmail = async (booking: Booking, schedule?: Schedule) => {
     // MTC (basic) students only — no other course issues a DL389.
     if (booking.course !== "basic") return;
     const guardianEmail = ((booking as any).guardian_email || "").trim();
+
+    // Compute the actual class completion date (last session) and the rider's age on that date.
+    const completionDateISO =
+      booking.schedule_date && schedule ? classEndDate(booking.schedule_date, schedule.schedule) : booking.schedule_date;
+    const completionDateFormatted = completionDateISO ? formatPSTDate(completionDateISO) : "";
+
+    let under21Note = "";
+    if (booking.date_of_birth && completionDateISO) {
+      const birth = new Date(booking.date_of_birth);
+      const end = new Date(completionDateISO);
+      let age = end.getFullYear() - birth.getFullYear();
+      const m = end.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && end.getDate() < birth.getDate())) age--;
+      if (age < 21) {
+        under21Note = "If you are under 21, you must keep your certificate for 6 months along with your permit.";
+      }
+    }
+
     try {
       await supabase.functions.invoke("send-auto-email", {
         body: {
@@ -1760,6 +1778,8 @@ const ClassRosters = () => {
             scheduleDate: booking.schedule_date ? formatPSTDate(booking.schedule_date) : "",
             pickupDeadline: firstTuesdayAfter(booking.schedule_date),
             email: booking.email,
+            classEndDate: completionDateFormatted,
+            under21Note,
           },
         },
       });
@@ -1767,6 +1787,7 @@ const ClassRosters = () => {
       console.warn("DL389 ready email failed to dispatch:", e);
     }
   };
+
 
   const handleMarkDl389Created = async (booking: Booking, completed: boolean) => {
     setSavingDl389(true);
