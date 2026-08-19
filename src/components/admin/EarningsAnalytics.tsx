@@ -75,6 +75,7 @@ const feeLabel = (t: string) =>
 const EarningsAnalytics = () => {
   const [rows, setRows] = useState<EarningRow[]>([]);
   const [fees, setFees] = useState<FeeRow[]>([]);
+  const [txByBooking, setTxByBooking] = useState<Record<string, number>>({});
   const [ops, setOps] = useState<OpsStats>({
     cancellations: 0, fullCancellations: 0, partialCancellations: 0,
     drops: 0, dropsRescheduleable: 0, dropsFinal: 0,
