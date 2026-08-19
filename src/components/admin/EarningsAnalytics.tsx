@@ -590,11 +590,23 @@ const EarningsAnalytics = () => {
 
       {/* Revenue Trend */}
       <div className="bg-card border border-border rounded-xl p-6 mb-8">
-        <div className="flex items-center justify-between gap-2 flex-wrap mb-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
           <h3 className="font-semibold text-foreground">Revenue Trend</h3>
-          <span className="text-xs text-muted-foreground">
-            {dateRangeOptions.find((o) => o.value === dateRange)?.label} · by {granularity}
-          </span>
+          <div className="flex items-center gap-3">
+            <Select value={siteFilter} onValueChange={(v) => setSiteFilter(v as any)}>
+              <SelectTrigger className="w-[180px] h-9 text-xs">
+                <SelectValue placeholder="All sites" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sites</SelectItem>
+                <SelectItem value="High Desert">High Desert (HD)</SelectItem>
+                <SelectItem value="Ventura County">Ventura County (VC)</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-xs text-muted-foreground">
+              {dateRangeOptions.find((o) => o.value === dateRange)?.label} · by {granularity}
+            </span>
+          </div>
         </div>
         {trendData.length === 0 ? (
           <p className="text-sm text-muted-foreground py-10 text-center">No revenue in this range</p>
