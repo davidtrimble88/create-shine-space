@@ -1718,8 +1718,10 @@ const ClassRosters = () => {
         .eq("dl389_completed", false)
         .lt("schedule_date", today)
         .order("schedule_date", { ascending: false });
-      const list = (data ?? []) as Booking[];
+      // Only MTC and 1DPC students receive a DL389; all other courses skip this queue.
+      const list = ((data ?? []) as Booking[]).filter(b => issuesDl389(b as any));
       setDl389Students(list);
+
       // Build a quick lookup for the student's class info
       const ids = Array.from(new Set(list.map(b => b.schedule_id).filter(Boolean))) as string[];
       if (ids.length > 0) {
