@@ -1803,7 +1803,11 @@ const ClassRosters = () => {
         });
       }
       setDl389Detail(null);
-      toast.success("DL389 marked as created — student moved to Past Roster");
+      toast.success(
+        booking.course === "basic"
+          ? "DL389 marked as created — pickup email sent, student moved to Past Roster"
+          : "DL389 marked as created — student moved to Past Roster",
+      );
     } else {
       toast.success("DL389 status cleared");
     }
