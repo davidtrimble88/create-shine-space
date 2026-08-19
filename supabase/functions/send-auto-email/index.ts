@@ -19,7 +19,7 @@ const render = (tpl: string, vars: Record<string, string>) =>
     return v === undefined || v === null ? "" : String(v);
   });
 
-const WRIGHTWOOD_SITEMAP_URL = "https://www.learntoridevc.com/__l5e/assets-v1/933f135b-19d6-4b37-bd22-6b8b1ed5ef8e/wrightwood-site-map.png";
+const WRIGHTWOOD_SITEMAP_URL = "https://learntoridevc.com/__l5e/assets-v1/933f135b-19d6-4b37-bd22-6b8b1ed5ef8e/wrightwood-site-map.png";
 
 
 // Only these triggers may be invoked anonymously (e.g. from the public
