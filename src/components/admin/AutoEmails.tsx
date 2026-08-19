@@ -66,6 +66,14 @@ const TRIGGER_OPTIONS: { value: string; label: string; vars: string[] }[] = [
     ],
   },
   {
+    value: "retest_scheduled",
+    label: "Retest Scheduled (Student)",
+    vars: [
+      "firstName", "lastName", "course", "retestType", "locationLabel", "locationName",
+      "locationAddress", "mapLink", "retestDate", "arrivalTime", "classEndTime", "email",
+    ],
+  },
+  {
     value: "dl389_ready",
     label: "DL389 Ready for Pickup (MTC only)",
     vars: ["firstName", "lastName", "course", "locationLabel", "scheduleDate", "pickupDeadline", "email"],
@@ -88,6 +96,10 @@ const SAMPLE_VARS: Record<string, string> = {
   email: "alex@example.com",
   groupName: "Group A",
   pickupDeadline: "Tuesday, June 17, 2025",
+  retestType: "Skill Retest",
+  retestDate: "Sunday, June 15, 2025",
+  arrivalTime: "2:30 PM",
+  classEndTime: "3:00 PM",
 };
 
 

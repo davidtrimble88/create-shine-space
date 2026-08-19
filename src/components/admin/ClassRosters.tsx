@@ -17,6 +17,7 @@ import { WaiverStatusEditor } from "@/components/admin/WaiverStatusEditor";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatPSTDate } from "@/lib/formatDate";
 import { isClassPast, formatClassDates, classEndDate } from "@/lib/classDates";
+import { sendRetestScheduledEmail } from "@/lib/retestEmail";
 
 type Schedule = Tables<"schedules">;
 type Booking = Tables<"bookings"> & {
@@ -1521,6 +1522,27 @@ const ClassRosters = () => {
       .from("bookings")
       .update({ retest_type: null })
       .eq("id", src.id);
+
+    // Retest confirmation: arrival time + location only (never the full class schedule).
+    const retestEmail = src.email && src.email !== "retest@placeholder.com" ? src.email : "";
+    if (retestEmail) {
+      const res = await sendRetestScheduledEmail({
+        email: retestEmail,
+        firstName: src.first_name,
+        lastName: src.last_name,
+        courseKey: target.course,
+        courseLabel: courseLabels[target.course] || target.course,
+        location: target.location,
+        locationLabel: target.location_label,
+        scheduleDate: target.date,
+        scheduleDetail: target.schedule,
+        retestType: src.retest_type ?? null,
+      });
+      if ("sent" in res) toast.success("Retest scheduled — confirmation email sent");
+      else toast.warning("Retest scheduled, but the confirmation email could not be sent");
+    } else {
+      toast.success("Retest scheduled");
+    }
 
     setSchedulingRetest(false);
     setPendingRetests(prev => prev.filter(b => b.id !== src.id));
