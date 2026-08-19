@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -74,6 +75,8 @@ const feeLabel = (t: string) =>
   ({ late: "Late Arrival Fee", retest: "Retest Fee", reschedule: "Reschedule Fee", replacement: "Replacement Fee", other: "Other Fee" } as Record<string, string>)[t] ||
   t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+const siteRegion = (label: string | null | undefined) => (label || "").split(" — ")[0];
+
 const EarningsAnalytics = () => {
   const [rows, setRows] = useState<EarningRow[]>([]);
   const [fees, setFees] = useState<FeeRow[]>([]);
@@ -116,6 +119,7 @@ const EarningsAnalytics = () => {
 
   const [viewMode, setViewMode] = useState<ViewMode>("all");
   const [dateRange, setDateRange] = useState<DateRange>("30days");
+  const [siteFilter, setSiteFilter] = useState<"all" | "High Desert" | "Ventura County">("all");
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
   const [customTo, setCustomTo] = useState<Date | undefined>();
 
@@ -382,12 +386,14 @@ const EarningsAnalytics = () => {
     const m: Record<string, { registrations: number; fees: number }> = {};
     const touch = (k: string) => (m[k] ||= { registrations: 0, fees: 0 });
     rows.forEach((r) => {
+      if (siteFilter !== "all" && siteRegion(r.location_label) !== siteFilter) return;
       const amt = collected(r);
       if (amt <= 0) return;
       touch(bucketKey(r.created_at)).registrations += amt;
     });
     fees.forEach((f) => {
       if (!f.paid_at) return;
+      if (siteFilter !== "all" && siteRegion(f.bookings?.location_label) !== siteFilter) return;
       touch(bucketKey(f.paid_at)).fees += f.amount_cents / 100;
     });
 
@@ -584,11 +590,23 @@ const EarningsAnalytics = () => {
 
       {/* Revenue Trend */}
       <div className="bg-card border border-border rounded-xl p-6 mb-8">
-        <div className="flex items-center justify-between gap-2 flex-wrap mb-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
           <h3 className="font-semibold text-foreground">Revenue Trend</h3>
-          <span className="text-xs text-muted-foreground">
-            {dateRangeOptions.find((o) => o.value === dateRange)?.label} · by {granularity}
-          </span>
+          <div className="flex items-center gap-3">
+            <Select value={siteFilter} onValueChange={(v) => setSiteFilter(v as any)}>
+              <SelectTrigger className="w-[180px] h-9 text-xs">
+                <SelectValue placeholder="All sites" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sites</SelectItem>
+                <SelectItem value="High Desert">High Desert (HD)</SelectItem>
+                <SelectItem value="Ventura County">Ventura County (VC)</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-xs text-muted-foreground">
+              {dateRangeOptions.find((o) => o.value === dateRange)?.label} · by {granularity}
+            </span>
+          </div>
         </div>
         {trendData.length === 0 ? (
           <p className="text-sm text-muted-foreground py-10 text-center">No revenue in this range</p>
