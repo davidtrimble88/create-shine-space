@@ -337,7 +337,7 @@ Deno.serve(async (req) => {
         });
       };
 
-      if (recipientEmail.toLowerCase() !== ccEmail.toLowerCase()) {
+      if (!suppressCopies && recipientEmail.toLowerCase() !== ccEmail.toLowerCase()) {
         const { error: ccErr } = await enqueueExtra(ccEmail, `[CC: ${recipientEmail}] ${subject}`, "cc");
         if (ccErr) console.warn("[send-auto-email] CC enqueue failed:", ccErr.message);
       }
