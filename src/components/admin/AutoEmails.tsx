@@ -96,6 +96,10 @@ const SAMPLE_VARS: Record<string, string> = {
   email: "alex@example.com",
   groupName: "Group A",
   pickupDeadline: "Tuesday, June 17, 2025",
+  retestType: "Skill Retest",
+  retestDate: "Sunday, June 15, 2025",
+  arrivalTime: "2:30 PM",
+  classEndTime: "3:00 PM",
 };
 
 
