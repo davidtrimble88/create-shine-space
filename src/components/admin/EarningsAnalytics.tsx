@@ -23,11 +23,21 @@ type ViewMode = "all" | "by-site" | "by-date";
 type DateRange = "all-time" | "today" | "yesterday" | "7days" | "30days" | "this-month" | "this-year" | "last-year" | "custom";
 
 interface EarningRow {
+  id: string;
   fee: string | null;
   location_label: string;
   created_at: string;
   first_name?: string | null;
   last_name?: string | null;
+  discount_amount_cents?: number | null;
+  payment_provider?: string | null;
+}
+
+interface TxRow {
+  booking_id: string | null;
+  amount_cents: number;
+  refunded_cents: number;
+  status: string;
 }
 
 interface OpsStats {
