@@ -86,6 +86,7 @@ const FinancialReport = () => {
   const [rows, setRows] = useState<Row[]>([]);
   const [refunds, setRefunds] = useState<RefundRow[]>([]);
   const [fees, setFees] = useState<FeeRow[]>([]);
+  const [txByBooking, setTxByBooking] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [backfilling, setBackfilling] = useState(false);
 
@@ -116,9 +117,26 @@ const FinancialReport = () => {
         .lt("paid_at", end)
         .order("paid_at", { ascending: true }),
     ]);
-    setRows((bRes.data as unknown as Row[]) || []);
+    const bookingRows = (bRes.data as unknown as Row[]) || [];
+    setRows(bookingRows);
     setRefunds((rRes.data as unknown as RefundRow[]) || []);
     setFees((fRes.data as unknown as FeeRow[]) || []);
+
+    // Real charges processed through the site, per booking (gross; refunds are reported separately)
+    const txMap: Record<string, number> = {};
+    const ids = bookingRows.map((r) => r.id);
+    for (let i = 0; i < ids.length; i += 100) {
+      const { data: txData } = await supabase
+        .from("payment_transactions")
+        .select("booking_id, amount_cents, status")
+        .in("booking_id", ids.slice(i, i + 100));
+      ((txData as Array<{ booking_id: string | null; amount_cents: number; status: string }>) || []).forEach((t) => {
+        if (!t.booking_id) return;
+        if (["failed", "canceled", "refunded"].includes(t.status)) return;
+        txMap[t.booking_id] = (txMap[t.booking_id] || 0) + t.amount_cents / 100;
+      });
+    }
+    setTxByBooking(txMap);
     setLoading(false);
   }, [from, to]);
 
@@ -141,7 +159,24 @@ const FinancialReport = () => {
     load();
   };
 
-  const gross = rows.reduce((s, r) => s + parseFee(r.fee), 0);
+  // Only money actually received: Square charges captured on the site, or cash /
+  // in-office card recorded by staff. Skipped, unpaid and pending-payment bookings
+  // are excluded by the query; "paid" rows with no payment evidence are excluded here.
+  const OFFLINE_PROVIDERS = ["cash", "card", "other"];
+  const isProcessed = (r: Row) => txByBooking[r.id] !== undefined;
+  const offlineAmount = (r: Row) =>
+    isProcessed(r) || !OFFLINE_PROVIDERS.includes((r.payment_provider || "").toLowerCase())
+      ? 0
+      : Math.max(0, parseFee(r.fee) - (r.discount_amount_cents || 0) / 100);
+  const collected = (r: Row) => (isProcessed(r) ? txByBooking[r.id] : offlineAmount(r));
+
+  const paidRows = rows.filter((r) => collected(r) > 0);
+  const unverifiedRows = rows.filter((r) => collected(r) <= 0);
+  const processedTotal = rows.reduce((s, r) => s + (isProcessed(r) ? txByBooking[r.id] : 0), 0);
+  const offlineTotal = rows.reduce((s, r) => s + offlineAmount(r), 0);
+  const processedCount = rows.filter((r) => isProcessed(r)).length;
+  const offlineCount = rows.filter((r) => offlineAmount(r) > 0).length;
+  const gross = processedTotal + offlineTotal;
   const discounts = rows.reduce((s, r) => s + (r.discount_amount_cents || 0), 0) / 100;
   const refundTotal = refunds.reduce((s, r) => s + r.amount_cents, 0) / 100;
   const feeTotal = fees.reduce((s, f) => s + f.amount_cents, 0) / 100;
@@ -149,10 +184,10 @@ const FinancialReport = () => {
 
   const group = (key: (r: Row) => string) => {
     const m: Record<string, { total: number; count: number }> = {};
-    rows.forEach((r) => {
+    paidRows.forEach((r) => {
       const k = key(r) || "Unknown";
       if (!m[k]) m[k] = { total: 0, count: 0 };
-      m[k].total += parseFee(r.fee);
+      m[k].total += collected(r);
       m[k].count += 1;
     });
     return Object.entries(m).sort((a, b) => b[1].total - a[1].total);
@@ -160,7 +195,7 @@ const FinancialReport = () => {
 
   const byLocation = group((r) => r.location_label);
   const byCourse = group((r) => r.course);
-  const byMethod = group((r) => (r.payment_provider ? r.payment_provider : "unrecorded"));
+  const byMethod = group((r) => (isProcessed(r) ? "square (site)" : `${r.payment_provider} (offline)`));
 
   const groupFees = (key: (f: FeeRow) => string) => {
     const m: Record<string, { total: number; count: number }> = {};
@@ -191,9 +226,9 @@ const FinancialReport = () => {
   })();
 
   const byMonth = Object.entries(
-    rows.reduce((m: Record<string, number>, r) => {
+    paidRows.reduce((m: Record<string, number>, r) => {
       const k = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit" }).format(new Date(r.created_at));
-      m[k] = (m[k] || 0) + parseFee(r.fee);
+      m[k] = (m[k] || 0) + collected(r);
       return m;
     }, {})
   ).sort((a, b) => a[0].localeCompare(b[0]));
@@ -205,12 +240,15 @@ const FinancialReport = () => {
     lines.push(`Financial Report,${formatPSTDate(from)} to ${formatPSTDate(to)}`);
     lines.push("");
     lines.push("SUMMARY");
-    lines.push(`Gross registration revenue,${gross.toFixed(2)}`);
+    lines.push(`Registration money received,${gross.toFixed(2)}`);
+    lines.push(`  Processed on site (Square),${processedTotal.toFixed(2)}`);
+    lines.push(`  Recorded offline (cash/office card),${offlineTotal.toFixed(2)}`);
     lines.push(`Fees collected,${feeTotal.toFixed(2)}`);
     lines.push(`Discounts applied,${discounts.toFixed(2)}`);
     lines.push(`Refunds,${refundTotal.toFixed(2)}`);
     lines.push(`Net revenue (registrations + fees - refunds),${net.toFixed(2)}`);
-    lines.push(`Paid registrations,${rows.length}`);
+    lines.push(`Paid registrations,${paidRows.length}`);
+    lines.push(`Marked paid with no payment record (excluded),${unverifiedRows.length}`);
     lines.push(`Paid fees,${fees.length}`);
     lines.push("");
     lines.push("BY SITE — REGISTRATIONS + FEES");
@@ -218,7 +256,7 @@ const FinancialReport = () => {
     combinedBySite.forEach(([site, v]) => {
       lines.push([site, v.regCount, v.reg.toFixed(2), v.feeCount, v.fee.toFixed(2), (v.reg + v.fee).toFixed(2)].map(esc).join(","));
     });
-    lines.push(["ALL SITES", rows.length, gross.toFixed(2), fees.length, feeTotal.toFixed(2), (gross + feeTotal).toFixed(2)].map(esc).join(","));
+    lines.push(["ALL SITES", paidRows.length, gross.toFixed(2), fees.length, feeTotal.toFixed(2), (gross + feeTotal).toFixed(2)].map(esc).join(","));
     lines.push("");
     lines.push("FEES COLLECTED");
     lines.push(["Date (PT)", "Student", "Site", "Fee Type", "Note", "Amount"].join(","));
@@ -234,9 +272,9 @@ const FinancialReport = () => {
     });
     lines.push("");
 
-    lines.push("TRANSACTIONS");
-    lines.push(["Date (PT)", "Student", "Email", "Course", "Location", "Class Date", "Payment Method", "Source", "Discount", "Amount"].join(","));
-    rows.forEach((r) => {
+    lines.push("TRANSACTIONS (money received)");
+    lines.push(["Date (PT)", "Student", "Email", "Course", "Location", "Class Date", "Payment Method", "Verified", "Source", "Discount", "Amount Received"].join(","));
+    paidRows.forEach((r) => {
       lines.push([
         formatPSTDate(r.created_at),
         `${r.first_name} ${r.last_name}`,
@@ -245,12 +283,21 @@ const FinancialReport = () => {
         r.location_label,
         r.schedule_date ?? "",
         r.payment_provider ?? "unrecorded",
+        isProcessed(r) ? "Square transaction" : "Staff recorded",
         r.manually_added ? "Office" : "Website",
         ((r.discount_amount_cents || 0) / 100).toFixed(2),
-        parseFee(r.fee).toFixed(2),
+        collected(r).toFixed(2),
       ].map(esc).join(","));
     });
     lines.push("");
+    if (unverifiedRows.length > 0) {
+      lines.push("MARKED PAID — NO PAYMENT RECORD (excluded from totals)");
+      lines.push(["Date (PT)", "Student", "Email", "Location", "List Price"].join(","));
+      unverifiedRows.forEach((r) => {
+        lines.push([formatPSTDate(r.created_at), `${r.first_name} ${r.last_name}`, r.email, r.location_label, parseFee(r.fee).toFixed(2)].map(esc).join(","));
+      });
+      lines.push("");
+    }
     lines.push("REFUNDS");
     lines.push(["Date (PT)", "Student", "Description", "Comment", "Amount"].join(","));
     refunds.forEach((r) => {
@@ -336,9 +383,9 @@ const FinancialReport = () => {
         {loading && <span className="text-sm text-muted-foreground">Loading…</span>}
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
         {[
-          { label: "Registration Revenue", value: money(gross) },
+          { label: `Registration Money Received (${paidRows.length})`, value: money(gross) },
           { label: "Fees Collected", value: money(feeTotal) },
           { label: "Discounts Applied", value: money(discounts) },
           { label: "Refunds Issued", value: money(refundTotal) },
@@ -350,6 +397,32 @@ const FinancialReport = () => {
           </div>
         ))}
       </div>
+
+      <div className="grid sm:grid-cols-2 gap-4 mb-6">
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-lg font-bold text-foreground">{money(processedTotal)}</p>
+          <p className="text-xs text-muted-foreground mt-1">Processed on site (Square) · {processedCount} payment(s)</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-lg font-bold text-foreground">{money(offlineTotal)}</p>
+          <p className="text-xs text-muted-foreground mt-1">Recorded offline by staff (cash / office card) · {offlineCount} payment(s)</p>
+        </div>
+      </div>
+
+      {unverifiedRows.length > 0 && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 mb-6 print:hidden">
+          <p className="font-semibold text-foreground text-sm mb-2">
+            {unverifiedRows.length} booking(s) marked paid with no payment record — excluded from all totals
+          </p>
+          <ul className="text-xs text-muted-foreground space-y-1 max-h-40 overflow-y-auto">
+            {unverifiedRows.map((r) => (
+              <li key={r.id}>
+                {formatPSTDate(r.created_at)} — {r.first_name} {r.last_name} · {r.location_label} · list {money(parseFee(r.fee))}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="bg-card border border-border rounded-xl p-5 mb-6">
         <h3 className="font-semibold text-foreground mb-3">Registrations &amp; Fees by Site</h3>
@@ -381,7 +454,7 @@ const FinancialReport = () => {
               ))}
               <tr className="border-t-2 border-border font-semibold">
                 <td className="py-2 pr-3">All Sites</td>
-                <td className="py-2 pr-3 text-right">{rows.length}</td>
+                <td className="py-2 pr-3 text-right">{paidRows.length}</td>
                 <td className="py-2 pr-3 text-right">{money(gross)}</td>
                 <td className="py-2 pr-3 text-right">{fees.length}</td>
                 <td className="py-2 pr-3 text-right">{money(feeTotal)}</td>

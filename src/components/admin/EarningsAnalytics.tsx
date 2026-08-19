@@ -23,11 +23,21 @@ type ViewMode = "all" | "by-site" | "by-date";
 type DateRange = "all-time" | "today" | "yesterday" | "7days" | "30days" | "this-month" | "this-year" | "last-year" | "custom";
 
 interface EarningRow {
+  id: string;
   fee: string | null;
   location_label: string;
   created_at: string;
   first_name?: string | null;
   last_name?: string | null;
+  discount_amount_cents?: number | null;
+  payment_provider?: string | null;
+}
+
+interface TxRow {
+  booking_id: string | null;
+  amount_cents: number;
+  refunded_cents: number;
+  status: string;
 }
 
 interface OpsStats {
@@ -65,6 +75,7 @@ const feeLabel = (t: string) =>
 const EarningsAnalytics = () => {
   const [rows, setRows] = useState<EarningRow[]>([]);
   const [fees, setFees] = useState<FeeRow[]>([]);
+  const [txByBooking, setTxByBooking] = useState<Record<string, number>>({});
   const [ops, setOps] = useState<OpsStats>({
     cancellations: 0, fullCancellations: 0, partialCancellations: 0,
     drops: 0, dropsRescheduleable: 0, dropsFinal: 0,
@@ -164,7 +175,7 @@ const EarningsAnalytics = () => {
       const [earningsRes, dropsRes, noShowRes, rescheduleRes, resultsRes, cancelRes, feesRes] = await Promise.all([
         supabase
           .from("bookings")
-          .select("fee, location_label, created_at, first_name, last_name")
+          .select("id, fee, location_label, created_at, first_name, last_name, discount_amount_cents, payment_provider")
           .eq("payment_status", "paid")
           .gte("created_at", from)
           .lt("created_at", to)
@@ -208,8 +219,29 @@ const EarningsAnalytics = () => {
           .order("paid_at", { ascending: false }),
       ]);
 
-      setRows((earningsRes.data as EarningRow[]) || []);
+      const bookingRows = (earningsRes.data as EarningRow[]) || [];
+      setRows(bookingRows);
       setFees((feesRes.data as unknown as FeeRow[]) || []);
+
+      // Actual money processed through the site, net of refunds, per booking
+      const txMap: Record<string, number> = {};
+      const ids = bookingRows.map((r) => r.id).filter(Boolean);
+      for (let i = 0; i < ids.length; i += 100) {
+        const { data: txData } = await supabase
+          .from("payment_transactions")
+          .select("booking_id, amount_cents, refunded_cents, status")
+          .in("booking_id", ids.slice(i, i + 100));
+        ((txData as TxRow[]) || []).forEach((t) => {
+          if (!t.booking_id) return;
+          if (t.status === "failed" || t.status === "canceled" || t.status === "refunded") {
+            txMap[t.booking_id] = txMap[t.booking_id] || 0;
+            if (t.status === "refunded") return;
+            return;
+          }
+          txMap[t.booking_id] = (txMap[t.booking_id] || 0) + (t.amount_cents - (t.refunded_cents || 0)) / 100;
+        });
+      }
+      setTxByBooking(txMap);
 
       const dropsArr = (dropsRes.data as Array<{ needs_reschedule: boolean }>) || [];
       const noShowArr = noShowRes.data || [];
@@ -240,15 +272,35 @@ const EarningsAnalytics = () => {
     run();
   }, [dateRange, customFrom, customTo]);
 
-  const totalEarnings = rows.reduce((s, r) => s + parseFee(r.fee), 0);
-  const transactionCount = rows.length;
+  // Money actually collected for a booking:
+  // - Processed through the site (Square) -> the real charge, net of refunds
+  // - Otherwise recorded offline by staff (cash / card taken in office) -> price after discount
+  // Skipped / unpaid / pending-payment bookings are never included (query filters payment_status = 'paid').
+  const OFFLINE_PROVIDERS = ["cash", "card", "other"];
+  const processedAmount = (r: EarningRow) => txByBooking[r.id] ?? 0;
+  const isProcessed = (r: EarningRow) => txByBooking[r.id] !== undefined;
+  const offlineAmount = (r: EarningRow) =>
+    isProcessed(r) || !OFFLINE_PROVIDERS.includes((r.payment_provider || "").toLowerCase())
+      ? 0
+      : Math.max(0, parseFee(r.fee) - (r.discount_amount_cents || 0) / 100);
+  const collected = (r: EarningRow) => (isProcessed(r) ? processedAmount(r) : offlineAmount(r));
+
+  const processedTotal = rows.reduce((s, r) => s + processedAmount(r), 0);
+  const offlineTotal = rows.reduce((s, r) => s + offlineAmount(r), 0);
+  const processedCount = rows.filter((r) => isProcessed(r)).length;
+  const offlineCount = rows.filter((r) => offlineAmount(r) > 0).length;
+  const unverifiedRows = rows.filter((r) => !isProcessed(r) && offlineAmount(r) === 0);
+  const totalEarnings = processedTotal + offlineTotal;
+  const transactionCount = processedCount + offlineCount;
 
   // Group by site
   const bySite: Record<string, { total: number; count: number }> = {};
   rows.forEach((r) => {
+    const amt = collected(r);
+    if (amt <= 0) return;
     const loc = r.location_label || "Unknown";
     if (!bySite[loc]) bySite[loc] = { total: 0, count: 0 };
-    bySite[loc].total += parseFee(r.fee);
+    bySite[loc].total += amt;
     bySite[loc].count += 1;
   });
 
@@ -281,9 +333,11 @@ const EarningsAnalytics = () => {
   // Group by date
   const byDate: Record<string, { total: number; count: number }> = {};
   rows.forEach((r) => {
+    const amt = collected(r);
+    if (amt <= 0) return;
     const d = r.created_at.split("T")[0];
     if (!byDate[d]) byDate[d] = { total: 0, count: 0 };
-    byDate[d].total += parseFee(r.fee);
+    byDate[d].total += amt;
     byDate[d].count += 1;
   });
   const sortedDates = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
@@ -420,23 +474,44 @@ const EarningsAnalytics = () => {
             <span className="text-xs text-muted-foreground font-medium bg-green-400/10 px-2 py-1 rounded-full">Total</span>
           </div>
           <p className="text-3xl font-bold text-foreground">${totalEarnings.toFixed(2)}</p>
-          <p className="text-sm text-muted-foreground mt-1">Total Earned</p>
+          <p className="text-sm text-muted-foreground mt-1">Money Received ({transactionCount})</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Net of refunds · excludes skipped &amp; unpaid</p>
         </div>
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <TrendingUp className="w-8 h-8 text-accent" />
           </div>
-          <p className="text-3xl font-bold text-foreground">{transactionCount}</p>
-          <p className="text-sm text-muted-foreground mt-1">Paid Transactions</p>
+          <p className="text-3xl font-bold text-foreground">${processedTotal.toFixed(2)}</p>
+          <p className="text-sm text-muted-foreground mt-1">Processed on Site ({processedCount})</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Card payments captured by Square</p>
         </div>
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <MapPin className="w-8 h-8 text-blue-400" />
           </div>
-          <p className="text-3xl font-bold text-foreground">{Object.keys(bySite).length}</p>
-          <p className="text-sm text-muted-foreground mt-1">Active Locations</p>
+          <p className="text-3xl font-bold text-foreground">${offlineTotal.toFixed(2)}</p>
+          <p className="text-sm text-muted-foreground mt-1">Recorded Offline ({offlineCount})</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Cash / in-office card entered by staff</p>
         </div>
       </div>
+
+      {unverifiedRows.length > 0 && (
+        <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-4 mb-8 text-sm">
+          <p className="font-medium text-foreground">
+            {unverifiedRows.length} booking{unverifiedRows.length !== 1 ? "s are" : " is"} marked paid with no payment record — excluded from totals
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            No Square transaction and no cash/card method recorded, so no money can be verified. Set the payment method on these bookings to include them.
+          </p>
+          <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground max-h-40 overflow-y-auto">
+            {unverifiedRows.map((r) => (
+              <li key={r.id}>
+                {format(new Date(r.created_at), "MMM d, yyyy")} · {[r.first_name, r.last_name].filter(Boolean).join(" ") || "—"} · {r.location_label} · list price ${parseFee(r.fee).toFixed(2)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Fees & Combined Revenue */}
       <h2 className="text-lg font-semibold text-foreground mb-3">Fees &amp; Combined Revenue</h2>
@@ -637,19 +712,21 @@ const EarningsAnalytics = () => {
                     <th className="text-left p-4 text-muted-foreground font-medium">Date</th>
                     <th className="text-left p-4 text-muted-foreground font-medium">Paid By</th>
                     <th className="text-left p-4 text-muted-foreground font-medium">Location</th>
+                    <th className="text-left p-4 text-muted-foreground font-medium">Source</th>
                     <th className="text-right p-4 text-muted-foreground font-medium">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.length === 0 ? (
-                    <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">No paid transactions in this period</td></tr>
+                  {rows.filter((r) => collected(r) > 0).length === 0 ? (
+                    <tr><td colSpan={5} className="p-4 text-center text-muted-foreground">No money received in this period</td></tr>
                   ) : (
-                    rows.map((r, i) => (
+                    rows.filter((r) => collected(r) > 0).map((r, i) => (
                       <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/50">
                         <td className="p-4 text-foreground">{format(new Date(r.created_at), "MMM d, yyyy h:mm a")}</td>
                         <td className="p-4 text-foreground">{[r.first_name, r.last_name].filter(Boolean).join(" ") || "—"}</td>
                         <td className="p-4 text-foreground flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-muted-foreground" />{r.location_label}</td>
-                        <td className="p-4 text-right font-medium text-foreground">${parseFee(r.fee).toFixed(2)}</td>
+                        <td className="p-4 text-muted-foreground text-xs">{isProcessed(r) ? "Square (site)" : `Offline · ${r.payment_provider}`}</td>
+                        <td className="p-4 text-right font-medium text-foreground">${collected(r).toFixed(2)}</td>
                       </tr>
                     ))
                   )}
