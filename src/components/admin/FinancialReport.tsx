@@ -205,12 +205,35 @@ const FinancialReport = () => {
     lines.push(`Financial Report,${formatPSTDate(from)} to ${formatPSTDate(to)}`);
     lines.push("");
     lines.push("SUMMARY");
-    lines.push(`Gross revenue,${gross.toFixed(2)}`);
+    lines.push(`Gross registration revenue,${gross.toFixed(2)}`);
+    lines.push(`Fees collected,${feeTotal.toFixed(2)}`);
     lines.push(`Discounts applied,${discounts.toFixed(2)}`);
     lines.push(`Refunds,${refundTotal.toFixed(2)}`);
-    lines.push(`Net revenue,${net.toFixed(2)}`);
-    lines.push(`Paid transactions,${rows.length}`);
+    lines.push(`Net revenue (registrations + fees - refunds),${net.toFixed(2)}`);
+    lines.push(`Paid registrations,${rows.length}`);
+    lines.push(`Paid fees,${fees.length}`);
     lines.push("");
+    lines.push("BY SITE — REGISTRATIONS + FEES");
+    lines.push(["Site", "Registrations", "Registration Revenue", "Fees Paid", "Fee Revenue", "Combined"].join(","));
+    combinedBySite.forEach(([site, v]) => {
+      lines.push([site, v.regCount, v.reg.toFixed(2), v.feeCount, v.fee.toFixed(2), (v.reg + v.fee).toFixed(2)].map(esc).join(","));
+    });
+    lines.push(["ALL SITES", rows.length, gross.toFixed(2), fees.length, feeTotal.toFixed(2), (gross + feeTotal).toFixed(2)].map(esc).join(","));
+    lines.push("");
+    lines.push("FEES COLLECTED");
+    lines.push(["Date (PT)", "Student", "Site", "Fee Type", "Note", "Amount"].join(","));
+    fees.forEach((f) => {
+      lines.push([
+        formatPSTDate(f.paid_at),
+        `${f.bookings?.first_name ?? ""} ${f.bookings?.last_name ?? ""}`.trim(),
+        f.bookings?.location_label ?? "",
+        feeLabel(f.fee_type),
+        f.note ?? "",
+        (f.amount_cents / 100).toFixed(2),
+      ].map(esc).join(","));
+    });
+    lines.push("");
+
     lines.push("TRANSACTIONS");
     lines.push(["Date (PT)", "Student", "Email", "Course", "Location", "Class Date", "Payment Method", "Source", "Discount", "Amount"].join(","));
     rows.forEach((r) => {
