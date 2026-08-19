@@ -68,10 +68,9 @@ export const sendRetestScheduledEmail = async (payload: RetestEmailPayload) => {
   })();
 
   const retestLabel =
-    payload.retestType === "skill" ? "Skill Retest"
-      : payload.retestType === "knowledge" ? "Knowledge Retest"
-        : payload.retestType === "both" ? "Skill & Knowledge Retest"
-          : "Retest";
+    type === "both"
+      ? "Skill Evaluation Retest (knowledge test also required)"
+      : "Skill Evaluation Retest";
 
   const { data, error } = await supabase.functions.invoke("send-auto-email", {
     body: {
