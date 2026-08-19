@@ -1779,13 +1779,14 @@ const ClassRosters = () => {
           trigger_event: "dl389_ready",
           recipientEmail: booking.email,
           location: booking.location,
-          course: booking.course,
+          course: is1dpc ? "1dpc" : booking.course,
           additionalRecipients:
             guardianEmail && guardianEmail.toLowerCase() !== booking.email.toLowerCase() ? [guardianEmail] : [],
           variables: {
             firstName: booking.first_name,
             lastName: booking.last_name,
-            course: courseLabels[booking.course] || booking.course,
+            course: is1dpc ? "1-Day Premier Course" : (courseLabels[booking.course] || booking.course),
+
             locationLabel: booking.location_label,
             scheduleDate: booking.schedule_date ? formatPSTDate(booking.schedule_date) : "",
             pickupDeadline: firstTuesdayAfter(booking.schedule_date),
