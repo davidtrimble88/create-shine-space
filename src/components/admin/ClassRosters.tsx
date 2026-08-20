@@ -1126,7 +1126,7 @@ const ClassRosters = () => {
             .office-tracking { margin-top: 16px; font-size: 11px; font-weight: 600; }
             .empty-rows td { height: 22px; }
             @media print { body { padding: 0; } @page { margin: 0.5in; size: landscape; } }
-            .emergency-page { page-break-before: always; break-before: page; margin-top: 16px; }
+            .emergency-page { margin-top: 14px; page-break-before: auto; break-before: auto; page-break-inside: avoid; }
           </style>
         </head>
         <body>
@@ -3335,10 +3335,6 @@ const ClassRosters = () => {
                 </tbody>
               </table>
 
-              <div className="office-tracking">
-                FOR OFFICE TRACKING: [ ] REMS &nbsp; [ ] DL389 LOG &nbsp; [ ] IRs &nbsp; [ ] C/O LOG
-              </div>
-
               {/* Emergency contact page — prints on its own page with the roster */}
               <div className="emergency-page">
                 <div className="title" style={{ fontSize: 16, fontWeight: 700, textAlign: "center" }}>
@@ -3389,6 +3385,10 @@ const ClassRosters = () => {
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="office-tracking">
+                FOR OFFICE TRACKING: [ ] REMS &nbsp; [ ] DL389 LOG &nbsp; [ ] IRs &nbsp; [ ] C/O LOG
               </div>
 
             </div>
