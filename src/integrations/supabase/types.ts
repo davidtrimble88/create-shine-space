@@ -2005,6 +2005,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_view_waiver: {
+        Args: { _schedule_id: string; _signer_email: string; _user_id: string }
+        Returns: boolean
+      }
       clear_must_change_password: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
