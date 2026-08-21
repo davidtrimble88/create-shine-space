@@ -96,13 +96,14 @@ const registrationSchema = z.object({
     if (!data.issuingState || data.issuingState.trim() === "") {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["issuingState"], message: "Issuing state is required" });
     }
-    if (!data.licenseExpiration || data.licenseExpiration.trim() === "") {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["licenseExpiration"], message: "License expiration date is required" });
-    }
   } else if (data.idType === "other") {
     if (!data.otherIdType || data.otherIdType.trim() === "") {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["otherIdType"], message: "Please specify the type of ID" });
     }
+  }
+
+  if (!data.licenseExpiration || data.licenseExpiration.trim() === "") {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["licenseExpiration"], message: "Expiration date is required" });
   }
 
   if (!data.dateOfBirth) return;
