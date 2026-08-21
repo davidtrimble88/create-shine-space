@@ -8,10 +8,11 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard, Banknote, Mail, Link2 } from "lucide-react";
+import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard, Banknote, Mail, Link2, Wallet } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminCancellations from "./AdminCancellations";
 import PendingCashPayments from "./PendingCashPayments";
+import DepositPayments from "./DepositPayments";
 import { PaymentDialog, type PaymentProvider } from "@/components/PaymentDialog";
 import type { SquareRegion } from "@/components/SquarePaymentDialog";
 import { formatPSTDate } from "@/lib/formatDate";
@@ -60,6 +61,14 @@ const feeCentsForRider = (
   return isUnder21 ? UNDER_21_CENTS : ADULT_DEFAULT_CENTS;
 };
 
+/** Balance on a deposit is due 7 days before the class start date. */
+export const depositDueDate = (classDate: string | null | undefined): string => {
+  if (!classDate) return new Date().toISOString().split("T")[0];
+  const d = new Date(`${classDate}T00:00:00`);
+  d.setDate(d.getDate() - 7);
+  return d.toISOString().split("T")[0];
+};
+
 const centsToLabel = (cents: number) =>
   cents % 100 === 0 ? `$${cents / 100}` : `$${(cents / 100).toFixed(2)}`;
 
@@ -96,7 +105,11 @@ const AdminBookings = () => {
   const [retestDialogOpen, setRetestDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
-  const [view, setView] = useState<"bookings" | "cancellations" | "pending-cash">("bookings");
+  const [view, setView] = useState<"bookings" | "cancellations" | "pending-cash" | "deposits">("bookings");
+  const [depositCount, setDepositCount] = useState(0);
+  const [depositAmount, setDepositAmount] = useState("");
+  const [chargeFeeToken, setChargeFeeToken] = useState<string | undefined>(undefined);
+  const [pendingDepositId, setPendingDepositId] = useState<string | null>(null);
   const [pendingCashCount, setPendingCashCount] = useState(0);
   const [pendingRescheduleCount, setPendingRescheduleCount] = useState(0);
   
@@ -180,6 +193,12 @@ const AdminBookings = () => {
       .eq("pending_payment", true)
       .eq("archived", false);
     setPendingCashCount(cashCount ?? 0);
+
+    const { count: depCount } = await (supabase as any)
+      .from("booking_deposits")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["awaiting_deposit", "open"]);
+    setDepositCount(depCount ?? 0);
   };
 
   useEffect(() => { fetchData(); fetchPendingCount(); }, []);
