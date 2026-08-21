@@ -170,6 +170,26 @@ const AdminOverview = () => {
     return () => { supabase.removeChannel(channel); };
   }, [canSeeEarnings, fetchEarnings]);
 
+  // Open sub coverage requests (admin/owner)
+  useEffect(() => {
+    if (!canSeeAnalytics) return;
+    let cancelled = false;
+    const recompute = async () => {
+      const { count } = await supabase
+        .from("sub_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "open");
+      if (!cancelled) setOpenSubRequests(count || 0);
+    };
+    recompute();
+    const channel = supabase
+      .channel("admin-overview-sub-requests")
+      .on("postgres_changes", { event: "*", schema: "public", table: "sub_requests" }, recompute)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [canSeeAnalytics]);
+
+
   const stats = [
     { label: "Total Classes", value: scheduleCount, icon: BookOpen, color: "text-accent", to: "/employee-dashboard?tab=full-schedule" },
     { label: "Upcoming Classes", value: upcomingClasses, icon: CalendarDays, color: "text-green-400", to: "/employee-dashboard?tab=my-schedule" },
