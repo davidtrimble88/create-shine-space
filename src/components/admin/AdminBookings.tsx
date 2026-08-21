@@ -381,9 +381,77 @@ const AdminBookings = () => {
       setChargeRegion(regionFor(sched.location));
       setChargeAmountCents(cents);
       setChargeAmountLabel(centsToLabel(cents));
+      setChargeFeeToken(undefined);
+      setPendingDepositId(null);
 
       setDialogOpen(false);
       setChargeOpen(true);
+      return;
+    }
+
+    // Deposit: register the student now, charge a custom partial amount, and
+    // track the remaining balance (due 7 days before class).
+    if (studentPaymentCollected && studentPaymentMethod === "deposit") {
+      const total = feeCentsForRider(sched.price, form.date_of_birth || null, sched.date);
+      const depositCents = Math.round((Number(depositAmount.replace(/[^0-9.]/g, "")) || 0) * 100);
+      if (total <= 0) {
+        toast({ title: "Invalid fee", description: "This class has no price set.", variant: "destructive" });
+        return;
+      }
+      if (depositCents <= 0 || depositCents >= total) {
+        toast({ title: "Invalid deposit", description: `Enter a deposit between $0.01 and ${centsToLabel(total - 1)}.`, variant: "destructive" });
+        return;
+      }
+
+      const { error: insErr } = await supabase.from("bookings").insert({
+        ...basePayload,
+        fee: centsToLabel(total),
+        payment_status: "partial",
+        payment_provider: "square",
+        booking_status: "confirmed",
+      } as any);
+      if (insErr) {
+        toast({ title: "Error", description: insErr.message, variant: "destructive" });
+        return;
+      }
+
+      const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
+      const { error: feeErr } = await (supabase as any).from("fee_payment_requests").insert({
+        booking_id: basePayload.id,
+        token,
+        fee_type: "deposit",
+        amount_cents: depositCents,
+        note: "Course deposit",
+        created_by: user?.id ?? null,
+      });
+      const { data: depRow, error: depErr } = await (supabase as any)
+        .from("booking_deposits")
+        .insert({
+          booking_id: basePayload.id,
+          total_amount_cents: total,
+          deposit_amount_cents: depositCents,
+          balance_cents: total - depositCents,
+          due_date: depositDueDate(sched.date),
+          status: "awaiting_deposit",
+          created_by: user?.id ?? null,
+        })
+        .select("id")
+        .single();
+
+      if (feeErr || depErr) {
+        toast({ title: "Error", description: (feeErr || depErr)?.message ?? "Could not set up the deposit", variant: "destructive" });
+        return;
+      }
+
+      setChargePayload(basePayload);
+      setChargeRegion(regionFor(sched.location));
+      setChargeAmountCents(depositCents);
+      setChargeAmountLabel(centsToLabel(depositCents));
+      setChargeFeeToken(token);
+      setPendingDepositId(depRow.id as string);
+      setDialogOpen(false);
+      setChargeOpen(true);
+      fetchData();
       return;
     }
 
