@@ -470,14 +470,28 @@ const AdminBookings = () => {
     }
   };
 
-  const handleChargeSuccess = (_paymentId: string, _provider: PaymentProvider) => {
-    toast({ title: "Payment received", description: "Student has been booked and marked paid." });
+  const handleChargeSuccess = (paymentId: string, _provider: PaymentProvider) => {
+    if (pendingDepositId) {
+      void (async () => {
+        await (supabase as any)
+          .from("booking_deposits")
+          .update({ status: "open", deposit_paid_at: new Date().toISOString(), deposit_payment_id: paymentId })
+          .eq("id", pendingDepositId);
+        fetchPendingCount();
+      })();
+      toast({ title: "Deposit received", description: "Student is registered. The remaining balance is now tracked in the Deposits tab." });
+    } else {
+      toast({ title: "Payment received", description: "Student has been booked and marked paid." });
+    }
     if (chargePayload) {
       void sendConfirmationForBooking(chargePayload);
       promptSendFormsLink(chargePayload as unknown as Booking);
     }
     setChargeOpen(false);
     setChargePayload(null);
+    setChargeFeeToken(undefined);
+    setPendingDepositId(null);
+    setDepositAmount("");
     setForm({ schedule_id: "", rider_track: "irc", bike_year: "", bike_make: "", bike_model: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
     setStudentPaymentCollected(false);
     setStudentPaymentMethod("cash");
