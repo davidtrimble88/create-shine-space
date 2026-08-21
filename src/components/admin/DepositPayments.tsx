@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, CreditCard, Mail, CheckCircle2, Clock, AlertTriangle, Wallet } from "lucide-react";
+import { ArrowLeft, CreditCard, Mail, CheckCircle2, Clock, AlertTriangle, Wallet, Pencil } from "lucide-react";
 import { PaymentDialog } from "@/components/PaymentDialog";
 import type { SquareRegion } from "@/components/SquarePaymentDialog";
 import { useAuth } from "@/contexts/AuthContext";
@@ -71,6 +71,58 @@ const DepositPayments = ({ onBack }: Props) => {
   const [manualRow, setManualRow] = useState<DepositRow | null>(null);
   const [manualMethod, setManualMethod] = useState("cash");
   const [sendingId, setSendingId] = useState<string | null>(null);
+
+  const [editRow, setEditRow] = useState<DepositRow | null>(null);
+  const [editTotal, setEditTotal] = useState("");
+  const [editPaid, setEditPaid] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const toCents = (v: string) => Math.round(Number(v.replace(/[^0-9.]/g, "")) * 100);
+
+  const openEdit = (row: DepositRow) => {
+    setEditRow(row);
+    setEditTotal((row.total_amount_cents / 100).toFixed(2));
+    setEditPaid((row.deposit_amount_cents / 100).toFixed(2));
+  };
+
+  const saveEdit = async () => {
+    if (!editRow) return;
+    const total = toCents(editTotal);
+    const paid = toCents(editPaid);
+    if (!total || total <= 0) {
+      toast({ title: "Enter a valid course total", variant: "destructive" });
+      return;
+    }
+    if (!paid || paid <= 0 || paid > total) {
+      toast({ title: "Enter a valid amount already paid", description: "It must be more than $0 and no more than the course total.", variant: "destructive" });
+      return;
+    }
+    const balance = total - paid;
+    setSavingEdit(true);
+    const { error } = await (supabase as any)
+      .from("booking_deposits")
+      .update({
+        total_amount_cents: total,
+        deposit_amount_cents: paid,
+        balance_cents: balance,
+        deposit_paid_at: editRow.deposit_paid_at ?? new Date().toISOString(),
+        status: balance === 0 ? "paid" : "open",
+        balance_paid_at: balance === 0 ? new Date().toISOString() : null,
+      })
+      .eq("id", editRow.id);
+    setSavingEdit(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (balance === 0) {
+      await (supabase as any).from("bookings").update({ payment_status: "paid", pending_payment: false }).eq("id", editRow.booking_id);
+    }
+    toast({ title: "Deposit updated", description: `Remaining balance is ${money(balance)}.` });
+    setEditRow(null);
+    fetchRows();
+  };
+
 
   const fetchRows = async () => {
     setLoading(true);
@@ -277,8 +329,12 @@ const DepositPayments = ({ onBack }: Props) => {
                         <Button size="sm" variant="outline" onClick={() => { setManualRow(row); setManualMethod("cash"); }}>
                           Mark paid
                         </Button>
+                        <Button size="sm" variant="ghost" onClick={() => openEdit(row)}>
+                          <Pencil className="w-4 h-4 mr-1" /> Edit amounts
+                        </Button>
                       </>
                     )}
+
                     {row.status === "paid" && (
                       <span className="text-xs text-muted-foreground">Paid {row.balance_paid_at?.split("T")[0]} ({row.balance_method || "card"})</span>
                     )}
@@ -319,6 +375,38 @@ const DepositPayments = ({ onBack }: Props) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Edit deposit amounts (e.g. deposits taken before this system existed) */}
+      <Dialog open={!!editRow} onOpenChange={(o) => { if (!o) setEditRow(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Edit deposit amounts</DialogTitle></DialogHeader>
+          <div className="space-y-3 text-sm">
+            <p className="text-muted-foreground">
+              Enter what {editRow?.bookings?.first_name} {editRow?.bookings?.last_name} has already paid. The remaining
+              balance is calculated automatically.
+            </p>
+            <div>
+              <Label className="text-xs">Course total</Label>
+              <Input value={editTotal} onChange={(e) => setEditTotal(e.target.value)} placeholder="425.00" inputMode="decimal" />
+            </div>
+            <div>
+              <Label className="text-xs">Amount already paid</Label>
+              <Input value={editPaid} onChange={(e) => setEditPaid(e.target.value)} placeholder="200.00" inputMode="decimal" />
+            </div>
+            <p className="text-muted-foreground">
+              Remaining balance:{" "}
+              <span className="font-semibold text-accent">
+                {money(Math.max(0, (toCents(editTotal) || 0) - (toCents(editPaid) || 0)))}
+              </span>
+            </p>
+            <Button className="w-full" disabled={savingEdit} onClick={saveEdit}>
+              {savingEdit ? "Saving…" : "Save amounts"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
 
       {chargeRow?.bookings && (
         <PaymentDialog
