@@ -45,8 +45,9 @@ const storeHold = (hold: SeatHold | null) => {
 export const clearStoredHold = () => storeHold(null);
 
 export type HoldResult =
-  | { ok: true; hold: SeatHold }
+  | { ok: true; hold: SeatHold; message?: string }
   | { ok: false; reason: "full" | "unavailable" | "error"; message: string };
+
 
 /** Reserve a seat on a class for SEAT_HOLD_MINUTES. */
 export const createSeatHold = async (scheduleId: string): Promise<HoldResult> => {
