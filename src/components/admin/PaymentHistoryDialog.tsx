@@ -40,10 +40,23 @@ interface Props {
 
 const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
+interface BookingInfo {
+  payment_status: string | null;
+  payment_provider: string | null;
+  manually_added: boolean | null;
+  pending_payment: boolean | null;
+  fee: string | null;
+  discount_amount_cents: number | null;
+  discount_reason: string | null;
+  marked_paid_at: string | null;
+  created_at: string;
+}
+
 const PaymentHistoryDialog = ({ open, onOpenChange, bookingId, email, studentName }: Props) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [txns, setTxns] = useState<Transaction[]>([]);
+  const [booking, setBooking] = useState<BookingInfo | null>(null);
   const [refunds, setRefunds] = useState<Record<string, Refund[]>>({});
   const [refundTx, setRefundTx] = useState<Transaction | null>(null);
   const [refundMode, setRefundMode] = useState<"full" | "custom">("full");
@@ -53,6 +66,17 @@ const PaymentHistoryDialog = ({ open, onOpenChange, bookingId, email, studentNam
 
   const load = useCallback(async () => {
     setLoading(true);
+    if (bookingId) {
+      const { data: b } = await supabase
+        .from("bookings")
+        .select("payment_status, payment_provider, manually_added, pending_payment, fee, discount_amount_cents, discount_reason, marked_paid_at, created_at")
+        .eq("id", bookingId)
+        .maybeSingle();
+      setBooking((b as BookingInfo) || null);
+    } else {
+      setBooking(null);
+    }
+
     let query = supabase.from("payment_transactions").select("*").order("created_at", { ascending: false });
     if (bookingId) query = query.eq("booking_id", bookingId);
     else if (email) query = query.ilike("student_email", email);
@@ -61,6 +85,7 @@ const PaymentHistoryDialog = ({ open, onOpenChange, bookingId, email, studentNam
     const { data } = await query;
     const list = (data as Transaction[]) || [];
     setTxns(list);
+
 
     if (list.length) {
       const { data: refundRows } = await supabase
@@ -158,9 +183,40 @@ const PaymentHistoryDialog = ({ open, onOpenChange, bookingId, email, studentNam
           {loading ? (
             <div className="py-10 text-center text-muted-foreground">Loading…</div>
           ) : txns.length === 0 ? (
-            <div className="py-10 text-center text-muted-foreground text-sm">
-              No recorded card payments for this student.
+            <div className="py-6">
+              {booking?.pending_payment ? (
+                <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-4 text-sm space-y-1">
+                  <p className="font-semibold text-foreground">Payment on hold — nothing collected yet</p>
+                  <p className="text-muted-foreground">
+                    This registration is a cash hold. No card has been processed, so there is no payment history.
+                  </p>
+                </div>
+              ) : booking?.payment_status === "paid" ? (
+                <div className="rounded-lg border border-border bg-secondary/30 p-4 text-sm space-y-2">
+                  <p className="font-semibold text-foreground">Recorded as paid offline — no card processed on the site</p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    This booking was {booking.manually_added ? "manually added by staff" : "marked paid by staff"} with the
+                    payment method set to <span className="font-medium text-foreground">{booking.payment_provider || "offline"}</span>
+                    {booking.fee ? <> for <span className="font-medium text-foreground">{booking.fee}</span></> : null}.
+                    Because it was never run through the card terminal, there is no transaction or refund history to show here.
+                  </p>
+                  {!!booking.discount_amount_cents && (
+                    <p className="text-xs text-muted-foreground">
+                      Discount applied: {money(booking.discount_amount_cents)}{booking.discount_reason ? ` — ${booking.discount_reason}` : ""}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Recorded {formatPST(booking.marked_paid_at || booking.created_at)}. If money was actually taken by card,
+                    re-run it through “Take Square Payment” so it appears in reporting.
+                  </p>
+                </div>
+              ) : (
+                <div className="py-4 text-center text-muted-foreground text-sm">
+                  No recorded card payments for this student.
+                </div>
+              )}
             </div>
+
           ) : (
             <div className="space-y-3">
               {txns.map((t) => (
