@@ -1637,6 +1637,50 @@ export type Database = {
         }
         Relationships: []
       }
+      seat_holds: {
+        Row: {
+          booking_id: string | null
+          converted: boolean
+          created_at: string
+          expires_at: string
+          id: string
+          released_at: string | null
+          schedule_id: string
+          updated_at: string
+          visitor_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          converted?: boolean
+          created_at?: string
+          expires_at: string
+          id?: string
+          released_at?: string | null
+          schedule_id: string
+          updated_at?: string
+          visitor_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          converted?: boolean
+          created_at?: string
+          expires_at?: string
+          id?: string
+          released_at?: string | null
+          schedule_id?: string
+          updated_at?: string
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seat_holds_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_questions: {
         Row: {
           answer_hash: string
@@ -2078,6 +2122,13 @@ export type Database = {
         Returns: boolean
       }
       clear_must_change_password: { Args: never; Returns: undefined }
+      create_seat_hold: {
+        Args: { _minutes?: number; _schedule_id: string; _visitor_id: string }
+        Returns: {
+          expires_at: string
+          id: string
+        }[]
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2095,12 +2146,22 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      expire_seat_holds: { Args: never; Returns: undefined }
       get_active_payment_provider: { Args: never; Returns: string }
       get_returning_discount_defaults: {
         Args: never
         Returns: {
           advanced_returning_amount_cents: number
           intermediate_returning_amount_cents: number
+        }[]
+      }
+      get_seat_hold: {
+        Args: { _id: string; _visitor_id: string }
+        Returns: {
+          active: boolean
+          expires_at: string
+          id: string
+          schedule_id: string
         }[]
       }
       has_any_role: { Args: { _user_id: string }; Returns: boolean }
@@ -2152,6 +2213,10 @@ export type Database = {
       record_registration_payment_failure: {
         Args: { p_fields: Json; p_id: string; p_visitor_id: string }
         Returns: string
+      }
+      release_seat_hold: {
+        Args: { _converted?: boolean; _id: string; _visitor_id: string }
+        Returns: undefined
       }
       set_security_questions: { Args: { _questions: Json }; Returns: undefined }
       update_registration_attempt: {
