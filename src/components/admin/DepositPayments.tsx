@@ -376,6 +376,38 @@ const DepositPayments = ({ onBack }: Props) => {
         </DialogContent>
       </Dialog>
 
+      {/* Edit deposit amounts (e.g. deposits taken before this system existed) */}
+      <Dialog open={!!editRow} onOpenChange={(o) => { if (!o) setEditRow(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Edit deposit amounts</DialogTitle></DialogHeader>
+          <div className="space-y-3 text-sm">
+            <p className="text-muted-foreground">
+              Enter what {editRow?.bookings?.first_name} {editRow?.bookings?.last_name} has already paid. The remaining
+              balance is calculated automatically.
+            </p>
+            <div>
+              <Label className="text-xs">Course total</Label>
+              <Input value={editTotal} onChange={(e) => setEditTotal(e.target.value)} placeholder="425.00" inputMode="decimal" />
+            </div>
+            <div>
+              <Label className="text-xs">Amount already paid</Label>
+              <Input value={editPaid} onChange={(e) => setEditPaid(e.target.value)} placeholder="200.00" inputMode="decimal" />
+            </div>
+            <p className="text-muted-foreground">
+              Remaining balance:{" "}
+              <span className="font-semibold text-accent">
+                {money(Math.max(0, (toCents(editTotal) || 0) - (toCents(editPaid) || 0)))}
+              </span>
+            </p>
+            <Button className="w-full" disabled={savingEdit} onClick={saveEdit}>
+              {savingEdit ? "Saving…" : "Save amounts"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
+
       {chargeRow?.bookings && (
         <PaymentDialog
           open={chargeOpen}
