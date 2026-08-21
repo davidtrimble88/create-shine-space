@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import DepositAnalytics from "./DepositAnalytics";
 import { format } from "date-fns";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -88,6 +89,7 @@ const EarningsAnalytics = () => {
     passed: 0, failed: 0, resultsTotal: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [bounds, setBounds] = useState<{ from: string; to: string } | null>(null);
   const { effectiveRole } = useAuth();
   const isOwner = effectiveRole === "owner";
   const [financeSearchOpen, setFinanceSearchOpen] = useState(false);
@@ -177,6 +179,7 @@ const EarningsAnalytics = () => {
     const run = async () => {
       setLoading(true);
       const { from, to } = getDateBounds();
+      setBounds({ from, to });
 
       const [earningsRes, dropsRes, noShowRes, rescheduleRes, resultsRes, cancelRes, feesRes] = await Promise.all([
         supabase
@@ -776,6 +779,8 @@ const EarningsAnalytics = () => {
           </table>
         </div>
       )}
+
+      {bounds && <DepositAnalytics from={bounds.from} to={bounds.to} />}
 
       {/* Operations Stats */}
       <h2 className="text-lg font-semibold text-foreground mb-3">Operations</h2>
