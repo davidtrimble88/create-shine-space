@@ -183,9 +183,40 @@ const PaymentHistoryDialog = ({ open, onOpenChange, bookingId, email, studentNam
           {loading ? (
             <div className="py-10 text-center text-muted-foreground">Loading…</div>
           ) : txns.length === 0 ? (
-            <div className="py-10 text-center text-muted-foreground text-sm">
-              No recorded card payments for this student.
+            <div className="py-6">
+              {booking?.pending_payment ? (
+                <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-4 text-sm space-y-1">
+                  <p className="font-semibold text-foreground">Payment on hold — nothing collected yet</p>
+                  <p className="text-muted-foreground">
+                    This registration is a cash hold. No card has been processed, so there is no payment history.
+                  </p>
+                </div>
+              ) : booking?.payment_status === "paid" ? (
+                <div className="rounded-lg border border-border bg-secondary/30 p-4 text-sm space-y-2">
+                  <p className="font-semibold text-foreground">Recorded as paid offline — no card processed on the site</p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    This booking was {booking.manually_added ? "manually added by staff" : "marked paid by staff"} with the
+                    payment method set to <span className="font-medium text-foreground">{booking.payment_provider || "offline"}</span>
+                    {booking.fee ? <> for <span className="font-medium text-foreground">{booking.fee}</span></> : null}.
+                    Because it was never run through the card terminal, there is no transaction or refund history to show here.
+                  </p>
+                  {!!booking.discount_amount_cents && (
+                    <p className="text-xs text-muted-foreground">
+                      Discount applied: {money(booking.discount_amount_cents)}{booking.discount_reason ? ` — ${booking.discount_reason}` : ""}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Recorded {formatPST(booking.marked_paid_at || booking.created_at)}. If money was actually taken by card,
+                    re-run it through “Take Square Payment” so it appears in reporting.
+                  </p>
+                </div>
+              ) : (
+                <div className="py-4 text-center text-muted-foreground text-sm">
+                  No recorded card payments for this student.
+                </div>
+              )}
             </div>
+
           ) : (
             <div className="space-y-3">
               {txns.map((t) => (
