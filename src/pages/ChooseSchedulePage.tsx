@@ -37,46 +37,48 @@ const ChooseSchedulePage = () => {
     "ventura-county": "Ventura County — Somis",
   };
 
-  useEffect(() => {
-    const fetchClasses = async () => {
-      const today = new Date().toISOString().split("T")[0];
-      const { data } = await supabase
+  const fetchClasses = useCallback(async () => {
+    const today = new Date().toISOString().split("T")[0];
+    const { data } = await supabase
+      .from("schedules")
+      .select("*")
+      .eq("course", scheduleCourse)
+      .eq("location", location)
+      .gte("date", today)
+      .gt("spots_available", 0)
+      .is("cancelled_at", null)
+      .order("date", { ascending: true });
+    const rows = data ?? [];
+    setClasses(rows);
+    setLoading(false);
+
+    if (rows.length === 0) {
+      const { data: others } = await supabase
         .from("schedules")
-        .select("*")
+        .select("location, location_label")
         .eq("course", scheduleCourse)
-        .eq("location", location)
+        .neq("location", location)
         .gte("date", today)
         .gt("spots_available", 0)
-        .is("cancelled_at", null)
-        .order("date", { ascending: true });
-      const rows = data ?? [];
-      setClasses(rows);
-      setLoading(false);
-
-      if (rows.length === 0) {
-        const { data: others } = await supabase
-          .from("schedules")
-          .select("location, location_label")
-          .eq("course", scheduleCourse)
-          .neq("location", location)
-          .gte("date", today)
-          .gt("spots_available", 0)
-          .is("cancelled_at", null);
-        const tally = new Map<string, { label: string; count: number }>();
-        for (const r of others ?? []) {
-          const existing = tally.get(r.location);
-          if (existing) existing.count += 1;
-          else tally.set(r.location, { label: r.location_label, count: 1 });
-        }
-        setOtherLocations(
-          Array.from(tally.entries()).map(([loc, v]) => ({ location: loc, label: v.label, count: v.count }))
-        );
-      } else {
-        setOtherLocations([]);
+        .is("cancelled_at", null);
+      const tally = new Map<string, { label: string; count: number }>();
+      for (const r of others ?? []) {
+        const existing = tally.get(r.location);
+        if (existing) existing.count += 1;
+        else tally.set(r.location, { label: r.location_label, count: 1 });
       }
-    };
-    fetchClasses();
+      setOtherLocations(
+        Array.from(tally.entries()).map(([loc, v]) => ({ location: loc, label: v.label, count: v.count }))
+      );
+    } else {
+      setOtherLocations([]);
+    }
   }, [scheduleCourse, location]);
+
+  useEffect(() => {
+    fetchClasses();
+  }, [fetchClasses]);
+
 
   const handleSelectClass = async (classId: string) => {
     if (holding) return;
