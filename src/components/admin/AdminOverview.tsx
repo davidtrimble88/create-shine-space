@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { CalendarDays, Users, BookOpen, DollarSign, MapPin, Smartphone, ClipboardList } from "lucide-react";
+import { CalendarDays, Users, BookOpen, DollarSign, MapPin, Smartphone, ClipboardList, UserMinus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import CertStatusSummary from "./CertStatusSummary";
 
@@ -22,6 +22,8 @@ const AdminOverview = () => {
   const [yesterdayRegistrations, setYesterdayRegistrations] = useState(0);
   const [todayRegByLocation, setTodayRegByLocation] = useState<LocationEarnings>({});
   const [yesterdayRegByLocation, setYesterdayRegByLocation] = useState<LocationEarnings>({});
+  const [openSubRequests, setOpenSubRequests] = useState(0);
+
 
   const canSeeEarnings = effectiveRole === "owner" || effectiveRole === "admin";
   const canSeeAnalytics = canSeeEarnings;
@@ -168,6 +170,26 @@ const AdminOverview = () => {
     return () => { supabase.removeChannel(channel); };
   }, [canSeeEarnings, fetchEarnings]);
 
+  // Open sub coverage requests (admin/owner)
+  useEffect(() => {
+    if (!canSeeAnalytics) return;
+    let cancelled = false;
+    const recompute = async () => {
+      const { count } = await supabase
+        .from("sub_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "open");
+      if (!cancelled) setOpenSubRequests(count || 0);
+    };
+    recompute();
+    const channel = supabase
+      .channel("admin-overview-sub-requests")
+      .on("postgres_changes", { event: "*", schema: "public", table: "sub_requests" }, recompute)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [canSeeAnalytics]);
+
+
   const stats = [
     { label: "Total Classes", value: scheduleCount, icon: BookOpen, color: "text-accent", to: "/employee-dashboard?tab=full-schedule" },
     { label: "Upcoming Classes", value: upcomingClasses, icon: CalendarDays, color: "text-green-400", to: "/employee-dashboard?tab=my-schedule" },
@@ -216,6 +238,26 @@ const AdminOverview = () => {
           );
         })}
       </div>
+
+      {canSeeAnalytics && (
+        <div className="mb-8">
+          <Link
+            to="/employee-dashboard?tab=sub-coverage"
+            className="block bg-card border border-border rounded-xl p-6 transition-all hover:border-accent hover:shadow-md hover:shadow-accent/10"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <UserMinus className={`w-8 h-8 ${openSubRequests > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+              {openSubRequests > 0 && (
+                <span className="text-xs font-medium bg-destructive/10 text-destructive px-2 py-1 rounded-full">Needs coverage</span>
+              )}
+            </div>
+            <p className="text-3xl font-bold text-foreground">{openSubRequests}</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {openSubRequests === 1 ? "Active sub coverage request" : "Active sub coverage requests"}
+            </p>
+          </Link>
+        </div>
+      )}
 
 
       {user && (

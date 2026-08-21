@@ -237,6 +237,26 @@ const EmployeeDashboard = () => {
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [user, effectiveRole, activeTab]);
 
+  // Open sub coverage requests count (sidebar badge)
+  const [openSubRequests, setOpenSubRequests] = useState(0);
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const recompute = async () => {
+      const { count } = await supabase
+        .from("sub_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "open");
+      if (!cancelled) setOpenSubRequests(count || 0);
+    };
+    recompute();
+    const channel = supabase
+      .channel("sidebar-open-sub-requests")
+      .on("postgres_changes", { event: "*", schema: "public", table: "sub_requests" }, recompute)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [user, activeTab]);
+
 
 
   // Fetch the logged-in employee's name for the welcome header
@@ -481,6 +501,16 @@ const EmployeeDashboard = () => {
                 </span>
               )
             )}
+            {tab.id === "sub-coverage" && openSubRequests > 0 && (
+              collapsed ? (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent" />
+              ) : (
+                <span className="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold flex items-center justify-center">
+                  {openSubRequests > 99 ? "99+" : openSubRequests}
+                </span>
+              )
+            )}
+
           </button>
 
 
