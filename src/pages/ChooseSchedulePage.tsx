@@ -78,10 +78,21 @@ const ChooseSchedulePage = () => {
     fetchClasses();
   }, [scheduleCourse, location]);
 
-  const handleSelectClass = (classId: string) => {
+  const handleSelectClass = async (classId: string) => {
+    if (holding) return;
+    setHolding(classId);
+    const result = await createSeatHold(classId);
+    setHolding(null);
+    if (!result.ok) {
+      toast({ title: "Seat not available", description: result.message, variant: "destructive" });
+      setLoading(true);
+      await fetchClasses();
+      return;
+    }
     sessionStorage.setItem("selectedScheduleId", classId);
     navigate(`/register?course=${course}&location=${location}${trackParam}`);
   };
+
 
   return (
     <div className="min-h-screen bg-background">
