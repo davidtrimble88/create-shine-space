@@ -206,8 +206,17 @@ const ChooseSchedulePage = () => {
                               {entry.spots_available} spots left
                             </span>
                             <span className="flex items-center gap-1 text-sm text-accent font-medium">
-                              Select <ArrowRight className="w-4 h-4" />
+                              {holding === entry.id ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" /> Holding your seat…
+                                </>
+                              ) : (
+                                <>
+                                  Select <ArrowRight className="w-4 h-4" />
+                                </>
+                              )}
                             </span>
+
                           </>
                         )}
                       </div>
