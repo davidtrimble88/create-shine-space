@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, CreditCard, Mail, CheckCircle2, Clock, AlertTriangle, Wallet } from "lucide-react";
+import { ArrowLeft, CreditCard, Mail, CheckCircle2, Clock, AlertTriangle, Wallet, Pencil } from "lucide-react";
 import { PaymentDialog } from "@/components/PaymentDialog";
 import type { SquareRegion } from "@/components/SquarePaymentDialog";
 import { useAuth } from "@/contexts/AuthContext";
