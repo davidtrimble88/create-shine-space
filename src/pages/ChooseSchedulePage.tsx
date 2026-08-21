@@ -1,13 +1,15 @@
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { CalendarDays, Clock, MapPin, Users, ArrowRight, Loader2 } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Users, ArrowRight, Loader2, Timer } from "lucide-react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { format, parseISO } from "date-fns";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import Seo from "@/components/Seo";
+import { createSeatHold, releaseSeatHold, SEAT_HOLD_MINUTES } from "@/lib/seatHold";
+import { toast } from "@/hooks/use-toast";
 
 type Schedule = Tables<"schedules">;
 
@@ -22,7 +24,9 @@ const ChooseSchedulePage = () => {
   const trackParam = track ? `&track=${track}` : "";
   const [classes, setClasses] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [holding, setHolding] = useState<string | null>(null);
   const [otherLocations, setOtherLocations] = useState<{ location: string; label: string; count: number }[]>([]);
+
 
   const courseLabels: Record<string, string> = {
     basic: "Motorcyclist Training Course",
@@ -37,51 +41,71 @@ const ChooseSchedulePage = () => {
     "ventura-county": "Ventura County — Somis",
   };
 
-  useEffect(() => {
-    const fetchClasses = async () => {
-      const today = new Date().toISOString().split("T")[0];
-      const { data } = await supabase
+  const fetchClasses = useCallback(async () => {
+    const today = new Date().toISOString().split("T")[0];
+    const { data } = await supabase
+      .from("schedules")
+      .select("*")
+      .eq("course", scheduleCourse)
+      .eq("location", location)
+      .gte("date", today)
+      .gt("spots_available", 0)
+      .is("cancelled_at", null)
+      .order("date", { ascending: true });
+    const rows = data ?? [];
+    setClasses(rows);
+    setLoading(false);
+
+    if (rows.length === 0) {
+      const { data: others } = await supabase
         .from("schedules")
-        .select("*")
+        .select("location, location_label")
         .eq("course", scheduleCourse)
-        .eq("location", location)
+        .neq("location", location)
         .gte("date", today)
         .gt("spots_available", 0)
-        .is("cancelled_at", null)
-        .order("date", { ascending: true });
-      const rows = data ?? [];
-      setClasses(rows);
-      setLoading(false);
-
-      if (rows.length === 0) {
-        const { data: others } = await supabase
-          .from("schedules")
-          .select("location, location_label")
-          .eq("course", scheduleCourse)
-          .neq("location", location)
-          .gte("date", today)
-          .gt("spots_available", 0)
-          .is("cancelled_at", null);
-        const tally = new Map<string, { label: string; count: number }>();
-        for (const r of others ?? []) {
-          const existing = tally.get(r.location);
-          if (existing) existing.count += 1;
-          else tally.set(r.location, { label: r.location_label, count: 1 });
-        }
-        setOtherLocations(
-          Array.from(tally.entries()).map(([loc, v]) => ({ location: loc, label: v.label, count: v.count }))
-        );
-      } else {
-        setOtherLocations([]);
+        .is("cancelled_at", null);
+      const tally = new Map<string, { label: string; count: number }>();
+      for (const r of others ?? []) {
+        const existing = tally.get(r.location);
+        if (existing) existing.count += 1;
+        else tally.set(r.location, { label: r.location_label, count: 1 });
       }
-    };
-    fetchClasses();
+      setOtherLocations(
+        Array.from(tally.entries()).map(([loc, v]) => ({ location: loc, label: v.label, count: v.count }))
+      );
+    } else {
+      setOtherLocations([]);
+    }
   }, [scheduleCourse, location]);
 
-  const handleSelectClass = (classId: string) => {
+  useEffect(() => {
+    fetchClasses();
+  }, [fetchClasses]);
+
+  // Coming back to pick a different date? Give the previously held seat back.
+  useEffect(() => {
+    releaseSeatHold();
+  }, []);
+
+
+
+
+  const handleSelectClass = async (classId: string) => {
+    if (holding) return;
+    setHolding(classId);
+    const result = await createSeatHold(classId);
+    setHolding(null);
+    if (!result.ok) {
+      toast({ title: "Seat not available", description: result.message, variant: "destructive" });
+      setLoading(true);
+      await fetchClasses();
+      return;
+    }
     sessionStorage.setItem("selectedScheduleId", classId);
     navigate(`/register?course=${course}&location=${location}${trackParam}`);
   };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -109,7 +133,12 @@ const ChooseSchedulePage = () => {
             <p className="text-sm text-muted-foreground">
               {(course === "premier" || (course === "intermediate" && track === "1dpc")) ? "1-Day Premier Course / Intermediate" : courseLabels[course] || course} · {locationLabels[location] || location}
             </p>
+            <p className="mt-4 inline-flex items-center gap-2 text-sm text-accent bg-accent/10 border border-accent/30 rounded-full px-4 py-2">
+              <Timer className="w-4 h-4" />
+              Once you pick a date we hold your seat for {SEAT_HOLD_MINUTES} minutes while you register.
+            </p>
           </motion.div>
+
 
           {loading ? (
             <div className="flex justify-center py-12">
@@ -177,8 +206,17 @@ const ChooseSchedulePage = () => {
                               {entry.spots_available} spots left
                             </span>
                             <span className="flex items-center gap-1 text-sm text-accent font-medium">
-                              Select <ArrowRight className="w-4 h-4" />
+                              {holding === entry.id ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" /> Holding your seat…
+                                </>
+                              ) : (
+                                <>
+                                  Select <ArrowRight className="w-4 h-4" />
+                                </>
+                              )}
                             </span>
+
                           </>
                         )}
                       </div>

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { Timer } from "lucide-react";
+
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -33,6 +35,8 @@ import PaymentDialog from "@/components/PaymentDialog";
 import PaymentMethodDialog from "@/components/PaymentMethodDialog";
 import RegistrationAcknowledgmentDialog from "@/components/RegistrationAcknowledgmentDialog";
 import { getVisitorId, recordPaymentFailure, startAttempt, updateAttempt } from "@/lib/registrationAttempts";
+import { clearStoredHold, createSeatHold, readStoredHold, releaseSeatHold, SEAT_HOLD_MINUTES } from "@/lib/seatHold";
+
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
 import { type RegistrationFormPrefill } from "@/components/RegistrationFormStep";
@@ -266,6 +270,70 @@ const RegisterPage = () => {
   const [paymentRegion, setPaymentRegion] = useState<SquareRegion>("ventura");
   const [paymentAmountCents, setPaymentAmountCents] = useState(0);
   const [paymentAmountLabel, setPaymentAmountLabel] = useState("");
+
+  // ---- Seat hold: the class seat is reserved while this form is being filled out.
+  const [holdExpiresAt, setHoldExpiresAt] = useState<string | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const inFlowRef = useRef(false);
+
+  useEffect(() => {
+    if (!schedule) return;
+    let cancelled = false;
+    const ensureHold = async () => {
+      const stored = readStoredHold();
+      if (stored && stored.scheduleId === schedule && new Date(stored.expiresAt) > new Date()) {
+        if (!cancelled) setHoldExpiresAt(stored.expiresAt);
+        return;
+      }
+      const res = await createSeatHold(schedule);
+      if (cancelled) return;
+      if (res.ok) setHoldExpiresAt(res.hold.expiresAt);
+      else {
+        toast({ title: "Seat not available", description: res.message, variant: "destructive" });
+        navigate(`/choose-schedule?course=${course}&location=${location}`);
+      }
+    };
+    ensureHold();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schedule]);
+
+  useEffect(() => {
+    if (!holdExpiresAt) return;
+    let stopped = false;
+
+    const handleExpired = async () => {
+      if (stopped) return;
+      if (inFlowRef.current) {
+        // Mid-signing or mid-payment — quietly try to keep the seat instead of
+        // kicking them out of a form they've already filled in.
+        const res = await createSeatHold(schedule);
+        if (!stopped && res.ok) setHoldExpiresAt(res.hold.expiresAt);
+        else if (!stopped) setHoldExpiresAt(null);
+        return;
+      }
+      stopped = true;
+      clearStoredHold();
+      setHoldExpiresAt(null);
+      toast({
+        title: "Your seat hold expired",
+        description: `We held your seat for ${SEAT_HOLD_MINUTES} minutes. Please pick a class date again.`,
+        variant: "destructive",
+      });
+      navigate(`/choose-schedule?course=${course}&location=${location}`);
+    };
+
+    const tick = () => {
+      const left = Math.floor((new Date(holdExpiresAt).getTime() - Date.now()) / 1000);
+      setSecondsLeft(Math.max(left, 0));
+      if (left <= 0) handleExpired();
+    };
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => { stopped = true; window.clearInterval(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [holdExpiresAt, schedule]);
+
   const skipPaymentRef = useRef(false);
   const [waiverOpen, setWaiverOpen] = useState(false);
   const [waiverPrefill, setWaiverPrefill] = useState<WaiverPrefill | null>(null);
@@ -444,7 +512,13 @@ const RegisterPage = () => {
       additionalRecipients,
     });
 
+    // The booking now owns the seat, so give the temporary hold back.
+    inFlowRef.current = false;
+    setHoldExpiresAt(null);
+    releaseSeatHold(null, true);
+
     form.reset();
+
     setPendingBooking(null);
     setPendingGroupName(null);
     setPendingScheduleDetail(null);
@@ -701,7 +775,9 @@ const RegisterPage = () => {
       }
 
       // Show CMSP Student Registration Form step first, then waiver, then payment.
+      inFlowRef.current = true;
       setPendingBooking(bookingPayload);
+
       setPendingGroupName(scheduleGroup);
       setPendingScheduleDetail(scheduleDetail);
       setPaymentRegion(region);
@@ -924,9 +1000,14 @@ const RegisterPage = () => {
         booking_id: String(pendingBooking.id ?? "") || null,
       });
       paymentCompletedRef.current = true;
+      // Cash holds don't take a seat, so simply release the temporary hold.
+      inFlowRef.current = false;
+      setHoldExpiresAt(null);
+      releaseSeatHold(null, false);
       setMethodOpen(false);
       setPaymentOpen(false);
       form.reset();
+
       setPendingBooking(null);
       setPendingGroupName(null);
       setPendingScheduleDetail(null);
@@ -1049,7 +1130,21 @@ const RegisterPage = () => {
               {courseLabels[course] || course} · {locationLabels[location] || location}
               {scheduleLabel && ` · ${scheduleLabel}`}
             </p>
+            {secondsLeft !== null && holdExpiresAt && (
+              <p
+                className={`mt-4 inline-flex items-center gap-2 text-sm font-semibold rounded-full px-4 py-2 border ${
+                  secondsLeft <= 300
+                    ? "text-destructive bg-destructive/10 border-destructive/30"
+                    : "text-accent bg-accent/10 border-accent/30"
+                }`}
+                aria-live="polite"
+              >
+                <Timer className="w-4 h-4" />
+                Seat reserved — {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, "0")} left to finish
+              </p>
+            )}
           </motion.div>
+
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}
