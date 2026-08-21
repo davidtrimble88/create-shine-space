@@ -239,6 +239,26 @@ const AdminOverview = () => {
         })}
       </div>
 
+      {canSeeAnalytics && (
+        <div className="mb-8">
+          <Link
+            to="/employee-dashboard?tab=sub-coverage"
+            className="block bg-card border border-border rounded-xl p-6 transition-all hover:border-accent hover:shadow-md hover:shadow-accent/10"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <UserMinus className={`w-8 h-8 ${openSubRequests > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+              {openSubRequests > 0 && (
+                <span className="text-xs font-medium bg-destructive/10 text-destructive px-2 py-1 rounded-full">Needs coverage</span>
+              )}
+            </div>
+            <p className="text-3xl font-bold text-foreground">{openSubRequests}</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {openSubRequests === 1 ? "Active sub coverage request" : "Active sub coverage requests"}
+            </p>
+          </Link>
+        </div>
+      )}
+
 
       {user && (
         <CertStatusSummary
