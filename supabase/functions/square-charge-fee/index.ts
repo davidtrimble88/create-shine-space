@@ -70,7 +70,9 @@ Deno.serve(async (req) => {
       ? "Rescheduling fee"
       : fee.fee_type === "retest"
         ? "Retest fee"
-        : "Course fee";
+        : fee.fee_type === "balance"
+          ? "Remaining course balance"
+          : "Course fee";
 
     const sqRes = await fetch("https://connect.squareup.com/v2/payments", {
       method: "POST",
@@ -121,6 +123,37 @@ Deno.serve(async (req) => {
       });
     } catch (e) {
       console.warn("fee transaction logging failed", e);
+    }
+
+    // A paid balance closes out the deposit and returns the student to the main booking list.
+    if (fee.fee_type === "balance") {
+      try {
+        const { data: dep } = await supabase
+          .from("booking_deposits")
+          .select("id")
+          .eq("booking_id", booking.id)
+          .neq("status", "paid")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (dep) {
+          await supabase
+            .from("booking_deposits")
+            .update({
+              status: "paid",
+              balance_paid_at: new Date().toISOString(),
+              balance_method: "square",
+              balance_payment_id: paymentId,
+            })
+            .eq("id", dep.id);
+        }
+        await supabase
+          .from("bookings")
+          .update({ payment_status: "paid", pending_payment: false })
+          .eq("id", booking.id);
+      } catch (e) {
+        console.warn("deposit close-out failed", e);
+      }
     }
 
     return json({ success: true, paymentId });

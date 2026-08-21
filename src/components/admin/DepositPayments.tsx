@@ -152,6 +152,10 @@ const DepositPayments = ({ onBack }: Props) => {
 
   const startBalanceCharge = async (row: DepositRow) => {
     if (!row.bookings) return;
+    if (row.balance_cents <= 0) {
+      toast({ title: "Nothing to collect", description: "This deposit has no remaining balance. Use Edit amounts if the totals look wrong.", variant: "destructive" });
+      return;
+    }
     const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
     const { error } = await (supabase as any).from("fee_payment_requests").insert({
       booking_id: row.booking_id,
@@ -192,6 +196,10 @@ const DepositPayments = ({ onBack }: Props) => {
   const emailBalanceLink = async (row: DepositRow) => {
     const b = row.bookings;
     if (!b) return;
+    if (row.balance_cents <= 0) {
+      toast({ title: "Nothing to collect", description: "This deposit has no remaining balance. Use Edit amounts if the totals look wrong.", variant: "destructive" });
+      return;
+    }
     setSendingId(row.id);
     try {
       const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
