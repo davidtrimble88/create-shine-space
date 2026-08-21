@@ -1428,11 +1428,12 @@ const AdminBookings = () => {
       {chargePayload && (
         <PaymentDialog
           open={chargeOpen}
-          onOpenChange={(o) => { if (!o) { setChargeOpen(false); setChargePayload(null); } }}
+          onOpenChange={(o) => { if (!o) { setChargeOpen(false); setChargePayload(null); setChargeFeeToken(undefined); setPendingDepositId(null); } }}
           region={chargeRegion}
           amountCents={chargeAmountCents}
           amountLabel={chargeAmountLabel}
           bookingPayload={chargePayload}
+          feeToken={chargeFeeToken}
           phoneAuthorization
           onSuccess={handleChargeSuccess}
         />
