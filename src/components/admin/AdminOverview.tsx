@@ -22,6 +22,8 @@ const AdminOverview = () => {
   const [yesterdayRegistrations, setYesterdayRegistrations] = useState(0);
   const [todayRegByLocation, setTodayRegByLocation] = useState<LocationEarnings>({});
   const [yesterdayRegByLocation, setYesterdayRegByLocation] = useState<LocationEarnings>({});
+  const [openSubRequests, setOpenSubRequests] = useState(0);
+
 
   const canSeeEarnings = effectiveRole === "owner" || effectiveRole === "admin";
   const canSeeAnalytics = canSeeEarnings;
