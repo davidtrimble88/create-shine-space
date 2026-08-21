@@ -1387,7 +1387,7 @@ const RegisterPage = () => {
                           </FormControl>
                           {idType === "other" && (
                             <p className="text-xs text-muted-foreground">
-                              School IDs: use the last day of the school year shown on the ID.
+                              Student ID: use the last day of school for the ID you are providing.
                             </p>
                           )}
                           <FormMessage />
