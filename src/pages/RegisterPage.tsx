@@ -773,7 +773,9 @@ const RegisterPage = () => {
       }
 
       // Show CMSP Student Registration Form step first, then waiver, then payment.
+      inFlowRef.current = true;
       setPendingBooking(bookingPayload);
+
       setPendingGroupName(scheduleGroup);
       setPendingScheduleDetail(scheduleDetail);
       setPaymentRegion(region);
