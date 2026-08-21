@@ -83,6 +83,13 @@ const ChooseSchedulePage = () => {
     fetchClasses();
   }, [fetchClasses]);
 
+  // Coming back to pick a different date? Give the previously held seat back.
+  useEffect(() => {
+    releaseSeatHold();
+  }, []);
+
+
+
 
   const handleSelectClass = async (classId: string) => {
     if (holding) return;
