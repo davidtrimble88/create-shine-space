@@ -40,10 +40,23 @@ interface Props {
 
 const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
+interface BookingInfo {
+  payment_status: string | null;
+  payment_provider: string | null;
+  manually_added: boolean | null;
+  pending_payment: boolean | null;
+  fee: string | null;
+  discount_amount_cents: number | null;
+  discount_reason: string | null;
+  marked_paid_at: string | null;
+  created_at: string;
+}
+
 const PaymentHistoryDialog = ({ open, onOpenChange, bookingId, email, studentName }: Props) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [txns, setTxns] = useState<Transaction[]>([]);
+  const [booking, setBooking] = useState<BookingInfo | null>(null);
   const [refunds, setRefunds] = useState<Record<string, Refund[]>>({});
   const [refundTx, setRefundTx] = useState<Transaction | null>(null);
   const [refundMode, setRefundMode] = useState<"full" | "custom">("full");
@@ -53,6 +66,17 @@ const PaymentHistoryDialog = ({ open, onOpenChange, bookingId, email, studentNam
 
   const load = useCallback(async () => {
     setLoading(true);
+    if (bookingId) {
+      const { data: b } = await supabase
+        .from("bookings")
+        .select("payment_status, payment_provider, manually_added, pending_payment, fee, discount_amount_cents, discount_reason, marked_paid_at, created_at")
+        .eq("id", bookingId)
+        .maybeSingle();
+      setBooking((b as BookingInfo) || null);
+    } else {
+      setBooking(null);
+    }
+
     let query = supabase.from("payment_transactions").select("*").order("created_at", { ascending: false });
     if (bookingId) query = query.eq("booking_id", bookingId);
     else if (email) query = query.ilike("student_email", email);
@@ -61,6 +85,7 @@ const PaymentHistoryDialog = ({ open, onOpenChange, bookingId, email, studentNam
     const { data } = await query;
     const list = (data as Transaction[]) || [];
     setTxns(list);
+
 
     if (list.length) {
       const { data: refundRows } = await supabase
