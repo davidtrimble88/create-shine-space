@@ -651,7 +651,7 @@ const RegisterPage = () => {
             : data.licenseNumber,
         issuing_country: data.issuingCountry,
         issuing_state: data.idType === "drivers_license" ? data.issuingState : null,
-        license_expiration: data.idType === "drivers_license" ? data.licenseExpiration : null,
+        license_expiration: data.licenseExpiration || null,
         id_photo_path: data.idPhotoPath || null,
         guardian_id_photo_path: isUnder18 ? (data.guardianIdPhotoPath || null) : null,
         emergency_contact_name: data.emergencyContactName || null,
@@ -748,7 +748,7 @@ const RegisterPage = () => {
           : data.licenseNumber,
         idState: data.idType === "drivers_license" ? data.issuingState : "",
         idCountry: data.issuingCountry,
-        idExpiration: data.idType === "drivers_license" ? data.licenseExpiration : "",
+        idExpiration: data.licenseExpiration || "",
         referralSource: data.referralSource,
         course,
         location,
@@ -1376,21 +1376,22 @@ const RegisterPage = () => {
                         </FormItem>
                       )}
                     />
-                    {idType === "drivers_license" && (
-                      <FormField
-                        control={form.control}
-                        name="licenseExpiration"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Expiration Date *</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                    <FormField
+                      control={form.control}
+                      name="licenseExpiration"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Expiration Date *</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <p className="text-xs text-muted-foreground">
+                            Required for every ID. School IDs: use the last day of the school year shown on the ID.
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="issuingCountry"
