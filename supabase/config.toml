@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.send-teaching-schedule]
 verify_jwt = false
+
+[functions.expire-deposit-balances]
+verify_jwt = false
