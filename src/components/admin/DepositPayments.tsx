@@ -72,6 +72,58 @@ const DepositPayments = ({ onBack }: Props) => {
   const [manualMethod, setManualMethod] = useState("cash");
   const [sendingId, setSendingId] = useState<string | null>(null);
 
+  const [editRow, setEditRow] = useState<DepositRow | null>(null);
+  const [editTotal, setEditTotal] = useState("");
+  const [editPaid, setEditPaid] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const toCents = (v: string) => Math.round(Number(v.replace(/[^0-9.]/g, "")) * 100);
+
+  const openEdit = (row: DepositRow) => {
+    setEditRow(row);
+    setEditTotal((row.total_amount_cents / 100).toFixed(2));
+    setEditPaid((row.deposit_amount_cents / 100).toFixed(2));
+  };
+
+  const saveEdit = async () => {
+    if (!editRow) return;
+    const total = toCents(editTotal);
+    const paid = toCents(editPaid);
+    if (!total || total <= 0) {
+      toast({ title: "Enter a valid course total", variant: "destructive" });
+      return;
+    }
+    if (!paid || paid <= 0 || paid > total) {
+      toast({ title: "Enter a valid amount already paid", description: "It must be more than $0 and no more than the course total.", variant: "destructive" });
+      return;
+    }
+    const balance = total - paid;
+    setSavingEdit(true);
+    const { error } = await (supabase as any)
+      .from("booking_deposits")
+      .update({
+        total_amount_cents: total,
+        deposit_amount_cents: paid,
+        balance_cents: balance,
+        deposit_paid_at: editRow.deposit_paid_at ?? new Date().toISOString(),
+        status: balance === 0 ? "paid" : "open",
+        balance_paid_at: balance === 0 ? new Date().toISOString() : null,
+      })
+      .eq("id", editRow.id);
+    setSavingEdit(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (balance === 0) {
+      await (supabase as any).from("bookings").update({ payment_status: "paid", pending_payment: false }).eq("id", editRow.booking_id);
+    }
+    toast({ title: "Deposit updated", description: `Remaining balance is ${money(balance)}.` });
+    setEditRow(null);
+    fetchRows();
+  };
+
+
   const fetchRows = async () => {
     setLoading(true);
     const { data } = await (supabase as any)
