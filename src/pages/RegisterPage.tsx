@@ -1329,7 +1329,7 @@ const RegisterPage = () => {
                             </div>
                             <div className="flex items-center space-x-2">
                               <RadioGroupItem value="other" id="id-other" />
-                              <Label htmlFor="id-other">Other ID (Passport, School ID, etc.)</Label>
+                              <Label htmlFor="id-other">Other Government Issued ID (Passport, School ID, etc.)</Label>
                             </div>
                           </RadioGroup>
                         </FormControl>
