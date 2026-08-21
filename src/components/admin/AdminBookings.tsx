@@ -985,7 +985,8 @@ const AdminBookings = () => {
                     <Select value={studentPaymentMethod} onValueChange={setStudentPaymentMethod}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="charge_card">💳 Take Square Payment</SelectItem>
+                        <SelectItem value="charge_card">💳 Take Square Payment (full)</SelectItem>
+                        <SelectItem value="deposit">🧾 Take Deposit (partial payment)</SelectItem>
                         <SelectItem value="cash">Cash</SelectItem>
                         <SelectItem value="check">Check</SelectItem>
                         <SelectItem value="card">Card (recorded only)</SelectItem>
@@ -994,6 +995,34 @@ const AdminBookings = () => {
                     </Select>
                   </div>
                 )}
+
+                {studentPaymentCollected && studentPaymentMethod === "deposit" && (() => {
+                  const sched = schedules.find(s => s.id === form.schedule_id);
+                  const total = sched ? feeCentsForRider(sched.price, form.date_of_birth || null, sched.date) : 0;
+                  const dep = Math.round((Number(depositAmount.replace(/[^0-9.]/g, "")) || 0) * 100);
+                  const balance = Math.max(total - dep, 0);
+                  const due = sched ? depositDueDate(sched.date) : null;
+                  return (
+                    <div className="space-y-2 rounded-md border border-accent/40 bg-accent/5 p-3">
+                      <Label className="text-xs">Deposit amount (any amount)</Label>
+                      <Input
+                        inputMode="decimal"
+                        placeholder="150.00"
+                        value={depositAmount}
+                        onChange={e => setDepositAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+                      />
+                      <div className="text-xs space-y-1">
+                        <div className="flex justify-between"><span className="text-muted-foreground">Course total</span><span className="font-medium text-foreground">{centsToLabel(total)}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Deposit today</span><span className="font-medium text-foreground">{centsToLabel(dep)}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Remaining balance</span><span className="font-semibold text-accent">{centsToLabel(balance)}</span></div>
+                        <p className="text-muted-foreground pt-1">
+                          Balance is due by <span className="font-semibold text-foreground">{due ?? "—"}</span> (7 days before class).
+                          If it isn't paid, the student is moved to pending reschedule and the seat is released automatically.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
                 {!studentPaymentCollected && (
                   <div className="space-y-2">
                     <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
