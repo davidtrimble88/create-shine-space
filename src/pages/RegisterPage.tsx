@@ -510,7 +510,13 @@ const RegisterPage = () => {
       additionalRecipients,
     });
 
+    // The booking now owns the seat, so give the temporary hold back.
+    inFlowRef.current = false;
+    setHoldExpiresAt(null);
+    releaseSeatHold(null, true);
+
     form.reset();
+
     setPendingBooking(null);
     setPendingGroupName(null);
     setPendingScheduleDetail(null);
