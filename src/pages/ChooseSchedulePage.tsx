@@ -133,7 +133,12 @@ const ChooseSchedulePage = () => {
             <p className="text-sm text-muted-foreground">
               {(course === "premier" || (course === "intermediate" && track === "1dpc")) ? "1-Day Premier Course / Intermediate" : courseLabels[course] || course} · {locationLabels[location] || location}
             </p>
+            <p className="mt-4 inline-flex items-center gap-2 text-sm text-accent bg-accent/10 border border-accent/30 rounded-full px-4 py-2">
+              <Timer className="w-4 h-4" />
+              Once you pick a date we hold your seat for {SEAT_HOLD_MINUTES} minutes while you register.
+            </p>
           </motion.div>
+
 
           {loading ? (
             <div className="flex justify-center py-12">
