@@ -996,9 +996,14 @@ const RegisterPage = () => {
         booking_id: String(pendingBooking.id ?? "") || null,
       });
       paymentCompletedRef.current = true;
+      // Cash holds don't take a seat, so simply release the temporary hold.
+      inFlowRef.current = false;
+      setHoldExpiresAt(null);
+      releaseSeatHold(null, false);
       setMethodOpen(false);
       setPaymentOpen(false);
       form.reset();
+
       setPendingBooking(null);
       setPendingGroupName(null);
       setPendingScheduleDetail(null);
