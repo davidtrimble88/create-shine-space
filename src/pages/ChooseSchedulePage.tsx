@@ -1,13 +1,15 @@
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { CalendarDays, Clock, MapPin, Users, ArrowRight, Loader2 } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Users, ArrowRight, Loader2, Timer } from "lucide-react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { format, parseISO } from "date-fns";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import Seo from "@/components/Seo";
+import { createSeatHold, releaseSeatHold, SEAT_HOLD_MINUTES } from "@/lib/seatHold";
+import { toast } from "@/hooks/use-toast";
 
 type Schedule = Tables<"schedules">;
 
@@ -22,7 +24,9 @@ const ChooseSchedulePage = () => {
   const trackParam = track ? `&track=${track}` : "";
   const [classes, setClasses] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [holding, setHolding] = useState<string | null>(null);
   const [otherLocations, setOtherLocations] = useState<{ location: string; label: string; count: number }[]>([]);
+
 
   const courseLabels: Record<string, string> = {
     basic: "Motorcyclist Training Course",
