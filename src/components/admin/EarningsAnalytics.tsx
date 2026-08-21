@@ -89,7 +89,7 @@ const EarningsAnalytics = () => {
     passed: 0, failed: 0, resultsTotal: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [bounds, setBounds] = useState<{ from: string; to: string } | null>(null);
+  const [rangeBounds, setRangeBounds] = useState<{ from: string; to: string } | null>(null);
   const { effectiveRole } = useAuth();
   const isOwner = effectiveRole === "owner";
   const [financeSearchOpen, setFinanceSearchOpen] = useState(false);
@@ -179,7 +179,7 @@ const EarningsAnalytics = () => {
     const run = async () => {
       setLoading(true);
       const { from, to } = getDateBounds();
-      setBounds({ from, to });
+      setRangeBounds({ from, to });
 
       const [earningsRes, dropsRes, noShowRes, rescheduleRes, resultsRes, cancelRes, feesRes] = await Promise.all([
         supabase
@@ -780,7 +780,7 @@ const EarningsAnalytics = () => {
         </div>
       )}
 
-      {bounds && <DepositAnalytics from={bounds.from} to={bounds.to} />}
+      {rangeBounds && <DepositAnalytics from={rangeBounds.from} to={rangeBounds.to} />}
 
       {/* Operations Stats */}
       <h2 className="text-lg font-semibold text-foreground mb-3">Operations</h2>
