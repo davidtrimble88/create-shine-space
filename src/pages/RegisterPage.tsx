@@ -266,6 +266,70 @@ const RegisterPage = () => {
   const [paymentRegion, setPaymentRegion] = useState<SquareRegion>("ventura");
   const [paymentAmountCents, setPaymentAmountCents] = useState(0);
   const [paymentAmountLabel, setPaymentAmountLabel] = useState("");
+
+  // ---- Seat hold: the class seat is reserved while this form is being filled out.
+  const [holdExpiresAt, setHoldExpiresAt] = useState<string | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const inFlowRef = useRef(false);
+
+  useEffect(() => {
+    if (!schedule) return;
+    let cancelled = false;
+    const ensureHold = async () => {
+      const stored = readStoredHold();
+      if (stored && stored.scheduleId === schedule && new Date(stored.expiresAt) > new Date()) {
+        if (!cancelled) setHoldExpiresAt(stored.expiresAt);
+        return;
+      }
+      const res = await createSeatHold(schedule);
+      if (cancelled) return;
+      if (res.ok) setHoldExpiresAt(res.hold.expiresAt);
+      else {
+        toast({ title: "Seat not available", description: res.message, variant: "destructive" });
+        navigate(`/choose-schedule?course=${course}&location=${location}`);
+      }
+    };
+    ensureHold();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schedule]);
+
+  useEffect(() => {
+    if (!holdExpiresAt) return;
+    let stopped = false;
+
+    const handleExpired = async () => {
+      if (stopped) return;
+      if (inFlowRef.current) {
+        // Mid-signing or mid-payment — quietly try to keep the seat instead of
+        // kicking them out of a form they've already filled in.
+        const res = await createSeatHold(schedule);
+        if (!stopped && res.ok) setHoldExpiresAt(res.hold.expiresAt);
+        else if (!stopped) setHoldExpiresAt(null);
+        return;
+      }
+      stopped = true;
+      clearStoredHold();
+      setHoldExpiresAt(null);
+      toast({
+        title: "Your seat hold expired",
+        description: `We held your seat for ${SEAT_HOLD_MINUTES} minutes. Please pick a class date again.`,
+        variant: "destructive",
+      });
+      navigate(`/choose-schedule?course=${course}&location=${location}`);
+    };
+
+    const tick = () => {
+      const left = Math.floor((new Date(holdExpiresAt).getTime() - Date.now()) / 1000);
+      setSecondsLeft(Math.max(left, 0));
+      if (left <= 0) handleExpired();
+    };
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => { stopped = true; window.clearInterval(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [holdExpiresAt, schedule]);
+
   const skipPaymentRef = useRef(false);
   const [waiverOpen, setWaiverOpen] = useState(false);
   const [waiverPrefill, setWaiverPrefill] = useState<WaiverPrefill | null>(null);
