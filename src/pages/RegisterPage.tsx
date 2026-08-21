@@ -1390,9 +1390,6 @@ const RegisterPage = () => {
                               School IDs: use the last day of the school year shown on the ID.
                             </p>
                           )}
-                          <p className="text-xs text-muted-foreground">
-                            Expiration date is required for every ID.
-                          </p>
                           <FormMessage />
                         </FormItem>
                       )}
