@@ -329,8 +329,12 @@ const DepositPayments = ({ onBack }: Props) => {
                         <Button size="sm" variant="outline" onClick={() => { setManualRow(row); setManualMethod("cash"); }}>
                           Mark paid
                         </Button>
+                        <Button size="sm" variant="ghost" onClick={() => openEdit(row)}>
+                          <Pencil className="w-4 h-4 mr-1" /> Edit amounts
+                        </Button>
                       </>
                     )}
+
                     {row.status === "paid" && (
                       <span className="text-xs text-muted-foreground">Paid {row.balance_paid_at?.split("T")[0]} ({row.balance_method || "card"})</span>
                     )}
