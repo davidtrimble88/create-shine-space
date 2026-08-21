@@ -110,6 +110,74 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_deposits: {
+        Row: {
+          balance_cents: number
+          balance_method: string | null
+          balance_paid_at: string | null
+          balance_payment_id: string | null
+          booking_id: string
+          created_at: string
+          created_by: string | null
+          deposit_amount_cents: number
+          deposit_paid_at: string | null
+          deposit_payment_id: string | null
+          due_date: string
+          forfeited_at: string | null
+          id: string
+          notes: string | null
+          status: string
+          total_amount_cents: number
+          updated_at: string
+        }
+        Insert: {
+          balance_cents: number
+          balance_method?: string | null
+          balance_paid_at?: string | null
+          balance_payment_id?: string | null
+          booking_id: string
+          created_at?: string
+          created_by?: string | null
+          deposit_amount_cents: number
+          deposit_paid_at?: string | null
+          deposit_payment_id?: string | null
+          due_date: string
+          forfeited_at?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          total_amount_cents: number
+          updated_at?: string
+        }
+        Update: {
+          balance_cents?: number
+          balance_method?: string | null
+          balance_paid_at?: string | null
+          balance_payment_id?: string | null
+          booking_id?: string
+          created_at?: string
+          created_by?: string | null
+          deposit_amount_cents?: number
+          deposit_paid_at?: string | null
+          deposit_payment_id?: string | null
+          due_date?: string
+          forfeited_at?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          total_amount_cents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_deposits_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_form_tokens: {
         Row: {
           booking_id: string
