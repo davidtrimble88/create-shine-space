@@ -1011,7 +1011,9 @@ const AdminBookings = () => {
 
               </div>
               <Button onClick={handleSubmit} className="w-full">
-                {studentPaymentCollected && studentPaymentMethod === "charge_card" ? (
+                {studentPaymentCollected && studentPaymentMethod === "deposit" ? (
+                  <><Wallet className="w-4 h-4 mr-2" />Charge Deposit &amp; Add Student</>
+                ) : studentPaymentCollected && studentPaymentMethod === "charge_card" ? (
                   <><CreditCard className="w-4 h-4 mr-2" />Charge Card &amp; Add Student</>
                 ) : "Add Student to Class"}
               </Button>
