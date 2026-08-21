@@ -1128,7 +1128,21 @@ const RegisterPage = () => {
               {courseLabels[course] || course} · {locationLabels[location] || location}
               {scheduleLabel && ` · ${scheduleLabel}`}
             </p>
+            {secondsLeft !== null && holdExpiresAt && (
+              <p
+                className={`mt-4 inline-flex items-center gap-2 text-sm font-semibold rounded-full px-4 py-2 border ${
+                  secondsLeft <= 300
+                    ? "text-destructive bg-destructive/10 border-destructive/30"
+                    : "text-accent bg-accent/10 border-accent/30"
+                }`}
+                aria-live="polite"
+              >
+                <Timer className="w-4 h-4" />
+                Seat reserved — {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, "0")} left to finish
+              </p>
+            )}
           </motion.div>
+
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}
