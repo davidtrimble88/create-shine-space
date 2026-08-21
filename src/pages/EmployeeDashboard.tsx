@@ -237,6 +237,26 @@ const EmployeeDashboard = () => {
     return () => { cancelled = true; supabase.removeChannel(channel); };
   }, [user, effectiveRole, activeTab]);
 
+  // Open sub coverage requests count (sidebar badge)
+  const [openSubRequests, setOpenSubRequests] = useState(0);
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const recompute = async () => {
+      const { count } = await supabase
+        .from("sub_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "open");
+      if (!cancelled) setOpenSubRequests(count || 0);
+    };
+    recompute();
+    const channel = supabase
+      .channel("sidebar-open-sub-requests")
+      .on("postgres_changes", { event: "*", schema: "public", table: "sub_requests" }, recompute)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [user, activeTab]);
+
 
 
   // Fetch the logged-in employee's name for the welcome header
