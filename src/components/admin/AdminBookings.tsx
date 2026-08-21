@@ -8,10 +8,11 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard, Banknote, Mail, Link2 } from "lucide-react";
+import { UserPlus, Search, Eye, X, DollarSign, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, CreditCard, Banknote, Mail, Link2, Wallet } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminCancellations from "./AdminCancellations";
 import PendingCashPayments from "./PendingCashPayments";
+import DepositPayments from "./DepositPayments";
 import { PaymentDialog, type PaymentProvider } from "@/components/PaymentDialog";
 import type { SquareRegion } from "@/components/SquarePaymentDialog";
 import { formatPSTDate } from "@/lib/formatDate";
@@ -60,6 +61,14 @@ const feeCentsForRider = (
   return isUnder21 ? UNDER_21_CENTS : ADULT_DEFAULT_CENTS;
 };
 
+/** Balance on a deposit is due 7 days before the class start date. */
+export const depositDueDate = (classDate: string | null | undefined): string => {
+  if (!classDate) return new Date().toISOString().split("T")[0];
+  const d = new Date(`${classDate}T00:00:00`);
+  d.setDate(d.getDate() - 7);
+  return d.toISOString().split("T")[0];
+};
+
 const centsToLabel = (cents: number) =>
   cents % 100 === 0 ? `$${cents / 100}` : `$${(cents / 100).toFixed(2)}`;
 
@@ -96,7 +105,11 @@ const AdminBookings = () => {
   const [retestDialogOpen, setRetestDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
-  const [view, setView] = useState<"bookings" | "cancellations" | "pending-cash">("bookings");
+  const [view, setView] = useState<"bookings" | "cancellations" | "pending-cash" | "deposits">("bookings");
+  const [depositCount, setDepositCount] = useState(0);
+  const [depositAmount, setDepositAmount] = useState("");
+  const [chargeFeeToken, setChargeFeeToken] = useState<string | undefined>(undefined);
+  const [pendingDepositId, setPendingDepositId] = useState<string | null>(null);
   const [pendingCashCount, setPendingCashCount] = useState(0);
   const [pendingRescheduleCount, setPendingRescheduleCount] = useState(0);
   
@@ -180,6 +193,12 @@ const AdminBookings = () => {
       .eq("pending_payment", true)
       .eq("archived", false);
     setPendingCashCount(cashCount ?? 0);
+
+    const { count: depCount } = await (supabase as any)
+      .from("booking_deposits")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["awaiting_deposit", "open"]);
+    setDepositCount(depCount ?? 0);
   };
 
   useEffect(() => { fetchData(); fetchPendingCount(); }, []);
@@ -381,9 +400,77 @@ const AdminBookings = () => {
       setChargeRegion(regionFor(sched.location));
       setChargeAmountCents(cents);
       setChargeAmountLabel(centsToLabel(cents));
+      setChargeFeeToken(undefined);
+      setPendingDepositId(null);
 
       setDialogOpen(false);
       setChargeOpen(true);
+      return;
+    }
+
+    // Deposit: register the student now, charge a custom partial amount, and
+    // track the remaining balance (due 7 days before class).
+    if (studentPaymentCollected && studentPaymentMethod === "deposit") {
+      const total = feeCentsForRider(sched.price, form.date_of_birth || null, sched.date);
+      const depositCents = Math.round((Number(depositAmount.replace(/[^0-9.]/g, "")) || 0) * 100);
+      if (total <= 0) {
+        toast({ title: "Invalid fee", description: "This class has no price set.", variant: "destructive" });
+        return;
+      }
+      if (depositCents <= 0 || depositCents >= total) {
+        toast({ title: "Invalid deposit", description: `Enter a deposit between $0.01 and ${centsToLabel(total - 1)}.`, variant: "destructive" });
+        return;
+      }
+
+      const { error: insErr } = await supabase.from("bookings").insert({
+        ...basePayload,
+        fee: centsToLabel(total),
+        payment_status: "partial",
+        payment_provider: "square",
+        booking_status: "confirmed",
+      } as any);
+      if (insErr) {
+        toast({ title: "Error", description: insErr.message, variant: "destructive" });
+        return;
+      }
+
+      const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
+      const { error: feeErr } = await (supabase as any).from("fee_payment_requests").insert({
+        booking_id: basePayload.id,
+        token,
+        fee_type: "deposit",
+        amount_cents: depositCents,
+        note: "Course deposit",
+        created_by: user?.id ?? null,
+      });
+      const { data: depRow, error: depErr } = await (supabase as any)
+        .from("booking_deposits")
+        .insert({
+          booking_id: basePayload.id,
+          total_amount_cents: total,
+          deposit_amount_cents: depositCents,
+          balance_cents: total - depositCents,
+          due_date: depositDueDate(sched.date),
+          status: "awaiting_deposit",
+          created_by: user?.id ?? null,
+        })
+        .select("id")
+        .single();
+
+      if (feeErr || depErr) {
+        toast({ title: "Error", description: (feeErr || depErr)?.message ?? "Could not set up the deposit", variant: "destructive" });
+        return;
+      }
+
+      setChargePayload(basePayload);
+      setChargeRegion(regionFor(sched.location));
+      setChargeAmountCents(depositCents);
+      setChargeAmountLabel(centsToLabel(depositCents));
+      setChargeFeeToken(token);
+      setPendingDepositId(depRow.id as string);
+      setDialogOpen(false);
+      setChargeOpen(true);
+      fetchData();
       return;
     }
 
@@ -470,14 +557,28 @@ const AdminBookings = () => {
     }
   };
 
-  const handleChargeSuccess = (_paymentId: string, _provider: PaymentProvider) => {
-    toast({ title: "Payment received", description: "Student has been booked and marked paid." });
+  const handleChargeSuccess = (paymentId: string, _provider: PaymentProvider) => {
+    if (pendingDepositId) {
+      void (async () => {
+        await (supabase as any)
+          .from("booking_deposits")
+          .update({ status: "open", deposit_paid_at: new Date().toISOString(), deposit_payment_id: paymentId })
+          .eq("id", pendingDepositId);
+        fetchPendingCount();
+      })();
+      toast({ title: "Deposit received", description: "Student is registered. The remaining balance is now tracked in the Deposits tab." });
+    } else {
+      toast({ title: "Payment received", description: "Student has been booked and marked paid." });
+    }
     if (chargePayload) {
       void sendConfirmationForBooking(chargePayload);
       promptSendFormsLink(chargePayload as unknown as Booking);
     }
     setChargeOpen(false);
     setChargePayload(null);
+    setChargeFeeToken(undefined);
+    setPendingDepositId(null);
+    setDepositAmount("");
     setForm({ schedule_id: "", rider_track: "irc", bike_year: "", bike_make: "", bike_model: "", first_name: "", middle_name: "", last_name: "", preferred_name: "", email: "", phone: "", gender: "", date_of_birth: "", address: "", city: "", state: "", zip: "", license_number: "", issuing_country: "US", issuing_state: "", license_expiration: "", referral_source: "", emergency_contact_name: "", emergency_contact_relationship: "", emergency_contact_phone: "", guardian_name: "", guardian_relationship: "", guardian_phone: "", guardian_email: "" });
     setStudentPaymentCollected(false);
     setStudentPaymentMethod("cash");
@@ -567,11 +668,24 @@ const AdminBookings = () => {
     return <PendingCashPayments onBack={() => { setView("bookings"); fetchData(); fetchPendingCount(); }} />;
   }
 
+  if (view === "deposits") {
+    return <DepositPayments onBack={() => { setView("bookings"); fetchData(); fetchPendingCount(); }} />;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+        <Button variant="outline" onClick={() => setView("deposits")} className={depositCount > 0 ? "border-accent text-accent" : ""}>
+          <Wallet className="w-4 h-4 mr-2" />
+          Deposits
+          {depositCount > 0 && (
+            <span className="ml-2 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold">
+              {depositCount}
+            </span>
+          )}
+        </Button>
         <Button variant="outline" onClick={() => setView("pending-cash")} className={pendingCashCount > 0 ? "border-accent text-accent" : ""}>
           <Banknote className="w-4 h-4 mr-2" />
           Pending Payment (Cash)
@@ -985,7 +1099,8 @@ const AdminBookings = () => {
                     <Select value={studentPaymentMethod} onValueChange={setStudentPaymentMethod}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="charge_card">💳 Take Square Payment</SelectItem>
+                        <SelectItem value="charge_card">💳 Take Square Payment (full)</SelectItem>
+                        <SelectItem value="deposit">🧾 Take Deposit (partial payment)</SelectItem>
                         <SelectItem value="cash">Cash</SelectItem>
                         <SelectItem value="check">Check</SelectItem>
                         <SelectItem value="card">Card (recorded only)</SelectItem>
@@ -994,6 +1109,34 @@ const AdminBookings = () => {
                     </Select>
                   </div>
                 )}
+
+                {studentPaymentCollected && studentPaymentMethod === "deposit" && (() => {
+                  const sched = schedules.find(s => s.id === form.schedule_id);
+                  const total = sched ? feeCentsForRider(sched.price, form.date_of_birth || null, sched.date) : 0;
+                  const dep = Math.round((Number(depositAmount.replace(/[^0-9.]/g, "")) || 0) * 100);
+                  const balance = Math.max(total - dep, 0);
+                  const due = sched ? depositDueDate(sched.date) : null;
+                  return (
+                    <div className="space-y-2 rounded-md border border-accent/40 bg-accent/5 p-3">
+                      <Label className="text-xs">Deposit amount (any amount)</Label>
+                      <Input
+                        inputMode="decimal"
+                        placeholder="150.00"
+                        value={depositAmount}
+                        onChange={e => setDepositAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+                      />
+                      <div className="text-xs space-y-1">
+                        <div className="flex justify-between"><span className="text-muted-foreground">Course total</span><span className="font-medium text-foreground">{centsToLabel(total)}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Deposit today</span><span className="font-medium text-foreground">{centsToLabel(dep)}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Remaining balance</span><span className="font-semibold text-accent">{centsToLabel(balance)}</span></div>
+                        <p className="text-muted-foreground pt-1">
+                          Balance is due by <span className="font-semibold text-foreground">{due ?? "—"}</span> (7 days before class).
+                          If it isn't paid, the student is moved to pending reschedule and the seat is released automatically.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
                 {!studentPaymentCollected && (
                   <div className="space-y-2">
                     <p className="text-xs text-muted-foreground">Student will be marked as <span className="font-semibold text-destructive">unpaid</span></p>
@@ -1011,7 +1154,9 @@ const AdminBookings = () => {
 
               </div>
               <Button onClick={handleSubmit} className="w-full">
-                {studentPaymentCollected && studentPaymentMethod === "charge_card" ? (
+                {studentPaymentCollected && studentPaymentMethod === "deposit" ? (
+                  <><Wallet className="w-4 h-4 mr-2" />Charge Deposit &amp; Add Student</>
+                ) : studentPaymentCollected && studentPaymentMethod === "charge_card" ? (
                   <><CreditCard className="w-4 h-4 mr-2" />Charge Card &amp; Add Student</>
                 ) : "Add Student to Class"}
               </Button>
@@ -1428,11 +1573,12 @@ const AdminBookings = () => {
       {chargePayload && (
         <PaymentDialog
           open={chargeOpen}
-          onOpenChange={(o) => { if (!o) { setChargeOpen(false); setChargePayload(null); } }}
+          onOpenChange={(o) => { if (!o) { setChargeOpen(false); setChargePayload(null); setChargeFeeToken(undefined); setPendingDepositId(null); } }}
           region={chargeRegion}
           amountCents={chargeAmountCents}
           amountLabel={chargeAmountLabel}
           bookingPayload={chargePayload}
+          feeToken={chargeFeeToken}
           phoneAuthorization
           onSuccess={handleChargeSuccess}
         />

@@ -15,6 +15,8 @@ interface Props {
   amountLabel: string;
   bookingPayload: Record<string, unknown>;
   discount?: PaymentDiscount;
+  /** When set, charges a staff-created fee/deposit request instead of a course registration. */
+  feeToken?: string;
   attemptTracking?: { attemptId: string | null; visitorId: string | null };
   /** Staff-taken card-not-present payment: shows the phone authorization script. */
   phoneAuthorization?: boolean;
