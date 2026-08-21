@@ -567,11 +567,24 @@ const AdminBookings = () => {
     return <PendingCashPayments onBack={() => { setView("bookings"); fetchData(); fetchPendingCount(); }} />;
   }
 
+  if (view === "deposits") {
+    return <DepositPayments onBack={() => { setView("bookings"); fetchData(); fetchPendingCount(); }} />;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+        <Button variant="outline" onClick={() => setView("deposits")} className={depositCount > 0 ? "border-accent text-accent" : ""}>
+          <Wallet className="w-4 h-4 mr-2" />
+          Deposits
+          {depositCount > 0 && (
+            <span className="ml-2 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold">
+              {depositCount}
+            </span>
+          )}
+        </Button>
         <Button variant="outline" onClick={() => setView("pending-cash")} className={pendingCashCount > 0 ? "border-accent text-accent" : ""}>
           <Banknote className="w-4 h-4 mr-2" />
           Pending Payment (Cash)
