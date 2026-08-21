@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { Timer } from "lucide-react";
+
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
