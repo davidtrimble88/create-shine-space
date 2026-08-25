@@ -333,6 +333,8 @@ const EmployeeDashboard = () => {
   // Per-user custom tab ordering (persisted in localStorage) — declared before any early returns
   const orderKey = user ? `dashboardTabOrder:${user.id}` : "";
   const [tabOrder, setTabOrder] = useState<string[]>([]);
+  const [navSearch, setNavSearch] = useState("");
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [reorderMode, setReorderMode] = useState(false);
   const dragId = useRef<string | null>(null);
 
@@ -368,13 +370,17 @@ const EmployeeDashboard = () => {
     try { if (orderKey) localStorage.setItem(orderKey, JSON.stringify(order)); } catch {}
   };
 
-  const visibleTabs = (() => {
+  const orderedTabs = (() => {
     if (!tabOrder.length) return baseVisibleTabs;
     const map = new Map(baseVisibleTabs.map(t => [t.id, t] as const));
     const ordered = tabOrder.map(id => map.get(id as any)).filter(Boolean) as typeof baseVisibleTabs;
     const rest = baseVisibleTabs.filter(t => !tabOrder.includes(t.id));
     return [...ordered, ...rest];
   })();
+
+  const q = navSearch.trim().toLowerCase();
+  const visibleTabs = q ? orderedTabs.filter(t => t.label.toLowerCase().includes(q)) : orderedTabs;
+  const useFlatNav = reorderMode || !!q;
 
   const handleDragStart = (id: string) => { dragId.current = id; };
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); };
