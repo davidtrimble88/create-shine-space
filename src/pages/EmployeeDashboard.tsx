@@ -44,35 +44,48 @@ import Seo from "@/components/Seo";
 
 
 const tabs = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "schedule", label: "Schedule Management", icon: CalendarDays, roles: ["owner", "admin", "manager"] },
-  { id: "full-schedule", label: "Full Schedule", icon: FileText, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "my-schedule", label: "Upcoming Availability", icon: Hand, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "employees", label: "Employees", icon: Users, roles: ["owner", "admin"] },
-  { id: "bookings", label: "Bookings", icon: ClipboardList, roles: ["owner", "admin"] },
-  { id: "referrals", label: "Referral Sources", icon: ListPlus, roles: ["owner", "admin"] },
-  { id: "rosters", label: "Class Rosters", icon: ListChecks, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "files", label: "Files", icon: FolderOpen, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "it-tickets", label: "IT Tickets", icon: Wrench, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "messages", label: "Messages", icon: MessageSquare, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "certifications", label: "Certifications", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "work-log", label: "Work Log", icon: ClipboardList, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "sub-coverage", label: "Sub Coverage", icon: UserMinus, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "schedule-reporting", label: "Schedule Reporting", icon: BarChart3, roles: ["owner"] },
-  
-  
-  { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, roles: ["owner", "admin"] },
-  { id: "registration-issues", label: "Registration Issues", icon: AlertTriangle, roles: ["owner", "admin"] },
-  
-  { id: "auto-emails", label: "Auto Emails", icon: Mail, roles: ["owner", "admin"] },
-  { id: "earnings", label: "Financial", icon: DollarSign, roles: ["owner"] },
-  { id: "discounts", label: "Discounts", icon: Ticket, roles: ["owner", "admin"] },
-  { id: "payment-settings", label: "Payment Settings", icon: CreditCard, roles: ["owner"] },
-  { id: "analytics", label: "Website Analytics", icon: BarChart3, roles: ["owner"] },
-  { id: "roles", label: "Role Permissions", icon: KeyRound, roles: ["owner"] },
-  { id: "security-questions", label: "Security Questions", icon: ShieldCheck, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "change-password", label: "Change Password", icon: Lock, roles: ["owner", "admin", "manager", "employee"] },
-  { id: "how-to", label: "How To", icon: HelpCircle, roles: ["owner", "admin", "manager", "employee"] },
+  { id: "overview", label: "Overview", icon: LayoutDashboard, group: "today", roles: ["owner", "admin", "manager", "employee"] },
+  { id: "my-schedule", label: "Upcoming Availability", icon: Hand, group: "today", roles: ["owner", "admin", "manager", "employee"] },
+  { id: "messages", label: "Messages", icon: MessageSquare, group: "today", roles: ["owner", "admin", "manager", "employee"] },
+
+  { id: "schedule", label: "Schedule Management", icon: CalendarDays, group: "classes", roles: ["owner", "admin", "manager"] },
+  { id: "full-schedule", label: "Full Schedule", icon: FileText, group: "classes", roles: ["owner", "admin", "manager", "employee"] },
+  { id: "rosters", label: "Class Rosters", icon: ListChecks, group: "classes", roles: ["owner", "admin", "manager", "employee"] },
+  { id: "sub-coverage", label: "Sub Coverage", icon: UserMinus, group: "classes", roles: ["owner", "admin", "manager", "employee"] },
+  { id: "schedule-reporting", label: "Schedule Reporting", icon: BarChart3, group: "classes", roles: ["owner"] },
+
+  { id: "bookings", label: "Bookings", icon: ClipboardList, group: "students", roles: ["owner", "admin"] },
+  { id: "registration-issues", label: "Registration Issues", icon: AlertTriangle, group: "students", roles: ["owner", "admin"] },
+  { id: "signed-waivers", label: "Signed Waivers", icon: ShieldCheck, group: "students", roles: ["owner", "admin"] },
+  { id: "referrals", label: "Referral Sources", icon: ListPlus, group: "students", roles: ["owner", "admin"] },
+
+  { id: "employees", label: "Employees", icon: Users, group: "team", roles: ["owner", "admin"] },
+  { id: "certifications", label: "Certifications", icon: ShieldCheck, group: "team", roles: ["owner", "admin", "manager", "employee"] },
+  { id: "work-log", label: "Work Log", icon: ClipboardList, group: "team", roles: ["owner", "admin", "manager", "employee"] },
+  { id: "roles", label: "Role Permissions", icon: KeyRound, group: "team", roles: ["owner"] },
+
+  { id: "earnings", label: "Financial", icon: DollarSign, group: "business", roles: ["owner"] },
+  { id: "discounts", label: "Discounts", icon: Ticket, group: "business", roles: ["owner", "admin"] },
+  { id: "payment-settings", label: "Payment Settings", icon: CreditCard, group: "business", roles: ["owner"] },
+  { id: "analytics", label: "Website Analytics", icon: BarChart3, group: "business", roles: ["owner"] },
+  { id: "auto-emails", label: "Auto Emails", icon: Mail, group: "business", roles: ["owner", "admin"] },
+
+  { id: "files", label: "Files", icon: FolderOpen, group: "workspace", roles: ["owner", "admin", "manager", "employee"] },
+  { id: "it-tickets", label: "IT Tickets", icon: Wrench, group: "workspace", roles: ["owner", "admin", "manager", "employee"] },
+  { id: "how-to", label: "How To", icon: HelpCircle, group: "workspace", roles: ["owner", "admin", "manager", "employee"] },
+
+  { id: "security-questions", label: "Security Questions", icon: ShieldCheck, group: "account", roles: ["owner", "admin", "manager", "employee"] },
+  { id: "change-password", label: "Change Password", icon: Lock, group: "account", roles: ["owner", "admin", "manager", "employee"] },
+] as const;
+
+const tabGroups = [
+  { id: "today", label: "Today" },
+  { id: "classes", label: "Classes & Schedule" },
+  { id: "students", label: "Students & Registrations" },
+  { id: "team", label: "Team" },
+  { id: "business", label: "Business" },
+  { id: "workspace", label: "Workspace" },
+  { id: "account", label: "My Account" },
 ] as const;
 
 type TabId = typeof tabs[number]["id"];
