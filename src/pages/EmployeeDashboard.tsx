@@ -497,85 +497,54 @@ const EmployeeDashboard = () => {
       {/* Nav items */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {!collapsed && (
-          <div className="flex items-center justify-between px-2 pb-2">
-            <button
-              onClick={() => setReorderMode(v => !v)}
-              className={`text-[11px] font-medium px-2 py-1 rounded ${reorderMode ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
-              title="Drag tabs to reorder"
-            >
-              {reorderMode ? "Done" : "Reorder"}
-            </button>
-            {reorderMode && (
+          <div className="px-2 pb-2 space-y-2">
+            <input
+              value={navSearch}
+              onChange={(e) => setNavSearch(e.target.value)}
+              placeholder="Search…"
+              className="w-full h-8 rounded-md bg-secondary/60 border border-border px-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+            <div className="flex items-center justify-between">
               <button
-                onClick={resetOrder}
-                className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-secondary"
+                onClick={() => setReorderMode(v => !v)}
+                className={`text-[11px] font-medium px-2 py-1 rounded ${reorderMode ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
+                title="Drag tabs to reorder"
               >
-                Reset
+                {reorderMode ? "Done" : "Reorder"}
               </button>
-            )}
+              {reorderMode && (
+                <button
+                  onClick={resetOrder}
+                  className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-secondary"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
           </div>
         )}
-        {visibleTabs.map((tab) => (
-          <button
-            key={tab.id}
-            data-tour-target={tab.id}
-            draggable={reorderMode}
-            onDragStart={() => handleDragStart(tab.id)}
-            onDragOver={handleDragOver}
-            onDrop={() => handleDrop(tab.id)}
-            onClick={() => { if (!reorderMode) handleTabSelect(tab.id); }}
-            className={`relative w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
-              collapsed ? "justify-center px-2 py-3" : "px-4 py-3"
-            } ${
-              activeTab === tab.id
-                ? "bg-accent/10 text-accent"
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-            } ${reorderMode ? "cursor-grab active:cursor-grabbing ring-1 ring-dashed ring-border" : ""}`}
-            title={collapsed ? tab.label : undefined}
-          >
-            <tab.icon className="w-5 h-5 flex-shrink-0" />
-            {!collapsed && <span className="flex-1 text-left">{tab.label}</span>}
-            {tab.id === "messages" && unreadMessages > 0 && (
-              collapsed ? (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent" />
-              ) : (
-                <span className="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold flex items-center justify-center">
-                  {unreadMessages > 99 ? "99+" : unreadMessages}
-                </span>
-              )
-            )}
-            {tab.id === "it-tickets" && openTickets > 0 && (
-              collapsed ? (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent" />
-              ) : (
-                <span className="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold flex items-center justify-center">
-                  {openTickets > 99 ? "99+" : openTickets}
-                </span>
-              )
-            )}
-            {tab.id === "work-log" && pendingExtraHours > 0 && (
-              collapsed ? (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent" />
-              ) : (
-                <span className="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold flex items-center justify-center">
-                  {pendingExtraHours > 99 ? "99+" : pendingExtraHours}
-                </span>
-              )
-            )}
-            {tab.id === "sub-coverage" && openSubRequests > 0 && (
-              collapsed ? (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent" />
-              ) : (
-                <span className="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold flex items-center justify-center">
-                  {openSubRequests > 99 ? "99+" : openSubRequests}
-                </span>
-              )
-            )}
-
-          </button>
-
-
-        ))}
+        {useFlatNav
+          ? visibleTabs.map((tab) => renderTabButton(tab, collapsed))
+          : tabGroups.map((group) => {
+              const items = visibleTabs.filter((t) => t.group === group.id);
+              if (!items.length) return null;
+              const isOpen = collapsed || openGroups[group.id] !== false || items.some((i) => i.id === activeTab);
+              return (
+                <div key={group.id} className="pb-1">
+                  {!collapsed && (
+                    <button
+                      onClick={() => setOpenGroups((prev) => ({ ...prev, [group.id]: !(prev[group.id] !== false) }))}
+                      className="w-full flex items-center justify-between px-4 py-1.5 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/70 hover:text-foreground"
+                    >
+                      <span>{group.label}</span>
+                      <ChevronRight className={`w-3 h-3 transition-transform ${isOpen ? "rotate-90" : ""}`} />
+                    </button>
+                  )}
+                  {collapsed && <div className="my-2 mx-3 border-t border-border" />}
+                  {isOpen && <div className="space-y-1">{items.map((tab) => renderTabButton(tab, collapsed))}</div>}
+                </div>
+              );
+            })}
       </nav>
 
       {/* Collapse toggle (desktop only) */}
