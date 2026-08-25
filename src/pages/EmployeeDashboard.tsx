@@ -412,6 +412,48 @@ const EmployeeDashboard = () => {
     setSearchParams(next, { replace: true });
   };
 
+  const badgeFor = (id: string) =>
+    id === "messages" ? unreadMessages
+    : id === "it-tickets" ? openTickets
+    : id === "work-log" ? pendingExtraHours
+    : id === "sub-coverage" ? openSubRequests
+    : 0;
+
+  const renderTabButton = (tab: typeof tabs[number], collapsed: boolean) => {
+    const count = badgeFor(tab.id);
+    return (
+      <button
+        key={tab.id}
+        data-tour-target={tab.id}
+        draggable={reorderMode}
+        onDragStart={() => handleDragStart(tab.id)}
+        onDragOver={handleDragOver}
+        onDrop={() => handleDrop(tab.id)}
+        onClick={() => { if (!reorderMode) handleTabSelect(tab.id); }}
+        className={`relative w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
+          collapsed ? "justify-center px-2 py-3" : "px-4 py-2.5"
+        } ${
+          activeTab === tab.id
+            ? "bg-accent/10 text-accent"
+            : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+        } ${reorderMode ? "cursor-grab active:cursor-grabbing ring-1 ring-dashed ring-border" : ""}`}
+        title={collapsed ? tab.label : undefined}
+      >
+        <tab.icon className="w-5 h-5 flex-shrink-0" />
+        {!collapsed && <span className="flex-1 text-left">{tab.label}</span>}
+        {count > 0 && (
+          collapsed ? (
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent" />
+          ) : (
+            <span className="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold flex items-center justify-center">
+              {count > 99 ? "99+" : count}
+            </span>
+          )
+        )}
+      </button>
+    );
+  };
+
 
   const sidebarInner = (collapsed: boolean) => (
     <>
