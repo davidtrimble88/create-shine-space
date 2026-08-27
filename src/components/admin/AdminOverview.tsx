@@ -241,6 +241,9 @@ const AdminOverview = () => {
       </div>
 
       {canSeeAnalytics && (
+      {canSeeAnalytics && <PaidUnconfirmedAlert />}
+
+      {canSeeAnalytics && (
         <div className="mb-8">
           <Link
             to="/employee-dashboard?tab=sub-coverage"
