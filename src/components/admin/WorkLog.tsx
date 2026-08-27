@@ -309,25 +309,24 @@ const WorkLog = () => {
 
       const start = a.schedules?.date ?? "";
       const sessionDates = classSessionDates(start, a.schedules?.schedule);
-      const partDate = sessionDateForPart(start, a.schedules?.schedule, a.part);
-      // Dates this assignment could have been worked on
-      const candidates = partDate ? [partDate] : sessionDates.length ? sessionDates : [start];
-      const inRange = candidates.filter(
-        (d) => (!fromDate || d >= fromDate) && (!toDate || d <= toDate),
-      );
-      if (inRange.length === 0) continue;
-      const workedDate = partDate ?? inRange[0];
+      const dates = sessionDates.length ? sessionDates : [start];
+      // Prefer the explicit part label; otherwise infer the day from the course layout.
+      const workedDate =
+        sessionDateForPart(start, a.schedules?.schedule, a.part) ?? dutyDate(duty, dates);
+      if (fromDate && workedDate < fromDate) continue;
+      if (toDate && workedDate > toDate) continue;
 
       let empMap = byEmp.get(a.employee_id);
       if (!empMap) {
         empMap = new Map();
         byEmp.set(a.employee_id, empMap);
       }
-      const key = `${a.schedule_id}|${a.part ?? ""}`;
+      const key = `${a.schedule_id}|${a.part ?? ""}|${workedDate}`;
       let entry = empMap.get(key);
       if (!entry) {
         entry = { row: a, date: workedDate, duties: new Set() };
         empMap.set(key, entry);
+
       }
       entry.duties.add(duty);
     }
