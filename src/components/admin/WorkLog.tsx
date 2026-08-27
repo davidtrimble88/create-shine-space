@@ -256,23 +256,33 @@ const WorkLog = () => {
       empList = employees.filter((e) => e.user_id && user && e.user_id === user.id);
     }
 
-    // Group assignments by employee, then by schedule
-    const byEmp = new Map<string, Map<string, { row: AssignmentRow; duties: Set<Duty> }>>();
+    // Group assignments by employee, then by the actual class DAY worked
+    // (a multi-day class has sessions on several dates, not just its start date).
+    const byEmp = new Map<string, Map<string, { row: AssignmentRow; date: string; duties: Set<Duty> }>>();
     for (const a of assignments) {
       const duty = a.assignment_role as Duty;
       if (!DUTIES.includes(duty)) continue;
-      if (fromDate && a.schedules && a.schedules.date < fromDate) continue;
-      if (toDate && a.schedules && a.schedules.date > toDate) continue;
+
+      const start = a.schedules?.date ?? "";
+      const sessionDates = classSessionDates(start, a.schedules?.schedule);
+      const partDate = sessionDateForPart(start, a.schedules?.schedule, a.part);
+      // Dates this assignment could have been worked on
+      const candidates = partDate ? [partDate] : sessionDates.length ? sessionDates : [start];
+      const inRange = candidates.filter(
+        (d) => (!fromDate || d >= fromDate) && (!toDate || d <= toDate),
+      );
+      if (inRange.length === 0) continue;
+      const workedDate = partDate ?? inRange[0];
 
       let empMap = byEmp.get(a.employee_id);
       if (!empMap) {
         empMap = new Map();
         byEmp.set(a.employee_id, empMap);
       }
-      const key = a.schedule_id;
+      const key = `${a.schedule_id}|${a.part ?? ""}`;
       let entry = empMap.get(key);
       if (!entry) {
-        entry = { row: a, duties: new Set() };
+        entry = { row: a, date: workedDate, duties: new Set() };
         empMap.set(key, entry);
       }
       entry.duties.add(duty);
@@ -282,16 +292,17 @@ const WorkLog = () => {
       const empMap = byEmp.get(emp.id) ?? new Map();
       const counts: Record<Duty, number> = { c1: 0, r1: 0, c2: 0, r2: 0 };
       const entries: EmployeeSummary["entries"] = [];
-      for (const { row, duties } of empMap.values()) {
+      for (const { row, date, duties } of empMap.values()) {
         duties.forEach((d) => counts[d]++);
         entries.push({
-          date: row.schedules?.date ?? "",
+          date,
           scheduleId: row.schedule_id,
           course: row.schedules?.course ?? null,
           location: row.schedules?.location ?? null,
           duties: DUTIES.filter((d) => duties.has(d)),
         });
       }
+
       entries.sort((a, b) => (a.date < b.date ? 1 : -1));
       const total = counts.c1 + counts.r1 + counts.c2 + counts.r2;
 
