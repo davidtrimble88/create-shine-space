@@ -316,7 +316,7 @@ Deno.serve(async (req) => {
 
     if (existing) {
       // Existing row (e.g. a cash hold being paid online) — flip it to paid.
-      const { error: updErr } = await supabase
+      const { data: updatedRows, error: updErr } = await supabase
         .from("bookings")
         .update({
           payment_status: "paid",
@@ -325,9 +325,28 @@ Deno.serve(async (req) => {
           pending_payment: false,
           marked_paid_at: new Date().toISOString(),
         })
-        .eq("id", bookingId);
-      if (updErr) console.error("Booking update failed after successful charge:", updErr);
+        .eq("id", bookingId)
+        .select("id, payment_status, booking_status, pending_payment");
+
+      const confirmed = updatedRows?.[0];
+      const stuck =
+        !!updErr ||
+        !confirmed ||
+        confirmed.payment_status !== "paid" ||
+        confirmed.booking_status !== "confirmed" ||
+        confirmed.pending_payment === true;
+
+      if (stuck) {
+        // Never swallow this: the money is captured but the student would not
+        // appear on the roster and their seat would look open.
+        console.error("Booking confirmation failed after successful charge:", updErr, { bookingId, paymentId });
+        await recordFailure(
+          "payment_booking",
+          `Payment captured but registration was NOT confirmed. Reference: ${paymentId}. ${updErr?.message ?? "Update did not take effect."}`,
+        );
+      }
     }
+
 
     if (!existing) {
       const { error: insertErr } = await supabase.from("bookings").insert({
