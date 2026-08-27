@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CalendarDays, Users, BookOpen, DollarSign, MapPin, Smartphone, ClipboardList, UserMinus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import CertStatusSummary from "./CertStatusSummary";
+import PaidUnconfirmedAlert from "./PaidUnconfirmedAlert";
 
 interface LocationEarnings {
   [location: string]: number;
