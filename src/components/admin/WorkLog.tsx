@@ -14,8 +14,52 @@ import { formatPSTDate } from "@/lib/formatDate";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ExtraHoursRequests from "./ExtraHoursRequests";
 
+import { classSessionDates, isClassPast } from "@/lib/classDates";
+
 type Duty = "c1" | "r1" | "c2" | "r2";
 const DUTIES: Duty[] = ["c1", "r1", "c2", "r2"];
+
+const PART_DAY = /\b(sun|mon|tues|tue|weds|wed|thurs|thur|thu|fri|sat)\b/i;
+const DOW_NAMES = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+/** Resolve which class day a part label ("Sun 6:45am–12:00pm") refers to. */
+const sessionDateForPart = (
+  start: string | null | undefined,
+  scheduleText: string | null | undefined,
+  part: string | null | undefined,
+): string | null => {
+  if (!part) return null;
+  const m = part.match(PART_DAY);
+  if (!m) return null;
+  const token = m[1].toLowerCase().slice(0, 3);
+  const dates = classSessionDates(start, scheduleText);
+  for (const iso of dates) {
+    const [y, mo, d] = iso.split("-").map(Number);
+    const dow = new Date(y, (mo ?? 1) - 1, d ?? 1).getDay();
+    if (DOW_NAMES[dow] === token) return iso;
+  }
+  return null;
+};
+
+/**
+ * Which calendar day a given duty is taught on, based on the standard course layout:
+ *  - 1 day class: everything that day
+ *  - 2 day class: C1/R1 day 1, C2/R2 day 2
+ *  - 3+ day class: C1 day 1 (classroom), R1/C2 day 2, R2 final day
+ */
+const dutyDate = (duty: Duty, sessionDates: string[]): string => {
+  if (sessionDates.length === 0) return "";
+  if (sessionDates.length === 1) return sessionDates[0];
+  if (sessionDates.length === 2) {
+    return duty === "c1" || duty === "r1" ? sessionDates[0] : sessionDates[1];
+  }
+  if (duty === "c1") return sessionDates[0];
+  if (duty === "r2") return sessionDates[sessionDates.length - 1];
+  return sessionDates[1];
+};
+
+
+
 
 // Pay periods: 1st–15th (A) and 16th–end of month (B)
 type PayPeriod = { key: string; label: string; start: string; end: string; isCurrent: boolean };
@@ -218,7 +262,6 @@ const WorkLog = () => {
 
   const load = async () => {
     setLoading(true);
-    const today = new Date().toISOString().slice(0, 10);
 
     const empRes = await supabase
       .from("employees")
@@ -226,8 +269,7 @@ const WorkLog = () => {
 
     const assignRes = await supabase
       .from("instructor_assignments")
-      .select("employee_id, assignment_role, part, schedule_id, schedules(id, date, course, location, schedule)")
-      .lt("schedules.date", today);
+      .select("employee_id, assignment_role, part, schedule_id, schedules(id, date, course, location, schedule)");
 
     const extraRes = await supabase
       .from("extra_hours_requests")
@@ -235,13 +277,16 @@ const WorkLog = () => {
       .eq("status", "approved");
 
     setEmployees((empRes.data ?? []) as Employee[]);
+    // A class only counts once the WHOLE class is over (day after its last session),
+    // not the day after its start date.
     const rows = ((assignRes.data ?? []) as any[]).filter(
-      (r) => r.schedules && r.schedules.date && r.schedules.date < today,
+      (r) => r.schedules?.date && isClassPast(r.schedules.date, r.schedules.schedule),
     ) as AssignmentRow[];
     setAssignments(rows);
     setExtraHours((extraRes.data ?? []) as ExtraHoursRow[]);
     setLoading(false);
   };
+
 
   useEffect(() => {
     load();
@@ -255,24 +300,33 @@ const WorkLog = () => {
       empList = employees.filter((e) => e.user_id && user && e.user_id === user.id);
     }
 
-    // Group assignments by employee, then by schedule
-    const byEmp = new Map<string, Map<string, { row: AssignmentRow; duties: Set<Duty> }>>();
+    // Group assignments by employee, then by the actual class DAY worked
+    // (a multi-day class has sessions on several dates, not just its start date).
+    const byEmp = new Map<string, Map<string, { row: AssignmentRow; date: string; duties: Set<Duty> }>>();
     for (const a of assignments) {
       const duty = a.assignment_role as Duty;
       if (!DUTIES.includes(duty)) continue;
-      if (fromDate && a.schedules && a.schedules.date < fromDate) continue;
-      if (toDate && a.schedules && a.schedules.date > toDate) continue;
+
+      const start = a.schedules?.date ?? "";
+      const sessionDates = classSessionDates(start, a.schedules?.schedule);
+      const dates = sessionDates.length ? sessionDates : [start];
+      // Prefer the explicit part label; otherwise infer the day from the course layout.
+      const workedDate =
+        sessionDateForPart(start, a.schedules?.schedule, a.part) ?? dutyDate(duty, dates);
+      if (fromDate && workedDate < fromDate) continue;
+      if (toDate && workedDate > toDate) continue;
 
       let empMap = byEmp.get(a.employee_id);
       if (!empMap) {
         empMap = new Map();
         byEmp.set(a.employee_id, empMap);
       }
-      const key = a.schedule_id;
+      const key = `${a.schedule_id}|${a.part ?? ""}|${workedDate}`;
       let entry = empMap.get(key);
       if (!entry) {
-        entry = { row: a, duties: new Set() };
+        entry = { row: a, date: workedDate, duties: new Set() };
         empMap.set(key, entry);
+
       }
       entry.duties.add(duty);
     }
@@ -281,16 +335,17 @@ const WorkLog = () => {
       const empMap = byEmp.get(emp.id) ?? new Map();
       const counts: Record<Duty, number> = { c1: 0, r1: 0, c2: 0, r2: 0 };
       const entries: EmployeeSummary["entries"] = [];
-      for (const { row, duties } of empMap.values()) {
+      for (const { row, date, duties } of empMap.values()) {
         duties.forEach((d) => counts[d]++);
         entries.push({
-          date: row.schedules?.date ?? "",
+          date,
           scheduleId: row.schedule_id,
           course: row.schedules?.course ?? null,
           location: row.schedules?.location ?? null,
           duties: DUTIES.filter((d) => duties.has(d)),
         });
       }
+
       entries.sort((a, b) => (a.date < b.date ? 1 : -1));
       const total = counts.c1 + counts.r1 + counts.c2 + counts.r2;
 
