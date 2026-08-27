@@ -218,7 +218,6 @@ const WorkLog = () => {
 
   const load = async () => {
     setLoading(true);
-    const today = new Date().toISOString().slice(0, 10);
 
     const empRes = await supabase
       .from("employees")
@@ -226,8 +225,7 @@ const WorkLog = () => {
 
     const assignRes = await supabase
       .from("instructor_assignments")
-      .select("employee_id, assignment_role, part, schedule_id, schedules(id, date, course, location, schedule)")
-      .lt("schedules.date", today);
+      .select("employee_id, assignment_role, part, schedule_id, schedules(id, date, course, location, schedule)");
 
     const extraRes = await supabase
       .from("extra_hours_requests")
@@ -235,13 +233,16 @@ const WorkLog = () => {
       .eq("status", "approved");
 
     setEmployees((empRes.data ?? []) as Employee[]);
+    // A class only counts once the WHOLE class is over (day after its last session),
+    // not the day after its start date.
     const rows = ((assignRes.data ?? []) as any[]).filter(
-      (r) => r.schedules && r.schedules.date && r.schedules.date < today,
+      (r) => r.schedules?.date && isClassPast(r.schedules.date, r.schedules.schedule),
     ) as AssignmentRow[];
     setAssignments(rows);
     setExtraHours((extraRes.data ?? []) as ExtraHoursRow[]);
     setLoading(false);
   };
+
 
   useEffect(() => {
     load();
