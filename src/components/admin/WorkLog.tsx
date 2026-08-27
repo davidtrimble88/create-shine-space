@@ -41,6 +41,25 @@ const sessionDateForPart = (
   return null;
 };
 
+/**
+ * Which calendar day a given duty is taught on, based on the standard course layout:
+ *  - 1 day class: everything that day
+ *  - 2 day class: C1/R1 day 1, C2/R2 day 2
+ *  - 3+ day class: C1 day 1 (classroom), R1/C2 day 2, R2 final day
+ */
+const dutyDate = (duty: Duty, sessionDates: string[]): string => {
+  if (sessionDates.length === 0) return "";
+  if (sessionDates.length === 1) return sessionDates[0];
+  if (sessionDates.length === 2) {
+    return duty === "c1" || duty === "r1" ? sessionDates[0] : sessionDates[1];
+  }
+  if (duty === "c1") return sessionDates[0];
+  if (duty === "r2") return sessionDates[sessionDates.length - 1];
+  return sessionDates[1];
+};
+
+
+
 
 // Pay periods: 1st–15th (A) and 16th–end of month (B)
 type PayPeriod = { key: string; label: string; start: string; end: string; isCurrent: boolean };
