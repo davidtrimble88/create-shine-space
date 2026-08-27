@@ -1599,6 +1599,7 @@ export type Database = {
           price: string
           schedule: string
           spots_available: number
+          total_seats: number | null
           updated_at: string
         }
         Insert: {
@@ -1616,6 +1617,7 @@ export type Database = {
           price: string
           schedule: string
           spots_available?: number
+          total_seats?: number | null
           updated_at?: string
         }
         Update: {
@@ -1633,6 +1635,7 @@ export type Database = {
           price?: string
           schedule?: string
           spots_available?: number
+          total_seats?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -2202,6 +2205,24 @@ export type Database = {
         }
         Returns: undefined
       }
+      paid_unconfirmed_bookings: {
+        Args: never
+        Returns: {
+          amount_cents: number
+          booking_id: string
+          booking_status: string
+          course: string
+          location_label: string
+          paid_at: string
+          payment_status: string
+          pending_payment: boolean
+          provider_payment_id: string
+          schedule_date: string
+          student_email: string
+          student_name: string
+          transaction_id: string
+        }[]
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -2210,6 +2231,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      reconcile_schedule_spots: { Args: never; Returns: number }
       record_registration_payment_failure: {
         Args: { p_fields: Json; p_id: string; p_visitor_id: string }
         Returns: string
