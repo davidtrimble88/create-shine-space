@@ -14,8 +14,33 @@ import { formatPSTDate } from "@/lib/formatDate";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ExtraHoursRequests from "./ExtraHoursRequests";
 
+import { classSessionDates, isClassPast } from "@/lib/classDates";
+
 type Duty = "c1" | "r1" | "c2" | "r2";
 const DUTIES: Duty[] = ["c1", "r1", "c2", "r2"];
+
+const PART_DAY = /\b(sun|mon|tues|tue|weds|wed|thurs|thur|thu|fri|sat)\b/i;
+const DOW_NAMES = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+/** Resolve which class day a part label ("Sun 6:45am–12:00pm") refers to. */
+const sessionDateForPart = (
+  start: string | null | undefined,
+  scheduleText: string | null | undefined,
+  part: string | null | undefined,
+): string | null => {
+  if (!part) return null;
+  const m = part.match(PART_DAY);
+  if (!m) return null;
+  const token = m[1].toLowerCase().slice(0, 3);
+  const dates = classSessionDates(start, scheduleText);
+  for (const iso of dates) {
+    const [y, mo, d] = iso.split("-").map(Number);
+    const dow = new Date(y, (mo ?? 1) - 1, d ?? 1).getDay();
+    if (DOW_NAMES[dow] === token) return iso;
+  }
+  return null;
+};
+
 
 // Pay periods: 1st–15th (A) and 16th–end of month (B)
 type PayPeriod = { key: string; label: string; start: string; end: string; isCurrent: boolean };
