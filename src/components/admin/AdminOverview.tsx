@@ -240,7 +240,6 @@ const AdminOverview = () => {
         })}
       </div>
 
-      {canSeeAnalytics && (
       {canSeeAnalytics && <PaidUnconfirmedAlert />}
 
       {canSeeAnalytics && (
