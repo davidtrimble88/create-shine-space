@@ -212,6 +212,8 @@ const AdminBookings = () => {
   }, []);
 
   const selectedSchedule = schedules.find(s => s.id === form.schedule_id);
+  const [overbook, setOverbook] = useState(false);
+  const [overbookReason, setOverbookReason] = useState("");
 
   // Send the same registration confirmation students get when booking online.
   // Retest bookings are skipped for now; a dedicated retest email will be built later.
