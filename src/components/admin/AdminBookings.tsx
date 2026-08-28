@@ -387,7 +387,19 @@ const AdminBookings = () => {
           : null,
       roster_comment: is1dpc ? "1DPC" : null,
       manually_added: true,
+      overbook_override: overbook,
+      overbook_reason: overbook ? overbookReason.trim() : null,
     };
+
+    if (selectedSchedule && selectedSchedule.spots_available <= 0 && !overbook) {
+      toast({ title: "Class is full", description: "Check \"Overbook this class\" and give a reason to add anyway.", variant: "destructive" });
+      return;
+    }
+    if (overbook && !overbookReason.trim()) {
+      toast({ title: "Reason required", description: "Please explain why this class is being overbooked.", variant: "destructive" });
+      return;
+    }
+
 
 
 
