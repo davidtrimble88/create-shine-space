@@ -212,6 +212,8 @@ const AdminBookings = () => {
   }, []);
 
   const selectedSchedule = schedules.find(s => s.id === form.schedule_id);
+  const [overbook, setOverbook] = useState(false);
+  const [overbookReason, setOverbookReason] = useState("");
 
   // Send the same registration confirmation students get when booking online.
   // Retest bookings are skipped for now; a dedicated retest email will be built later.
@@ -385,7 +387,19 @@ const AdminBookings = () => {
           : null,
       roster_comment: is1dpc ? "1DPC" : null,
       manually_added: true,
+      overbook_override: overbook,
+      overbook_reason: overbook ? overbookReason.trim() : null,
     };
+
+    if (selectedSchedule && selectedSchedule.spots_available <= 0 && !overbook) {
+      toast({ title: "Class is full", description: "Check \"Overbook this class\" and give a reason to add anyway.", variant: "destructive" });
+      return;
+    }
+    if (overbook && !overbookReason.trim()) {
+      toast({ title: "Reason required", description: "Please explain why this class is being overbooked.", variant: "destructive" });
+      return;
+    }
+
 
 
 
@@ -847,7 +861,25 @@ const AdminBookings = () => {
                   </SelectContent>
                 </Select>
                 {selectedSchedule && selectedSchedule.spots_available <= 0 && (
-                  <p className="text-xs text-destructive mt-1">⚠ This class is full</p>
+                  <div className="mt-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 space-y-2">
+                    <p className="text-xs font-semibold text-destructive">⚠ This class is full — bookings are blocked unless you override.</p>
+                    <label className="flex items-center gap-2 text-xs text-foreground">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-[hsl(var(--destructive))]"
+                        checked={overbook}
+                        onChange={e => { setOverbook(e.target.checked); if (!e.target.checked) setOverbookReason(""); }}
+                      />
+                      Overbook this class (reason required)
+                    </label>
+                    {overbook && (
+                      <Input
+                        value={overbookReason}
+                        onChange={e => setOverbookReason(e.target.value)}
+                        placeholder="Why is this student being added to a full class?"
+                      />
+                    )}
+                  </div>
                 )}
               </div>
               {selectedSchedule?.course === "intermediate" && (

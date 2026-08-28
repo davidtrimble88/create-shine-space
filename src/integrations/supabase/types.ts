@@ -275,6 +275,8 @@ export type Database = {
           original_location_label: string | null
           original_schedule_date: string | null
           original_schedule_id: string | null
+          overbook_override: boolean
+          overbook_reason: string | null
           payment_provider: string | null
           payment_status: string
           pending_payment: boolean
@@ -356,6 +358,8 @@ export type Database = {
           original_location_label?: string | null
           original_schedule_date?: string | null
           original_schedule_id?: string | null
+          overbook_override?: boolean
+          overbook_reason?: string | null
           payment_provider?: string | null
           payment_status?: string
           pending_payment?: boolean
@@ -437,6 +441,8 @@ export type Database = {
           original_location_label?: string | null
           original_schedule_date?: string | null
           original_schedule_id?: string | null
+          overbook_override?: boolean
+          overbook_reason?: string | null
           payment_provider?: string | null
           payment_status?: string
           pending_payment?: boolean

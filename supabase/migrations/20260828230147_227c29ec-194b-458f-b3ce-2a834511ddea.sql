@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.enforce_schedule_capacity() FROM PUBLIC, anon, authenticated;
