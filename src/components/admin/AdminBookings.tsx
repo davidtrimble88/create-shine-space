@@ -403,13 +403,27 @@ const AdminBookings = () => {
 
 
 
-    // Take real card payment via Square
+    // Take real card payment via Square.
+    // The student is saved FIRST as an unpaid booking so a payment dialog crash,
+    // webview reload, or abandoned checkout can never erase the registration.
     if (studentPaymentCollected && studentPaymentMethod === "charge_card") {
       const cents = feeCentsForRider(sched.price, form.date_of_birth || null, sched.date);
       if (cents <= 0) {
         toast({ title: "Invalid fee", description: "This class has no price set.", variant: "destructive" });
         return;
       }
+
+      const { error: preErr } = await supabase.from("bookings").insert({
+        ...basePayload,
+        payment_status: "unpaid",
+        payment_provider: "square",
+        booking_status: "confirmed",
+      } as any);
+      if (preErr) {
+        toast({ title: "Error", description: preErr.message, variant: "destructive" });
+        return;
+      }
+
       setChargePayload(basePayload);
       setChargeRegion(regionFor(sched.location));
       setChargeAmountCents(cents);
@@ -419,6 +433,7 @@ const AdminBookings = () => {
 
       setDialogOpen(false);
       setChargeOpen(true);
+      fetchData();
       return;
     }
 
