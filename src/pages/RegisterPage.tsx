@@ -36,6 +36,7 @@ import PaymentMethodDialog from "@/components/PaymentMethodDialog";
 import RegistrationAcknowledgmentDialog from "@/components/RegistrationAcknowledgmentDialog";
 import { getVisitorId, recordPaymentFailure, startAttempt, updateAttempt } from "@/lib/registrationAttempts";
 import { clearStoredHold, createSeatHold, readStoredHold, releaseSeatHold, SEAT_HOLD_MINUTES } from "@/lib/seatHold";
+import { clearRegistrationDraft, draftHasContent, readRegistrationDraft, saveRegistrationDraft } from "@/lib/registrationDraft";
 
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
@@ -321,6 +322,7 @@ const RegisterPage = () => {
       }
       stopped = true;
       clearStoredHold();
+      clearRegistrationDraft();
       setHoldExpiresAt(null);
       toast({
         title: "Your seat hold expired",
@@ -340,6 +342,56 @@ const RegisterPage = () => {
     return () => { stopped = true; window.clearInterval(timer); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [holdExpiresAt, schedule]);
+
+  // ---- Resume an in-progress registration (draft saved while the hold is alive)
+  const [resumeOpen, setResumeOpen] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<Record<string, unknown> | null>(null);
+  const draftCheckedRef = useRef(false);
+  const draftRestoredRef = useRef(false);
+
+  useEffect(() => {
+    if (draftCheckedRef.current || !schedule) return;
+    draftCheckedRef.current = true;
+    const draft = readRegistrationDraft();
+    if (!draft || draft.scheduleId !== schedule || !draftHasContent(draft)) {
+      if (draft && draft.scheduleId !== schedule) clearRegistrationDraft();
+      return;
+    }
+    setPendingDraft(draft.values);
+    setResumeOpen(true);
+  }, [schedule]);
+
+  const handleResumeDraft = () => {
+    if (pendingDraft) {
+      draftRestoredRef.current = true;
+      form.reset({ ...form.getValues(), ...(pendingDraft as any) });
+      toast({ title: "Welcome back", description: "We filled in everything you'd already completed." });
+    }
+    setPendingDraft(null);
+    setResumeOpen(false);
+  };
+
+  const handleDiscardDraft = () => {
+    clearRegistrationDraft();
+    setPendingDraft(null);
+    setResumeOpen(false);
+  };
+
+  // Autosave the form while the seat hold is alive.
+  const watchedValues = useWatch({ control: form.control });
+  useEffect(() => {
+    if (!schedule || !holdExpiresAt || resumeOpen) return;
+    const t = window.setTimeout(() => {
+      saveRegistrationDraft({
+        scheduleId: schedule,
+        course,
+        location,
+        savedAt: new Date().toISOString(),
+        values: (watchedValues || {}) as Record<string, unknown>,
+      });
+    }, 600);
+    return () => window.clearTimeout(t);
+  }, [watchedValues, schedule, holdExpiresAt, resumeOpen, course, location]);
 
   const skipPaymentRef = useRef(false);
   const [waiverOpen, setWaiverOpen] = useState(false);
@@ -525,6 +577,7 @@ const RegisterPage = () => {
     releaseSeatHold(null, true);
 
     form.reset();
+    clearRegistrationDraft();
 
     setPendingBooking(null);
     setPendingGroupName(null);
@@ -1014,6 +1067,7 @@ const RegisterPage = () => {
       setMethodOpen(false);
       setPaymentOpen(false);
       form.reset();
+      clearRegistrationDraft();
 
       setPendingBooking(null);
       setPendingGroupName(null);
@@ -1953,6 +2007,22 @@ const RegisterPage = () => {
 
         />
       )}
+
+      <AlertDialog open={resumeOpen} onOpenChange={(o) => { if (!o) handleDiscardDraft(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Resume your registration?</AlertDialogTitle>
+            <AlertDialogDescription>
+              We saved the information you already entered for this class. Would you like to pick up
+              where you left off, or start over with a blank form?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDiscardDraft}>Start over</AlertDialogCancel>
+            <AlertDialogAction onClick={handleResumeDraft}>Resume registration</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
         <AlertDialogContent>
