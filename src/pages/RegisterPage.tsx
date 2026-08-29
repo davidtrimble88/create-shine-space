@@ -36,6 +36,7 @@ import PaymentMethodDialog from "@/components/PaymentMethodDialog";
 import RegistrationAcknowledgmentDialog from "@/components/RegistrationAcknowledgmentDialog";
 import { getVisitorId, recordPaymentFailure, startAttempt, updateAttempt } from "@/lib/registrationAttempts";
 import { clearStoredHold, createSeatHold, readStoredHold, releaseSeatHold, SEAT_HOLD_MINUTES } from "@/lib/seatHold";
+import { clearRegistrationDraft, draftHasContent, readRegistrationDraft, saveRegistrationDraft } from "@/lib/registrationDraft";
 
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
