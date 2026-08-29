@@ -2008,6 +2008,22 @@ const RegisterPage = () => {
         />
       )}
 
+      <AlertDialog open={resumeOpen} onOpenChange={(o) => { if (!o) handleDiscardDraft(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Resume your registration?</AlertDialogTitle>
+            <AlertDialogDescription>
+              We saved the information you already entered for this class. Would you like to pick up
+              where you left off, or start over with a blank form?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDiscardDraft}>Start over</AlertDialogCancel>
+            <AlertDialogAction onClick={handleResumeDraft}>Resume registration</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
