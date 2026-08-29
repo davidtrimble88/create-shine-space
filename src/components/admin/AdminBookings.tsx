@@ -557,12 +557,24 @@ const AdminBookings = () => {
         toast({ title: "Invalid fee", description: "This class has no price set.", variant: "destructive" });
         return;
       }
+      // Save first as unpaid so an interrupted checkout can't lose the student.
+      const { error: preErr } = await supabase.from("bookings").insert({
+        ...basePayload,
+        payment_status: "unpaid",
+        payment_provider: "square",
+        booking_status: "confirmed",
+      } as any);
+      if (preErr) {
+        toast({ title: "Error", description: preErr.message, variant: "destructive" });
+        return;
+      }
       setChargePayload(basePayload);
       setChargeRegion(regionFor(sched.location));
       setChargeAmountCents(cents);
       setChargeAmountLabel(sched.price);
       setRetestDialogOpen(false);
       setChargeOpen(true);
+      fetchData();
       return;
     }
 
