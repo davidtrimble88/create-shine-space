@@ -36,7 +36,7 @@ import PaymentMethodDialog from "@/components/PaymentMethodDialog";
 import RegistrationAcknowledgmentDialog from "@/components/RegistrationAcknowledgmentDialog";
 import { getVisitorId, recordPaymentFailure, startAttempt, updateAttempt } from "@/lib/registrationAttempts";
 import { clearStoredHold, createSeatHold, readStoredHold, releaseSeatHold, SEAT_HOLD_MINUTES } from "@/lib/seatHold";
-import { clearRegistrationDraft, draftHasContent, readRegistrationDraft, saveRegistrationDraft } from "@/lib/registrationDraft";
+import { clearRegistrationDraft, draftHasContent, readRegistrationDraft, saveDraftSignedStep, saveRegistrationDraft, type RegistrationDraftSigned } from "@/lib/registrationDraft";
 
 import { type SquareRegion } from "@/components/SquarePaymentDialog";
 import { type WaiverPrefill } from "@/components/WaiverStep";
@@ -346,6 +346,8 @@ const RegisterPage = () => {
   // ---- Resume an in-progress registration (draft saved while the hold is alive)
   const [resumeOpen, setResumeOpen] = useState(false);
   const [pendingDraft, setPendingDraft] = useState<Record<string, unknown> | null>(null);
+  const [pendingDraftSigned, setPendingDraftSigned] = useState<RegistrationDraftSigned | null>(null);
+  const signedStepsRef = useRef<RegistrationDraftSigned>({});
   const draftCheckedRef = useRef(false);
   const draftRestoredRef = useRef(false);
 
@@ -358,6 +360,7 @@ const RegisterPage = () => {
       return;
     }
     setPendingDraft(draft.values);
+    setPendingDraftSigned(draft.signed || null);
     setResumeOpen(true);
   }, [schedule]);
 
@@ -365,14 +368,25 @@ const RegisterPage = () => {
     if (pendingDraft) {
       draftRestoredRef.current = true;
       form.reset({ ...form.getValues(), ...(pendingDraft as any) });
-      toast({ title: "Welcome back", description: "We filled in everything you'd already completed." });
+      signedStepsRef.current = pendingDraftSigned || {};
+      if (pendingDraftSigned?.guardianInPerson) setGuardianSignsInPerson(true);
+      const signedCount = [pendingDraftSigned?.regFormId, pendingDraftSigned?.modelReleaseId, pendingDraftSigned?.waiverId].filter(Boolean).length;
+      toast({
+        title: "Welcome back",
+        description: signedCount
+          ? `We filled in everything you'd already completed — including ${signedCount} form${signedCount > 1 ? "s" : ""} you already signed.`
+          : "We filled in everything you'd already completed.",
+      });
     }
     setPendingDraft(null);
+    setPendingDraftSigned(null);
     setResumeOpen(false);
   };
 
   const handleDiscardDraft = () => {
     clearRegistrationDraft();
+    signedStepsRef.current = {};
+    setPendingDraftSigned(null);
     setPendingDraft(null);
     setResumeOpen(false);
   };
@@ -836,7 +850,11 @@ const RegisterPage = () => {
 
       // Show CMSP Student Registration Form step first, then waiver, then payment.
       inFlowRef.current = true;
-      setPendingBooking(bookingPayload);
+      setPendingBooking(
+        signedStepsRef.current.waiverId
+          ? { ...bookingPayload, waiver_id: signedStepsRef.current.waiverId }
+          : bookingPayload,
+      );
 
       setPendingGroupName(scheduleGroup);
       setPendingScheduleDetail(scheduleDetail);
@@ -924,11 +942,11 @@ const RegisterPage = () => {
       // Adults always sign online — no skip option.
       setMinorAckChecked(false);
       setGuardianSignsInPerson(false);
-      if (isUnder18) {
+      if (isUnder18 && !signedStepsRef.current.regFormId && !signedStepsRef.current.guardianInPerson) {
         setWaiverGateOpen(true);
       } else {
-        setRegFormOpen(true);
-        requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+        if (signedStepsRef.current.guardianInPerson) setGuardianSignsInPerson(isUnder18);
+        advanceSigningFlow();
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
@@ -955,8 +973,24 @@ const RegisterPage = () => {
   const handleGateSignOnline = () => {
     // Guardian will sign in person at first class only if the student is a minor.
     setGuardianSignsInPerson(isUnder18);
+    if (schedule) saveDraftSignedStep(schedule, { guardianInPerson: isUnder18 });
     setWaiverGateOpen(false);
-    setRegFormOpen(true);
+    advanceSigningFlow();
+  };
+
+  /** Open the next signing step the visitor hasn't already completed. */
+  const advanceSigningFlow = () => {
+    const signed = signedStepsRef.current;
+    if (!signed.regFormId) setRegFormOpen(true);
+    else if (!signed.modelReleaseId) setModelReleaseOpen(true);
+    else if (!signed.waiverId) setWaiverOpen(true);
+    else {
+      // Everything already signed before they left — go straight to acknowledgment.
+      paymentCompletedRef.current = false;
+      setAckSource("waiver");
+      setAckOpen(true);
+      return;
+    }
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   };
 
@@ -969,15 +1003,18 @@ const RegisterPage = () => {
     setAckOpen(true);
   };
 
-  const handleRegistrationFormSigned = (_recordId: string) => {
+  const handleRegistrationFormSigned = (recordId: string) => {
+    signedStepsRef.current = { ...signedStepsRef.current, regFormId: recordId || "signed" };
+    if (schedule) saveDraftSignedStep(schedule, { regFormId: recordId || "signed" });
     setRegFormOpen(false);
-    setModelReleaseOpen(true);
-    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+    advanceSigningFlow();
   };
 
 
 
-  const handleModelReleaseComplete = (_recordId: string, _decision: "sign" | "decline") => {
+  const handleModelReleaseComplete = (recordId: string, _decision: "sign" | "decline") => {
+    signedStepsRef.current = { ...signedStepsRef.current, modelReleaseId: recordId || "completed" };
+    if (schedule) saveDraftSignedStep(schedule, { modelReleaseId: recordId || "completed" });
     setModelReleaseOpen(false);
     // Always run the waiver step. For minors whose guardian will sign in person,
     // the waiver wizard captures the minor's info + own signature and saves a
@@ -989,6 +1026,8 @@ const RegisterPage = () => {
   const paymentCompletedRef = useRef(false);
 
   const handleWaiverSigned = (waiverId: string) => {
+    signedStepsRef.current = { ...signedStepsRef.current, waiverId };
+    if (schedule) saveDraftSignedStep(schedule, { waiverId });
     setPendingBooking(prev => prev ? { ...prev, waiver_id: waiverId } : prev);
     setWaiverOpen(false);
     paymentCompletedRef.current = false;
