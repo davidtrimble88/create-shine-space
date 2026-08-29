@@ -342,6 +342,56 @@ const RegisterPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [holdExpiresAt, schedule]);
 
+  // ---- Resume an in-progress registration (draft saved while the hold is alive)
+  const [resumeOpen, setResumeOpen] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<Record<string, unknown> | null>(null);
+  const draftCheckedRef = useRef(false);
+  const draftRestoredRef = useRef(false);
+
+  useEffect(() => {
+    if (draftCheckedRef.current || !schedule) return;
+    draftCheckedRef.current = true;
+    const draft = readRegistrationDraft();
+    if (!draft || draft.scheduleId !== schedule || !draftHasContent(draft)) {
+      if (draft && draft.scheduleId !== schedule) clearRegistrationDraft();
+      return;
+    }
+    setPendingDraft(draft.values);
+    setResumeOpen(true);
+  }, [schedule]);
+
+  const handleResumeDraft = () => {
+    if (pendingDraft) {
+      draftRestoredRef.current = true;
+      form.reset({ ...form.getValues(), ...(pendingDraft as any) });
+      toast({ title: "Welcome back", description: "We filled in everything you'd already completed." });
+    }
+    setPendingDraft(null);
+    setResumeOpen(false);
+  };
+
+  const handleDiscardDraft = () => {
+    clearRegistrationDraft();
+    setPendingDraft(null);
+    setResumeOpen(false);
+  };
+
+  // Autosave the form while the seat hold is alive.
+  const watchedValues = useWatch({ control: form.control });
+  useEffect(() => {
+    if (!schedule || !holdExpiresAt || resumeOpen) return;
+    const t = window.setTimeout(() => {
+      saveRegistrationDraft({
+        scheduleId: schedule,
+        course,
+        location,
+        savedAt: new Date().toISOString(),
+        values: (watchedValues || {}) as Record<string, unknown>,
+      });
+    }, 600);
+    return () => window.clearTimeout(t);
+  }, [watchedValues, schedule, holdExpiresAt, resumeOpen, course, location]);
+
   const skipPaymentRef = useRef(false);
   const [waiverOpen, setWaiverOpen] = useState(false);
   const [waiverPrefill, setWaiverPrefill] = useState<WaiverPrefill | null>(null);
