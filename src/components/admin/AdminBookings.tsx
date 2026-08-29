@@ -1632,7 +1632,18 @@ const AdminBookings = () => {
       {chargePayload && (
         <PaymentDialog
           open={chargeOpen}
-          onOpenChange={(o) => { if (!o) { setChargeOpen(false); setChargePayload(null); setChargeFeeToken(undefined); setPendingDepositId(null); } }}
+          onOpenChange={(o) => {
+            if (!o) {
+              if (!chargeFeeToken) {
+                toast({
+                  title: "Payment not completed",
+                  description: "The student is saved in Bookings as unpaid — take payment from their row when ready.",
+                });
+              }
+              setChargeOpen(false); setChargePayload(null); setChargeFeeToken(undefined); setPendingDepositId(null);
+              fetchData();
+            }
+          }}
           region={chargeRegion}
           amountCents={chargeAmountCents}
           amountLabel={chargeAmountLabel}
