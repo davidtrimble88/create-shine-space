@@ -322,6 +322,7 @@ const RegisterPage = () => {
       }
       stopped = true;
       clearStoredHold();
+      clearRegistrationDraft();
       setHoldExpiresAt(null);
       toast({
         title: "Your seat hold expired",
@@ -576,6 +577,7 @@ const RegisterPage = () => {
     releaseSeatHold(null, true);
 
     form.reset();
+    clearRegistrationDraft();
 
     setPendingBooking(null);
     setPendingGroupName(null);
@@ -1065,6 +1067,7 @@ const RegisterPage = () => {
       setMethodOpen(false);
       setPaymentOpen(false);
       form.reset();
+      clearRegistrationDraft();
 
       setPendingBooking(null);
       setPendingGroupName(null);
