@@ -16,9 +16,9 @@ export interface SeatHold {
 
 export const readStoredHold = (): SeatHold | null => {
   try {
-    const id = sessionStorage.getItem(HOLD_ID_KEY);
-    const scheduleId = sessionStorage.getItem(HOLD_SCHEDULE_KEY);
-    const expiresAt = sessionStorage.getItem(HOLD_EXPIRES_KEY);
+    const id = localStorage.getItem(HOLD_ID_KEY);
+    const scheduleId = localStorage.getItem(HOLD_SCHEDULE_KEY);
+    const expiresAt = localStorage.getItem(HOLD_EXPIRES_KEY);
     if (!id || !scheduleId || !expiresAt) return null;
     return { id, scheduleId, expiresAt };
   } catch {
@@ -29,14 +29,14 @@ export const readStoredHold = (): SeatHold | null => {
 const storeHold = (hold: SeatHold | null) => {
   try {
     if (!hold) {
-      sessionStorage.removeItem(HOLD_ID_KEY);
-      sessionStorage.removeItem(HOLD_SCHEDULE_KEY);
-      sessionStorage.removeItem(HOLD_EXPIRES_KEY);
+      localStorage.removeItem(HOLD_ID_KEY);
+      localStorage.removeItem(HOLD_SCHEDULE_KEY);
+      localStorage.removeItem(HOLD_EXPIRES_KEY);
       return;
     }
-    sessionStorage.setItem(HOLD_ID_KEY, hold.id);
-    sessionStorage.setItem(HOLD_SCHEDULE_KEY, hold.scheduleId);
-    sessionStorage.setItem(HOLD_EXPIRES_KEY, hold.expiresAt);
+    localStorage.setItem(HOLD_ID_KEY, hold.id);
+    localStorage.setItem(HOLD_SCHEDULE_KEY, hold.scheduleId);
+    localStorage.setItem(HOLD_EXPIRES_KEY, hold.expiresAt);
   } catch {
     /* ignore */
   }
