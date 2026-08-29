@@ -168,7 +168,14 @@ const RegisterPage = () => {
   const track = searchParams.get("track");
   const isIrcTrack = course === "intermediate" && track !== "1dpc";
   const is1dpcTrack = course === "intermediate" && track === "1dpc";
-  const schedule = searchParams.get("schedule") || sessionStorage.getItem("selectedScheduleId") || "";
+  const storedScheduleId = (() => {
+    try {
+      return sessionStorage.getItem("selectedScheduleId") || localStorage.getItem("selectedScheduleId") || "";
+    } catch {
+      return "";
+    }
+  })();
+  const schedule = searchParams.get("schedule") || storedScheduleId;
   const isCalibrate = searchParams.get("calibrate") === "1";
   const [referralOptions, setReferralOptions] = useState<string[]>(FALLBACK_REFERRALS);
   const [scheduleLabel, setScheduleLabel] = useState<string>("");

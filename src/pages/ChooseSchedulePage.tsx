@@ -103,6 +103,7 @@ const ChooseSchedulePage = () => {
       return;
     }
     sessionStorage.setItem("selectedScheduleId", classId);
+    try { localStorage.setItem("selectedScheduleId", classId); } catch { /* ignore */ }
     navigate(`/register?course=${course}&location=${location}${trackParam}`);
   };
 
