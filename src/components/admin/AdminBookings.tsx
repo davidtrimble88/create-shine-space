@@ -307,6 +307,78 @@ const AdminBookings = () => {
     }
   };
 
+  // ---- Email a payment link to a student ------------------------------------
+  const [payLinkFor, setPayLinkFor] = useState<Booking | null>(null);
+  const [payLinkAmount, setPayLinkAmount] = useState("");
+  const [payLinkNote, setPayLinkNote] = useState("");
+  const [sendingPayLink, setSendingPayLink] = useState(false);
+
+  const openPayLink = (b: Booking) => {
+    const cents = feeCentsForRider(b.fee, b.date_of_birth, b.schedule_date);
+    setPayLinkFor(b);
+    setPayLinkAmount(cents > 0 ? (cents / 100).toFixed(2) : "");
+    setPayLinkNote("");
+  };
+
+  const sendPayLink = async () => {
+    if (!payLinkFor) return;
+    const dollars = Number(payLinkAmount.replace(/[^0-9.]/g, ""));
+    if (!isFinite(dollars) || dollars <= 0) {
+      toast({ title: "Enter an amount", description: "Enter the amount due in dollars.", variant: "destructive" });
+      return;
+    }
+    const amountCents = Math.round(dollars * 100);
+    const b = payLinkFor;
+    setSendingPayLink(true);
+    try {
+      const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
+      const { error: insErr } = await (supabase as any).from("fee_payment_requests").insert({
+        booking_id: b.id,
+        token,
+        fee_type: "other",
+        amount_cents: amountCents,
+        note: payLinkNote.trim() || "Course registration balance",
+        created_by: user?.id ?? null,
+      });
+      if (insErr) throw insErr;
+
+      const payLink = `${window.location.origin}/pay-fee?token=${token}`;
+      const amountLabel = (amountCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+      const guardianEmail = (b.guardian_email || "").trim();
+      const { error } = await supabase.functions.invoke("send-auto-email", {
+        body: {
+          trigger_event: "fee_payment_link",
+          recipientEmail: b.email,
+          location: b.location,
+          course: b.course,
+          additionalRecipients:
+            guardianEmail && guardianEmail.toLowerCase() !== b.email.toLowerCase() ? [guardianEmail] : [],
+          variables: {
+            firstName: b.first_name,
+            lastName: b.last_name,
+            course: courseLabels[b.course] || b.course,
+            locationLabel: b.location_label,
+            scheduleDate: b.schedule_date ? ` — ${b.schedule_date}` : "",
+            amount: amountLabel,
+            feeLabel: "course fee",
+            note: payLinkNote.trim(),
+            payLink,
+            email: b.email,
+          },
+        },
+      });
+      if (error) throw error;
+      toast({ title: "Payment link sent", description: `${amountLabel} link emailed to ${b.email}.` });
+      setPayLinkFor(null);
+    } catch (e) {
+      toast({ title: "Send failed", description: e instanceof Error ? e.message : "Could not send payment link.", variant: "destructive" });
+    } finally {
+      setSendingPayLink(false);
+    }
+  };
+
+
+
 
 
   const handleSubmit = async () => {
