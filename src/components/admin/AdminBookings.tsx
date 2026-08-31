@@ -1462,7 +1462,49 @@ const AdminBookings = () => {
       )}
 
 
+      {/* Send payment link */}
+      <Dialog open={!!payLinkFor} onOpenChange={(o) => { if (!o) setPayLinkFor(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send payment link</DialogTitle>
+          </DialogHeader>
+          {payLinkFor && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Emails <span className="text-foreground font-medium">{payLinkFor.first_name} {payLinkFor.last_name}</span> ({payLinkFor.email})
+                a secure link to pay by card{payLinkFor.guardian_email ? " (a copy also goes to their parent/guardian)" : ""}.
+              </p>
+              <div className="space-y-2">
+                <Label>Amount due ($)</Label>
+                <Input
+                  inputMode="decimal"
+                  value={payLinkAmount}
+                  onChange={(e) => setPayLinkAmount(e.target.value)}
+                  placeholder="425.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Note (optional)</Label>
+                <Textarea
+                  value={payLinkNote}
+                  onChange={(e) => setPayLinkNote(e.target.value)}
+                  placeholder="Shown to the student on the payment page"
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setPayLinkFor(null)}>Cancel</Button>
+                <Button onClick={sendPayLink} disabled={sendingPayLink}>
+                  {sendingPayLink ? "Sending…" : "Send payment link"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Student Detail Dialog */}
+
       <Dialog open={!!selectedBooking} onOpenChange={(open) => { if (!open) setSelectedBooking(null); }}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
