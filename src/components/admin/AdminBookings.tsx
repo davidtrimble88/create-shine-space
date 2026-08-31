@@ -307,6 +307,78 @@ const AdminBookings = () => {
     }
   };
 
+  // ---- Email a payment link to a student ------------------------------------
+  const [payLinkFor, setPayLinkFor] = useState<Booking | null>(null);
+  const [payLinkAmount, setPayLinkAmount] = useState("");
+  const [payLinkNote, setPayLinkNote] = useState("");
+  const [sendingPayLink, setSendingPayLink] = useState(false);
+
+  const openPayLink = (b: Booking) => {
+    const cents = feeCentsForRider(b.fee, b.date_of_birth, b.schedule_date);
+    setPayLinkFor(b);
+    setPayLinkAmount(cents > 0 ? (cents / 100).toFixed(2) : "");
+    setPayLinkNote("");
+  };
+
+  const sendPayLink = async () => {
+    if (!payLinkFor) return;
+    const dollars = Number(payLinkAmount.replace(/[^0-9.]/g, ""));
+    if (!isFinite(dollars) || dollars <= 0) {
+      toast({ title: "Enter an amount", description: "Enter the amount due in dollars.", variant: "destructive" });
+      return;
+    }
+    const amountCents = Math.round(dollars * 100);
+    const b = payLinkFor;
+    setSendingPayLink(true);
+    try {
+      const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
+      const { error: insErr } = await (supabase as any).from("fee_payment_requests").insert({
+        booking_id: b.id,
+        token,
+        fee_type: "other",
+        amount_cents: amountCents,
+        note: payLinkNote.trim() || "Course registration balance",
+        created_by: user?.id ?? null,
+      });
+      if (insErr) throw insErr;
+
+      const payLink = `${window.location.origin}/pay-fee?token=${token}`;
+      const amountLabel = (amountCents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+      const guardianEmail = (b.guardian_email || "").trim();
+      const { error } = await supabase.functions.invoke("send-auto-email", {
+        body: {
+          trigger_event: "fee_payment_link",
+          recipientEmail: b.email,
+          location: b.location,
+          course: b.course,
+          additionalRecipients:
+            guardianEmail && guardianEmail.toLowerCase() !== b.email.toLowerCase() ? [guardianEmail] : [],
+          variables: {
+            firstName: b.first_name,
+            lastName: b.last_name,
+            course: courseLabels[b.course] || b.course,
+            locationLabel: b.location_label,
+            scheduleDate: b.schedule_date ? ` — ${b.schedule_date}` : "",
+            amount: amountLabel,
+            feeLabel: "course fee",
+            note: payLinkNote.trim(),
+            payLink,
+            email: b.email,
+          },
+        },
+      });
+      if (error) throw error;
+      toast({ title: "Payment link sent", description: `${amountLabel} link emailed to ${b.email}.` });
+      setPayLinkFor(null);
+    } catch (e) {
+      toast({ title: "Send failed", description: e instanceof Error ? e.message : "Could not send payment link.", variant: "destructive" });
+    } finally {
+      setSendingPayLink(false);
+    }
+  };
+
+
+
 
 
   const handleSubmit = async () => {
@@ -1350,6 +1422,15 @@ const AdminBookings = () => {
                       >
                         <Link2 className={`w-4 h-4 ${formsLinkId === b.id ? "opacity-50" : ""}`} />
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Email the student a link to pay"
+                        onClick={() => openPayLink(b)}
+                      >
+                        <CreditCard className="w-4 h-4" />
+                      </Button>
+
                       {isOwner && (
                         <button
                           type="button"
@@ -1381,7 +1462,49 @@ const AdminBookings = () => {
       )}
 
 
+      {/* Send payment link */}
+      <Dialog open={!!payLinkFor} onOpenChange={(o) => { if (!o) setPayLinkFor(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send payment link</DialogTitle>
+          </DialogHeader>
+          {payLinkFor && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Emails <span className="text-foreground font-medium">{payLinkFor.first_name} {payLinkFor.last_name}</span> ({payLinkFor.email})
+                a secure link to pay by card{payLinkFor.guardian_email ? " (a copy also goes to their parent/guardian)" : ""}.
+              </p>
+              <div className="space-y-2">
+                <Label>Amount due ($)</Label>
+                <Input
+                  inputMode="decimal"
+                  value={payLinkAmount}
+                  onChange={(e) => setPayLinkAmount(e.target.value)}
+                  placeholder="425.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Note (optional)</Label>
+                <Textarea
+                  value={payLinkNote}
+                  onChange={(e) => setPayLinkNote(e.target.value)}
+                  placeholder="Shown to the student on the payment page"
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setPayLinkFor(null)}>Cancel</Button>
+                <Button onClick={sendPayLink} disabled={sendingPayLink}>
+                  {sendingPayLink ? "Sending…" : "Send payment link"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Student Detail Dialog */}
+
       <Dialog open={!!selectedBooking} onOpenChange={(open) => { if (!open) setSelectedBooking(null); }}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
