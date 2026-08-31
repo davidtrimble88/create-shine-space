@@ -1350,6 +1350,15 @@ const AdminBookings = () => {
                       >
                         <Link2 className={`w-4 h-4 ${formsLinkId === b.id ? "opacity-50" : ""}`} />
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Email the student a link to pay"
+                        onClick={() => openPayLink(b)}
+                      >
+                        <CreditCard className="w-4 h-4" />
+                      </Button>
+
                       {isOwner && (
                         <button
                           type="button"
