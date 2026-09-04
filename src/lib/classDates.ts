@@ -118,3 +118,64 @@ export const formatClassDates = (
     )
     .join(" · ");
 };
+
+/**
+ * Registration cutoff: classes close at 5:00 PM Pacific on the Friday of the
+ * class's own weekend.
+ *  - Ventura Group B (starts Friday) -> that same Friday at 5pm
+ *  - Ventura Group A (starts Saturday) -> the Friday right before
+ *  - High Desert (starts Wednesday) -> the Friday immediately following
+ * Returns the cutoff moment in ms since epoch, or null when unknown.
+ */
+export const registrationCloseAt = (startDate: string | null | undefined): number | null => {
+  if (!startDate) return null;
+  const start = parseISO(startDate);
+  if (Number.isNaN(start.getTime())) return null;
+
+  const dow = start.getDay(); // 0=Sun ... 6=Sat
+  // Wed/Thu/Fri roll forward to that week's Friday; Sat/Sun (and Mon/Tue)
+  // fall back to the Friday before the weekend.
+  const delta = dow >= 3 && dow <= 5 ? 5 - dow : -(((dow + 7 - 5) % 7) || 7);
+  const friday = new Date(start.getFullYear(), start.getMonth(), start.getDate() + delta);
+
+  return pacificMoment(toISO(friday), 17, 0);
+};
+
+/** Convert a Pacific-time wall clock (date + hour) into epoch ms. */
+const pacificMoment = (iso: string, hour: number, minute: number): number => {
+  const [y, m, d] = iso.split("-").map(Number);
+  // Start from the naive UTC guess, then correct by the Pacific offset.
+  const guess = Date.UTC(y, m - 1, d, hour, minute);
+  const offset = pacificOffsetMinutes(new Date(guess));
+  return guess + offset * 60_000;
+};
+
+/** Minutes to ADD to a Pacific wall clock to get UTC (480 for PST, 420 for PDT). */
+const pacificOffsetMinutes = (at: Date): number => {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    hour12: false,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+  }).formatToParts(at);
+  const get = (t: string) => Number(parts.find(p => p.type === t)?.value);
+  const asUTC = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour") % 24, get("minute"));
+  return Math.round((at.getTime() - asUTC) / 60_000);
+};
+
+/** True once registration has closed for a class with this start date. */
+export const isRegistrationClosed = (startDate: string | null | undefined, now: number = Date.now()): boolean => {
+  const cutoff = registrationCloseAt(startDate);
+  return cutoff !== null && now >= cutoff;
+};
+
+/** Human label for the cutoff, e.g. "Fri, Sep 18 at 5:00 PM". */
+export const registrationCloseLabel = (startDate: string | null | undefined): string => {
+  const cutoff = registrationCloseAt(startDate);
+  if (cutoff === null) return "";
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    weekday: "short", month: "short", day: "numeric",
+    hour: "numeric", minute: "2-digit",
+  }).format(new Date(cutoff));
+};
