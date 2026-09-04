@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import Seo from "@/components/Seo";
 import { createSeatHold, releaseSeatHold, SEAT_HOLD_MINUTES } from "@/lib/seatHold";
+import { isRegistrationClosed, registrationCloseLabel } from "@/lib/classDates";
 import { toast } from "@/hooks/use-toast";
 
 type Schedule = Tables<"schedules">;
@@ -52,21 +53,22 @@ const ChooseSchedulePage = () => {
       .gt("spots_available", 0)
       .is("cancelled_at", null)
       .order("date", { ascending: true });
-    const rows = data ?? [];
+    // Registration closes at 5pm Pacific on the Friday of the class weekend.
+    const rows = (data ?? []).filter(r => !isRegistrationClosed(r.date));
     setClasses(rows);
     setLoading(false);
 
     if (rows.length === 0) {
       const { data: others } = await supabase
         .from("schedules")
-        .select("location, location_label")
+        .select("location, location_label, date")
         .eq("course", scheduleCourse)
         .neq("location", location)
         .gte("date", today)
         .gt("spots_available", 0)
         .is("cancelled_at", null);
       const tally = new Map<string, { label: string; count: number }>();
-      for (const r of others ?? []) {
+      for (const r of (others ?? []).filter((o: any) => !isRegistrationClosed(o.date))) {
         const existing = tally.get(r.location);
         if (existing) existing.count += 1;
         else tally.set(r.location, { label: r.location_label, count: 1 });
@@ -93,6 +95,12 @@ const ChooseSchedulePage = () => {
 
   const handleSelectClass = async (classId: string) => {
     if (holding) return;
+    const target = classes.find(c => c.id === classId);
+    if (target && isRegistrationClosed(target.date)) {
+      toast({ title: "Registration closed", description: "Online registration for this class has closed. Please call the office.", variant: "destructive" });
+      await fetchClasses();
+      return;
+    }
     setHolding(classId);
     const result = await createSeatHold(classId);
     setHolding(null);
@@ -205,6 +213,9 @@ const ChooseSchedulePage = () => {
                             <span className="flex items-center gap-1 text-sm text-muted-foreground">
                               <Users className="w-4 h-4 text-accent" />
                               {entry.spots_available} spots left
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              Registration closes {registrationCloseLabel(entry.date)}
                             </span>
                             <span className="flex items-center gap-1 text-sm text-accent font-medium">
                               {holding === entry.id ? (
