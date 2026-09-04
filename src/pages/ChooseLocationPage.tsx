@@ -6,6 +6,7 @@ import { MapPin, ArrowRight, Mountain, Waves } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Seo from "@/components/Seo";
+import { isRegistrationClosed } from "@/lib/classDates";
 
 const locations = [
   {
@@ -52,7 +53,7 @@ const ChooseLocationPage = () => {
       const today = new Date().toISOString().slice(0, 10);
       const { data, error } = await supabase
         .from("schedules")
-        .select("location")
+        .select("location, date")
         .eq("course", scheduleCourse)
         .is("cancelled_at", null)
         .gte("date", today)
@@ -60,7 +61,7 @@ const ChooseLocationPage = () => {
 
       if (error || !data) return;
       const tally: Record<string, number> = {};
-      for (const row of data) {
+      for (const row of data.filter(r => !isRegistrationClosed(r.date))) {
         tally[row.location] = (tally[row.location] || 0) + 1;
       }
       setCounts(tally);
