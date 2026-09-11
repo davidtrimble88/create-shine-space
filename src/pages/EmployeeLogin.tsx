@@ -28,6 +28,7 @@ import {
 } from "@/lib/biometric";
 import type { BiometryType } from "capacitor-native-biometric";
 import Seo from "@/components/Seo";
+import { logPortalError } from "@/lib/errorLog";
 
 const EmployeeLogin = () => {
   const [email, setEmail] = useState("");
@@ -68,6 +69,12 @@ const EmployeeLogin = () => {
   const completeLogin = async (em: string, pw: string, fromBiometric: boolean) => {
     const { error } = await supabase.auth.signInWithPassword({ email: em, password: pw });
     if (error) {
+      logPortalError({
+        context: fromBiometric ? "login_failed_biometric" : "login_failed",
+        error,
+        email: em,
+        details: { status: (error as any)?.status },
+      });
       if (fromBiometric) {
         // Stored creds no longer valid — clear them
         await clearCredentials();
