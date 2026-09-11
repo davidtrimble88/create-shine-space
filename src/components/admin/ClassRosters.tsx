@@ -446,12 +446,15 @@ const ClassRosters = () => {
           .select("*")
           .eq("result", "fail")
           .in("retest_type", ["skill", "knowledge", "both"]),
+        // Every self-dropped student stays visible here, even if the
+        // reschedule flag was never set (or was cleared by mistake) — otherwise
+        // they vanish from the roster with no way to find them again.
         (supabase as any)
           .from("bookings")
           .select("*")
           .eq("result", "self_drop")
-          .eq("needs_reschedule", true)
           .eq("archived", false),
+
       ]);
       const merged = [...((retestRows ?? []) as Booking[]), ...((selfDropRows ?? []) as Booking[])];
       const seen = new Set<string>();
