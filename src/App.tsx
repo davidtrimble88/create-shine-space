@@ -28,6 +28,7 @@ import CompleteFormsPage from "./pages/CompleteFormsPage";
 import PayRegistrationPage from "./pages/PayRegistrationPage";
 import PayFeePage from "./pages/PayFeePage";
 import HiddenDuck from "./components/HiddenDuck";
+import GlobalErrorLogger from "./components/GlobalErrorLogger";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
         <SiteContentProvider>
+          <GlobalErrorLogger />
           <ScrollToTop />
           <PageViewTracker />
           <Routes>

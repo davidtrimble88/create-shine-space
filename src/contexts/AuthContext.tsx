@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { logPortalError } from "@/lib/errorLog";
 
 type AppRole = "owner" | "admin" | "manager" | "employee" | "moderator";
 
@@ -61,10 +62,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const clearMustChangePassword = () => setMustChangePassword(false);
 
   const checkRole = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
+
+    if (error) {
+      logPortalError({ context: "portal_load_role_lookup", error });
+    }
+    
     
     if (data && data.length > 0) {
       const roles = data.map(r => r.role);
@@ -88,11 +94,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const checkMustChangePassword = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("employees")
       .select("must_change_password")
       .eq("user_id", userId)
       .maybeSingle();
+    if (error) {
+      logPortalError({ context: "portal_load_employee_lookup", error });
+    }
     setMustChangePassword(data?.must_change_password ?? false);
   };
 

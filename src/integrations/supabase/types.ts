@@ -1436,6 +1436,45 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_error_log: {
+        Row: {
+          context: string
+          created_at: string
+          error_details: string | null
+          error_message: string
+          id: string
+          route: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          context: string
+          created_at?: string
+          error_details?: string | null
+          error_message: string
+          id?: string
+          route?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          context?: string
+          created_at?: string
+          error_details?: string | null
+          error_message?: string
+          id?: string
+          route?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string
