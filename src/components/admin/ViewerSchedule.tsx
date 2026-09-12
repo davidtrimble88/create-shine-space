@@ -484,6 +484,7 @@ const ViewerSchedule = () => {
                 isToggling={toggling === entry.data.id}
                 onSetAvailability={(p) => setAvailability(entry.data.id, p)}
                 onClear={() => clearAvailability(entry.data.id)}
+                staffing={staffing.get(entry.data.id) ?? null}
               />;
             } else {
               return <PlaceholderCard
