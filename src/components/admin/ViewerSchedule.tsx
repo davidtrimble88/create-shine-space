@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft, Pin, PinOff, Users } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft, Pin, PinOff, Users, Filter, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, parseISO, addDays, addYears } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
@@ -67,6 +67,8 @@ const ViewerSchedule = () => {
   const [dismissing, setDismissing] = useState<string | null>(null);
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [filterCourse, setFilterCourse] = useState<string>("all");
+  // When true, classes that already have every instructor spot filled are hidden.
+  const [hideFullyStaffed, setHideFullyStaffed] = useState<boolean>(false);
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [showReport, setShowReport] = useState(false);
   const { defaultLocation, setDefaultLocation, loaded: prefLoaded } = useDefaultLocation();
