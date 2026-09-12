@@ -629,6 +629,60 @@ const ScheduleCard = ({
             </span>
           </div>
 
+          {/* Staffing coverage: full when C1/C2 each have 1 instructor and R1/R2 each have 2 */}
+          {(() => {
+            const assigned = STAFFING_REQUIREMENTS.map(req => ({
+              ...req,
+              names: staffing?.get(req.duty) ?? new Set<string>(),
+            }));
+            const totalAssigned = new Set<string>();
+            staffing?.forEach(set => set.forEach(n => totalAssigned.add(n)));
+            if (totalAssigned.size === 0) return (
+              <div className="ml-13 mt-2 flex items-center gap-2 text-xs text-amber-400">
+                <Users className="w-3.5 h-3.5" />
+                <span>No instructors assigned yet</span>
+              </div>
+            );
+            const fullyStaffed = assigned.every(a => a.names.size >= a.required);
+            return (
+              <div className="ml-13 mt-2 flex flex-wrap items-center gap-1.5">
+                <span
+                  className={`text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                    fullyStaffed
+                      ? "bg-green-500/15 text-green-400"
+                      : "bg-amber-500/15 text-amber-400"
+                  }`}
+                  title={fullyStaffed
+                    ? "All instructor spots are filled"
+                    : "More instructors are needed for this class"}
+                >
+                  <Users className="w-3 h-3" />
+                  {fullyStaffed ? "Fully staffed" : "Needs instructors"}
+                </span>
+                {assigned.map(a => {
+                  const met = a.names.size >= a.required;
+                  const nameList = Array.from(a.names).join(", ");
+                  return (
+                    <span
+                      key={a.duty}
+                      title={nameList ? `${a.label}: ${nameList}` : `${a.label}: no one assigned`}
+                      className={`text-xs px-2 py-0.5 rounded-full border ${
+                        met
+                          ? "bg-green-500/10 text-green-400 border-green-500/30"
+                          : a.names.size > 0
+                            ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                            : "bg-card text-muted-foreground border-border"
+                      }`}
+                    >
+                      {a.label} {a.names.size}/{a.required}
+                      {nameList ? ` — ${nameList}` : ""}
+                    </span>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
           {isPartialAvailable && selectedParts && selectedParts.length > 0 && (
             <div className="ml-13 mt-2 flex flex-wrap gap-1.5">
               <span className="text-xs text-muted-foreground">Available for:</span>
