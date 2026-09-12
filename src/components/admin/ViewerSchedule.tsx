@@ -534,6 +534,15 @@ const getPartDates = (startDate: string, scheduleText: string): { part: string; 
   });
 };
 
+// Required instructors per duty for a class to be considered fully staffed:
+// 1 for each classroom part (C1, C2) and 2 for each range part (R1, R2).
+const STAFFING_REQUIREMENTS: { duty: string; label: string; required: number }[] = [
+  { duty: "c1", label: "C1", required: 1 },
+  { duty: "c2", label: "C2", required: 1 },
+  { duty: "r1", label: "R1", required: 2 },
+  { duty: "r2", label: "R2", required: 2 },
+];
+
 const ScheduleCard = ({
   schedule: s,
   hasAvailability,
@@ -541,6 +550,7 @@ const ScheduleCard = ({
   isToggling,
   onSetAvailability,
   onClear,
+  staffing,
 }: {
   schedule: Schedule;
   hasAvailability: boolean;
@@ -548,6 +558,7 @@ const ScheduleCard = ({
   isToggling: boolean;
   onSetAvailability: (parts: string[] | null) => void;
   onClear: () => void;
+  staffing: Map<string, Set<string>> | null;
 }) => {
   const dateObj = parseISO(s.date);
   const parts = parsePartsFromSchedule(s.schedule);
