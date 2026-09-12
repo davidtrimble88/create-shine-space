@@ -368,13 +368,21 @@ const ViewerSchedule = () => {
   }
 
   const displayList = buildDisplayList();
-  const filtered = displayList.filter(entry => {
+  const baseFiltered = displayList.filter(entry => {
     const locationMatch = filterLocation === "all" ||
       (entry.type === "schedule" ? entry.data.location === filterLocation : entry.location.filterKey === filterLocation);
     if (!locationMatch) return false;
     if (entry.type === "placeholder") return filterCourse === "all";
     return filterCourse === "all" || entry.data.course === filterCourse;
   });
+  const isEntryFullyStaffed = (entry: DisplayEntry) =>
+    entry.type === "schedule" && isStaffingComplete(staffing.get(entry.data.id));
+  const fullyStaffedCount = view === "upcoming"
+    ? baseFiltered.filter(isEntryFullyStaffed).length
+    : 0;
+  const filtered = hideFullyStaffed && view === "upcoming"
+    ? baseFiltered.filter(entry => !isEntryFullyStaffed(entry))
+    : baseFiltered;
 
 
   return (
@@ -544,6 +552,12 @@ const STAFFING_REQUIREMENTS: { duty: string; label: string; required: number }[]
   { duty: "r1", label: "R1", required: 2 },
   { duty: "r2", label: "R2", required: 2 },
 ];
+
+// A class is fully staffed once C1 and C2 each have 1 instructor and R1 and R2 each have 2.
+function isStaffingComplete(dutyMap: Map<string, Set<string>> | null | undefined): boolean {
+  if (!dutyMap || dutyMap.size === 0) return false;
+  return STAFFING_REQUIREMENTS.every(req => (dutyMap.get(req.duty)?.size ?? 0) >= req.required);
+}
 
 const ScheduleCard = ({
   schedule: s,
