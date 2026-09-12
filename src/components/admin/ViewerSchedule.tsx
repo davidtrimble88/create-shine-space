@@ -59,6 +59,8 @@ const ViewerSchedule = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [myAvailability, setMyAvailability] = useState<Map<string, string[] | null>>(new Map());
   const [myDateAvailability, setMyDateAvailability] = useState<Map<string, Set<string>>>(new Map());
+  // schedule_id -> duty (c1/c2/r1/r2) -> assigned employee names
+  const [staffing, setStaffing] = useState<Map<string, Map<string, Set<string>>>>(new Map());
   const [dismissedDates, setDismissedDates] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
