@@ -439,6 +439,26 @@ const ViewerSchedule = () => {
             <SelectItem value="advanced">Advanced Riding Clinic</SelectItem>
           </SelectContent>
         </Select>
+
+        {view === "upcoming" && (
+          <Button
+            variant={hideFullyStaffed ? "default" : "outline"}
+            size="sm"
+            onClick={() => setHideFullyStaffed(v => !v)}
+            title={hideFullyStaffed
+              ? "Showing only classes that still need instructors — click to show every class again"
+              : "Hide classes where every instructor spot is already filled"}
+            className="gap-2"
+          >
+            {hideFullyStaffed ? <UserCheck className="w-4 h-4" /> : <Filter className="w-4 h-4" />}
+            {hideFullyStaffed ? "Show all classes" : "Hide fully staffed"}
+            {!hideFullyStaffed && fullyStaffedCount > 0 && (
+              <span className="text-xs px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                {fullyStaffedCount}
+              </span>
+            )}
+          </Button>
+        )}
         {filterLocation !== "all" && defaultLocation !== filterLocation && (
           <Button
             variant="outline"
