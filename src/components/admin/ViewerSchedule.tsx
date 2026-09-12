@@ -59,6 +59,8 @@ const ViewerSchedule = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [myAvailability, setMyAvailability] = useState<Map<string, string[] | null>>(new Map());
   const [myDateAvailability, setMyDateAvailability] = useState<Map<string, Set<string>>>(new Map());
+  // schedule_id -> duty (c1/c2/r1/r2) -> assigned employee names
+  const [staffing, setStaffing] = useState<Map<string, Map<string, Set<string>>>>(new Map());
   const [dismissedDates, setDismissedDates] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
@@ -107,6 +109,27 @@ const ViewerSchedule = () => {
 
     setSchedules(schedRes.data ?? []);
     setDismissedDates(new Set((dismissedRes.data ?? []).map((d: any) => d.date)));
+
+    // Fetch instructor assignments for the visible schedules to compute staffing coverage.
+    const schedIds = (schedRes.data ?? []).map((s: Schedule) => s.id);
+    const staffingMap = new Map<string, Map<string, Set<string>>>();
+    if (schedIds.length > 0) {
+      const { data: assignData } = await supabase
+        .from("instructor_assignments")
+        .select("schedule_id, employee_id, assignment_role, employees(full_name)")
+        .in("schedule_id", schedIds);
+      (assignData ?? []).forEach((a: any) => {
+        const duty = a.assignment_role;
+        if (!["c1", "c2", "r1", "r2"].includes(duty)) return;
+        const name: string = a.employees?.full_name ?? "Instructor";
+        if (!staffingMap.has(a.schedule_id)) staffingMap.set(a.schedule_id, new Map());
+        const dutyMap = staffingMap.get(a.schedule_id)!;
+        if (!dutyMap.has(duty)) dutyMap.set(duty, new Set());
+        dutyMap.get(duty)!.add(name);
+      });
+    }
+    setStaffing(staffingMap);
+
     const availMap = new Map<string, string[] | null>();
     availData.forEach((a: any) => availMap.set(a.schedule_id, a.parts ?? null));
     setMyAvailability(availMap);
@@ -461,6 +484,7 @@ const ViewerSchedule = () => {
                 isToggling={toggling === entry.data.id}
                 onSetAvailability={(p) => setAvailability(entry.data.id, p)}
                 onClear={() => clearAvailability(entry.data.id)}
+                staffing={staffing.get(entry.data.id) ?? null}
               />;
             } else {
               return <PlaceholderCard
@@ -510,6 +534,15 @@ const getPartDates = (startDate: string, scheduleText: string): { part: string; 
   });
 };
 
+// Required instructors per duty for a class to be considered fully staffed:
+// 1 for each classroom part (C1, C2) and 2 for each range part (R1, R2).
+const STAFFING_REQUIREMENTS: { duty: string; label: string; required: number }[] = [
+  { duty: "c1", label: "C1", required: 1 },
+  { duty: "c2", label: "C2", required: 1 },
+  { duty: "r1", label: "R1", required: 2 },
+  { duty: "r2", label: "R2", required: 2 },
+];
+
 const ScheduleCard = ({
   schedule: s,
   hasAvailability,
@@ -517,6 +550,7 @@ const ScheduleCard = ({
   isToggling,
   onSetAvailability,
   onClear,
+  staffing,
 }: {
   schedule: Schedule;
   hasAvailability: boolean;
@@ -524,6 +558,7 @@ const ScheduleCard = ({
   isToggling: boolean;
   onSetAvailability: (parts: string[] | null) => void;
   onClear: () => void;
+  staffing: Map<string, Set<string>> | null;
 }) => {
   const dateObj = parseISO(s.date);
   const parts = parsePartsFromSchedule(s.schedule);
@@ -593,6 +628,60 @@ const ScheduleCard = ({
               {s.location_label}
             </span>
           </div>
+
+          {/* Staffing coverage: full when C1/C2 each have 1 instructor and R1/R2 each have 2 */}
+          {(() => {
+            const assigned = STAFFING_REQUIREMENTS.map(req => ({
+              ...req,
+              names: staffing?.get(req.duty) ?? new Set<string>(),
+            }));
+            const totalAssigned = new Set<string>();
+            staffing?.forEach(set => set.forEach(n => totalAssigned.add(n)));
+            if (totalAssigned.size === 0) return (
+              <div className="ml-13 mt-2 flex items-center gap-2 text-xs text-amber-400">
+                <Users className="w-3.5 h-3.5" />
+                <span>No instructors assigned yet</span>
+              </div>
+            );
+            const fullyStaffed = assigned.every(a => a.names.size >= a.required);
+            return (
+              <div className="ml-13 mt-2 flex flex-wrap items-center gap-1.5">
+                <span
+                  className={`text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                    fullyStaffed
+                      ? "bg-green-500/15 text-green-400"
+                      : "bg-amber-500/15 text-amber-400"
+                  }`}
+                  title={fullyStaffed
+                    ? "All instructor spots are filled"
+                    : "More instructors are needed for this class"}
+                >
+                  <Users className="w-3 h-3" />
+                  {fullyStaffed ? "Fully staffed" : "Needs instructors"}
+                </span>
+                {assigned.map(a => {
+                  const met = a.names.size >= a.required;
+                  const nameList = Array.from(a.names).join(", ");
+                  return (
+                    <span
+                      key={a.duty}
+                      title={nameList ? `${a.label}: ${nameList}` : `${a.label}: no one assigned`}
+                      className={`text-xs px-2 py-0.5 rounded-full border ${
+                        met
+                          ? "bg-green-500/10 text-green-400 border-green-500/30"
+                          : a.names.size > 0
+                            ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                            : "bg-card text-muted-foreground border-border"
+                      }`}
+                    >
+                      {a.label} {a.names.size}/{a.required}
+                      {nameList ? ` — ${nameList}` : ""}
+                    </span>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           {isPartialAvailable && selectedParts && selectedParts.length > 0 && (
             <div className="ml-13 mt-2 flex flex-wrap gap-1.5">
