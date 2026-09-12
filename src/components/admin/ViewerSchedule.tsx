@@ -679,7 +679,7 @@ const ScheduleCard = ({
                 <span>No instructors assigned yet</span>
               </div>
             );
-            const fullyStaffed = assigned.every(a => a.names.size >= a.required);
+            const fullyStaffed = isStaffingComplete(staffing);
             return (
               <div className="ml-13 mt-2 flex flex-wrap items-center gap-1.5">
                 <span
