@@ -109,6 +109,27 @@ const ViewerSchedule = () => {
 
     setSchedules(schedRes.data ?? []);
     setDismissedDates(new Set((dismissedRes.data ?? []).map((d: any) => d.date)));
+
+    // Fetch instructor assignments for the visible schedules to compute staffing coverage.
+    const schedIds = (schedRes.data ?? []).map((s: Schedule) => s.id);
+    const staffingMap = new Map<string, Map<string, Set<string>>>();
+    if (schedIds.length > 0) {
+      const { data: assignData } = await supabase
+        .from("instructor_assignments")
+        .select("schedule_id, employee_id, assignment_role, employees(full_name)")
+        .in("schedule_id", schedIds);
+      (assignData ?? []).forEach((a: any) => {
+        const duty = a.assignment_role;
+        if (!["c1", "c2", "r1", "r2"].includes(duty)) return;
+        const name: string = a.employees?.full_name ?? "Instructor";
+        if (!staffingMap.has(a.schedule_id)) staffingMap.set(a.schedule_id, new Map());
+        const dutyMap = staffingMap.get(a.schedule_id)!;
+        if (!dutyMap.has(duty)) dutyMap.set(duty, new Set());
+        dutyMap.get(duty)!.add(name);
+      });
+    }
+    setStaffing(staffingMap);
+
     const availMap = new Map<string, string[] | null>();
     availData.forEach((a: any) => availMap.set(a.schedule_id, a.parts ?? null));
     setMyAvailability(availMap);
