@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft, Pin, PinOff, Users } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Hand, Check, Loader2, CalendarPlus, X, History, ArrowLeft, Pin, PinOff, Users, Filter, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, parseISO, addDays, addYears } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
@@ -67,6 +67,8 @@ const ViewerSchedule = () => {
   const [dismissing, setDismissing] = useState<string | null>(null);
   const [filterLocation, setFilterLocation] = useState<string>("all");
   const [filterCourse, setFilterCourse] = useState<string>("all");
+  // When true, classes that already have every instructor spot filled are hidden.
+  const [hideFullyStaffed, setHideFullyStaffed] = useState<boolean>(false);
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
   const [showReport, setShowReport] = useState(false);
   const { defaultLocation, setDefaultLocation, loaded: prefLoaded } = useDefaultLocation();
@@ -366,13 +368,21 @@ const ViewerSchedule = () => {
   }
 
   const displayList = buildDisplayList();
-  const filtered = displayList.filter(entry => {
+  const baseFiltered = displayList.filter(entry => {
     const locationMatch = filterLocation === "all" ||
       (entry.type === "schedule" ? entry.data.location === filterLocation : entry.location.filterKey === filterLocation);
     if (!locationMatch) return false;
     if (entry.type === "placeholder") return filterCourse === "all";
     return filterCourse === "all" || entry.data.course === filterCourse;
   });
+  const isEntryFullyStaffed = (entry: DisplayEntry) =>
+    entry.type === "schedule" && isStaffingComplete(staffing.get(entry.data.id));
+  const fullyStaffedCount = view === "upcoming"
+    ? baseFiltered.filter(isEntryFullyStaffed).length
+    : 0;
+  const filtered = hideFullyStaffed && view === "upcoming"
+    ? baseFiltered.filter(entry => !isEntryFullyStaffed(entry))
+    : baseFiltered;
 
 
   return (
@@ -429,6 +439,26 @@ const ViewerSchedule = () => {
             <SelectItem value="advanced">Advanced Riding Clinic</SelectItem>
           </SelectContent>
         </Select>
+
+        {view === "upcoming" && (
+          <Button
+            variant={hideFullyStaffed ? "default" : "outline"}
+            size="sm"
+            onClick={() => setHideFullyStaffed(v => !v)}
+            title={hideFullyStaffed
+              ? "Showing only classes that still need instructors — click to show every class again"
+              : "Hide classes where every instructor spot is already filled"}
+            className="gap-2"
+          >
+            {hideFullyStaffed ? <UserCheck className="w-4 h-4" /> : <Filter className="w-4 h-4" />}
+            {hideFullyStaffed ? "Show all classes" : "Hide fully staffed"}
+            {!hideFullyStaffed && fullyStaffedCount > 0 && (
+              <span className="text-xs px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                {fullyStaffedCount}
+              </span>
+            )}
+          </Button>
+        )}
         {filterLocation !== "all" && defaultLocation !== filterLocation && (
           <Button
             variant="outline"
@@ -543,6 +573,12 @@ const STAFFING_REQUIREMENTS: { duty: string; label: string; required: number }[]
   { duty: "r2", label: "R2", required: 2 },
 ];
 
+// A class is fully staffed once C1 and C2 each have 1 instructor and R1 and R2 each have 2.
+function isStaffingComplete(dutyMap: Map<string, Set<string>> | null | undefined): boolean {
+  if (!dutyMap || dutyMap.size === 0) return false;
+  return STAFFING_REQUIREMENTS.every(req => (dutyMap.get(req.duty)?.size ?? 0) >= req.required);
+}
+
 const ScheduleCard = ({
   schedule: s,
   hasAvailability,
@@ -643,7 +679,7 @@ const ScheduleCard = ({
                 <span>No instructors assigned yet</span>
               </div>
             );
-            const fullyStaffed = assigned.every(a => a.names.size >= a.required);
+            const fullyStaffed = isStaffingComplete(staffing);
             return (
               <div className="ml-13 mt-2 flex flex-wrap items-center gap-1.5">
                 <span
