@@ -642,6 +642,8 @@ const ClassRosters = () => {
 
   const allKnownSchedules = [...schedules, ...pastSchedules, ...evalPendingSchedules];
   const selectedSchedule = allKnownSchedules.find(s => s.id === selectedScheduleId);
+  // IRC students register their own motorcycle — show it on the roster for that course only.
+  const showBikeCol = selectedSchedule?.course === "intermediate";
 
   const nonRetestBookings = bookings.filter(b => !b.is_retest && !b.archived);
   const regularBookings = nonRetestBookings.filter(b => !b.dropped);
