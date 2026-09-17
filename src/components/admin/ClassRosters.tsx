@@ -1153,6 +1153,7 @@ const ClassRosters = () => {
           <td></td><td></td>
           <td className="center"></td><td className="center"></td><td className="center"></td>
           <td></td><td></td><td className="center"></td><td></td>
+          {showBikeCol && <td></td>}
           <td className="center"></td><td className="center"></td><td className="center"></td><td className="center"></td>
           <td></td>
           <td className="center"></td><td className="center"></td>
@@ -1169,6 +1170,7 @@ const ClassRosters = () => {
         <tr key={`retest-empty-${i}`} className="empty-rows">
           <td>{startNum + i}</td>
           <td></td><td></td><td></td><td></td><td></td><td></td>
+          {showBikeCol && <td></td>}
           <td></td><td></td><td></td><td></td><td></td>
         </tr>
       );
