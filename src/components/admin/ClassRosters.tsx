@@ -2875,6 +2875,9 @@ const ClassRosters = () => {
                       <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">ID #</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">DOB</th>
+                      {showBikeCol && (
+                        <th className="text-left p-3 font-medium text-muted-foreground">Bike</th>
+                      )}
                       {(["checkpoint_c1","checkpoint_r1","checkpoint_c2","checkpoint_r2"] as const).map((k) => {
                         const label = k.slice(-2).toUpperCase();
                         const allChecked = regularBookings.length > 0 && regularBookings.every(r => Boolean((r as any)[k]));
@@ -3008,6 +3011,9 @@ const ClassRosters = () => {
                         <td className="p-3 text-muted-foreground">{b.phone}</td>
                         <td className="p-3 text-muted-foreground">{b.license_number || "—"}</td>
                         <td className="p-3 text-muted-foreground">{b.date_of_birth || "—"}</td>
+                        {showBikeCol && (
+                          <td className="p-3 text-muted-foreground">{(b as any).bike_info || "—"}</td>
+                        )}
                         {renderCheckpointCell(b, "checkpoint_c1")}
                         {renderCheckpointCell(b, "checkpoint_r1")}
                         {renderCheckpointCell(b, "checkpoint_c2")}
@@ -3101,6 +3107,9 @@ const ClassRosters = () => {
                         <th className="text-left p-3 font-medium text-muted-foreground">Phone</th>
                         <th className="text-left p-3 font-medium text-muted-foreground">ID #</th>
                         <th className="text-left p-3 font-medium text-muted-foreground">DOB</th>
+                        {showBikeCol && (
+                          <th className="text-left p-3 font-medium text-muted-foreground">Bike</th>
+                        )}
                         <th className="text-left p-3 font-medium text-muted-foreground min-w-[180px]">Comments</th>
                         <th className="text-center p-3 font-medium text-muted-foreground">KS</th>
                         <th className="text-center p-3 font-medium text-muted-foreground">SS</th>
@@ -3131,6 +3140,9 @@ const ClassRosters = () => {
                           <td className="p-3 text-muted-foreground">{b.phone}</td>
                           <td className="p-3 text-muted-foreground">{b.license_number || "—"}</td>
                           <td className="p-3 text-muted-foreground">{b.date_of_birth || "—"}</td>
+                          {showBikeCol && (
+                            <td className="p-3 text-muted-foreground">{(b as any).bike_info || "—"}</td>
+                          )}
                           {renderCommentCell(b)}
                           {renderScoreCell(b, "ks_score")}
                           {renderScoreCell(b, "ss_score")}
@@ -3210,7 +3222,7 @@ const ClassRosters = () => {
               <table className="roster-table">
                 <thead>
                   <tr>
-                    <th className="class-info-cell" colSpan={17}>
+                    <th className="class-info-cell" colSpan={showBikeCol ? 18 : 17}>
                       <div className="title">CLASS ROSTER — {selectedSchedule.location_label}</div>
                       <div className="sub">{selectedSchedule.date} — {selectedSchedule.schedule}</div>
                       {selectedAssignments.length > 0 && (
@@ -3222,7 +3234,7 @@ const ClassRosters = () => {
                     </th>
                   </tr>
                   <tr>
-                    <th className="legend-cell" colSpan={17}>
+                    <th className="legend-cell" colSpan={showBikeCol ? 18 : 17}>
                       <div className="legend">
                         <span><strong>✓</strong> Done</span>
                         <span><strong>✗</strong> Not done</span>
@@ -3242,6 +3254,7 @@ const ClassRosters = () => {
                     <th>ID #</th>
                     <th className="id-verify-col">ID ✓</th>
                     <th>Birthdate</th>
+                    {showBikeCol && <th>Bike</th>}
                     <th className="check-col">C1</th>
                     <th className="check-col">R1</th>
                     <th className="check-col">C2</th>
@@ -3283,6 +3296,7 @@ const ClassRosters = () => {
                       <td>{b.license_number || ""}</td>
                       <td className="center"></td>
                       <td>{b.date_of_birth || ""}</td>
+                      {showBikeCol && <td style={{ fontSize: 10, whiteSpace: "normal" }}>{(b as any).bike_info || ""}</td>}
                       <td className="center">{(b as any).checkpoint_c1 ? "✓" : ""}</td>
                       <td className="center">{(b as any).checkpoint_r1 ? "✓" : ""}</td>
                       <td className="center">{(b as any).checkpoint_c2 ? "✓" : ""}</td>
@@ -3307,6 +3321,7 @@ const ClassRosters = () => {
                     <th>ID #</th>
                     <th className="id-verify-col">ID ✓</th>
                     <th>Birthdate</th>
+                    {showBikeCol && <th>Bike</th>}
                     <th>Retake Knowledge?</th>
                     <th>Retake Skills?</th>
                     <th className="comment-col">Comments</th>
@@ -3329,6 +3344,7 @@ const ClassRosters = () => {
                       <td>{b.license_number || ""}</td>
                       <td className="center"></td>
                       <td>{b.date_of_birth || ""}</td>
+                      {showBikeCol && <td style={{ fontSize: 10, whiteSpace: "normal" }}>{(b as any).bike_info || ""}</td>}
                       <td className="center"></td>
                       <td className="center"></td>
                       <td style={{ fontSize: 10, whiteSpace: "normal" }}>{displayComment(b, selectedSchedule.date)}</td>
