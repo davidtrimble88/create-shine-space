@@ -231,6 +231,13 @@ const AdminCancellations = ({ onBack }: Props) => {
         rescheduled_at: new Date().toISOString(),
         rescheduled_by: user?.id ?? null,
         roster_comment: mergedComment,
+        // A rescheduled student is active in the new class: clear any prior
+        // drop/self-drop state so they appear on the new roster.
+        dropped: false,
+        dropped_reason: null,
+        dropped_at: null,
+        dropped_by: null,
+        result: null,
       })
       .eq("id", reassignDialog.id);
     if (error) {
