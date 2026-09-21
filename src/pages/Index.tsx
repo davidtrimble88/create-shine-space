@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Benefits from "@/components/Benefits";
 import Courses from "@/components/Courses";
+import GiftCertificates from "@/components/GiftCertificates";
 import Locations from "@/components/Locations";
 import Testimonials from "@/components/Testimonials";
 import ContactCTA from "@/components/ContactCTA";
@@ -92,6 +93,7 @@ const Index = () => {
       <Hero />
       <Benefits />
       <Courses />
+      <GiftCertificates />
       <Locations />
       <Testimonials />
       <ContactCTA />
