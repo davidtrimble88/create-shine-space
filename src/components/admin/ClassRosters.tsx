@@ -1594,6 +1594,17 @@ const ClassRosters = () => {
           location: target.location,
           location_label: target.location_label,
           roster_comment: mergedComment,
+          // Moving a student into a new class always makes them active there:
+          // clear any prior drop / self-drop / evaluation state.
+          dropped: false,
+          dropped_reason: null,
+          dropped_at: null,
+          dropped_by: null,
+          needs_reschedule: false,
+          reschedule_part: null,
+          result: null,
+          retest_type: null,
+          booking_status: "confirmed",
         })
         .eq("id", src.id);
       setRescheduling(false);
