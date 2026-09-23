@@ -48,8 +48,7 @@ Deno.serve(async (req) => {
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 
-  // Require caller to present the service role key as a bearer token. This
-  // matches how process-email-queue is invoked from cron/pg_net.
+  // Require callers such as the scheduled job to present the service role key.
   const authHeader = req.headers.get("Authorization") || "";
   const bearer = authHeader.replace(/^Bearer\s+/i, "").trim();
   if (!bearer || !timingSafeEqual(bearer, serviceRoleKey)) {
