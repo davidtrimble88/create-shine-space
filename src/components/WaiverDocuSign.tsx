@@ -27,21 +27,18 @@ type Tag =
 // Tag boxes are anchored so their bottom sits on each underline.
 // yTop here is the top edge of the clickable box.
 const TAGS: Tag[] = [
-  // Top section initials (5) — underline y=158.9, 203.9, 284.9, 320.9, 347.9
-  { id: "i1", kind: "initial", xPdf: 31, yTopPdf: 147, wPdf: 42, hPdf: 22 },
-  { id: "i2", kind: "initial", xPdf: 31, yTopPdf: 192, wPdf: 42, hPdf: 22 },
-  { id: "i3", kind: "initial", xPdf: 31, yTopPdf: 273, wPdf: 42, hPdf: 22 },
-  { id: "i4", kind: "initial", xPdf: 31, yTopPdf: 309, wPdf: 42, hPdf: 22 },
-  { id: "i5", kind: "initial", xPdf: 31, yTopPdf: 336, wPdf: 42, hPdf: 22 },
-  // Participant signature row 1 — underline y=419.9, x 360→572
-  { id: "s1", kind: "signature", xPdf: 360, yTopPdf: 401, wPdf: 212, hPdf: 30 },
-  // Bottom section initials (4) — underline y=500.9, 545.9, 581.9, 644.9
-  { id: "i6", kind: "initial", xPdf: 31, yTopPdf: 489, wPdf: 42, hPdf: 22 },
-  { id: "i7", kind: "initial", xPdf: 31, yTopPdf: 534, wPdf: 42, hPdf: 22 },
-  { id: "i8", kind: "initial", xPdf: 31, yTopPdf: 570, wPdf: 42, hPdf: 22 },
-  { id: "i9", kind: "initial", xPdf: 31, yTopPdf: 633, wPdf: 42, hPdf: 22 },
-  // Participant signature row 2 — underline y=680.9
-  { id: "s2", kind: "signature", xPdf: 360, yTopPdf: 662, wPdf: 212, hPdf: 30 },
+  // April 2026 TCTI waiver: five release initials and four indemnification initials.
+  { id: "i1", kind: "initial", xPdf: 31, yTopPdf: 153, wPdf: 42, hPdf: 22 },
+  { id: "i2", kind: "initial", xPdf: 31, yTopPdf: 198, wPdf: 42, hPdf: 22 },
+  { id: "i3", kind: "initial", xPdf: 31, yTopPdf: 279, wPdf: 42, hPdf: 22 },
+  { id: "i4", kind: "initial", xPdf: 31, yTopPdf: 315, wPdf: 42, hPdf: 22 },
+  { id: "i5", kind: "initial", xPdf: 31, yTopPdf: 342, wPdf: 42, hPdf: 22 },
+  { id: "s1", kind: "signature", xPdf: 360, yTopPdf: 407, wPdf: 212, hPdf: 30 },
+  { id: "i6", kind: "initial", xPdf: 31, yTopPdf: 495, wPdf: 42, hPdf: 22 },
+  { id: "i7", kind: "initial", xPdf: 31, yTopPdf: 540, wPdf: 42, hPdf: 22 },
+  { id: "i8", kind: "initial", xPdf: 31, yTopPdf: 576, wPdf: 42, hPdf: 22 },
+  { id: "i9", kind: "initial", xPdf: 31, yTopPdf: 639, wPdf: 42, hPdf: 22 },
+  { id: "s2", kind: "signature", xPdf: 360, yTopPdf: 686, wPdf: 212, hPdf: 30 },
 ];
 
 // Read-only prefilled fields. Coordinates measured from the actual template
@@ -51,16 +48,16 @@ type PrefillField = { x: number; yTop: number; w: number };
 const PREFILL_POSITIONS: { name: PrefillField; license: PrefillField; date: PrefillField; phone?: PrefillField }[] = [
   // Row 1 — top half
   {
-    name:    { x: 38,  yTop: 419.9, w: 196 },
-    license: { x: 238, yTop: 419.9, w: 104 },
-    date:    { x: 38,  yTop: 446.9, w: 90  },
+    name:    { x: 38,  yTop: 425.5, w: 188 },
+    license: { x: 238, yTop: 425.5, w: 100 },
+    date:    { x: 38,  yTop: 452.5, w: 86  },
   },
   // Row 2 — bottom half
   {
-    name:    { x: 38,  yTop: 680.9, w: 196 },
-    license: { x: 238, yTop: 680.9, w: 104 },
-    date:    { x: 38,  yTop: 707.9, w: 90  },
-    phone:   { x: 467, yTop: 735.7, w: 105 },
+    name:    { x: 38,  yTop: 704.5, w: 188 },
+    license: { x: 238, yTop: 704.5, w: 100 },
+    date:    { x: 38,  yTop: 731.5, w: 86  },
+    phone:   { x: 467, yTop: 760, w: 104 },
   },
 ];
 
@@ -384,7 +381,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned, continueLabel: continueLabe
         <div className="flex items-center gap-2 mb-2">
           <ShieldCheck className="w-5 h-5 text-accent" />
           <h2 className="text-lg md:text-xl font-bold text-foreground">
-            {signAsGuardian ? "Parent / Guardian: Sign the CMSP Course Waiver" : "Sign Your CMSP Course Waiver"}
+            {signAsGuardian ? "Parent / Guardian: Sign the TCTI Course Waiver" : "Sign Your TCTI Course Waiver"}
           </h2>
         </div>
         {signAsGuardian && (
@@ -514,8 +511,8 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned, continueLabel: continueLabe
                 </div>
               ) : null;
               const providerLines = [
-                { x: 128, yTop: 158.9, w: 180, key: "prov-top" },
-                { x: 128, yTop: 500.9, w: 185, key: "prov-bot" },
+                { x: 128, yTop: 164.5, w: 180, key: "prov-top" },
+                { x: 128, yTop: 506.5, w: 185, key: "prov-bot" },
               ];
               return [
                 ...providerLines.map(p =>
