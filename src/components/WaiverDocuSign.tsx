@@ -370,7 +370,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned, continueLabel: continueLabe
   const tagStyle = (tag: Tag): React.CSSProperties => ({
     position: "absolute",
     left: tag.xPdf * renderScale,
-    top: tag.yTopPdf * renderScale,
+    top: (tag.yTopPdf - 5) * renderScale,
     width: tag.wPdf * renderScale,
     height: tag.hPdf * renderScale,
   });
@@ -498,7 +498,7 @@ const WaiverDocuSign = ({ prefill, onBack, onSigned, continueLabel: continueLabe
                   className="absolute text-black pointer-events-none"
                   style={{
                     left: f.x * renderScale,
-                    top: (f.yTop - 5) * renderScale,
+                    top: (f.yTop - 10) * renderScale,
                     width: f.w * renderScale,
                     fontSize: 9 * renderScale,
                     fontFamily: "Helvetica, Arial, sans-serif",
