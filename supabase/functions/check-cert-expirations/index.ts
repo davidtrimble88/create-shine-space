@@ -4,6 +4,7 @@
 // service_role JWT) may invoke this endpoint. Response body omits per-employee
 // details to prevent staff email/certification harvesting.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendManagedEmail } from "../_shared/managed-email.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -126,36 +127,14 @@ Deno.serve(async (req) => {
           : `${emp.full_name} (${emp.email}) — ${certLabel} certification expires on ${prettyDate} (${milestone.label} from today). Follow up to confirm renewal is scheduled.`;
 
         const enqueueEmail = async (to: string, subject: string, body: string, suffix: string) => {
-          let tok: string | null = null;
-          const { data: ex } = await supabase.from("email_unsubscribe_tokens")
-            .select("token").eq("email", to).maybeSingle();
-          if (ex?.token) tok = ex.token;
-          else {
-            const nt = crypto.randomUUID();
-            const { data: ins } = await supabase.from("email_unsubscribe_tokens")
-              .insert({ email: to, token: nt }).select("token").maybeSingle();
-            tok = ins?.token || nt;
-          }
           const key = `cert-${field}-${dateStr}-${milestone!.key}-${suffix}-${to}`;
           const html = `<div style="font-family:Arial,sans-serif;font-size:14px;color:#222;line-height:1.6;max-width:640px">${
             body.split("\n\n").map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("")
           }</div>`;
-          return supabase.rpc("enqueue_email" as any, {
-            queue_name: "transactional_emails",
-            payload: {
-              to,
-              from: "Learn to Ride VC <notifications@notify.learntoridevc.com>",
-              sender_domain: "notify.learntoridevc.com",
-              subject,
-              text: body,
-              html,
-              template_name: `cert_expiration_${milestone!.key}`,
-              label: `cert_expiration_${milestone!.key}`,
-              purpose: "transactional",
-              idempotency_key: key,
-              message_id: key,
-              unsubscribe_token: tok,
-            },
+          return sendManagedEmail(supabase, {
+            to, subject, text: body, html,
+            label: `cert_expiration_${milestone!.key}`,
+            idempotencyKey: key,
           });
         };
 

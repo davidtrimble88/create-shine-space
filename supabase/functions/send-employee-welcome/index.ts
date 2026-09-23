@@ -3,6 +3,7 @@
 // Loads subject/body from auto_email_templates (trigger_event='employee_welcome')
 // so admins can edit the copy from the Auto Emails admin page.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendManagedEmail } from "../_shared/managed-email.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -145,39 +146,13 @@ Deno.serve(async (req) => {
     const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:640px;line-height:1.6">${substitute(bodyTpl, vars)}</div>`;
     const body = htmlToText(substitute(bodyTpl, vars));
 
-    const ensureToken = async (email: string) => {
-      const { data: existing } = await supabase
-        .from("email_unsubscribe_tokens")
-        .select("token").eq("email", email).maybeSingle();
-      if (existing?.token) return existing.token;
-      const t = crypto.randomUUID();
-      const { data: ins } = await supabase
-        .from("email_unsubscribe_tokens")
-        .insert({ email, token: t }).select("token").maybeSingle();
-      return ins?.token || t;
-    };
-
     const enqueue = async (to: string, subj: string, suffix = "") => {
       const key = `employee-welcome${suffix}-${to}-${Date.now()}`;
-      const token = await ensureToken(to);
-      const { error } = await supabase.rpc("enqueue_email" as any, {
-        queue_name: "transactional_emails",
-        payload: {
-          to,
-          from: "Learn to Ride VC <notifications@notify.learntoridevc.com>",
-          sender_domain: "notify.learntoridevc.com",
-          subject: subj,
-          text: body,
-          html,
-          template_name: `auto_employee_welcome${suffix}`,
-          label: `auto_employee_welcome${suffix}`,
-          purpose: "transactional",
-          idempotency_key: key,
-          message_id: key,
-          unsubscribe_token: token,
-        },
+      await sendManagedEmail(supabase, {
+        to, subject: subj, text: body, html,
+        label: `auto_employee_welcome${suffix}`,
+        idempotencyKey: key,
       });
-      if (error) throw error;
     };
 
     await enqueue(recipientEmail, subject);
@@ -207,7 +182,7 @@ Deno.serve(async (req) => {
       console.warn("[send-employee-welcome] BCC failed:", (e as Error).message);
     }
 
-    return new Response(JSON.stringify({ queued: true }), {
+    return new Response(JSON.stringify({ sent: true }), {
       headers: { ...cors, "Content-Type": "application/json" },
     });
   } catch (e) {
