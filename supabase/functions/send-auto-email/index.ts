@@ -7,6 +7,7 @@
 // Request body: { trigger_event: string, recipientEmail: string, variables: Record<string,string> }
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendManagedEmail } from "../_shared/managed-email.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -273,86 +274,38 @@ Deno.serve(async (req) => {
 
 
 
-    // Try queue-based send if email infrastructure exists.
+    // Send through managed email delivery.
     try {
-      // Get or create unsubscribe token for this recipient
-      let unsubscribeToken: string | null = null;
-      const { data: existingTok } = await supabase
-        .from("email_unsubscribe_tokens")
-        .select("token")
-        .eq("email", recipientEmail)
-        .maybeSingle();
-      if (existingTok?.token) {
-        unsubscribeToken = existingTok.token;
-      } else {
-        const newToken = crypto.randomUUID();
-        const { data: inserted } = await supabase
-          .from("email_unsubscribe_tokens")
-          .insert({ email: recipientEmail, token: newToken })
-          .select("token")
-          .maybeSingle();
-        unsubscribeToken = inserted?.token || newToken;
-      }
-
       const idempotencyKey = `auto-${trigger_event}-${recipientEmail}-${Date.now()}`;
-      const { error: enqErr } = await supabase.rpc("enqueue_email" as any, {
-        queue_name: "transactional_emails",
-        payload: {
-          to: recipientEmail,
-          from: "Learn to Ride VC <notifications@notify.learntoridevc.com>",
-          sender_domain: "notify.learntoridevc.com",
-          subject,
-          text: htmlToPlainText(body),
-          html: textToHtml(body),
-          template_name: `auto_${trigger_event}`,
-          label: `auto_${trigger_event}`,
-          purpose: "transactional",
-          idempotency_key: idempotencyKey,
-          message_id: idempotencyKey,
-          unsubscribe_token: unsubscribeToken,
-        },
+      await sendManagedEmail(supabase, {
+        to: recipientEmail,
+        subject,
+        text: htmlToPlainText(body),
+        html: textToHtml(body),
+        label: `auto_${trigger_event}`,
+        idempotencyKey,
       });
-      if (enqErr) throw enqErr;
 
-      // CC the office on every auto-generated email by enqueuing a copy.
+      // CC the office on every auto-generated email by sending a copy.
       const ccEmail = "Office@LearnToRidevc.com";
       const enqueueExtra = async (toAddr: string, subj: string, suffix: string) => {
         const key = `auto-${trigger_event}-${suffix}-${toAddr}-${Date.now()}`;
-        let tok: string | null = null;
-        const { data: existing } = await supabase
-          .from("email_unsubscribe_tokens")
-          .select("token").eq("email", toAddr).maybeSingle();
-        if (existing?.token) {
-          tok = existing.token;
-        } else {
-          const nt = crypto.randomUUID();
-          const { data: ins } = await supabase
-            .from("email_unsubscribe_tokens")
-            .insert({ email: toAddr, token: nt }).select("token").maybeSingle();
-          tok = ins?.token || nt;
-        }
-        return supabase.rpc("enqueue_email" as any, {
-          queue_name: "transactional_emails",
-          payload: {
-            to: toAddr,
-            from: "Learn to Ride VC <notifications@notify.learntoridevc.com>",
-            sender_domain: "notify.learntoridevc.com",
-            subject: subj,
-            text: htmlToPlainText(body),
-            html: textToHtml(body),
-            template_name: `auto_${trigger_event}_${suffix}`,
-            label: `auto_${trigger_event}_${suffix}`,
-            purpose: "transactional",
-            idempotency_key: key,
-            message_id: key,
-            unsubscribe_token: tok,
-          },
+        return sendManagedEmail(supabase, {
+          to: toAddr,
+          subject: subj,
+          text: htmlToPlainText(body),
+          html: textToHtml(body),
+          label: `auto_${trigger_event}_${suffix}`,
+          idempotencyKey: key,
         });
       };
 
       if (!suppressCopies && recipientEmail.toLowerCase() !== ccEmail.toLowerCase()) {
-        const { error: ccErr } = await enqueueExtra(ccEmail, `[CC: ${recipientEmail}] ${subject}`, "cc");
-        if (ccErr) console.warn("[send-auto-email] CC enqueue failed:", ccErr.message);
+        try {
+          await enqueueExtra(ccEmail, `[CC: ${recipientEmail}] ${subject}`, "cc");
+        } catch (ccErr) {
+          console.warn("[send-auto-email] CC send failed:", ccErr instanceof Error ? ccErr.message : String(ccErr));
+        }
       }
 
       // Additional recipients (e.g. parent/guardian for a minor's registration).
@@ -366,8 +319,11 @@ Deno.serve(async (req) => {
           norm.toLowerCase() === recipientEmail.toLowerCase() ||
           norm.toLowerCase() === ccEmail.toLowerCase()
         ) continue;
-        const { error: exErr } = await enqueueExtra(norm, subject, "guardian");
-        if (exErr) console.warn("[send-auto-email] guardian enqueue failed:", exErr.message);
+        try {
+          await enqueueExtra(norm, subject, "guardian");
+        } catch (exErr) {
+          console.warn("[send-auto-email] guardian send failed:", exErr instanceof Error ? exErr.message : String(exErr));
+        }
       }
 
       // Owner BCC — silent copy based on email_bcc_settings.
@@ -383,18 +339,17 @@ Deno.serve(async (req) => {
           bccCfg.bcc_email.toLowerCase() !== recipientEmail.toLowerCase() &&
           bccCfg.bcc_email.toLowerCase() !== ccEmail.toLowerCase()
         ) {
-          const { error: bccErr } = await enqueueExtra(bccCfg.bcc_email, subject, "bcc");
-          if (bccErr) console.warn("[send-auto-email] BCC enqueue failed:", bccErr.message);
+          await enqueueExtra(bccCfg.bcc_email, subject, "bcc");
         }
       } catch (e) {
         console.warn("[send-auto-email] BCC settings lookup failed:", (e as Error).message);
       }
 
-      return new Response(JSON.stringify({ queued: true, cc: ccEmail }), {
+      return new Response(JSON.stringify({ sent: true, cc: ccEmail }), {
         headers: { ...cors, "Content-Type": "application/json" },
       });
     } catch (e) {
-      console.warn("[send-auto-email] queue unavailable, email not delivered:", (e as Error).message);
+      console.warn("[send-auto-email] email unavailable, email not delivered:", (e as Error).message);
       console.log("[send-auto-email] would send:", { to: recipientEmail, subject });
       return new Response(JSON.stringify({
         skipped: true,
