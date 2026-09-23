@@ -62,7 +62,7 @@ function dataUrlToBytes(dataUrl: string): { bytes: Uint8Array; mime: string } | 
 // Convert pdfplumber-style top-down y to pdf-lib bottom-up baseline,
 // sitting just above the underline.
 const PAGE_H = 792;
-const above = (yTop: number, lift = 2) => PAGE_H - yTop + lift;
+const above = (yTop: number, lift = 6) => PAGE_H - yTop + lift;
 
 // Draw a participant signature (drawn image) anchored above an underline.
 async function drawSignatureImage(
@@ -75,8 +75,8 @@ async function drawSignatureImage(
   let w = img.width, h = img.height;
   const scale = Math.min(maxW / w, maxH / h);
   w *= scale; h *= scale;
-  // Position so bottom of image sits just above underline
-  const y = PAGE_H - yTop + 1;
+  // Lift the visible signature clear of the underline.
+  const y = PAGE_H - yTop + 6;
   page.drawImage(img, { x, y, width: w, height: h });
 }
 
