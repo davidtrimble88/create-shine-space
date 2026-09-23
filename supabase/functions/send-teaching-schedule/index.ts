@@ -103,8 +103,9 @@ Deno.serve(async (req) => {
     const grouped = new Map<string, { schedule_id: string; employee_id: string; roles: string[] }>();
     for (const a of assignments || []) {
       const key = `${a.schedule_id}|${a.employee_id}`;
-      const label = ROLE_LABELS[a.assignment_role] || a.assignment_role;
-      const text = a.part ? `${a.part}: ${label}` : label;
+      const assignmentRole = String(a.assignment_role || "");
+      const label = ROLE_LABELS[assignmentRole] || assignmentRole;
+      const text = String(a.part ? `${a.part}: ${label}` : label);
       const g = grouped.get(key) || { schedule_id: a.schedule_id, employee_id: a.employee_id, roles: [] };
       if (!g.roles.includes(text)) g.roles.push(text);
       grouped.set(key, g);
