@@ -12,6 +12,21 @@ async function recordEvent(
   reason: 'bounce' | 'complaint' | 'unsubscribe',
 ) {
   const recipient = event.data.recipient.toLowerCase()
+  const { data: existing, error: existingError } = await supabase
+    .from('email_send_log')
+    .select('id')
+    .contains('metadata', { event_id: event.event_id })
+    .maybeSingle()
+  if (existingError) {
+    console.error('Failed to check email event', {
+      event_id: event.event_id,
+      code: existingError.code,
+      message: existingError.message,
+    })
+    throw existingError
+  }
+  if (existing) return
+
   const { error: suppressionError } = await supabase.from('suppressed_emails').upsert({
     email: recipient,
     reason,
@@ -31,6 +46,7 @@ async function recordEvent(
     template_name: 'system',
     recipient_email: recipient,
     status,
+    metadata: { event_id: event.event_id },
     error_message: reason === 'unsubscribe'
       ? 'Recipient unsubscribed'
       : reason === 'complaint'
