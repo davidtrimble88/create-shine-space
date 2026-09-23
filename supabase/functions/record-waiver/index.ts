@@ -11,7 +11,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const TEMPLATE_PATH = "cmsp_waiver_2026-02.pdf"; // in waiver-templates bucket
+const TEMPLATE_PATH = "tcti_waiver_2026-04.pdf"; // in waiver-templates bucket
 const PROVIDER_NAME = "Learn To Ride VC";
 
 const BodySchema = z.object({
@@ -122,50 +122,48 @@ async function fillTemplate(
   };
 
   // ===== Top half — Waiver section =====
-  // 5 "Initials" blanks (above line, x ~37, line y_top ~158.9, 203.9, 284.9, 320.9, 347.9)
-  for (const yTop of [158.9, 203.9, 284.9, 320.9, 347.9]) {
+  // Five release-section initials on the April 2026 TCTI form.
+  for (const yTop of [164.5, 209.5, 290.5, 326.5, 353.5]) {
     drawText(initials, 37, yTop, 9, bold);
   }
-  // "In consideration of ___" — provider name (line at y_top 158.9, x 125.7–306.9)
-  drawText(PROVIDER_NAME, 128, 158.9, 9);
+  drawText(PROVIDER_NAME, 128, 164.5, 9);
 
-  // Signature row 1 (y_top 419.9)
-  drawText(fullName, 37, 419.9, 9);                    // Participant Name
-  drawText(idDisplay, 238, 419.9, 9);                  // License or ID# and State
+  // Signature row 1 (y_top 425.5)
+  drawText(fullName, 37, 425.5, 9);                    // Participant Name
+  drawText(idDisplay, 238, 425.5, 9);                  // License or ID# and State
   // Drawn signature image (line x 360–572)
-  drawSignatureImage(pdf, page, data.signature_drawn, 362, 419.9, 208, 22);
+  drawSignatureImage(pdf, page, data.signature_drawn, 362, 425.5, 208, 22);
 
-  // Date row 1 (y_top 446.9)
-  drawText(dateStr, 37, 446.9, 9);                     // Date
+  // Date row 1 (y_top 452.5)
+  drawText(dateStr, 37, 452.5, 9);                     // Date
   if (data.is_minor && data.guardian_signature_drawn) {
-    drawSignatureImage(pdf, page, data.guardian_signature_drawn, 137, 446.9, 174, 22);
+    drawSignatureImage(pdf, page, data.guardian_signature_drawn, 137, 452.5, 174, 22);
   }
-  drawText(guardianIdDisplay, 326, 446.9, 9);          // Guardian License/ID
-  drawText(data.is_minor ? (data.guardian_relationship || "") : "", 442, 446.9, 9);
+  drawText(guardianIdDisplay, 326, 452.5, 9);          // Guardian License/ID
+  drawText(data.is_minor ? (data.guardian_relationship || "") : "", 442, 452.5, 9);
 
   // ===== Bottom half — Indemnification section =====
-  // 4 initials at y_top 500.9, 545.9, 581.9, 644.9
-  for (const yTop of [500.9, 545.9, 581.9, 644.9]) {
+  // Four indemnification-section initials.
+  for (const yTop of [506.5, 551.5, 587.5, 650.5]) {
     drawText(initials, 37, yTop, 9, bold);
   }
-  // "In consideration of ___" line at y_top 500.9 (x 125.7–313.8)
-  drawText(PROVIDER_NAME, 128, 500.9, 9);
+  drawText(PROVIDER_NAME, 128, 506.5, 9);
 
-  // Signature row 2 (y_top 680.9)
-  drawText(fullName, 37, 680.9, 9);
-  drawText(idDisplay, 238, 680.9, 9);
-  drawSignatureImage(pdf, page, data.signature_drawn, 362, 680.9, 208, 22);
+  // Signature row 2 (y_top 704.5)
+  drawText(fullName, 37, 704.5, 9);
+  drawText(idDisplay, 238, 704.5, 9);
+  drawSignatureImage(pdf, page, data.signature_drawn, 362, 704.5, 208, 22);
 
-  // Date row 2 (y_top 707.9)
-  drawText(dateStr, 37, 707.9, 9);
+  // Date row 2 (y_top 731.5)
+  drawText(dateStr, 37, 731.5, 9);
   if (data.is_minor && data.guardian_signature_drawn) {
-    drawSignatureImage(pdf, page, data.guardian_signature_drawn, 137, 707.9, 174, 22);
+    drawSignatureImage(pdf, page, data.guardian_signature_drawn, 137, 731.5, 174, 22);
   }
-  drawText(guardianIdDisplay, 326, 707.9, 9);
-  drawText(data.is_minor ? (data.guardian_relationship || "") : "", 442, 707.9, 9);
+  drawText(guardianIdDisplay, 326, 731.5, 9);
+  drawText(data.is_minor ? (data.guardian_relationship || "") : "", 442, 731.5, 9);
 
-  // Phone # bottom right (y_top 736.7, x 467–571)
-  drawText(data.signer_phone || "", 467, 736.7, 9);
+  // Phone # bottom right.
+  drawText(data.signer_phone || "", 467, 760, 9);
 
   // ===== Add audit-trail page (separate, does not alter the original form) =====
   const auditPage = pdf.addPage([612, 792]);
@@ -173,7 +171,7 @@ async function fillTemplate(
   auditPage.drawText("Electronic Signature Audit Trail", { x: 50, y, size: 14, font: bold });
   y -= 24;
   auditPage.drawText(
-    "This record is attached to the signed CMSP Course Waiver. It documents the",
+    "This record is attached to the signed TCTI Course Waiver. It documents the",
     { x: 50, y, size: 10, font }
   );
   y -= 12;
