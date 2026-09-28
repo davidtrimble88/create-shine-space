@@ -228,28 +228,41 @@ const EarningsAnalytics = () => {
           .order("paid_at", { ascending: false }),
       ]);
 
-      const bookingRows = (earningsRes.data as EarningRow[]) || [];
-      setRows(bookingRows);
-      setFees((feesRes.data as unknown as FeeRow[]) || []);
+      const bookingRows = ((earningsRes.data as EarningRow[]) || []).slice();
 
-      // Actual money processed through the site, net of refunds, per booking
+      // Card money is counted on the date it was actually charged (matches Square),
+      // not the date the student registered.
       const txMap: Record<string, number> = {};
-      const ids = bookingRows.map((r) => r.id).filter(Boolean);
-      for (let i = 0; i < ids.length; i += 100) {
+      const { data: rangeTx } = await supabase
+        .from("payment_transactions")
+        .select("booking_id, amount_cents, refunded_cents, status, bookings(id, fee, location_label, created_at, first_name, last_name, discount_amount_cents, payment_provider)")
+        .gte("created_at", from)
+        .lt("created_at", to)
+        .limit(5000);
+      const known = new Set(bookingRows.map((r) => r.id));
+      ((rangeTx as any[]) || []).forEach((t) => {
+        if (!t.booking_id) return;
+        txMap[t.booking_id] = txMap[t.booking_id] || 0;
+        if (t.status === "failed" || t.status === "canceled" || t.status === "refunded") return;
+        txMap[t.booking_id] += (t.amount_cents - (t.refunded_cents || 0)) / 100;
+        if (!known.has(t.booking_id) && t.bookings) {
+          bookingRows.push(t.bookings as EarningRow);
+          known.add(t.booking_id);
+        }
+      });
+      // Bookings registered in range but charged in another period: mark as processed ($0 here).
+      const missing = bookingRows.map((r) => r.id).filter((id) => id && txMap[id] === undefined);
+      for (let i = 0; i < missing.length; i += 100) {
         const { data: txData } = await supabase
           .from("payment_transactions")
-          .select("booking_id, amount_cents, refunded_cents, status")
-          .in("booking_id", ids.slice(i, i + 100));
+          .select("booking_id")
+          .in("booking_id", missing.slice(i, i + 100));
         ((txData as TxRow[]) || []).forEach((t) => {
-          if (!t.booking_id) return;
-          if (t.status === "failed" || t.status === "canceled" || t.status === "refunded") {
-            txMap[t.booking_id] = txMap[t.booking_id] || 0;
-            if (t.status === "refunded") return;
-            return;
-          }
-          txMap[t.booking_id] = (txMap[t.booking_id] || 0) + (t.amount_cents - (t.refunded_cents || 0)) / 100;
+          if (t.booking_id && txMap[t.booking_id] === undefined) txMap[t.booking_id] = 0;
         });
       }
+      setRows(bookingRows);
+      setFees((feesRes.data as unknown as FeeRow[]) || []);
       setTxByBooking(txMap);
 
       const dropsArr = (dropsRes.data as Array<{ needs_reschedule: boolean }>) || [];
