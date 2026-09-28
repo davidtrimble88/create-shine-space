@@ -235,7 +235,7 @@ const EarningsAnalytics = () => {
       const txMap: Record<string, number> = {};
       const { data: rangeTx } = await supabase
         .from("payment_transactions")
-        .select("booking_id, amount_cents, refunded_cents, status, bookings(id, fee, location_label, created_at, first_name, last_name, discount_amount_cents, payment_provider)")
+        .select("booking_id, amount_cents, refunded_cents, status")
         .gte("created_at", from)
         .lt("created_at", to)
         .limit(5000);
@@ -245,11 +245,15 @@ const EarningsAnalytics = () => {
         txMap[t.booking_id] = txMap[t.booking_id] || 0;
         if (t.status === "failed" || t.status === "canceled" || t.status === "refunded") return;
         txMap[t.booking_id] += (t.amount_cents - (t.refunded_cents || 0)) / 100;
-        if (!known.has(t.booking_id) && t.bookings) {
-          bookingRows.push(t.bookings as EarningRow);
-          known.add(t.booking_id);
-        }
       });
+      const extraIds = Object.keys(txMap).filter((id) => !known.has(id));
+      for (let i = 0; i < extraIds.length; i += 100) {
+        const { data: extra } = await supabase
+          .from("bookings")
+          .select("id, fee, location_label, created_at, first_name, last_name, discount_amount_cents, payment_provider")
+          .in("id", extraIds.slice(i, i + 100));
+        bookingRows.push(...(((extra as EarningRow[]) || [])));
+      }
       // Bookings registered in range but charged in another period: mark as processed ($0 here).
       const missing = bookingRows.map((r) => r.id).filter((id) => id && txMap[id] === undefined);
       for (let i = 0; i < missing.length; i += 100) {
