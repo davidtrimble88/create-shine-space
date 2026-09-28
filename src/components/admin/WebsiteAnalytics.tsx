@@ -37,8 +37,19 @@ const WebsiteAnalytics = () => {
     const load = async () => {
       setLoading(true);
       const since = getDateFilter();
+      const fetchAllViews = async () => {
+        const all: any[] = [];
+        for (let from = 0; from < 200000; from += 1000) {
+          const { data } = await supabase.from("page_views").select("page_path,page_name,visitor_id,created_at")
+            .gte("created_at", since).order("created_at").range(from, from + 999);
+          if (!data?.length) break;
+          all.push(...data);
+          if (data.length < 1000) break;
+        }
+        return { data: all };
+      };
       const [pvRes, pvCountRes, bkRes, bkCountRes, lgRes, lgCountRes] = await Promise.all([
-        supabase.from("page_views").select("*").gte("created_at", since).order("created_at").limit(10000),
+        fetchAllViews(),
         supabase.from("page_views").select("*", { count: "exact", head: true }).gte("created_at", since),
         supabase.from("bookings").select("*").gte("created_at", since).eq("archived", false).eq("dropped", false).order("created_at").limit(10000),
         supabase.from("bookings").select("*", { count: "exact", head: true }).gte("created_at", since).eq("archived", false).eq("dropped", false),
