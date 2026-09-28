@@ -59,7 +59,10 @@ const WebsiteAnalytics = () => {
   // ---- Computed Stats ----
   const totalViews = pageViewsTotal;
   const uniqueVisitors = new Set(pageViews.map(p => p.visitor_id)).size;
-  const totalBookings = bookingsTotal;
+  const retestBookings = bookings.filter(b => b.is_retest).length;
+  const manualBookings = bookings.filter(b => !b.is_retest && b.manually_added).length;
+  const rescheduledBookings = bookings.filter(b => b.rescheduled_at).length;
+  const totalBookings = bookings.filter(b => !b.is_retest && !b.manually_added).length;
   const registrationViews = pageViews.filter(p => p.page_path === "/register").length;
   const conversionRate = registrationViews > 0 ? ((totalBookings / registrationViews) * 100).toFixed(1) : "0";
 
@@ -254,11 +257,14 @@ const WebsiteAnalytics = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
           { label: "Page Views", value: totalViews, icon: Eye, color: "text-accent" },
           { label: "Unique Visitors", value: uniqueVisitors, icon: Users, color: "text-blue-400" },
-          { label: "Total Bookings", value: totalBookings, icon: BookOpen, color: "text-purple-400" },
+          { label: "New Online Bookings", value: totalBookings, icon: BookOpen, color: "text-purple-400" },
+          { label: "Retests", value: retestBookings, icon: BookOpen, color: "text-purple-400" },
+          { label: "Office-Entered", value: manualBookings, icon: BookOpen, color: "text-purple-400" },
+          { label: "Rescheduled", value: rescheduledBookings, icon: BookOpen, color: "text-purple-400" },
           { label: "Conversion Rate", value: `${conversionRate}%`, icon: TrendingUp, color: "text-green-400" },
           { label: "Employee Logins", value: loginsTotal, icon: LogIn, color: "text-amber-400" },
         ].map((card, i) => (
