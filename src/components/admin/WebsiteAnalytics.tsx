@@ -74,7 +74,7 @@ const WebsiteAnalytics = () => {
   const manualBookings = bookings.filter(b => !b.is_retest && b.manually_added).length;
   const rescheduledBookings = bookings.filter(b => b.rescheduled_at).length;
   const totalBookings = bookings.filter(b => !b.is_retest && !b.manually_added).length;
-  const registrationViews = pageViews.filter(p => p.page_path === "/register").length;
+  const registrationViews = new Set(pageViews.filter(p => p.page_path === "/register").map(p => p.visitor_id)).size;
   const conversionRate = registrationViews > 0 ? ((totalBookings / registrationViews) * 100).toFixed(1) : "0";
 
   // Page views by page
