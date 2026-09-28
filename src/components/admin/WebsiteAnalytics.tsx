@@ -24,6 +24,7 @@ const WebsiteAnalytics = () => {
   const [bookingsTotal, setBookingsTotal] = useState(0);
   const [logins, setLogins] = useState<any[]>([]);
   const [loginsTotal, setLoginsTotal] = useState(0);
+  const [rescheduledTotal, setRescheduledTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [drilldown, setDrilldown] = useState<{ type: string; label: string; data: any[] } | null>(null);
 
@@ -62,6 +63,8 @@ const WebsiteAnalytics = () => {
       setBookingsTotal(bkCountRes.count ?? (bkRes.data?.length ?? 0));
       setLogins(lgRes.data ?? []);
       setLoginsTotal(lgCountRes.count ?? (lgRes.data?.length ?? 0));
+      const { count: rsCount } = await supabase.from("bookings").select("id", { count: "exact", head: true }).gte("rescheduled_at", since);
+      setRescheduledTotal(rsCount ?? 0);
       setLoading(false);
     };
     load();
@@ -72,7 +75,7 @@ const WebsiteAnalytics = () => {
   const uniqueVisitors = new Set(pageViews.map(p => p.visitor_id)).size;
   const retestBookings = bookings.filter(b => b.is_retest).length;
   const manualBookings = bookings.filter(b => !b.is_retest && b.manually_added).length;
-  const rescheduledBookings = bookings.filter(b => b.rescheduled_at).length;
+  const rescheduledBookings = rescheduledTotal;
   const totalBookings = bookings.filter(b => !b.is_retest && !b.manually_added).length;
   const registrationViews = new Set(pageViews.filter(p => p.page_path === "/register").map(p => p.visitor_id)).size;
   const conversionRate = registrationViews > 0 ? ((totalBookings / registrationViews) * 100).toFixed(1) : "0";
