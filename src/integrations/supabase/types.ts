@@ -2177,11 +2177,6 @@ export type Database = {
           id: string
         }[]
       }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
-      email_queue_dispatch: { Args: never; Returns: undefined }
       employee_login_stats: {
         Args: never
         Returns: {
@@ -2189,10 +2184,6 @@ export type Database = {
           login_count: number
           user_id: string
         }[]
-      }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
       }
       expire_seat_holds: { Args: never; Returns: undefined }
       get_active_payment_provider: { Args: never; Returns: string }
@@ -2231,15 +2222,6 @@ export type Database = {
         Args: { _thread: string; _user: string }
         Returns: boolean
       }
-      move_to_dlq: {
-        Args: {
-          dlq_name: string
-          message_id: number
-          payload: Json
-          source_queue: string
-        }
-        Returns: number
-      }
       notify_user: {
         Args: {
           _body: string
@@ -2266,14 +2248,6 @@ export type Database = {
           student_email: string
           student_name: string
           transaction_id: string
-        }[]
-      }
-      read_email_batch: {
-        Args: { batch_size: number; queue_name: string; vt: number }
-        Returns: {
-          message: Json
-          msg_id: number
-          read_ct: number
         }[]
       }
       reconcile_schedule_spots: { Args: never; Returns: number }

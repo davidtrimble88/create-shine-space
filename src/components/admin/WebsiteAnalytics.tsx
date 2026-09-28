@@ -40,8 +40,8 @@ const WebsiteAnalytics = () => {
       const [pvRes, pvCountRes, bkRes, bkCountRes, lgRes, lgCountRes] = await Promise.all([
         supabase.from("page_views").select("*").gte("created_at", since).order("created_at").limit(10000),
         supabase.from("page_views").select("*", { count: "exact", head: true }).gte("created_at", since),
-        supabase.from("bookings").select("*").order("created_at").limit(10000),
-        supabase.from("bookings").select("*", { count: "exact", head: true }),
+        supabase.from("bookings").select("*").gte("created_at", since).eq("archived", false).eq("dropped", false).order("created_at").limit(10000),
+        supabase.from("bookings").select("*", { count: "exact", head: true }).gte("created_at", since).eq("archived", false).eq("dropped", false),
         supabase.from("employee_logins").select("*").gte("created_at", since).order("created_at", { ascending: false }).limit(10000),
         supabase.from("employee_logins").select("*", { count: "exact", head: true }).gte("created_at", since),
       ]);
