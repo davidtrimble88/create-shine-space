@@ -82,6 +82,7 @@ const EarningsAnalytics = () => {
   const [rows, setRows] = useState<EarningRow[]>([]);
   const [fees, setFees] = useState<FeeRow[]>([]);
   const [txByBooking, setTxByBooking] = useState<Record<string, number>>({});
+  const [txDateByBooking, setTxDateByBooking] = useState<Record<string, string>>({});
   const [ops, setOps] = useState<OpsStats>({
     cancellations: 0, fullCancellations: 0, partialCancellations: 0,
     drops: 0, dropsRescheduleable: 0, dropsFinal: 0,
@@ -233,18 +234,28 @@ const EarningsAnalytics = () => {
       // Card money is counted on the date it was actually charged (matches Square),
       // not the date the student registered.
       const txMap: Record<string, number> = {};
-      const { data: rangeTx } = await supabase
-        .from("payment_transactions")
-        .select("booking_id, amount_cents, refunded_cents, status")
-        .gte("created_at", from)
-        .lt("created_at", to)
-        .limit(5000);
+      const txDate: Record<string, string> = {};
+      const rangeTx: any[] = [];
+      for (let offset = 0; ; offset += 1000) {
+        const { data: page, error } = await supabase
+          .from("payment_transactions")
+          .select("id, booking_id, amount_cents, refunded_cents, status, created_at")
+          .gte("created_at", from)
+          .lt("created_at", to)
+          .order("created_at", { ascending: true })
+          .order("id", { ascending: true })
+          .range(offset, offset + 999);
+        if (error || !page) break;
+        rangeTx.push(...page);
+        if (page.length < 1000) break;
+      }
       const known = new Set(bookingRows.map((r) => r.id));
-      ((rangeTx as any[]) || []).forEach((t) => {
+      rangeTx.forEach((t) => {
         if (!t.booking_id) return;
         txMap[t.booking_id] = txMap[t.booking_id] || 0;
         if (t.status === "failed" || t.status === "canceled" || t.status === "refunded") return;
         txMap[t.booking_id] += (t.amount_cents - (t.refunded_cents || 0)) / 100;
+        if (!txDate[t.booking_id]) txDate[t.booking_id] = t.created_at;
       });
       const extraIds = Object.keys(txMap).filter((id) => !known.has(id));
       for (let i = 0; i < extraIds.length; i += 100) {
@@ -268,6 +279,7 @@ const EarningsAnalytics = () => {
       setRows(bookingRows);
       setFees((feesRes.data as unknown as FeeRow[]) || []);
       setTxByBooking(txMap);
+      setTxDateByBooking(txDate);
 
       const dropsArr = (dropsRes.data as Array<{ needs_reschedule: boolean }>) || [];
       const noShowArr = noShowRes.data || [];
@@ -310,6 +322,8 @@ const EarningsAnalytics = () => {
       ? 0
       : Math.max(0, parseFee(r.fee) - (r.discount_amount_cents || 0) / 100);
   const collected = (r: EarningRow) => (isProcessed(r) ? processedAmount(r) : offlineAmount(r));
+  // Date money was received: card charge date when charged in range, else registration date.
+  const moneyDate = (r: EarningRow) => (isProcessed(r) && txDateByBooking[r.id]) || r.created_at;
 
   const processedTotal = rows.reduce((s, r) => s + processedAmount(r), 0);
   const offlineTotal = rows.reduce((s, r) => s + offlineAmount(r), 0);
@@ -361,7 +375,7 @@ const EarningsAnalytics = () => {
   rows.forEach((r) => {
     const amt = collected(r);
     if (amt <= 0) return;
-    const d = r.created_at.split("T")[0];
+    const d = ptDay(new Date(moneyDate(r)));
     if (!byDate[d]) byDate[d] = { total: 0, count: 0 };
     byDate[d].total += amt;
     byDate[d].count += 1;
@@ -409,7 +423,7 @@ const EarningsAnalytics = () => {
       if (siteFilter !== "all" && siteRegion(r.location_label) !== siteFilter) return;
       const amt = collected(r);
       if (amt <= 0) return;
-      touch(bucketKey(r.created_at)).registrations += amt;
+      touch(bucketKey(moneyDate(r))).registrations += amt;
     });
     fees.forEach((f) => {
       if (!f.paid_at) return;
