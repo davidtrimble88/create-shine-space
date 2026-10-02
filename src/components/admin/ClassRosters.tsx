@@ -16,7 +16,7 @@ import { WaiverStatusEditor } from "@/components/admin/WaiverStatusEditor";
 
 import type { Tables } from "@/integrations/supabase/types";
 import { formatPSTDate } from "@/lib/formatDate";
-import { isClassPast, formatClassDates, classEndDate } from "@/lib/classDates";
+import { isClassPast, formatClassDates, classEndDate, isRegistrationClosed } from "@/lib/classDates";
 import { sendRetestScheduledEmail } from "@/lib/retestEmail";
 
 type Schedule = Tables<"schedules">;
@@ -194,6 +194,13 @@ const ClassRosters = () => {
   const [rescheduleScope, setRescheduleScope] = useState<"full" | "partial">("full");
   const [reschedulePortions, setReschedulePortions] = useState<{ c1: boolean; r1: boolean; c2: boolean; r2: boolean }>({ c1: false, r1: false, c2: false, r2: false });
   const [rescheduling, setRescheduling] = useState(false);
+  const [closedConfirm, setClosedConfirm] = useState<{ label: string; resolve: (ok: boolean) => void } | null>(null);
+  // Classes close once registration closes / class starts. Staff may still place
+  // reschedules and retests into them, but must confirm first.
+  const confirmClosedClass = (sched: { date: string; location_label: string } | null | undefined): Promise<boolean> => {
+    if (!sched || !isRegistrationClosed(sched.date)) return Promise.resolve(true);
+    return new Promise(resolve => setClosedConfirm({ label: `${formatPSTDate(sched.date)} · ${sched.location_label}`, resolve }));
+  };
   // Fail notes / change-to-cannot-return dialog state
   const [failNotesFor, setFailNotesFor] = useState<Booking | null>(null);
   const [failNotesText, setFailNotesText] = useState("");
@@ -818,6 +825,7 @@ const ClassRosters = () => {
       toast.error("First name, last name, and phone are required");
       return;
     }
+    if (!(await confirmClosedClass(selectedSchedule))) return;
     setAddingRetest(true);
     const { data, error } = await supabase.from("bookings").insert({
       first_name: retestForm.first_name.trim(),
@@ -1493,6 +1501,7 @@ const ClassRosters = () => {
       toast.error("Selected class not found");
       return;
     }
+    if (!(await confirmClosedClass(target))) return;
     setSchedulingRetest(true);
     const src = scheduleRetestFor;
     const { data, error } = await supabase.from("bookings").insert({
@@ -1567,6 +1576,7 @@ const ClassRosters = () => {
       toast.error("Selected class not found");
       return;
     }
+    if (!(await confirmClosedClass(target))) return;
     const selectedPortions = (["c1", "r1", "c2", "r2"] as const).filter(k => reschedulePortions[k]);
     if (rescheduleScope === "partial" && selectedPortions.length === 0) {
       toast.error("Select at least one portion (C1, R1, C2, or R2)");
@@ -3941,6 +3951,21 @@ const ClassRosters = () => {
             <Button onClick={sendFeeLink} disabled={sendingFeeLink}>
               {sendingFeeLink ? "Sending…" : "Send payment link"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!closedConfirm} onOpenChange={o => { if (!o && closedConfirm) { closedConfirm.resolve(false); setClosedConfirm(null); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><AlertCircle className="w-5 h-5 text-destructive" /> This class is closed</DialogTitle>
+            <DialogDescription>
+              Registration for {closedConfirm?.label} has closed. Do you still want to place this student in it?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { closedConfirm?.resolve(false); setClosedConfirm(null); }}>Go back</Button>
+            <Button onClick={() => { closedConfirm?.resolve(true); setClosedConfirm(null); }}>Yes, continue</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
