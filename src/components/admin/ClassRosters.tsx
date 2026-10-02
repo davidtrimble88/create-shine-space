@@ -580,7 +580,7 @@ const ClassRosters = () => {
       deadlineDate.setDate(deadlineDate.getDate() + RETEST_WINDOW_DAYS);
       const deadlineStr = deadlineDate.toISOString().split("T")[0];
       const candidateIds = schedules
-        .filter(s => s.course === scheduleRetestFor.course && s.date >= todayStr && s.date <= deadlineStr)
+        .filter(s => s.course === scheduleRetestFor.course && classEndDate(s.date, s.schedule) >= todayStr && s.date <= deadlineStr)
         .map(s => s.id);
       if (candidateIds.length === 0) {
         setRetestCountsByClass({});
@@ -2236,7 +2236,7 @@ const ClassRosters = () => {
               const candidates = schedules
                 .filter(s =>
                   s.course === src.course &&
-                  s.date >= todayStr &&
+                  classEndDate(s.date, s.schedule) >= todayStr &&
                   s.date <= deadlineStr &&
                   s.spots_available > 0
                 )
@@ -2318,7 +2318,7 @@ const ClassRosters = () => {
               const todayStr = new Date().toISOString().split("T")[0];
               // Retest students don't occupy a seat, so open-spot count doesn't limit them.
               const candidates = schedules
-                .filter(s => s.course === src.course && s.date >= todayStr && s.id !== src.schedule_id && (src.is_retest || s.spots_available > 0))
+                .filter(s => s.course === src.course && classEndDate(s.date, s.schedule) >= todayStr && s.id !== src.schedule_id && (src.is_retest || s.spots_available > 0))
                 .sort((a, b) => a.date.localeCompare(b.date));
 
               return (
@@ -3770,7 +3770,7 @@ const ClassRosters = () => {
             const src = rescheduleFor;
             const todayStr = new Date().toISOString().split("T")[0];
             const candidates = schedules
-              .filter(s => s.course === src.course && s.date >= todayStr && s.id !== src.schedule_id && s.spots_available > 0)
+              .filter(s => s.course === src.course && classEndDate(s.date, s.schedule) >= todayStr && s.id !== src.schedule_id && s.spots_available > 0)
               .sort((a, b) => a.date.localeCompare(b.date));
             return (
               <div className="space-y-4">
