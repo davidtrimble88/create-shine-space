@@ -2485,11 +2485,76 @@ const ClassRosters = () => {
     return () => { cancelled = true; };
   }, [view, canManageEvaluations]);
 
+  const sharedDialogs = (
+    <>
+      {/* Retest / reschedule fee payment link */}
+      <Dialog open={!!feeLinkFor} onOpenChange={o => { if (!o) setFeeLinkFor(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send a fee payment link</DialogTitle>
+            <DialogDescription>
+              {feeLinkFor ? `${feeLinkFor.first_name} ${feeLinkFor.last_name} (${feeLinkFor.email})` : ""} will get an
+              email with a secure card-payment link for the exact amount you set here.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Fee type</Label>
+              <Select value={feeType} onValueChange={v => setFeeType(v as typeof feeType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  
+                  <SelectItem value="reschedule">Rescheduling fee</SelectItem>
+                  <SelectItem value="other">Other fee</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Amount (USD)</Label>
+              <Input
+                inputMode="decimal"
+                value={feeAmount}
+                onChange={e => setFeeAmount(e.target.value)}
+                placeholder="e.g. 75.00"
+              />
+              <p className="text-xs text-muted-foreground">Any amount — no course pricing rules apply to this charge.</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Note to the student (optional)</Label>
+              <Textarea value={feeNote} onChange={e => setFeeNote(e.target.value)} rows={3} placeholder="e.g. Skills retest on the next available Sunday." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setFeeLinkFor(null)}>Cancel</Button>
+            <Button onClick={sendFeeLink} disabled={sendingFeeLink}>
+              {sendingFeeLink ? "Sending…" : "Send payment link"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!closedConfirm} onOpenChange={o => { if (!o && closedConfirm) { closedConfirm.resolve(false); setClosedConfirm(null); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><AlertCircle className="w-5 h-5 text-destructive" /> This class is closed</DialogTitle>
+            <DialogDescription>
+              Registration for {closedConfirm?.label} has closed. Do you still want to place this student in it?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { closedConfirm?.resolve(false); setClosedConfirm(null); }}>Go back</Button>
+            <Button onClick={() => { closedConfirm?.resolve(true); setClosedConfirm(null); }}>Yes, continue</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+
   if (view === "pending_retests" && canManageEvaluations) {
-    return renderPendingRetests();
+    return <>{renderPendingRetests()}{sharedDialogs}</>;
   }
   if (view === "dl389" && canManageEvaluations) {
-    return renderDL389();
+    return <>{renderDL389()}{sharedDialogs}</>;
   }
   if (view === "archived" && canManageEvaluations) {
     return (
@@ -3909,66 +3974,7 @@ const ClassRosters = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Retest / reschedule fee payment link */}
-      <Dialog open={!!feeLinkFor} onOpenChange={o => { if (!o) setFeeLinkFor(null); }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Send a fee payment link</DialogTitle>
-            <DialogDescription>
-              {feeLinkFor ? `${feeLinkFor.first_name} ${feeLinkFor.last_name} (${feeLinkFor.email})` : ""} will get an
-              email with a secure card-payment link for the exact amount you set here.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Fee type</Label>
-              <Select value={feeType} onValueChange={v => setFeeType(v as typeof feeType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  
-                  <SelectItem value="reschedule">Rescheduling fee</SelectItem>
-                  <SelectItem value="other">Other fee</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Amount (USD)</Label>
-              <Input
-                inputMode="decimal"
-                value={feeAmount}
-                onChange={e => setFeeAmount(e.target.value)}
-                placeholder="e.g. 75.00"
-              />
-              <p className="text-xs text-muted-foreground">Any amount — no course pricing rules apply to this charge.</p>
-            </div>
-            <div className="space-y-2">
-              <Label>Note to the student (optional)</Label>
-              <Textarea value={feeNote} onChange={e => setFeeNote(e.target.value)} rows={3} placeholder="e.g. Skills retest on the next available Sunday." />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setFeeLinkFor(null)}>Cancel</Button>
-            <Button onClick={sendFeeLink} disabled={sendingFeeLink}>
-              {sendingFeeLink ? "Sending…" : "Send payment link"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!closedConfirm} onOpenChange={o => { if (!o && closedConfirm) { closedConfirm.resolve(false); setClosedConfirm(null); } }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><AlertCircle className="w-5 h-5 text-destructive" /> This class is closed</DialogTitle>
-            <DialogDescription>
-              Registration for {closedConfirm?.label} has closed. Do you still want to place this student in it?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => { closedConfirm?.resolve(false); setClosedConfirm(null); }}>Go back</Button>
-            <Button onClick={() => { closedConfirm?.resolve(true); setClosedConfirm(null); }}>Yes, continue</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {sharedDialogs}
     </div>
 
   );
