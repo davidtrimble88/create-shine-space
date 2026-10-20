@@ -2237,8 +2237,7 @@ const ClassRosters = () => {
                 .filter(s =>
                   s.course === src.course &&
                   classEndDate(s.date, s.schedule) >= todayStr &&
-                  s.date <= deadlineStr &&
-                  s.spots_available > 0
+                  s.date <= deadlineStr
                 )
                 .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -3835,7 +3834,7 @@ const ClassRosters = () => {
             const src = rescheduleFor;
             const todayStr = new Date().toISOString().split("T")[0];
             const candidates = schedules
-              .filter(s => s.course === src.course && classEndDate(s.date, s.schedule) >= todayStr && s.id !== src.schedule_id && s.spots_available > 0)
+              .filter(s => s.course === src.course && classEndDate(s.date, s.schedule) >= todayStr && s.id !== src.schedule_id && (src.is_retest || s.spots_available > 0))
               .sort((a, b) => a.date.localeCompare(b.date));
             return (
               <div className="space-y-4">
