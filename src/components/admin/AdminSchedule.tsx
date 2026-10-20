@@ -13,6 +13,7 @@ import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus, History, ArrowLeft,
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import InstructorAssignment, { roleLabelMap } from "./InstructorAssignment";
 import { useAuth } from "@/contexts/AuthContext";
+import { classSessionDates } from "@/lib/classDates";
 import { Textarea } from "@/components/ui/textarea";
 import { DialogFooter } from "@/components/ui/dialog";
 
@@ -230,11 +231,28 @@ const AdminSchedule = () => {
     }
     if (filterCourse !== "all") query = query.eq("course", filterCourse);
     if (filterLocation !== "all") query = query.eq("location", filterLocation);
-    const [schedRes, availRes, assignRes] = await Promise.all([
+    const [schedRes, availRes, assignRes, dateAvailRes] = await Promise.all([
       query,
       supabase.from("instructor_availability").select("schedule_id, user_id"),
       supabase.from("instructor_assignments").select("schedule_id, employee_id, assignment_role"),
+      supabase.from("instructor_date_availability").select("user_id, date, location").gte("date", today),
     ]);
+
+    // Placeholder-date availability ("available that weekend") counts for any
+    // real class at the same location that meets on one of those dates.
+    const pairs: { schedule_id: string; user_id: string }[] = [...(availRes.data ?? [])];
+    const seen = new Set(pairs.map(p => `${p.schedule_id}|${p.user_id}`));
+    for (const sch of schedRes.data ?? []) {
+      const days = new Set(classSessionDates(sch.date, sch.schedule));
+      for (const d of dateAvailRes.data ?? []) {
+        const locOk = d.location === sch.location || d.location.startsWith(`${sch.location}-`);
+        if (!locOk || !days.has(d.date)) continue;
+        const k = `${sch.id}|${d.user_id}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        pairs.push({ schedule_id: sch.id, user_id: d.user_id });
+      }
+    }
 
     if (schedRes.error) {
       toast({ title: "Error", description: schedRes.error.message, variant: "destructive" });
@@ -243,8 +261,8 @@ const AdminSchedule = () => {
     }
 
     // Fetch employee names for availability
-    if (availRes.data && availRes.data.length > 0) {
-      const userIds = [...new Set(availRes.data.map(a => a.user_id))];
+    if (pairs.length > 0) {
+      const userIds = [...new Set(pairs.map(a => a.user_id))];
       const { data: employees } = await supabase
         .from("employees")
         .select("user_id, full_name, email")
@@ -252,7 +270,7 @@ const AdminSchedule = () => {
 
       const empMap = new Map((employees ?? []).map(e => [e.user_id, e]));
       setAvailability(
-        availRes.data.map(a => ({
+        pairs.map(a => ({
           schedule_id: a.schedule_id,
           employee_name: empMap.get(a.user_id)?.full_name ?? "Unknown",
           employee_email: empMap.get(a.user_id)?.email ?? "",
