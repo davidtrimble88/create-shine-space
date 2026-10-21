@@ -249,9 +249,24 @@ const EarningsAnalytics = () => {
         rangeTx.push(...page);
         if (page.length < 1000) break;
       }
+      // Fee / balance charges are reported under "Fees Collected" — keep them out of
+      // registration money so they are not counted twice.
+      const feeIds = new Set<string>();
+      for (let offset = 0; ; offset += 1000) {
+        const { data: fp, error } = await supabase
+          .from("fee_payment_requests")
+          .select("provider_payment_id")
+          .not("provider_payment_id", "is", null)
+          .order("id", { ascending: true })
+          .range(offset, offset + 999);
+        if (error || !fp) break;
+        fp.forEach((f: any) => f.provider_payment_id && feeIds.add(f.provider_payment_id));
+        if (fp.length < 1000) break;
+      }
+      const isFeeTx = (t: any) => t.provider_payment_id && feeIds.has(t.provider_payment_id);
       const known = new Set(bookingRows.map((r) => r.id));
       rangeTx.forEach((t) => {
-        if (!t.booking_id) return;
+        if (!t.booking_id || isFeeTx(t)) return;
         txMap[t.booking_id] = txMap[t.booking_id] || 0;
         if (t.status === "failed" || t.status === "canceled" || t.status === "refunded") return;
         txMap[t.booking_id] += (t.amount_cents - (t.refunded_cents || 0)) / 100;
@@ -270,9 +285,10 @@ const EarningsAnalytics = () => {
       for (let i = 0; i < missing.length; i += 100) {
         const { data: txData } = await supabase
           .from("payment_transactions")
-          .select("booking_id")
+          .select("booking_id, provider_payment_id")
           .in("booking_id", missing.slice(i, i + 100));
-        ((txData as TxRow[]) || []).forEach((t) => {
+        ((txData as any[]) || []).forEach((t) => {
+          if (isFeeTx(t)) return;
           if (t.booking_id && txMap[t.booking_id] === undefined) txMap[t.booking_id] = 0;
         });
       }
