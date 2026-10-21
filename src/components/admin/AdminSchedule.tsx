@@ -115,7 +115,7 @@ const scheduleTemplates: Record<string, ScheduleTemplate[]> = {
   "high-desert-hesperia": [
     {
       label: "Standard — Wed, Sat & Sun",
-      schedule: "Wed 5:45pm–9:30pm, Sat 6:45am–6:00pm, Sun 6:45am–12:00pm",
+      schedule: "Wed 5:45pm–9:30pm, Sat 6:45am–3:30pm, Sun 6:45am–12:00pm",
       group_name: "",
       price: "$425",
       spots_available: 12,
@@ -126,7 +126,7 @@ const scheduleTemplates: Record<string, ScheduleTemplate[]> = {
   "high-desert-wrightwood": [
     {
       label: "Standard — Wed, Sat & Sun",
-      schedule: "Wed 5:45pm–9:30pm, Sat 6:45am–6:00pm, Sun 6:45am–12:00pm",
+      schedule: "Wed 5:45pm–9:30pm, Sat 6:45am–3:30pm, Sun 6:45am–12:00pm",
       group_name: "",
       price: "$425",
       spots_available: 12,
