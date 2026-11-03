@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2, ShieldCheck, ShieldAlert, Archive, CreditCard } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2, ShieldCheck, ShieldAlert, Archive, CreditCard, Eye } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -101,6 +101,7 @@ const ClassRosters = () => {
   const [waiverEditFor, setWaiverEditFor] = useState<Booking | null>(null);
   const [savingWaiverStatus, setSavingWaiverStatus] = useState(false);
   const [editStudentFor, setEditStudentFor] = useState<Booking | null>(null);
+  const [detailStudent, setDetailStudent] = useState<Booking | null>(null);
   const [editStudentForm, setEditStudentForm] = useState({ first_name: "", last_name: "", preferred_name: "", email: "", phone: "", license_number: "", issuing_state: "", date_of_birth: "" });
   const [savingStudent, setSavingStudent] = useState(false);
   const canEditStudents = effectiveRole === "owner" || effectiveRole === "admin";
@@ -3073,6 +3074,14 @@ const ClassRosters = () => {
                                 </span>
                               );
                             })()}
+                            <button
+                              type="button"
+                              onClick={() => setDetailStudent(b)}
+                              title="View full registration details"
+                              className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-border bg-secondary/60 text-foreground text-[10px] font-semibold hover:bg-secondary"
+                            >
+                              <Eye className="w-3 h-3" /> View
+                            </button>
                             {canEditStudents && (
                               <button
                                 type="button"
@@ -3799,6 +3808,95 @@ const ClassRosters = () => {
             <Button onClick={handleSaveStudentEdit} disabled={savingStudent}>
               {savingStudent ? "Saving…" : "Save changes"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Full registration details (read-only) — available on every roster, including past */}
+      <Dialog open={!!detailStudent} onOpenChange={(o) => { if (!o) setDetailStudent(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Registration Details</DialogTitle>
+            <DialogDescription>
+              Everything this student entered when they signed up.
+            </DialogDescription>
+          </DialogHeader>
+          {detailStudent && (() => {
+            const b = detailStudent as any;
+            const Field = ({ label, value }: { label: string; value: string | null | undefined }) => (
+              <div>
+                <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
+                <div className="text-sm text-foreground mt-0.5 break-words">{value && value !== "retest@placeholder.com" ? value : "—"}</div>
+              </div>
+            );
+            const address = [b.address, b.city, b.state, b.zip].filter(Boolean).join(", ");
+            const discount = b.discount_amount_cents > 0
+              ? `$${(b.discount_amount_cents / 100).toFixed(2)}${b.discount_reason ? ` (${b.discount_reason})` : ""}${b.discount_code ? ` — code ${b.discount_code}` : ""}`
+              : null;
+            return (
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <Field label="First Name" value={b.first_name} />
+                  <Field label="Middle Name" value={b.middle_name} />
+                  <Field label="Last Name" value={b.last_name} />
+                  <Field label="Preferred Name" value={b.preferred_name} />
+                  <Field label="Email" value={b.email} />
+                  <Field label="Phone" value={b.phone} />
+                  <Field label="Date of Birth" value={b.date_of_birth} />
+                  <Field label="Gender" value={b.gender} />
+                  <Field label="Referral Source" value={b.referral_source} />
+                </div>
+                <div className="pt-3 border-t border-border">
+                  <Field label="Address" value={address || null} />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-3 border-t border-border">
+                  <Field label="License / ID #" value={b.license_number} />
+                  <Field label="Issuing State" value={b.issuing_state} />
+                  <Field label="Issuing Country" value={b.issuing_country} />
+                  <Field label="License Expiration" value={b.license_expiration} />
+                  <Field label="Motorcycle" value={b.bike_info} />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-3 border-t border-border">
+                  <Field label="Emergency Contact" value={b.emergency_contact_name} />
+                  <Field label="Relationship" value={b.emergency_contact_relationship} />
+                  <Field label="Emergency Phone" value={b.emergency_contact_phone} />
+                </div>
+                {(b.guardian_name || b.guardian_phone || b.guardian_email) && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-3 border-t border-border">
+                    <Field label="Parent/Guardian" value={b.guardian_name} />
+                    <Field label="Relationship" value={b.guardian_relationship} />
+                    <Field label="Guardian Phone" value={b.guardian_phone} />
+                    <Field label="Guardian Email" value={b.guardian_email} />
+                  </div>
+                )}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-3 border-t border-border">
+                  <Field label="Course" value={courseLabels[b.course] || b.course} />
+                  <Field label="Location" value={b.location_label} />
+                  <Field label="Class Date" value={b.schedule_date} />
+                  <Field label="Fee" value={b.fee} />
+                  <Field label="Discount" value={discount} />
+                  <Field label="Payment Status" value={b.payment_status} />
+                  <Field label="Payment Method" value={b.payment_provider} />
+                  <Field label="Booking Status" value={b.booking_status} />
+                  <Field label="Registered" value={b.created_at ? formatPSTDate(b.created_at) : null} />
+                  {b.is_retest && <Field label="Retest" value={b.retest_type ? `Yes — ${b.retest_type}` : "Yes"} />}
+                  {b.manually_added && <Field label="Entered By" value="Office (manual entry)" />}
+                </div>
+                {b.roster_comment && (
+                  <div className="pt-3 border-t border-border">
+                    <Field label="Roster Comment" value={b.roster_comment} />
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            {canEditStudents && detailStudent && (
+              <Button variant="outline" onClick={() => { openEditStudent(detailStudent); setDetailStudent(null); }}>
+                <Pencil className="w-3 h-3 mr-1" /> Edit
+              </Button>
+            )}
+            <Button variant="ghost" onClick={() => setDetailStudent(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
