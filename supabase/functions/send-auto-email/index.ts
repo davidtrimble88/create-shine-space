@@ -8,6 +8,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { sendManagedEmail } from "../_shared/managed-email.ts";
+import { labelRegistrationSchedule } from "../_shared/registration-schedule.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -143,6 +144,13 @@ Deno.serve(async (req) => {
     };
     const venue = resolveVenue();
     const vars: Record<string, string> = { ...variables };
+    if (trigger_event === "registration_confirmation") {
+      for (const key of ["scheduleDetail", "schedule", "scheduleTimes"]) {
+        if (typeof vars[key] === "string") {
+          vars[key] = labelRegistrationSchedule(vars[key], course);
+        }
+      }
+    }
     if (venue) {
       const full = `${venue.name}\n${venue.address}`;
       if (!vars.locationAddress) vars.locationAddress = full;
