@@ -3074,6 +3074,14 @@ const ClassRosters = () => {
                                 </span>
                               );
                             })()}
+                            <button
+                              type="button"
+                              onClick={() => setDetailStudent(b)}
+                              title="View full registration details"
+                              className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-border bg-secondary/60 text-foreground text-[10px] font-semibold hover:bg-secondary"
+                            >
+                              <Eye className="w-3 h-3" /> View
+                            </button>
                             {canEditStudents && (
                               <button
                                 type="button"
