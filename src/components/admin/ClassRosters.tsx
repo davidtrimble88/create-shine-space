@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2, ShieldCheck, ShieldAlert, Archive, CreditCard } from "lucide-react";
+import { Printer, Users, CalendarDays, MapPin, UserCheck, Pencil, Check, X, Plus, Trash2, History, ArrowLeft, Search, Smile, Frown, ClipboardList, RotateCcw, AlertCircle, Clock, FileCheck, FileText, UserX, UserMinus, Undo2, ShieldCheck, ShieldAlert, Archive, CreditCard, Eye } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -101,6 +101,7 @@ const ClassRosters = () => {
   const [waiverEditFor, setWaiverEditFor] = useState<Booking | null>(null);
   const [savingWaiverStatus, setSavingWaiverStatus] = useState(false);
   const [editStudentFor, setEditStudentFor] = useState<Booking | null>(null);
+  const [detailStudent, setDetailStudent] = useState<Booking | null>(null);
   const [editStudentForm, setEditStudentForm] = useState({ first_name: "", last_name: "", preferred_name: "", email: "", phone: "", license_number: "", issuing_state: "", date_of_birth: "" });
   const [savingStudent, setSavingStudent] = useState(false);
   const canEditStudents = effectiveRole === "owner" || effectiveRole === "admin";
