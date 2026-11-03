@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Smartphone, Share, Plus, MoreVertical, Download, ArrowLeft } from "lucide-react";
-import appIcon from "/app-icon-192.png";
 import Seo from "@/components/Seo";
 
 const InstallApp = () => {
@@ -16,7 +15,7 @@ const InstallApp = () => {
 
         <div className="text-center mb-10">
           <img
-            src={appIcon}
+            src="/app-icon-192.png"
             alt="Learn to Ride VC Staff app icon"
             width={96}
             height={96}
