@@ -18,6 +18,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { formatPSTDate } from "@/lib/formatDate";
 import { isClassPast, formatClassDates, classEndDate, isRegistrationClosed } from "@/lib/classDates";
 import { sendRetestScheduledEmail } from "@/lib/retestEmail";
+import { isActiveRosterBooking } from "@/lib/rosterEligibility";
 
 type Schedule = Tables<"schedules">;
 type Booking = Tables<"bookings"> & {
@@ -349,17 +350,17 @@ const ClassRosters = () => {
       if (allIds.length > 0) {
         const { data: bookingRows } = await (supabase as any)
           .from("bookings")
-          .select("schedule_id, result, is_retest, dl389_completed, archived, dropped, course, rider_track")
+          .select("schedule_id, result, is_retest, dl389_completed, archived, dropped, pending_payment, course, rider_track")
           .in("schedule_id", allIds);
         const counts: Record<string, number> = {};
         const retestCountsLocal: Record<string, number> = {};
         const evalCounts: Record<string, number> = {};
         const dl389Counts: Record<string, number> = {};
-        (bookingRows ?? []).forEach((b: { schedule_id: string | null; result: string | null; is_retest: boolean; dl389_completed: boolean; archived?: boolean | null; dropped?: boolean | null; course?: string | null; rider_track?: string | null }) => {
+        (bookingRows ?? []).forEach((b: { schedule_id: string | null; result: string | null; is_retest: boolean; dl389_completed: boolean; archived?: boolean | null; dropped?: boolean | null; pending_payment: boolean; course?: string | null; rider_track?: string | null }) => {
           if (!b.schedule_id) return;
-          // Archived (soft-deleted) and dropped students are not on the roster,
-          // so they must not be counted as registered/pending either.
-          if (b.archived || b.dropped) return;
+          // Use the same attendance rule as the opened roster: unpaid,
+          // archived and dropped registrations are not attending students.
+          if (!isActiveRosterBooking(b)) return;
           if (b.is_retest) {
             retestCountsLocal[b.schedule_id] = (retestCountsLocal[b.schedule_id] || 0) + 1;
           } else {
@@ -654,9 +655,9 @@ const ClassRosters = () => {
   const showBikeCol = selectedSchedule?.course === "intermediate";
 
   const nonRetestBookings = bookings.filter(b => !b.is_retest && !b.archived);
-  const regularBookings = nonRetestBookings.filter(b => !b.dropped);
+  const regularBookings = nonRetestBookings.filter(isActiveRosterBooking);
   const droppedBookings = nonRetestBookings.filter(b => b.dropped);
-  const retestBookings = bookings.filter(b => b.is_retest);
+  const retestBookings = bookings.filter(b => b.is_retest && isActiveRosterBooking(b));
   // Everyone attending the class (regular + retests) for the emergency contact sheet
   const emergencyContactRows = [...regularBookings, ...retestBookings];
 
