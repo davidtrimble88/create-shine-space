@@ -9,4 +9,4 @@
 
 - [x] Compare class totals with saved registrations and roster filters.
 - [x] Align registered and evaluation counts with roster eligibility.
-- [ ] Run regression tests and verify the signed-in roster.
+- [x] Run regression tests and verify the signed-in roster (6 registered, 6 roster students, 6 open seats).
