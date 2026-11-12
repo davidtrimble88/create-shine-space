@@ -16,3 +16,9 @@
 - [x] Start recording every class move so future reports are complete.
 - [x] Test the overbooking rules and check the report on screen.
 - [ ] AI overbooking check (earlier request) — paused; waiting on the user to confirm they still want it.
+
+# Missing seat limit red flag
+
+- [x] Red alert for owners/admins on every dashboard page listing classes with no seat limit, with set-limit controls.
+- [x] Require a seat limit when adding or editing a class; red "No seat limit" tag in the class list.
+- [ ] Owner to enter the real seat limits for the 14 flagged classes (not guessed).

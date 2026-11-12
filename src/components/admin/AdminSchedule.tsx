@@ -9,7 +9,9 @@ import { format, addDays } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus, History, ArrowLeft, Ban } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, Hand, UserPlus, History, ArrowLeft, Ban, AlertOctagon } from "lucide-react";
+import { hasNoSeatLimit, parseSeatLimit } from "@/lib/seatLimits";
+import { SEAT_LIMITS_CHANGED } from "./MissingSeatLimitAlert";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import InstructorAssignment, { roleLabelMap } from "./InstructorAssignment";
 import { useAuth } from "@/contexts/AuthContext";
@@ -54,6 +56,7 @@ const emptyForm: Omit<TablesInsert<"schedules">, "id" | "created_at" | "updated_
   group_name: "",
   schedule: "",
   spots_available: 12,
+  total_seats: 12,
   price: "$425",
 };
 
@@ -302,6 +305,12 @@ const AdminSchedule = () => {
 
   useEffect(() => { fetchSchedules(); }, [filterCourse, filterLocation, view]);
 
+  useEffect(() => {
+    const h = () => fetchSchedules();
+    window.addEventListener(SEAT_LIMITS_CHANGED, h);
+    return () => window.removeEventListener(SEAT_LIMITS_CHANGED, h);
+  });
+
   const getAvailabilityForSchedule = (scheduleId: string) =>
     availability.filter(a => a.schedule_id === scheduleId);
 
@@ -319,6 +328,7 @@ const AdminSchedule = () => {
       group_name: defaultTpl?.group_name ?? "",
       price: defaultTpl?.price ?? "$425",
       spots_available: defaultTpl?.spots_available ?? 12,
+      total_seats: defaultTpl?.spots_available ?? 12,
     }));
     setSelectedTemplate(defaultTpl?.label ?? "");
   };
@@ -339,16 +349,26 @@ const AdminSchedule = () => {
         group_name: tpl.group_name,
         price: tpl.price,
         spots_available: tpl.spots_available,
+        total_seats: tpl.spots_available,
       }));
     }
   };
 
   const handleSave = async () => {
-    const payload = {
-      ...form,
-      group_name: form.group_name || null,
-      spots_available: Number(form.spots_available),
-    };
+    const seatLimit = parseSeatLimit(form.total_seats);
+    if (!seatLimit) {
+      toast({
+        title: "Seat limit required",
+        description: "Enter how many students this class can hold. Without it the class can be overbooked.",
+        variant: "destructive",
+      });
+      return;
+    }
+    // New class: every seat is open. Existing class: open seats are recounted after saving.
+    const { spots_available: _spots, ...rest } = form;
+    const payload = editingId
+      ? { ...rest, group_name: form.group_name || null, total_seats: seatLimit }
+      : { ...rest, group_name: form.group_name || null, total_seats: seatLimit, spots_available: seatLimit };
 
     // Check for duplicate: same location + group + date
     let dupQuery = supabase
@@ -382,6 +402,8 @@ const AdminSchedule = () => {
         toast({ title: "Error", description: error.message, variant: "destructive" });
         return;
       }
+      await supabase.rpc("reconcile_schedule_spots");
+      window.dispatchEvent(new Event(SEAT_LIMITS_CHANGED));
       toast({ title: "Updated", description: "Schedule updated successfully." });
     } else {
       const { error } = await supabase.from("schedules").insert(payload);
@@ -389,6 +411,7 @@ const AdminSchedule = () => {
         toast({ title: "Error", description: error.message, variant: "destructive" });
         return;
       }
+      window.dispatchEvent(new Event(SEAT_LIMITS_CHANGED));
       toast({ title: "Added", description: "New class added successfully." });
     }
 
@@ -408,6 +431,7 @@ const AdminSchedule = () => {
       group_name: s.group_name ?? "",
       schedule: s.schedule,
       spots_available: s.spots_available,
+      total_seats: s.total_seats,
       price: s.price,
     });
     setDialogOpen(true);
@@ -524,8 +548,17 @@ const AdminSchedule = () => {
               })()}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Spots Available</Label>
-                  <Input type="number" min={0} value={form.spots_available} onChange={e => setForm(f => ({ ...f, spots_available: parseInt(e.target.value) || 0 }))} />
+                  <Label className={hasNoSeatLimit({ total_seats: form.total_seats ?? null }) ? "text-destructive" : undefined}>Seat Limit (max students) *</Label>
+                  <Input
+                    type="number" min={1} required
+                    value={form.total_seats ?? ""}
+                    onChange={e => setForm(f => ({ ...f, total_seats: e.target.value === "" ? null : parseInt(e.target.value) }))}
+                    className={hasNoSeatLimit({ total_seats: form.total_seats ?? null }) ? "border-destructive" : undefined}
+                  />
+                  {hasNoSeatLimit({ total_seats: form.total_seats ?? null }) && (
+                    <p className="text-xs text-destructive mt-1">Required — without it this class can be overbooked.</p>
+                  )}
+                  {editingId && <p className="text-xs text-muted-foreground mt-1">Open seats now: {form.spots_available}</p>}
                 </div>
                 <div>
                   <Label>Price</Label>
@@ -603,9 +636,15 @@ const AdminSchedule = () => {
                   <td className="p-4 text-muted-foreground">{s.group_name || "—"}</td>
                   <td className="p-4 text-muted-foreground text-xs">{s.schedule}</td>
                   <td className="p-4">
-                    <span className={`font-medium ${s.spots_available === 0 ? "text-destructive" : "text-green-400"}`}>
-                      {s.spots_available === 0 ? "Full" : s.spots_available}
-                    </span>
+                    {view === "upcoming" && hasNoSeatLimit(s) && !s.cancelled_at ? (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-destructive px-2 py-1 text-xs font-bold text-destructive-foreground whitespace-nowrap">
+                        <AlertOctagon className="w-3.5 h-3.5" /> NO SEAT LIMIT
+                      </span>
+                    ) : (
+                      <span className={`font-medium ${s.spots_available === 0 ? "text-destructive" : "text-green-400"}`}>
+                        {s.spots_available === 0 ? "Full" : (s.total_seats ? `${s.spots_available} / ${s.total_seats}` : s.spots_available)}
+                      </span>
+                    )}
                   </td>
                   <td className="p-4 text-foreground">{s.price}</td>
                   <td className="p-4">

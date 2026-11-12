@@ -41,6 +41,7 @@ import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPresence } from "@/lib/employeePresence";
 import Seo from "@/components/Seo";
+import MissingSeatLimitAlert from "@/components/admin/MissingSeatLimitAlert";
 
 
 const tabs = [
@@ -763,6 +764,9 @@ const EmployeeDashboard = () => {
               </div>
             </DialogContent>
           </Dialog>
+          {(effectiveRole === "owner" || effectiveRole === "admin") && (
+            <MissingSeatLimitAlert defaultExpanded={activeTab === "overview" || activeTab === "schedule"} />
+          )}
           {activeTab === "overview" && <AdminOverview />}
           {activeTab === "schedule" && <AdminSchedule />}
           {activeTab === "full-schedule" && <ComprehensiveSchedule />}
