@@ -110,6 +110,41 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_class_moves: {
+        Row: {
+          booking_id: string
+          from_schedule_id: string | null
+          id: string
+          moved_at: string
+          moved_by: string | null
+          to_schedule_id: string | null
+        }
+        Insert: {
+          booking_id: string
+          from_schedule_id?: string | null
+          id?: string
+          moved_at?: string
+          moved_by?: string | null
+          to_schedule_id?: string | null
+        }
+        Update: {
+          booking_id?: string
+          from_schedule_id?: string | null
+          id?: string
+          moved_at?: string
+          moved_by?: string | null
+          to_schedule_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_class_moves_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_deposits: {
         Row: {
           balance_cents: number

@@ -1,7 +1,8 @@
-import { BarChart3, Users, MapPin } from "lucide-react";
+import { BarChart3, Users, MapPin, AlertTriangle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AvailabilityReport from "./AvailabilityReport";
 import SiteCoverageReport from "./SiteCoverageReport";
+import OverbookingReport from "./OverbookingReport";
 
 const ScheduleReporting = () => {
   return (
@@ -11,7 +12,7 @@ const ScheduleReporting = () => {
         <div>
           <h2 className="text-xl font-bold text-foreground">Schedule Reporting</h2>
           <p className="text-sm text-muted-foreground">
-            Instructor coverage and class distribution across every location.
+            Instructor coverage, class distribution and overbooked classes across every location.
           </p>
         </div>
       </div>
@@ -26,6 +27,10 @@ const ScheduleReporting = () => {
             <MapPin className="w-4 h-4" />
             Schedule Coverage
           </TabsTrigger>
+          <TabsTrigger value="overbooked" className="gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            Overbooked Classes
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="instructor-availability" className="mt-4">
@@ -34,6 +39,10 @@ const ScheduleReporting = () => {
 
         <TabsContent value="schedule-coverage" className="mt-4">
           <SiteCoverageReport inline />
+        </TabsContent>
+
+        <TabsContent value="overbooked" className="mt-4">
+          <OverbookingReport />
         </TabsContent>
       </Tabs>
     </div>

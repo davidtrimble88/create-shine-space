@@ -10,3 +10,9 @@
 - [x] Compare class totals with saved registrations and roster filters.
 - [x] Align registered and evaluation counts with roster eligibility.
 - [x] Run regression tests and verify the signed-in roster (6 registered, 6 roster students, 6 open seats).
+# Overbooked classes report
+
+- [x] Add an owner report listing overbooked classes, who was moved out, and where they went.
+- [x] Start recording every class move so future reports are complete.
+- [x] Test the overbooking rules and check the report on screen.
+- [ ] AI overbooking check (earlier request) — paused; waiting on the user to confirm they still want it.
