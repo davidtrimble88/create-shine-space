@@ -196,6 +196,9 @@ const ClassRosters = () => {
   const [rescheduleScope, setRescheduleScope] = useState<"full" | "partial">("full");
   const [reschedulePortions, setReschedulePortions] = useState<{ c1: boolean; r1: boolean; c2: boolean; r2: boolean }>({ c1: false, r1: false, c2: false, r2: false });
   const [rescheduling, setRescheduling] = useState(false);
+  const [rescheduleReason, setRescheduleReason] = useState("");
+  // Every class move needs its own reason — start blank each time the dialog opens.
+  useEffect(() => { setRescheduleReason(""); }, [rescheduleFor?.id]);
   const [closedConfirm, setClosedConfirm] = useState<{ label: string; resolve: (ok: boolean) => void } | null>(null);
   // Classes close once registration closes / class starts. Staff may still place
   // reschedules and retests into them, but must confirm first.
@@ -882,6 +885,10 @@ const ClassRosters = () => {
       toast.error("Pick at least one part the student missed");
       return;
     }
+    if (!noShowReason.trim()) {
+      toast.error("A reason is required before moving a student to Needs Rescheduling");
+      return;
+    }
     setSavingNoShow(true);
     const isFull = noShowParts.length === PART_OPTIONS.length;
     const partValue = isFull ? "full" : [...noShowParts].sort().join(",");
@@ -891,7 +898,7 @@ const ClassRosters = () => {
       .update({
         needs_reschedule: true,
         reschedule_part: partValue,
-        reschedule_reason: noShowReason.trim() ? `No-show: ${noShowReason.trim()}` : "No-show",
+        reschedule_reason: `No-show: ${noShowReason.trim()}`,
         original_schedule_id: sched?.id ?? noShowFor.schedule_id,
         original_schedule_date: sched?.date ?? noShowFor.schedule_date,
         original_location_label: sched?.location_label ?? noShowFor.location_label,
@@ -966,6 +973,10 @@ const ClassRosters = () => {
   // ===== Self drop: student withdraws themselves =====
   const submitSelfDrop = async () => {
     if (!selfDropFor) return;
+    if (!selfDropNote.trim()) {
+      toast.error("A reason is required to drop a student");
+      return;
+    }
     setSavingSelfDrop(true);
     const b = selfDropFor;
     const sched = selectedSchedule;
@@ -1578,6 +1589,11 @@ const ClassRosters = () => {
       toast.error("Selected class not found");
       return;
     }
+    const moveReason = rescheduleReason.trim();
+    if (!moveReason) {
+      toast.error("A reason is required to move a student to another class");
+      return;
+    }
     if (!(await confirmClosedClass(target))) return;
     const selectedPortions = (["c1", "r1", "c2", "r2"] as const).filter(k => reschedulePortions[k]);
     if (rescheduleScope === "partial" && selectedPortions.length === 0) {
@@ -1587,9 +1603,9 @@ const ClassRosters = () => {
     setRescheduling(true);
     const src = rescheduleFor;
     const portionsLabel = selectedPortions.map(p => p.toUpperCase()).join(", ");
-    const comment = rescheduleScope === "full"
+    const comment = (rescheduleScope === "full"
       ? "Reschedule"
-      : `Reschedule — ${portionsLabel} only`;
+      : `Reschedule — ${portionsLabel} only`) + ` (Reason: ${moveReason})`;
 
     if (rescheduleActive) {
       // Move the active student's booking to the new class in place —
@@ -1617,10 +1633,11 @@ const ClassRosters = () => {
           result: null,
           retest_type: null,
           booking_status: "confirmed",
+          move_reason: moveReason,
         })
         .eq("id", src.id);
       setRescheduling(false);
-      if (error) { toast.error("Failed to reschedule"); return; }
+      if (error) { toast.error("Failed to reschedule: " + error.message); return; }
       setBookings(prev => prev.filter(b => b.id !== src.id));
       setRescheduleFor(null);
       setRescheduleActive(false);
@@ -1730,9 +1747,13 @@ const ClassRosters = () => {
 
   const changeToCannotReturn = async () => {
     if (!failNotesFor) return;
+    if (!failNotesText.trim()) {
+      toast.error("A reason is required to drop a student — add it in the notes box");
+      return;
+    }
     setSavingFailNotes(true);
     const merged = replaceEvalNotes(failNotesFor.roster_comment, failNotesText);
-    const reason = failNotesText.trim() || "Not eligible to return";
+    const reason = failNotesText.trim();
     const updates: any = {
       roster_comment: merged || null,
       retest_type: "none",
@@ -2345,6 +2366,16 @@ const ClassRosters = () => {
                   </div>
 
                   <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground block">Reason for the move (required)</label>
+                    <Textarea
+                      value={rescheduleReason}
+                      onChange={e => setRescheduleReason(e.target.value)}
+                      placeholder="e.g. Work conflict — student asked for a later weekend"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <label className="text-xs font-medium text-muted-foreground block">What are they attending?</label>
                     <RadioGroup value={rescheduleScope} onValueChange={(v) => setRescheduleScope(v as "full" | "partial")}>
                       <div className="flex items-center gap-2">
@@ -2385,7 +2416,7 @@ const ClassRosters = () => {
               <Button variant="ghost" onClick={() => setRescheduleFor(null)}>Cancel</Button>
               <Button
                 onClick={handleReschedule}
-                disabled={!rescheduleTargetScheduleId || rescheduling}
+                disabled={!rescheduleTargetScheduleId || !rescheduleReason.trim() || rescheduling}
               >
                 {rescheduling ? "Rescheduling…" : "Reschedule"}
               </Button>
@@ -2442,7 +2473,7 @@ const ClassRosters = () => {
                   <Button
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     onClick={changeToCannotReturn}
-                    disabled={savingFailNotes}
+                    disabled={savingFailNotes || !failNotesText.trim()}
                   >
                     {savingFailNotes ? "Archiving…" : "Confirm — Cannot Return"}
                   </Button>
@@ -3656,18 +3687,18 @@ const ClassRosters = () => {
               </div>
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Notes (optional)</label>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Reason (required)</label>
               <Textarea
                 value={noShowReason}
                 onChange={e => setNoShowReason(e.target.value)}
-                placeholder="Any additional context"
+                placeholder="e.g. Did not show up, no call"
                 rows={2}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setNoShowFor(null)}>Cancel</Button>
-            <Button onClick={submitNoShow} disabled={savingNoShow || noShowParts.length === 0}>
+            <Button onClick={submitNoShow} disabled={savingNoShow || noShowParts.length === 0 || !noShowReason.trim()}>
               {savingNoShow ? "Saving…" : "Mark No-Show & Move to Reschedule"}
             </Button>
           </DialogFooter>
@@ -3957,6 +3988,15 @@ const ClassRosters = () => {
                   )}
                 </div>
                 <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground block">Reason for the move (required)</label>
+                  <Textarea
+                    value={rescheduleReason}
+                    onChange={e => setRescheduleReason(e.target.value)}
+                    placeholder="e.g. Work conflict — student asked for a later weekend"
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-2">
                   <label className="text-xs font-medium text-muted-foreground block">What are they attending?</label>
                   <RadioGroup value={rescheduleScope} onValueChange={(v) => setRescheduleScope(v as "full" | "partial")}>
                     <div className="flex items-center gap-2">
@@ -3993,7 +4033,7 @@ const ClassRosters = () => {
           })()}
           <DialogFooter>
             <Button variant="ghost" onClick={() => { setRescheduleFor(null); setRescheduleActive(false); }}>Cancel</Button>
-            <Button onClick={handleReschedule} disabled={!rescheduleTargetScheduleId || rescheduling}>
+            <Button onClick={handleReschedule} disabled={!rescheduleTargetScheduleId || !rescheduleReason.trim() || rescheduling}>
               {rescheduling ? "Moving…" : "Reschedule"}
             </Button>
           </DialogFooter>
@@ -4055,7 +4095,7 @@ const ClassRosters = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label>Why is the student self-dropping? (optional)</Label>
+            <Label>Why is the student self-dropping? (required)</Label>
             <Textarea
               value={selfDropNote}
               onChange={e => setSelfDropNote(e.target.value)}
@@ -4065,7 +4105,7 @@ const ClassRosters = () => {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => { setSelfDropFor(null); setSelfDropNote(""); }}>Cancel</Button>
-            <Button onClick={submitSelfDrop} disabled={savingSelfDrop}>
+            <Button onClick={submitSelfDrop} disabled={savingSelfDrop || !selfDropNote.trim()}>
               {savingSelfDrop ? "Saving…" : "Confirm self drop"}
             </Button>
           </DialogFooter>

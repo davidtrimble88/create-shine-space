@@ -15,6 +15,13 @@
       "when": 1794545724806,
       "tag": "0001_tighten_schedules_and_error_log_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794545857803,
+      "tag": "0002_require_reason_for_drop_and_class_move",
+      "breakpoints": true
     }
   ]
 }

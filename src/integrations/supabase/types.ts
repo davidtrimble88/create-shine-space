@@ -117,6 +117,7 @@ export type Database = {
           id: string
           moved_at: string
           moved_by: string | null
+          reason: string | null
           to_schedule_id: string | null
         }
         Insert: {
@@ -125,6 +126,7 @@ export type Database = {
           id?: string
           moved_at?: string
           moved_by?: string | null
+          reason?: string | null
           to_schedule_id?: string | null
         }
         Update: {
@@ -133,6 +135,7 @@ export type Database = {
           id?: string
           moved_at?: string
           moved_by?: string | null
+          reason?: string | null
           to_schedule_id?: string | null
         }
         Relationships: [
@@ -305,6 +308,7 @@ export type Database = {
           marked_paid_at: string | null
           marked_paid_by: string | null
           middle_name: string | null
+          move_reason: string | null
           needs_reschedule: boolean
           original_course: string | null
           original_location_label: string | null
@@ -388,6 +392,7 @@ export type Database = {
           marked_paid_at?: string | null
           marked_paid_by?: string | null
           middle_name?: string | null
+          move_reason?: string | null
           needs_reschedule?: boolean
           original_course?: string | null
           original_location_label?: string | null
@@ -471,6 +476,7 @@ export type Database = {
           marked_paid_at?: string | null
           marked_paid_by?: string | null
           middle_name?: string | null
+          move_reason?: string | null
           needs_reschedule?: boolean
           original_course?: string | null
           original_location_label?: string | null

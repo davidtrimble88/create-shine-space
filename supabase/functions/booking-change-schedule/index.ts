@@ -58,6 +58,7 @@ Deno.serve(async (req) => {
         location: s.location,
         location_label: s.location_label,
         fee: s.price,
+        move_reason: "Student picked a different class from their payment link (original class was full)",
       })
       .eq("id", b.id);
     if (updErr) return json({ error: updErr.message }, 500);

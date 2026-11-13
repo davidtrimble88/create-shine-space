@@ -65,4 +65,12 @@ describe("overbooking report", () => {
     const rows = buildOverbookingReport([cls("1")], [student("1", { overbook_override: true, overbook_reason: "Owner OK" })]);
     expect(rows[0].overrides).toEqual([{ name: expect.any(String), reason: "Owner OK" }]);
   });
+
+  it("shows the reason staff gave for the class move", () => {
+    const moved = student("2", { reschedule_reason: "Old flag reason" });
+    const rows = buildOverbookingReport([cls("1"), cls("2")], [...many(12, "1"), moved], [
+      { booking_id: moved.id, from_schedule_id: "1", to_schedule_id: "2", moved_at: "2026-10-01T00:00:00Z", reason: "Work conflict" },
+    ]);
+    expect(rows[0].movedOut[0].reason).toBe("Work conflict");
+  });
 });

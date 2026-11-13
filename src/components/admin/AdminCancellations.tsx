@@ -61,6 +61,7 @@ const AdminCancellations = ({ onBack }: Props) => {
 
   const [reassignDialog, setReassignDialog] = useState<Booking | null>(null);
   const [reassignTarget, setReassignTarget] = useState("");
+  const [reassignReason, setReassignReason] = useState("");
   const [reassignLocFilter, setReassignLocFilter] = useState<string>("all");
   const [pendingLocFilter, setPendingLocFilter] = useState<string>("all");
   const [cancelLocFilter, setCancelLocFilter] = useState<string>("all");
@@ -207,6 +208,11 @@ const AdminCancellations = ({ onBack }: Props) => {
     if (!reassignDialog || !reassignTarget) return;
     const target = allSchedules.find(s => s.id === reassignTarget);
     if (!target) return;
+    const moveReason = reassignReason.trim();
+    if (!moveReason) {
+      toast({ title: "Add a reason", description: "A reason is required to move a student to another class.", variant: "destructive" });
+      return;
+    }
 
     // Build a roster note so instructors know exactly which part(s) the
     // student is retaking from the original cancelled class.
@@ -238,6 +244,7 @@ const AdminCancellations = ({ onBack }: Props) => {
         dropped_at: null,
         dropped_by: null,
         result: null,
+        move_reason: moveReason,
       })
       .eq("id", reassignDialog.id);
     if (error) {
@@ -548,7 +555,7 @@ const AdminCancellations = ({ onBack }: Props) => {
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 min-w-[180px]">
-                    <Button size="sm" onClick={() => { setReassignDialog(b); setReassignTarget(""); setReassignLocFilter("all"); }}>
+                    <Button size="sm" onClick={() => { setReassignDialog(b); setReassignTarget(""); setReassignReason(b.reschedule_reason ?? ""); setReassignLocFilter("all"); }}>
                       <CalendarClock className="w-3 h-3 mr-1" /> Assign New Class
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => clearFlag(b.id)}>
@@ -602,11 +609,20 @@ const AdminCancellations = ({ onBack }: Props) => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label>Reason for the move (required)</Label>
+                <Textarea
+                  value={reassignReason}
+                  onChange={e => setReassignReason(e.target.value)}
+                  placeholder="e.g. Original class was cancelled — student chose this weekend"
+                  rows={2}
+                />
+              </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => { setReassignDialog(null); setReassignTarget(""); }}>Cancel</Button>
-            <Button onClick={reassignStudent} disabled={!reassignTarget}>Confirm Reassignment</Button>
+            <Button onClick={reassignStudent} disabled={!reassignTarget || !reassignReason.trim()}>Confirm Reassignment</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

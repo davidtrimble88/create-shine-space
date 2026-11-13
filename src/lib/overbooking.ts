@@ -41,6 +41,7 @@ export interface OBMove {
   from_schedule_id: string | null;
   to_schedule_id: string | null;
   moved_at: string;
+  reason?: string | null;
 }
 
 export type DestinationKind = "class" | "waiting" | "dropped" | "removed";
@@ -99,6 +100,7 @@ export function buildOverbookingReport(
   const bookingById = new Map(bookings.map((b) => [b.id, b]));
   const inClass = new Map<string, OBBooking[]>();
   const leftClass = new Map<string, Map<string, string | null>>(); // schedule -> bookingId -> movedAt
+  const moveReason = new Map<string, string>(); // `${schedule}|${booking}` -> reason given for that move
 
   const addLeft = (scheduleId: string, bookingId: string, at: string | null) => {
     if (!leftClass.has(scheduleId)) leftClass.set(scheduleId, new Map());
@@ -114,7 +116,10 @@ export function buildOverbookingReport(
     if (b.original_schedule_id) addLeft(b.original_schedule_id, b.id, b.rescheduled_at);
   }
   for (const m of moves) {
-    if (m.from_schedule_id) addLeft(m.from_schedule_id, m.booking_id, m.moved_at);
+    if (m.from_schedule_id) {
+      addLeft(m.from_schedule_id, m.booking_id, m.moved_at);
+      if (m.reason) moveReason.set(`${m.from_schedule_id}|${m.booking_id}`, m.reason);
+    }
   }
 
   const rows: OverbookingRow[] = [];
@@ -136,7 +141,7 @@ export function buildOverbookingReport(
         bookingId,
         name: `${b.first_name} ${b.last_name}`.trim(),
         isRetest: !!b.is_retest,
-        reason: b.reschedule_reason || b.dropped_reason || null,
+        reason: moveReason.get(`${s.id}|${bookingId}`) || b.reschedule_reason || b.dropped_reason || null,
         movedAt,
         destinationKind: dest.kind,
         destination: dest.schedule,

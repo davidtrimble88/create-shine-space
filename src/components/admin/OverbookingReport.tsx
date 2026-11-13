@@ -82,7 +82,7 @@ const OverbookingReport = () => {
         fetchAll<OBMove>((a, b) =>
           supabase
             .from("booking_class_moves")
-            .select("booking_id, from_schedule_id, to_schedule_id, moved_at")
+            .select("booking_id, from_schedule_id, to_schedule_id, moved_at, reason")
             .order("moved_at", { ascending: true })
             .range(a, b),
         ),
