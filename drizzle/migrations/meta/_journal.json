@@ -8,6 +8,13 @@
       "when": 1794505307555,
       "tag": "0000_booking_class_moves",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794545724806,
+      "tag": "0001_tighten_schedules_and_error_log_policies",
+      "breakpoints": true
     }
   ]
 }

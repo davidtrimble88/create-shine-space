@@ -66,12 +66,12 @@ export async function logPortalError({ context, error, email, name, details }: L
 
     await supabase.from("portal_error_log").insert({
       user_id: userId,
-      user_email: userEmail,
-      user_name: name ?? null,
-      context,
-      route: typeof window !== "undefined" ? window.location.pathname + window.location.search : null,
-      error_message: parsed.message,
-      error_details: [parsed.details, extra].filter(Boolean).join("\n") || null,
+      user_email: userEmail ? userEmail.slice(0, 320) : null,
+      user_name: name ? name.slice(0, 200) : null,
+      context: (context || "unknown").slice(0, 200),
+      route: typeof window !== "undefined" ? (window.location.pathname + window.location.search).slice(0, 2000) : null,
+      error_message: parsed.message || "Unknown error",
+      error_details: ([parsed.details, extra].filter(Boolean).join("\n") || "").slice(0, 20000) || null,
       user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : null,
     });
   } catch {
