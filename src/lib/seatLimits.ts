@@ -27,3 +27,35 @@ export const parseSeatLimit = (value: unknown): number | null => {
   if (!Number.isFinite(n) || !Number.isInteger(n) || n < 1) return null;
   return n;
 };
+
+export interface SeatCountBooking {
+  schedule_id: string | null;
+  archived?: boolean | null;
+  dropped?: boolean | null;
+  is_retest?: boolean | null;
+  pending_payment?: boolean | null;
+}
+
+/** Same seat rule the database uses: paid, active, non-retest students hold a seat. */
+export const holdsSeat = (b: SeatCountBooking) =>
+  !!b.schedule_id && !b.archived && !b.dropped && !b.is_retest && !b.pending_payment;
+
+/**
+ * Still-running, non-cancelled classes whose seated students exceed their saved seat limit.
+ * Classes without a limit are reported separately by classesMissingSeatLimit.
+ */
+export const classesOverbookedNow = <T extends SeatLimitSchedule>(
+  schedules: T[],
+  bookings: SeatCountBooking[],
+  todayISO: string,
+): { schedule: T; seated: number; limit: number }[] => {
+  const seatedBy = new Map<string, number>();
+  for (const b of bookings) {
+    if (holdsSeat(b)) seatedBy.set(b.schedule_id!, (seatedBy.get(b.schedule_id!) ?? 0) + 1);
+  }
+  return schedules
+    .filter((s) => !s.cancelled_at && !hasNoSeatLimit(s) && classEndDate(s.date, s.schedule) >= todayISO)
+    .map((s) => ({ schedule: s, seated: seatedBy.get(s.id) ?? 0, limit: s.total_seats as number }))
+    .filter((r) => r.seated > r.limit)
+    .sort((a, b) => a.schedule.date.localeCompare(b.schedule.date));
+};

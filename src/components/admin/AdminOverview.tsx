@@ -5,6 +5,7 @@ import { CalendarDays, Users, BookOpen, DollarSign, MapPin, Smartphone, Clipboar
 import { useAuth } from "@/contexts/AuthContext";
 import CertStatusSummary from "./CertStatusSummary";
 import PaidUnconfirmedAlert from "./PaidUnconfirmedAlert";
+import SeatProblemsSummary from "./SeatProblemsSummary";
 
 interface LocationEarnings {
   [location: string]: number;
@@ -239,6 +240,8 @@ const AdminOverview = () => {
           );
         })}
       </div>
+
+      {canSeeAnalytics && <SeatProblemsSummary isOwner={effectiveRole === "owner"} />}
 
       {canSeeAnalytics && <PaidUnconfirmedAlert />}
 
