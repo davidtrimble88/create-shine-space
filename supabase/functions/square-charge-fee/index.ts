@@ -4,6 +4,11 @@
 // with no pricing rules applied.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.0";
 import { z } from "https://esm.sh/zod@3.23.8";
+import {
+  bookingUpdateAfterFeePaid,
+  feeLinkBlockedReason,
+  feeLinkWillTakeSeat,
+} from "../_shared/fee-link-booking.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -54,10 +59,40 @@ Deno.serve(async (req) => {
 
     const { data: booking } = await supabase
       .from("bookings")
-      .select("id, first_name, last_name, email, course, location, location_label, schedule_date")
+      .select("id, first_name, last_name, email, course, location, location_label, schedule_date, schedule_id, archived, dropped, pending_payment, payment_status, fee, discount_amount_cents")
       .eq("id", fee.booking_id)
       .maybeSingle();
     if (!booking) return json({ error: "We couldn't find your registration." }, 404);
+
+    const blocked = feeLinkBlockedReason(booking);
+    if (blocked) return json({ error: blocked }, 409);
+
+    // A cash hold doesn't hold a seat. Make sure one is still open BEFORE
+    // taking money, otherwise the student would pay and not be on the roster.
+    if (feeLinkWillTakeSeat(fee.fee_type, booking) && booking.schedule_id) {
+      const { data: sched } = await supabase
+        .from("schedules")
+        .select("total_seats")
+        .eq("id", booking.schedule_id)
+        .maybeSingle();
+      if (sched?.total_seats != null) {
+        const { count } = await supabase
+          .from("bookings")
+          .select("id", { count: "exact", head: true })
+          .eq("schedule_id", booking.schedule_id)
+          .eq("archived", false)
+          .eq("dropped", false)
+          .eq("is_retest", false)
+          .eq("pending_payment", false)
+          .neq("id", booking.id);
+        if ((count ?? 0) >= sched.total_seats) {
+          return json({
+            error: "This class filled up before your payment, so we didn't charge your card. Please call the office to pick another class.",
+            stage: "class_full",
+          }, 409);
+        }
+      }
+    }
 
     const region: "ventura" | "high_desert" =
       String(booking.location || "").startsWith("high-desert") ? "high_desert" : "ventura";
@@ -147,12 +182,24 @@ Deno.serve(async (req) => {
             })
             .eq("id", dep.id);
         }
-        await supabase
-          .from("bookings")
-          .update({ payment_status: "paid", pending_payment: false })
-          .eq("id", booking.id);
       } catch (e) {
         console.warn("deposit close-out failed", e);
+      }
+    }
+
+    // Course-fee links (e.g. a cash hold paying online) confirm the
+    // registration so the student appears on the class roster.
+    const bookingUpdate = bookingUpdateAfterFeePaid(fee.fee_type, amountCents, booking, new Date().toISOString());
+    if (bookingUpdate) {
+      const { data: updRows, error: updErr } = await supabase
+        .from("bookings")
+        .update(bookingUpdate)
+        .eq("id", booking.id)
+        .select("id, pending_payment");
+      if (updErr || !updRows?.[0] || updRows[0].pending_payment === true) {
+        // Money is captured — never swallow this. The Paid-but-not-on-roster
+        // alert on the staff dashboard picks this booking up.
+        console.error("Fee paid but registration NOT confirmed", { bookingId: booking.id, paymentId, updErr });
       }
     }
 

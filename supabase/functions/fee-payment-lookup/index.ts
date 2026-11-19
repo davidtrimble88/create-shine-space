@@ -39,11 +39,14 @@ Deno.serve(async (req) => {
 
     const { data: booking } = await supabase
       .from("bookings")
-      .select("id, first_name, last_name, email, course, location, location_label, schedule_date, zip")
+      .select("id, first_name, last_name, email, course, location, location_label, schedule_date, zip, archived")
       .eq("id", fee.booking_id)
       .maybeSingle();
 
     if (!booking) return json({ error: "We couldn't find your registration." }, 404);
+    if (booking.archived && fee.status !== "paid") {
+      return json({ error: "This registration is no longer active, so this link can't be used. Please call the office." }, 409);
+    }
 
     return json({
       fee: {

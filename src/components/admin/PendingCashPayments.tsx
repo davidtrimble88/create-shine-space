@@ -8,10 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Banknote, CheckCircle2, Ban, Loader2, AlertTriangle, FileCheck2, FileX2 } from "lucide-react";
+import { ArrowLeft, Banknote, CheckCircle2, Ban, Loader2, AlertTriangle, FileCheck2, FileX2, CreditCard } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatPSTDate } from "@/lib/formatDate";
-import { sendRegistrationConfirmation } from "@/lib/registrationEmail";
+import { sendRegistrationConfirmation, formatScheduleDate, expandScheduleDetailWithDates } from "@/lib/registrationEmail";
 
 type Booking = Tables<"bookings">;
 type Schedule = Tables<"schedules">;
@@ -153,6 +153,8 @@ const PendingCashPayments = ({ onBack }: Props) => {
       update.original_course = payTarget.course;
       update.rescheduled_at = new Date().toISOString();
       update.rescheduled_by = user?.id ?? null;
+      // The database requires a reason with every class move.
+      update.move_reason = `Cash payment recorded; original class was full${payNote.trim() ? ` — ${payNote.trim()}` : ""}`;
     }
 
     const { error } = await supabase.from("bookings").update(update as never).eq("id", payTarget.id);
@@ -193,6 +195,53 @@ const PendingCashPayments = ({ onBack }: Props) => {
         : "Student is now confirmed on the roster.",
     });
     load();
+  };
+
+  // Email the student their personal pay-by-card link (same page as the one in
+  // their cash-hold email). Paying it confirms THIS registration and puts them
+  // on the roster automatically.
+  const [sendingLinkId, setSendingLinkId] = useState<string | null>(null);
+  const sendPayLink = async (b: Booking) => {
+    setSendingLinkId(b.id);
+    try {
+      const token = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
+      const { error: tokErr } = await supabase.from("booking_form_tokens").insert({
+        booking_id: b.id,
+        token,
+        created_by: user?.id ?? null,
+      } as never);
+      if (tokErr) throw tokErr;
+      const sched = b.schedule_id ? scheduleById[b.schedule_id] : undefined;
+      const guardianEmail = (b.guardian_email || "").trim();
+      const { error } = await supabase.functions.invoke("send-auto-email", {
+        body: {
+          trigger_event: "cash_payment_hold",
+          recipientEmail: b.email,
+          location: b.location,
+          groupName: sched?.group_name ?? null,
+          course: b.rider_track === "1dpc" ? "1dpc" : b.course,
+          additionalRecipients:
+            guardianEmail && guardianEmail.toLowerCase() !== b.email.toLowerCase() ? [guardianEmail] : [],
+          variables: {
+            firstName: b.first_name,
+            lastName: b.last_name,
+            course: courseLabels[b.course] || b.course,
+            locationLabel: b.location_label,
+            scheduleDate: formatScheduleDate(b.schedule_date),
+            scheduleDetail: expandScheduleDetailWithDates(sched?.schedule ?? null, b.schedule_date),
+            fee: b.fee || "",
+            payLink: `${window.location.origin}/pay-registration?token=${token}`,
+            email: b.email,
+          },
+        },
+      });
+      if (error) throw error;
+      toast({ title: "Pay link sent", description: `When ${b.first_name} pays, they'll be added to the roster automatically.` });
+    } catch (e) {
+      toast({ title: "Could not send link", description: e instanceof Error ? e.message : "Please try again.", variant: "destructive" });
+    } finally {
+      setSendingLinkId(null);
+    }
   };
 
   const confirmRelease = async () => {
@@ -302,6 +351,18 @@ const PendingCashPayments = ({ onBack }: Props) => {
                       <div className="flex items-center gap-2">
                         <Button size="sm" onClick={() => openPay(b)}>
                           <CheckCircle2 className="w-4 h-4 mr-1" /> Mark Paid
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          title="Email the student a link to pay by card. Paying puts them on the roster automatically."
+                          disabled={sendingLinkId === b.id}
+                          onClick={() => sendPayLink(b)}
+                        >
+                          {sendingLinkId === b.id
+                            ? <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                            : <CreditCard className="w-4 h-4 mr-1" />}
+                          Send Pay Link
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => { setReleaseTarget(b); setReleaseReason(""); }}>
                           <Ban className="w-4 h-4" />

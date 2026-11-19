@@ -1373,6 +1373,14 @@ const AdminBookings = () => {
                 <tr key={b.id} className="border-b border-border/50 hover:bg-secondary/30">
                   <td className="p-3 font-medium text-foreground">
                     {b.first_name} {b.last_name}
+                    {b.archived && (
+                      <span
+                        className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded bg-destructive/20 text-destructive border border-destructive/40"
+                        title={b.archive_reason ? `Removed: ${b.archive_reason}` : "Removed registration"}
+                      >
+                        REMOVED
+                      </span>
+                    )}
                     {b.is_retest && <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded bg-accent/20 text-accent">Retest</span>}
                     {isMinorBooking(b.date_of_birth, b.schedule_date) && (
                       <span className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/40">MINOR</span>
@@ -1425,7 +1433,8 @@ const AdminBookings = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        title="Email the student a link to pay"
+                        title={b.archived ? "This registration was removed — send the link from the student's active registration" : "Email the student a link to pay"}
+                        disabled={!!b.archived}
                         onClick={() => openPayLink(b)}
                       >
                         <CreditCard className="w-4 h-4" />

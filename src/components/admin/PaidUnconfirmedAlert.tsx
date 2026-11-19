@@ -59,6 +59,10 @@ const PaidUnconfirmedAlert = () => {
         booking_status: "confirmed",
         pending_payment: false,
         marked_paid_at: new Date().toISOString(),
+        // A paid registration that was removed by mistake goes back on the roster.
+        ...(row.booking_status === "removed"
+          ? { archived: false, archive_reason: null, archived_at: null, archived_by: null }
+          : {}),
       })
       .eq("id", row.booking_id);
     setFixing(null);
