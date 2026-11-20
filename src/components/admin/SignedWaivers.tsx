@@ -8,6 +8,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, ShieldCheck, Download, Search, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { formatPST } from "@/lib/formatDate";
+import { fetchAllRows } from "@/lib/fetchAllRows";
+
+// List columns only: the drawn signatures and full document text are ~60 MB across
+// all waivers and are not shown here (the signed PDF is).
+const LIST_COLUMNS =
+  "id, document_type, document_version, document_hash, signer_first_name, signer_last_name, signer_email, is_minor, course, location_label, schedule_date, ip_address, pdf_path, signed_at";
+
+const loadAllWaivers = async (): Promise<SignedWaiver[]> => {
+  const [rows, pendingGuardian] = await Promise.all([
+    fetchAllRows<SignedWaiver>((from, to) =>
+      supabase.from("signed_waivers" as any).select(LIST_COLUMNS)
+        .order("signed_at", { ascending: false }).order("id").range(from, to) as any,
+    ),
+    fetchAllRows<{ id: string }>((from, to) =>
+      supabase.from("signed_waivers" as any).select("id")
+        .eq("is_minor", true).is("guardian_signature_drawn", null).order("id").range(from, to) as any,
+    ),
+  ]);
+  const pending = new Set(pendingGuardian.map((r) => r.id));
+  return rows.map((r) => ({ ...r, guardian_pending: pending.has(r.id) }));
+};
 
 interface SignedWaiver {
   id: string;
@@ -17,24 +38,14 @@ interface SignedWaiver {
   signer_first_name: string;
   signer_last_name: string;
   signer_email: string;
-  signer_phone: string | null;
-  date_of_birth: string | null;
-  license_number: string | null;
-  license_state: string | null;
   is_minor: boolean;
-  guardian_name: string | null;
-  guardian_relationship: string | null;
-  signature_typed: string;
-  signature_drawn: string;
-  guardian_signature_drawn: string | null;
+  guardian_pending?: boolean;
   course: string | null;
   location_label: string | null;
   schedule_date: string | null;
   ip_address: string | null;
-  user_agent: string | null;
   pdf_path: string | null;
   signed_at: string;
-  consent_acknowledgments: any;
 }
 
 const SignedWaivers = () => {
@@ -53,8 +64,11 @@ const SignedWaivers = () => {
   const [file, setFile] = useState<File | null>(null);
 
   const reload = async () => {
-    const { data } = await supabase.from("signed_waivers" as any).select("*").order("signed_at", { ascending: false });
-    setRows((data as any[]) || []);
+    try {
+      setRows(await loadAllWaivers());
+    } catch (e) {
+      toast({ title: "Failed to load waivers", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+    }
   };
 
   const submitUpload = async () => {
@@ -128,15 +142,7 @@ const SignedWaivers = () => {
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
-        .from("signed_waivers" as any)
-        .select("*")
-        .order("signed_at", { ascending: false });
-      if (error) {
-        toast({ title: "Failed to load waivers", description: error.message, variant: "destructive" });
-      } else {
-        setRows((data as any[]) || []);
-      }
+      await reload();
       setLoading(false);
     })();
   }, []);
@@ -233,7 +239,7 @@ const SignedWaivers = () => {
                   <div className="font-medium flex items-center flex-wrap gap-1">
                     <span>{w.signer_first_name} {w.signer_last_name}</span>
                     {w.is_minor && <span className="text-xs text-accent">(minor)</span>}
-                    {w.is_minor && !w.guardian_signature_drawn && (w.document_type === "cmsp_waiver" || w.document_type === "cmsp_model_release") && (
+                    {w.is_minor && w.guardian_pending && (w.document_type === "cmsp_waiver" || w.document_type === "cmsp_model_release") && (
                       <span className="inline-flex items-center rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-500 ring-1 ring-inset ring-amber-500/30">
                         Pending Guardian Signature
                       </span>

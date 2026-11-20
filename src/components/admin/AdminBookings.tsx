@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchAllRows } from "@/lib/fetchAllRows";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -171,7 +172,14 @@ const AdminBookings = () => {
   const fetchData = async () => {
     const today = new Date().toISOString().split("T")[0];
     const [bookRes, schedRes, refRes] = await Promise.all([
-      supabase.from("bookings").select("*").eq("pending_payment", false).order("created_at", { ascending: false }).limit(200),
+      // Load every registration (not just the newest), so past and rescheduled students stay searchable.
+      fetchAllRows<Booking>((from, to) =>
+        supabase.from("bookings").select("*").eq("pending_payment", false)
+          .order("created_at", { ascending: false }).order("id").range(from, to) as any,
+      ).then((data) => ({ data })).catch((e) => {
+        toast({ title: "Could not load bookings", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+        return { data: null as Booking[] | null };
+      }),
       supabase.from("schedules").select("*").gte("date", today).order("date"),
       supabase.from("referral_sources").select("name").eq("is_active", true).order("sort_order").order("name"),
     ]);
